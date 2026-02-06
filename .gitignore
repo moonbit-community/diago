@@ -9,6 +9,10 @@ TODO.md
 AGENTS.md
 CLAUDE.md
 _build/
+dagre-reference/
 examples/diago-output/*.svg
 examples/diago-output/*.routes.diff
 examples/diago-output/*.boxes.diff
+examples/diago-dagre-output/*.svg
+examples/diago-dagre-output/*.routes.diff
+examples/diago-dagre-output/*.boxes.diff

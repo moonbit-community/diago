@@ -39,10 +39,26 @@ fn compile(source : String) -> Result[String, String] {
 }
 
 ///|
-/// Compile diago source to a diagram (graph input + layout outputs)
-fn compile_to_diagram(
+/// Compile diago source to SVG using Dagre engine
+fn compile_dagre(source : String) -> Result[String, String] {
+  match compile_to_diagram_dagre(source, @engine_api.Direction::Down) {
+    Ok(diagram) => {
+      let render_config = @renderer_svg.SvgConfig::new()
+      try @renderer_svg.render(diagram, render_config) catch {
+        e => Err(e.to_string())
+      } noraise {
+        v => Ok(v)
+      }
+    }
+    Err(e) => Err(e)
+  }
+}
+
+///|
+fn[Engine : @engine_api.LayoutEngine] compile_to_diagram_with_engine(
   source : String,
   direction : @engine_api.Direction,
+  engine : Engine,
 ) -> Result[@diagram.Diagram, String] {
   let (ast, errors) = @parser.parse(source)
   if not(errors.is_empty()) {
@@ -54,14 +70,36 @@ fn compile_to_diagram(
   }
   let config = @engine_api.LayoutConfig::new()
   let laid_out_graph = @engine_api.layout_with_engine(
-    @engine_elk.ElkEngine::new(),
-    graph_input,
-    config,
-    direction,
+    engine, graph_input, config, direction,
   ) catch {
     e => return Err("Layout error: \{e}")
   }
   Ok(@diagram.from_graph(laid_out_graph, None))
+}
+
+///|
+/// Compile diago source to a diagram (graph input + layout outputs)
+fn compile_to_diagram(
+  source : String,
+  direction : @engine_api.Direction,
+) -> Result[@diagram.Diagram, String] {
+  compile_to_diagram_with_engine(
+    source,
+    direction,
+    @engine_elk.ElkEngine::new(),
+  )
+}
+
+///|
+fn compile_to_diagram_dagre(
+  source : String,
+  direction : @engine_api.Direction,
+) -> Result[@diagram.Diagram, String] {
+  compile_to_diagram_with_engine(
+    source,
+    direction,
+    @engine_dagre.DagreEngine::new(),
+  )
 }
 
 ///|

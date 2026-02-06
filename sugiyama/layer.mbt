@@ -42,9 +42,10 @@ pub fn assign_layers(
   let adj : Map[String, Array[String]] = {}
   let pred : Map[String, Array[String]] = {}
   let all_nodes : Array[String] = []
+  let seen : Map[String, Bool] = {}
   // Collect all nodes
   for obj in graph.objects {
-    collect_all_nodes(graph, obj, all_nodes)
+    collect_all_nodes(graph, obj, all_nodes, seen)
   }
   // Initialize adjacency lists
   for node in all_nodes {
@@ -77,10 +78,16 @@ fn collect_all_nodes(
   graph : @graph.GraphInput,
   obj : @graph.ObjectInput,
   nodes : Array[String],
+  seen : Map[String, Bool],
 ) -> Unit {
+  match seen.get(obj.id) {
+    Some(true) => return
+    _ => ()
+  }
+  seen[obj.id] = true
   nodes.push(obj.id)
   for child in graph.children_of(obj) {
-    collect_all_nodes(graph, child, nodes)
+    collect_all_nodes(graph, child, nodes, seen)
   }
 }
 
