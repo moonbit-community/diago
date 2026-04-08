@@ -29,7 +29,7 @@ struct Lexer {
 pub struct LexError {
   message : String
   range : Range
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Create a new lexer for the given source (in-memory, no path)

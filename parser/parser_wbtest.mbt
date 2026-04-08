@@ -16,54 +16,54 @@
 test "parse empty string" {
   let (ast, errors) = parse("")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 0)
+  @debug.assert_eq(ast.nodes.length(), 0)
 }
 
 ///|
 test "parse simple key" {
   let (ast, errors) = parse("x")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["x"])
+  @debug.assert_eq(kp.to_strings(), ["x"])
 }
 
 ///|
 test "parse key with value" {
   let (ast, errors) = parse("x: hello")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["x"])
+  @debug.assert_eq(kp.to_strings(), ["x"])
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "hello")
+  @debug.assert_eq(sv.content(), "hello")
 }
 
 ///|
 test "parse nested key path" {
   let (ast, errors) = parse("container.child.item")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["container", "child", "item"])
+  @debug.assert_eq(kp.to_strings(), ["container", "child", "item"])
 }
 
 ///|
 test "parse_key_path parses quoted board paths" {
   let result = parse_key_path("layers.\"cat.go\".'step 1'")
   guard result is Ok(key_path) else { fail("expected key path") }
-  assert_eq(key_path.to_strings(), ["layers", "cat.go", "step 1"])
+  @debug.assert_eq(key_path.to_strings(), ["layers", "cat.go", "step 1"])
 }
 
 ///|
@@ -79,32 +79,32 @@ test "parse_key_path rejects trailing tokens" {
 test "parse simple edge" {
   let (ast, errors) = parse("a -> b")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src.to_strings(), ["a"])
-  assert_eq(edge.dst.to_strings(), ["b"])
-  assert_eq(edge.src_arrow, "")
-  assert_eq(edge.dst_arrow, ">")
+  @debug.assert_eq(edge.src.to_strings(), ["a"])
+  @debug.assert_eq(edge.dst.to_strings(), ["b"])
+  @debug.assert_eq(edge.src_arrow, "")
+  @debug.assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
 test "parse compact edge without spaces" {
   let (ast, errors) = parse("A->B")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src.to_strings(), ["A"])
-  assert_eq(edge.dst.to_strings(), ["B"])
-  assert_eq(edge.src_arrow, "")
-  assert_eq(edge.dst_arrow, ">")
+  @debug.assert_eq(edge.src.to_strings(), ["A"])
+  @debug.assert_eq(edge.dst.to_strings(), ["B"])
+  @debug.assert_eq(edge.src_arrow, "")
+  @debug.assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -114,10 +114,10 @@ test "parse reverse edge" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src_arrow, "<")
-  assert_eq(edge.dst_arrow, "")
+  @debug.assert_eq(edge.src_arrow, "<")
+  @debug.assert_eq(edge.dst_arrow, "")
 }
 
 ///|
@@ -127,10 +127,10 @@ test "parse bidirectional edge" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src_arrow, "<")
-  assert_eq(edge.dst_arrow, ">")
+  @debug.assert_eq(edge.src_arrow, "<")
+  @debug.assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -140,11 +140,11 @@ test "parse edge chain" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 2)
-  assert_eq(key.edges[0].src.to_strings(), ["a"])
-  assert_eq(key.edges[0].dst.to_strings(), ["b"])
-  assert_eq(key.edges[1].src.to_strings(), ["b"])
-  assert_eq(key.edges[1].dst.to_strings(), ["c"])
+  @debug.assert_eq(key.edges.length(), 2)
+  @debug.assert_eq(key.edges[0].src.to_strings(), ["a"])
+  @debug.assert_eq(key.edges[0].dst.to_strings(), ["b"])
+  @debug.assert_eq(key.edges[1].src.to_strings(), ["b"])
+  @debug.assert_eq(key.edges[1].dst.to_strings(), ["c"])
 }
 
 ///|
@@ -154,11 +154,11 @@ test "parse edge with label" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "connection")
+  @debug.assert_eq(sv.content(), "connection")
 }
 
 ///|
@@ -171,7 +171,7 @@ test "parse double quoted string decodes escapes" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "just\na\nlong\nnote\nhere")
+  @debug.assert_eq(sv.content(), "just\na\nlong\nnote\nhere")
 }
 
 ///|
@@ -184,7 +184,7 @@ test "parse double quoted string keeps escaped dollar literal" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "price: $5")
+  @debug.assert_eq(sv.content(), "price: $5")
 }
 
 ///|
@@ -197,7 +197,7 @@ test "parse block" {
   guard key.value is Some(@ast.Value::Map(inner)) else {
     fail("expected Map value")
   }
-  assert_eq(inner.nodes.length(), 1)
+  @debug.assert_eq(inner.nodes.length(), 1)
 }
 
 ///|
@@ -210,7 +210,7 @@ test "parse number value" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::Number(_, n))) else {
     fail("expected number value")
   }
-  assert_eq(n, "42")
+  @debug.assert_eq(n, "42")
 }
 
 ///|
@@ -261,7 +261,7 @@ test "parse single quoted string" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "hello world")
+  @debug.assert_eq(sv.content(), "hello world")
 }
 
 ///|
@@ -274,7 +274,7 @@ test "parse double quoted string" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "hello world")
+  @debug.assert_eq(sv.content(), "hello world")
 }
 
 ///|
@@ -287,7 +287,7 @@ test "parse array" {
   guard key.value is Some(@ast.Value::Array(arr)) else {
     fail("expected array value")
   }
-  assert_eq(arr.nodes.length(), 3)
+  @debug.assert_eq(arr.nodes.length(), 3)
 }
 
 ///|
@@ -303,9 +303,9 @@ test "parse block string |md" {
     fail("expected string scalar")
   }
   guard sv is @ast.StringValue::Block(bs) else { fail("expected block") }
-  assert_eq(bs.quote, "")
-  assert_eq(bs.tag, "md")
-  assert_eq(bs.value, "hello")
+  @debug.assert_eq(bs.quote, "")
+  @debug.assert_eq(bs.tag, "md")
+  @debug.assert_eq(bs.value, "hello")
 }
 
 ///|
@@ -321,9 +321,9 @@ test "parse block string defaults tag to md" {
     fail("expected string scalar")
   }
   guard sv is @ast.StringValue::Block(bs) else { fail("expected block") }
-  assert_eq(bs.quote, "")
-  assert_eq(bs.tag, "md")
-  assert_eq(bs.value, "hello")
+  @debug.assert_eq(bs.quote, "")
+  @debug.assert_eq(bs.tag, "md")
+  @debug.assert_eq(bs.value, "hello")
 }
 
 ///|
@@ -339,9 +339,9 @@ test "parse block string with quote (||md ... ||)" {
     fail("expected string scalar")
   }
   guard sv is @ast.StringValue::Block(bs) else { fail("expected block") }
-  assert_eq(bs.quote, "|")
-  assert_eq(bs.tag, "md")
-  assert_eq(bs.value, "a | b")
+  @debug.assert_eq(bs.quote, "|")
+  @debug.assert_eq(bs.tag, "md")
+  @debug.assert_eq(bs.value, "a | b")
 }
 
 ///|
@@ -351,16 +351,16 @@ test "parse triple-quote block comment" {
     #|x
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 2)
+  @debug.assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is @ast.MapNode::BlockComment(_, text) else {
     fail("expected block comment node")
   }
-  assert_eq(text, "hi")
+  @debug.assert_eq(text, "hi")
   guard ast.nodes[1] is @ast.MapNode::Key(key) else {
     fail("expected key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["x"])
+  @debug.assert_eq(kp.to_strings(), ["x"])
 }
 
 ///|
@@ -371,18 +371,18 @@ test "parse multiple keys" {
     #|z: 3
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 3)
+  @debug.assert_eq(ast.nodes.length(), 3)
 }
 
 ///|
 test "parse comment" {
   let (ast, errors) = parse("# this is a comment")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Comment(_, text) else {
     fail("expected comment node")
   }
-  assert_eq(text, "this is a comment")
+  @debug.assert_eq(text, "this is a comment")
 }
 
 ///|
@@ -393,7 +393,7 @@ test "parse edge index" {
     fail("expected Key node")
   }
   guard key.edge_index is Some(idx) else { fail("expected edge index") }
-  assert_eq(idx.index, Some(0))
+  @debug.assert_eq(idx.index, Some(0))
   assert_false(idx.glob)
 }
 
@@ -416,7 +416,7 @@ test "parse edge with property" {
     fail("expected Key node")
   }
   guard key.edge_key is Some(ek) else { fail("expected edge key") }
-  assert_eq(ek.to_strings(), ["style", "stroke"])
+  @debug.assert_eq(ek.to_strings(), ["style", "stroke"])
 }
 
 ///|
@@ -427,9 +427,9 @@ test "parse spread import with pre path" {
     fail("expected import node")
   }
   assert_true(imp.spread)
-  assert_eq(imp.pre, "../")
-  assert_eq(imp.path.length(), 1)
-  assert_eq(imp.path[0].content(), "file")
+  @debug.assert_eq(imp.pre, "../")
+  @debug.assert_eq(imp.path.length(), 1)
+  @debug.assert_eq(imp.path[0].content(), "file")
 }
 
 ///|
@@ -440,9 +440,9 @@ test "parse import strips the diagram extension for unquoted path" {
   guard key.value is Some(@ast.Value::Import(imp)) else {
     fail("expected import value")
   }
-  assert_eq(imp.pre, "")
-  assert_eq(imp.path.length(), 1)
-  assert_eq(imp.path[0].content(), "file")
+  @debug.assert_eq(imp.pre, "")
+  @debug.assert_eq(imp.path.length(), 1)
+  @debug.assert_eq(imp.path[0].content(), "file")
 }
 
 ///|
@@ -452,9 +452,9 @@ test "parse import keeps the quoted extension segment" {
   guard ast.nodes[0] is @ast.MapNode::Import(imp) else {
     fail("expected import")
   }
-  assert_eq(imp.path.length(), 2)
-  assert_eq(imp.path[0].content(), "file")
-  assert_eq(imp.path[1].content(), "d2")
+  @debug.assert_eq(imp.path.length(), 2)
+  @debug.assert_eq(imp.path[0].content(), "file")
+  @debug.assert_eq(imp.path[1].content(), "d2")
 }
 
 ///|
@@ -467,12 +467,14 @@ test "parse edge line continuation with escaped newline" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src.to_strings(), ["super long shape id here"])
-  assert_eq(edge.dst.to_strings(), ["super long shape id even longer here"])
-  assert_eq(edge.src_arrow, "")
-  assert_eq(edge.dst_arrow, ">")
+  @debug.assert_eq(edge.src.to_strings(), ["super long shape id here"])
+  @debug.assert_eq(edge.dst.to_strings(), [
+    "super long shape id even longer here",
+  ])
+  @debug.assert_eq(edge.src_arrow, "")
+  @debug.assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -482,12 +484,12 @@ test "parse less-than-edge compatibility (#955)" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src.to_strings(), ["x"])
-  assert_eq(edge.src_arrow, "<")
-  assert_eq(edge.dst_arrow, "")
-  assert_eq(edge.dst.to_strings(), ["= y"])
+  @debug.assert_eq(edge.src.to_strings(), ["x"])
+  @debug.assert_eq(edge.src_arrow, "<")
+  @debug.assert_eq(edge.dst_arrow, "")
+  @debug.assert_eq(edge.dst.to_strings(), ["= y"])
 }
 
 ///|
@@ -537,12 +539,12 @@ test "parse not ampersand filter" {
 test "parse key with spaces and apostrophe" {
   let (ast, errors) = parse("i'm a shape")
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 1)
+  @debug.assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected Key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["i'm a shape"])
+  @debug.assert_eq(kp.to_strings(), ["i'm a shape"])
 }
 
 ///|
@@ -555,7 +557,7 @@ test "parse scalar with comma punctuation" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "To err is human, to moo bovine!")
+  @debug.assert_eq(sv.content(), "To err is human, to moo bovine!")
 }
 
 ///|
@@ -575,8 +577,8 @@ test "parse star block scalar value" {
   guard label is @ast.Value::Scalar(@ast.Scalar::String(sv)) else {
     fail("expected scalar label")
   }
-  assert_eq(sv.content(), "*")
-  assert_eq(props.nodes.length(), 1)
+  @debug.assert_eq(sv.content(), "*")
+  @debug.assert_eq(props.nodes.length(), 1)
 }
 
 ///|
@@ -589,7 +591,7 @@ test "parse scalar starting with left parenthesis" {
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected string value")
   }
-  assert_eq(sv.content(), "(s string, eof bool)")
+  @debug.assert_eq(sv.content(), "(s string, eof bool)")
 }
 
 ///|
@@ -600,7 +602,7 @@ test "parse key with trailing dot without error" {
     fail("expected Key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["golf as if they were games"])
+  @debug.assert_eq(kp.to_strings(), ["golf as if they were games"])
 }
 
 ///|
@@ -613,12 +615,14 @@ test "parse edge line continuation compact arrow form" {
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected key node")
   }
-  assert_eq(key.edges.length(), 1)
+  @debug.assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  assert_eq(edge.src.to_strings(), ["super long shape id here"])
-  assert_eq(edge.dst.to_strings(), ["super long shape id even longer here"])
-  assert_eq(edge.src_arrow, "")
-  assert_eq(edge.dst_arrow, ">")
+  @debug.assert_eq(edge.src.to_strings(), ["super long shape id here"])
+  @debug.assert_eq(edge.dst.to_strings(), [
+    "super long shape id even longer here",
+  ])
+  @debug.assert_eq(edge.src_arrow, "")
+  @debug.assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -634,27 +638,27 @@ test "parse field line continuation with escaped newline" {
     #|  ok does it work: hopefully
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 2)
+  @debug.assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is @ast.MapNode::Key(first) else {
     fail("expected first key node")
   }
   guard first.key is Some(first_key) else { fail("expected first key path") }
-  assert_eq(first_key.to_strings(), ["meow ok super"])
+  @debug.assert_eq(first_key.to_strings(), ["meow ok super"])
   guard first.value
     is Some(@ast.Value::Scalar(@ast.Scalar::String(first_value))) else {
     fail("expected first scalar value")
   }
-  assert_eq(first_value.content(), "yes wow so cool")
+  @debug.assert_eq(first_value.content(), "yes wow so cool")
   guard ast.nodes[1] is @ast.MapNode::Key(second) else {
     fail("expected second key node")
   }
   guard second.key is Some(second_key) else { fail("expected second key path") }
-  assert_eq(second_key.to_strings(), ["xd ok does it work"])
+  @debug.assert_eq(second_key.to_strings(), ["xd ok does it work"])
   guard second.value
     is Some(@ast.Value::Scalar(@ast.Scalar::String(second_value))) else {
     fail("expected second scalar value")
   }
-  assert_eq(second_value.content(), "hopefully")
+  @debug.assert_eq(second_value.content(), "hopefully")
 }
 
 ///|
@@ -664,23 +668,23 @@ test "parse one-line block string" {
     #|"""   hello  """
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 2)
+  @debug.assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected key node")
   }
   guard key.key is Some(kp) else { fail("expected key path") }
-  assert_eq(kp.to_strings(), ["a"])
+  @debug.assert_eq(kp.to_strings(), ["a"])
   guard key.value is Some(@ast.Value::Scalar(@ast.Scalar::String(sv))) else {
     fail("expected block string scalar")
   }
   guard sv is @ast.StringValue::Block(bs) else { fail("expected block string") }
-  assert_eq(bs.quote, "")
-  assert_eq(bs.tag, "md")
-  assert_eq(bs.value, "hello")
+  @debug.assert_eq(bs.quote, "")
+  @debug.assert_eq(bs.tag, "md")
+  @debug.assert_eq(bs.value, "hello")
   guard ast.nodes[1] is @ast.MapNode::BlockComment(_, text) else {
     fail("expected trailing block comment")
   }
-  assert_eq(text, "hello")
+  @debug.assert_eq(text, "hello")
 }
 
 ///|
@@ -695,7 +699,7 @@ test "parse block string with embedded delimiters" {
     #|"""
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  assert_eq(ast.nodes.length(), 2)
+  @debug.assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is @ast.MapNode::Key(key) else {
     fail("expected key node")
   }
@@ -703,12 +707,12 @@ test "parse block string with embedded delimiters" {
     fail("expected scalar value")
   }
   guard sv is @ast.StringValue::Block(bs) else { fail("expected block string") }
-  assert_eq(bs.quote, "|")
-  assert_eq(bs.value, "|pipe|")
+  @debug.assert_eq(bs.quote, "|")
+  @debug.assert_eq(bs.value, "|pipe|")
   guard ast.nodes[1] is @ast.MapNode::BlockComment(_, text) else {
     fail("expected trailing block comment")
   }
-  assert_eq(text, "\nb: \"\"")
+  @debug.assert_eq(text, "\nb: \"\"")
 }
 
 ///|

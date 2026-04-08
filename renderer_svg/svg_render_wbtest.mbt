@@ -84,9 +84,9 @@ test "plain object label layout uses explicit label position" {
   }
   guard shape.box is Some(box) else { fail("expected shape box") }
   let (x, y, width) = plain_object_label_layout(shape, box, 20.0, 10.0)
-  assert_eq(x, 105.0)
-  assert_eq(y, 65.0)
-  assert_eq(width, 20.0)
+  @debug.assert_eq(x, 105.0)
+  @debug.assert_eq(y, 65.0)
+  @debug.assert_eq(width, 20.0)
 }
 
 ///|
@@ -130,7 +130,7 @@ test "compute graph bounds includes outside icon and positioned tooltip extents"
     @themes.get_theme(0),
   )
   assert_true(bounds.0 < 100.0)
-  assert_eq(bounds.1, 79.0)
+  @debug.assert_eq(bounds.1, 79.0)
   assert_true(bounds.2 >= 217.0)
   assert_true(bounds.3 > 121.0)
 }

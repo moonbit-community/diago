@@ -23,7 +23,7 @@
 ///|
 pub struct ElkEngine {
   _marker : Unit
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn ElkEngine::new() -> ElkEngine {

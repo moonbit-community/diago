@@ -28,7 +28,7 @@ pub struct Scalar {
   ast : @ast.Node?
   source_path : String?
   path : NodePath?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Types of scalar values
@@ -37,7 +37,7 @@ pub(all) enum ScalarValue {
   Bool(String)
   Number(String)
   String(@ast.StringValue)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// An IR Map containing fields and edges
@@ -48,7 +48,7 @@ pub struct Map {
   import_ast : @ast.Node?
   source_path : String?
   path : NodePath?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// A field in the IR map
@@ -60,14 +60,14 @@ pub struct Field {
   references : Array[FieldReference]
   import_ast : @ast.Node?
   path : NodePath?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Composite values (Array or Map)
 pub(all) enum Composite {
   Array(IRArray)
   Map(Map)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// An array of values
@@ -76,7 +76,7 @@ pub struct IRArray {
   ast : @ast.Node?
   source_path : String?
   path : NodePath?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Value types in IR
@@ -84,7 +84,7 @@ pub(all) enum Value {
   Scalar(Scalar)
   Array(IRArray)
   Map(Map)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// An edge in the IR
@@ -95,7 +95,7 @@ pub struct Edge {
   references : Array[EdgeReference]
   import_ast : @ast.Node?
   path : NodePath?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Unique identifier for an edge
@@ -108,7 +108,7 @@ pub struct EdgeID {
   dst_arrow : Bool
   index : Int?
   glob : Bool
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Stable path to an IR node inside a compiled map.
@@ -118,13 +118,13 @@ pub(all) enum NodePathSegment {
   PrimaryStep
   CompositeStep
   ArrayItemStep(Int)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Stable path to an IR node inside a compiled map.
 pub struct NodePath {
   segments : Array[NodePathSegment]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Reference context for a field or edge reference.
@@ -133,7 +133,7 @@ pub struct RefContext {
   key : @ast.Key?
   scope : @ast.Map?
   source_path : String?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Reference to a field from the AST
@@ -147,7 +147,7 @@ pub struct FieldReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Reference to an edge from the AST
@@ -159,14 +159,14 @@ pub struct EdgeReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Boxed reference for generic traversal.
 pub(all) enum Reference {
   FieldRef(FieldReference)
   EdgeRef(EdgeReference)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Boxed IR node for generic traversal.
@@ -178,7 +178,7 @@ pub(all) enum Node {
   Map(Map)
   Composite(Composite)
   Value(Value)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn Node::node_type(self : Node) -> String {

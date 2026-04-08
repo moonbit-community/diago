@@ -199,6 +199,6 @@ test "path builder arc" {
 
 ///|
 test "escape_xml" {
-  assert_eq(escape_xml("<>&\"'"), "&lt;&gt;&amp;&quot;&#39;")
-  assert_eq(escape_xml("normal text"), "normal text")
+  @debug.assert_eq(escape_xml("<>&\"'"), "&lt;&gt;&amp;&quot;&#39;")
+  @debug.assert_eq(escape_xml("normal text"), "normal text")
 }

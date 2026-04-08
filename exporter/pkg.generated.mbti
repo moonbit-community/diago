@@ -4,6 +4,7 @@ package "Milky2018/diago/exporter"
 import {
   "Milky2018/diago/graph",
   "Milky2018/diago/ir",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -17,8 +18,7 @@ pub(all) suberror GraphCompileError {
   InvalidStyle(String)
   MissingObject(String)
   Semantic(String)
-}
-pub impl Eq for GraphCompileError
+} derive(Eq, @debug.Debug)
 pub impl Show for GraphCompileError
 
 // Types and methods

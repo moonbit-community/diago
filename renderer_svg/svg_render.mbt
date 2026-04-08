@@ -65,7 +65,7 @@ pub struct SvgConfig {
   salt : String?
   /// Omit version metadata on root element.
   omit_version : Bool
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn SvgConfig::new() -> SvgConfig {

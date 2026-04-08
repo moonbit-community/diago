@@ -3,6 +3,7 @@ package "Milky2018/diago/render_api"
 
 import {
   "Milky2018/diago/diagram",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -17,8 +18,7 @@ pub(all) suberror RenderError {
   UnsupportedFormat(String)
   RenderFailed(String)
   InvalidDiagram(String)
-}
-pub impl Eq for RenderError
+} derive(Eq, @debug.Debug)
 pub impl Show for RenderError
 
 // Types and methods
@@ -28,11 +28,10 @@ pub struct RenderConfig {
   font_size : Int
   background : String
   dark_mode : Bool
-}
+} derive(@debug.Debug)
 pub fn RenderConfig::dark() -> Self
 pub fn RenderConfig::new() -> Self
 pub fn RenderConfig::with_padding(Double) -> Self
-pub impl Show for RenderConfig
 
 // Type aliases
 

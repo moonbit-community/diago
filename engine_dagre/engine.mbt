@@ -20,7 +20,7 @@
 ///|
 pub struct DagreEngine {
   _marker : Unit
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn DagreEngine::new() -> DagreEngine {

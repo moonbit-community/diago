@@ -4,6 +4,7 @@ package "Milky2018/diago/renderer_unicode"
 import {
   "Milky2018/diago/diagram",
   "Milky2018/diago/render_api",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -14,10 +15,9 @@ pub fn render(@diagram.Diagram) -> String
 // Types and methods
 pub struct UnicodeRenderer {
   _marker : Unit
-}
+} derive(@debug.Debug)
 pub fn UnicodeRenderer::new() -> Self
 pub impl @render_api.Renderer for UnicodeRenderer
-pub impl Show for UnicodeRenderer
 
 // Type aliases
 

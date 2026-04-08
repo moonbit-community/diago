@@ -20,7 +20,7 @@ test "render output plan writes svg before surfacing bundling warning" {
   }
   match render_output_write_plan(OutputMode::Svg, compiled) {
     RenderOutputWritePlan::WriteThenWarn(warning) =>
-      assert_eq(warning, "bundle warning")
+      @debug.assert_eq(warning, "bundle warning")
     _ => fail("expected svg warning plan to write before returning warning")
   }
 }
@@ -33,7 +33,7 @@ test "render output plan keeps warnings write-free for non-svg outputs" {
   }
   match render_output_write_plan(OutputMode::Unicode, compiled) {
     RenderOutputWritePlan::WarnOnly(warning) =>
-      assert_eq(warning, "bundle warning")
+      @debug.assert_eq(warning, "bundle warning")
     _ => fail("expected non-svg warning plan to skip writing output")
   }
 }

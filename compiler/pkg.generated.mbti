@@ -7,6 +7,7 @@ import {
   "Milky2018/diago/graph",
   "Milky2018/diago/ir",
   "Milky2018/diago/parser",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -25,9 +26,7 @@ pub(all) enum CompileError {
   IrError(String)
   GraphError(String)
   ConfigError(String)
-}
-pub impl Eq for CompileError
-pub impl Show for CompileError
+} derive(Eq, @debug.Debug)
 
 pub struct CompileResult {
   ir_map : @ir.Map

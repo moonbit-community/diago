@@ -27,7 +27,7 @@ pub(all) enum LegendPosition {
   BottomRight
   /// Legend is not displayed
   Hidden
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Parse legend position from string
@@ -70,7 +70,7 @@ pub(all) enum LegendEntry {
   CustomEntry(icon~ : String, label~ : String)
   /// A visual separator line
   Separator
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Create a shape legend entry
@@ -124,7 +124,7 @@ pub struct Legend {
   entry_gap : Double
   /// Size of shape icons in legend
   icon_size : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Create a new legend with default settings

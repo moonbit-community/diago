@@ -4,6 +4,7 @@ package "Milky2018/diago/layout_ascii"
 import {
   "Milky2018/diago/diagram",
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -17,9 +18,7 @@ pub enum ArrowDir {
   Down
   Left
   Right
-}
-pub impl Eq for ArrowDir
-pub impl Show for ArrowDir
+} derive(Eq, @debug.Debug)
 
 pub struct AsciiBox {
   id : String
@@ -31,8 +30,7 @@ pub struct AsciiBox {
   shape : String
   is_container : Bool
   children : Array[AsciiBox]
-}
-pub impl Show for AsciiBox
+} derive(@debug.Debug)
 
 pub struct AsciiLayoutConfig {
   min_box_width : Int
@@ -42,10 +40,9 @@ pub struct AsciiLayoutConfig {
   h_spacing : Int
   min_width : Int
   min_height : Int
-}
+} derive(@debug.Debug)
 pub fn AsciiLayoutConfig::from_parts(Int, Int, Int, Int, Int, Int, Int) -> Self
 pub fn AsciiLayoutConfig::new() -> Self
-pub impl Show for AsciiLayoutConfig
 
 pub struct AsciiPlan {
   canvas_width : Int
@@ -53,8 +50,7 @@ pub struct AsciiPlan {
   boxes : Array[AsciiBox]
   edges : Array[EdgePlan]
   legend : (@graph.LegendInput, LegendPlan)?
-}
-pub impl Show for AsciiPlan
+} derive(@debug.Debug)
 
 pub struct EdgePlan {
   index : Int
@@ -63,14 +59,12 @@ pub struct EdgePlan {
   arrow : (GridPoint, ArrowDir)?
   label : String
   label_pos : GridPoint?
-}
-pub impl Show for EdgePlan
+} derive(@debug.Debug)
 
 pub struct GridPoint {
   x : Int
   y : Int
-}
-pub impl Show for GridPoint
+} derive(@debug.Debug)
 
 pub struct LegendPlan {
   x : Int
@@ -80,8 +74,7 @@ pub struct LegendPlan {
   title : String?
   rows : Array[(Int, Int, String)]
   separators : Array[(Int, Int, Int)]
-}
-pub impl Show for LegendPlan
+} derive(@debug.Debug)
 
 // Type aliases
 

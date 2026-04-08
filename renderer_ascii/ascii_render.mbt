@@ -21,7 +21,7 @@ pub struct AsciiConfig {
   font_width : Double
   font_height : Double
   scale : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn AsciiConfig::new() -> AsciiConfig {

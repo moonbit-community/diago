@@ -41,7 +41,7 @@ pub(all) enum CompileError {
   IrError(String)
   GraphError(String)
   ConfigError(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub struct CompileResult {

@@ -38,7 +38,7 @@ pub struct AsciiLayoutConfig {
   h_spacing : Int
   min_width : Int
   min_height : Int
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn AsciiLayoutConfig::new() -> AsciiLayoutConfig {
@@ -88,13 +88,13 @@ pub struct AsciiBox {
   shape : String
   is_container : Bool
   children : Array[AsciiBox]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub struct GridPoint {
   x : Int
   y : Int
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub enum ArrowDir {
@@ -102,7 +102,7 @@ pub enum ArrowDir {
   Down
   Left
   Right
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub struct EdgePlan {
@@ -112,7 +112,7 @@ pub struct EdgePlan {
   arrow : (GridPoint, ArrowDir)?
   label : String
   label_pos : GridPoint?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub struct LegendPlan {
@@ -123,7 +123,7 @@ pub struct LegendPlan {
   title : String?
   rows : Array[(Int, Int, String)]
   separators : Array[(Int, Int, Int)]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub struct AsciiPlan {
@@ -132,7 +132,7 @@ pub struct AsciiPlan {
   boxes : Array[AsciiBox]
   edges : Array[EdgePlan]
   legend : (LegendInput, LegendPlan)?
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn get_short_id(id : String) -> String {

@@ -35,7 +35,7 @@ pub struct GraphInput {
   legend : LegendInput?
   is_folder_only : Bool
   data : Map[String, GraphDataValue]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn GraphInput::new(name : String) -> GraphInput {
@@ -249,7 +249,7 @@ pub fn syntax_path_last_display(id : String) -> String {
 pub struct LayerInput {
   name : String
   graph : GraphInput
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn LayerInput::new(name : String, graph : GraphInput) -> LayerInput {
@@ -260,7 +260,7 @@ pub fn LayerInput::new(name : String, graph : GraphInput) -> LayerInput {
 pub struct ScenarioInput {
   name : String
   graph : GraphInput
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn ScenarioInput::new(name : String, graph : GraphInput) -> ScenarioInput {
@@ -271,7 +271,7 @@ pub fn ScenarioInput::new(name : String, graph : GraphInput) -> ScenarioInput {
 pub struct StepInput {
   name : String
   graph : GraphInput
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn StepInput::new(name : String, graph : GraphInput) -> StepInput {
@@ -285,7 +285,7 @@ pub struct SequenceFragmentInput {
   start_index : Int
   end_index : Int
   operands : Array[FragmentOperandInput]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn SequenceFragmentInput::new(
@@ -301,7 +301,7 @@ pub fn SequenceFragmentInput::new(
 ///|
 pub struct FragmentOperandInput {
   condition : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn FragmentOperandInput::new(condition : String?) -> FragmentOperandInput {
@@ -400,7 +400,7 @@ pub struct ObjectInput {
   top : Int?
   left : Int?
   direction : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn ObjectInput::new(
@@ -567,7 +567,7 @@ pub struct EdgeInput {
   label_box : Box?
   src_column_index : Int?
   dst_column_index : Int?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn EdgeInput::new(
@@ -708,7 +708,7 @@ pub fn EdgeInput::get_label_box(self : EdgeInput) -> Box? {
 pub struct StyleValue {
   value : String
   range : @lexer.Range
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn StyleValue::new(value : String, range : @lexer.Range) -> StyleValue {
@@ -833,7 +833,7 @@ pub struct StyleInput {
   fill_pattern : StyleValue?
   sketch : StyleValue?
   curved : StyleValue?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn StyleInput::new() -> StyleInput {
@@ -928,7 +928,7 @@ pub enum LegendEntryInput {
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn LegendEntryInput::shape(
@@ -972,7 +972,7 @@ pub struct LegendInput {
   padding : Double
   entry_gap : Double
   icon_size : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn LegendInput::from_parts(

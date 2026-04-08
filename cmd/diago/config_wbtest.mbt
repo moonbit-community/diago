@@ -84,7 +84,7 @@ test "vars config layout-engine applies when cli layout is not explicit" {
     true,
     None,
   ).unwrap()
-  assert_eq(auto_svg, dagre_svg)
+  @debug.assert_eq(auto_svg, dagre_svg)
 }
 
 ///|
@@ -160,23 +160,26 @@ test "extract vars config into diagram config" {
   match diagram.config {
     None => fail("expected diagram config")
     Some(config) => {
-      assert_eq(config.sketch, Some(true))
-      assert_eq(config.theme_id, Some(4))
-      assert_eq(config.dark_theme_id, Some(200))
-      assert_eq(config.theme_overrides.unwrap().get("B1"), Some("red"))
-      assert_eq(config.dark_theme_overrides.unwrap().get("N1"), Some("white"))
-      assert_eq(config.pad, Some(16.0))
-      assert_eq(config.center, Some(true))
-      assert_eq(config.layout_engine, Some("dagre"))
-      assert_eq(config.scale, Some(1.5))
-      assert_eq(config.no_xml_tag, Some(true))
-      assert_eq(config.salt, Some("custom-salt"))
-      assert_eq(config.omit_version, Some(true))
-      assert_eq(
+      @debug.assert_eq(config.sketch, Some(true))
+      @debug.assert_eq(config.theme_id, Some(4))
+      @debug.assert_eq(config.dark_theme_id, Some(200))
+      @debug.assert_eq(config.theme_overrides.unwrap().get("B1"), Some("red"))
+      @debug.assert_eq(
+        config.dark_theme_overrides.unwrap().get("N1"),
+        Some("white"),
+      )
+      @debug.assert_eq(config.pad, Some(16.0))
+      @debug.assert_eq(config.center, Some(true))
+      @debug.assert_eq(config.layout_engine, Some("dagre"))
+      @debug.assert_eq(config.scale, Some(1.5))
+      @debug.assert_eq(config.no_xml_tag, Some(true))
+      @debug.assert_eq(config.salt, Some("custom-salt"))
+      @debug.assert_eq(config.omit_version, Some(true))
+      @debug.assert_eq(
         config.data["owner"],
         @diagram.ConfigDataValue::Text("platform"),
       )
-      assert_eq(
+      @debug.assert_eq(
         config.data["later"],
         @diagram.ConfigDataValue::StringArray(["1", "5", "2"]),
       )
@@ -350,7 +353,7 @@ test "vars config pad is applied to svg config padding" {
     None,
   ).unwrap()
   let svg_config = resolve_svg_config(None, diagram.config)
-  assert_eq(svg_config.padding, 16.0)
+  @debug.assert_eq(svg_config.padding, 16.0)
 }
 
 ///|
@@ -521,9 +524,9 @@ test "target selection matches the reference board-only vs board-with-children s
     false,
     Some(""),
   ).unwrap()
-  assert_eq(board_only.scenarios.length(), 0)
-  assert_eq(board_with_children.scenarios.length(), 1)
-  assert_eq(root_only.layers.length(), 0)
+  @debug.assert_eq(board_only.scenarios.length(), 0)
+  @debug.assert_eq(board_with_children.scenarios.length(), 1)
+  @debug.assert_eq(root_only.layers.length(), 0)
 }
 
 ///|
@@ -603,7 +606,7 @@ test "svg compile keeps output when local bundling reports an error" {
     bundle=false,
   ).unwrap()
   remove_config_test_file(ok_icon_path)
-  assert_eq(
+  @debug.assert_eq(
     compiled.warning,
     Some(
       "failed to bundle local images: [.diago_bundle_compile_partial_missing.svg]",
@@ -924,7 +927,7 @@ test "layout parser supports dagre elk railway" {
   guard parse_layout_engine("bad-layout") is None else {
     fail("unknown layout should fail")
   }
-  assert_eq(layout_engine_name(LayoutEngineChoice::Elk), "elk")
+  @debug.assert_eq(layout_engine_name(LayoutEngineChoice::Elk), "elk")
 }
 
 ///|
@@ -956,5 +959,5 @@ test "ascii and unicode output modes render different text charsets" {
 
 ///|
 test "basename helper resolves file name for dump output paths" {
-  assert_eq(basename_string("foo/bar/diagram.svg"), "diagram.svg")
+  @debug.assert_eq(basename_string("foo/bar/diagram.svg"), "diagram.svg")
 }

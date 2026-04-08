@@ -99,17 +99,17 @@ fn cleanup_file(path : String) -> Unit {
 ///|
 test "render default output path is input.svg" {
   let req = parse_render(["diago", "render", "demo.d2"], {})
-  assert_eq(req.input_path, Some("demo.d2"))
-  assert_eq(req.output_path, Some("demo.svg"))
-  assert_eq(req.output_mode, OutputMode::Svg)
+  @debug.assert_eq(req.input_path, Some("demo.d2"))
+  @debug.assert_eq(req.output_path, Some("demo.svg"))
+  @debug.assert_eq(req.output_mode, OutputMode::Svg)
 }
 
 ///|
 test "render stdin only with --stdin" {
   let req = parse_render(["diago", "render", "--stdin"], {})
   assert_true(req.from_stdin)
-  assert_eq(req.input_path, None)
-  assert_eq(req.output_path, None)
+  @debug.assert_eq(req.input_path, None)
+  @debug.assert_eq(req.output_path, None)
 }
 
 ///|
@@ -159,7 +159,7 @@ test "precedence: cli overrides env for layout" {
   let req = parse_render(["diago", "render", "demo.d2", "--layout", "dagre"], {
     "DIAGO_LAYOUT": "elk",
   })
-  assert_eq(req.layout_engine, LayoutEngineChoice::Dagre)
+  @debug.assert_eq(req.layout_engine, LayoutEngineChoice::Dagre)
   assert_true(req.layout_explicit)
 }
 
@@ -168,7 +168,7 @@ test "precedence: env overrides defaults for layout" {
   let req = parse_render(["diago", "render", "demo.d2"], {
     "DIAGO_LAYOUT": "elk",
   })
-  assert_eq(req.layout_engine, LayoutEngineChoice::Elk)
+  @debug.assert_eq(req.layout_engine, LayoutEngineChoice::Elk)
   assert_true(req.layout_explicit)
 }
 
@@ -178,14 +178,14 @@ test "render parses compatibility pad and center svg options" {
     ["diago", "render", "demo.d2", "--pad", "24", "--center"],
     {},
   )
-  assert_eq(req.pad, Some(24.0))
-  assert_eq(req.center, Some(true))
+  @debug.assert_eq(req.pad, Some(24.0))
+  @debug.assert_eq(req.center, Some(true))
 }
 
 ///|
 test "render parses compatibility sketch flag" {
   let req = parse_render(["diago", "render", "demo.d2", "--sketch"], {})
-  assert_eq(req.sketch, Some(true))
+  @debug.assert_eq(req.sketch, Some(true))
 }
 
 ///|
@@ -197,15 +197,18 @@ test "render parses typed theme override flags" {
     ],
     {},
   )
-  assert_eq(req.theme_overrides.unwrap().get("B1"), Some("red"))
-  assert_eq(req.theme_overrides.unwrap().get("N1"), Some("white"))
-  assert_eq(req.dark_theme_overrides.unwrap().get("AA4"), Some("#f0ff3a"))
+  @debug.assert_eq(req.theme_overrides.unwrap().get("B1"), Some("red"))
+  @debug.assert_eq(req.theme_overrides.unwrap().get("N1"), Some("white"))
+  @debug.assert_eq(
+    req.dark_theme_overrides.unwrap().get("AA4"),
+    Some("#f0ff3a"),
+  )
 }
 
 ///|
 test "only DIAGO_ env prefix is recognized" {
   let req = parse_render(["diago", "render", "demo.d2"], { "D2_LAYOUT": "elk" })
-  assert_eq(req.layout_engine, LayoutEngineChoice::Dagre)
+  @debug.assert_eq(req.layout_engine, LayoutEngineChoice::Dagre)
   assert_false(req.layout_explicit)
 }
 
@@ -342,7 +345,7 @@ test "fmt check reports unformatted files without writing" {
     Ok(_) => fail("expected check mode to report unformatted file")
     Err(msg) => assert_true(msg.contains("unformatted"))
   }
-  assert_eq(after, "a  ->  b\n")
+  @debug.assert_eq(after, "a  ->  b\n")
 }
 
 ///|

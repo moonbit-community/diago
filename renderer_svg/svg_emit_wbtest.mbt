@@ -19,7 +19,7 @@ test "reference legend corpus ignores custom entries" {
     0.0,
     0.0,
   )
-  assert_eq(d2_legend_corpus(legend), "LegendaryNodeEdge")
+  @debug.assert_eq(d2_legend_corpus(legend), "LegendaryNodeEdge")
 }
 
 ///|
@@ -34,7 +34,7 @@ test "reference legend corpus uses fallback title when empty" {
     0.0,
     0.0,
   )
-  assert_eq(d2_legend_corpus(legend), "LegendNode")
+  @debug.assert_eq(d2_legend_corpus(legend), "LegendNode")
 }
 
 ///|
@@ -92,11 +92,17 @@ test "diagram scope class follows diagram hash id instead of svg config font set
   }
   let salted = { ..font_variant, salt: Some("salt") }
 
-  assert_eq(diagram_scope_class(diagram, base), diagram.hash_id(None))
-  assert_eq(diagram_scope_class(diagram, font_variant), diagram.hash_id(None))
-  assert_eq(
+  @debug.assert_eq(diagram_scope_class(diagram, base), diagram.hash_id(None))
+  @debug.assert_eq(
+    diagram_scope_class(diagram, font_variant),
+    diagram.hash_id(None),
+  )
+  @debug.assert_eq(
     diagram_scope_class(diagram, base),
     diagram_scope_class(diagram, font_variant),
   )
-  assert_eq(diagram_scope_class(diagram, salted), diagram.hash_id(Some("salt")))
+  @debug.assert_eq(
+    diagram_scope_class(diagram, salted),
+    diagram.hash_id(Some("salt")),
+  )
 }

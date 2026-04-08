@@ -25,7 +25,7 @@
 pub struct TextDimensions {
   width : Double
   height : Double
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Text measurement result with line information
@@ -33,7 +33,27 @@ pub struct MeasuredText {
   dimensions : TextDimensions
   line_count : Int
   max_line_width : Double
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for TextDimensions with output(self, logger) {
+  logger.write_string("{width: ")
+  logger.write_object(self.width)
+  logger.write_string(", height: ")
+  logger.write_object(self.height)
+  logger.write_char('}')
+}
+
+///|
+pub impl Show for MeasuredText with output(self, logger) {
+  logger.write_string("{dimensions: ")
+  logger.write_object(self.dimensions)
+  logger.write_string(", line_count: ")
+  logger.write_object(self.line_count)
+  logger.write_string(", max_line_width: ")
+  logger.write_object(self.max_line_width)
+  logger.write_char('}')
+}
 
 ///|
 /// Reference CODE_LINE_HEIGHT constant.

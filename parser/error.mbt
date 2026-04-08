@@ -17,13 +17,27 @@
 pub struct ParseError {
   range : @lexer.Range
   message : String
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Collection of parse errors
 pub struct ParseErrors {
   errors : Array[ParseError]
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for ParseError with output(self, logger) {
+  logger.write_string(self.range.start.line.to_string())
+  logger.write_char(':')
+  logger.write_string(self.range.start.column.to_string())
+  logger.write_string(": ")
+  logger.write_string(self.message)
+}
+
+///|
+pub impl Show for ParseErrors with output(self, logger) {
+  logger.write_string(self.to_string())
+}
 
 ///|
 pub fn ParseErrors::new() -> ParseErrors {

@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Milky2018/diago/cmd/diago"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn command_exec(String) -> Int
 
@@ -13,17 +17,11 @@ pub fn sleep_ms(Int) -> Unit
 // Errors
 
 // Types and methods
-type DumpInputEngine
-pub impl Eq for DumpInputEngine
-pub impl Show for DumpInputEngine
+type DumpInputEngine derive(Eq, @debug.Debug)
 
-type LayoutEngineChoice
-pub impl Eq for LayoutEngineChoice
-pub impl Show for LayoutEngineChoice
+type LayoutEngineChoice derive(Eq, @debug.Debug)
 
-type OutputMode
-pub impl Eq for OutputMode
-pub impl Show for OutputMode
+type OutputMode derive(Eq, @debug.Debug)
 
 type RenderOutputWritePlan
 

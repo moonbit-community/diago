@@ -4,6 +4,7 @@ package "Milky2018/diago/ir"
 import {
   "Milky2018/diago/ast",
   "Milky2018/diago/lexer",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -30,17 +31,14 @@ pub(all) suberror CompileError {
   DuplicateField(String)
   InvalidSubstitution(String)
   ImportError(String)
-}
-pub impl Eq for CompileError
+} derive(Eq, @debug.Debug)
 pub impl Show for CompileError
 
 // Types and methods
 pub(all) enum Composite {
   Array(IRArray)
   Map(Map)
-}
-pub impl Eq for Composite
-pub impl Show for Composite
+} derive(Eq, @debug.Debug)
 
 pub struct Edge {
   id : EdgeID
@@ -49,7 +47,7 @@ pub struct Edge {
   references : Array[EdgeReference]
   import_ast : @ast.Node?
   path : NodePath?
-}
+} derive(Eq, @debug.Debug)
 pub fn Edge::ast(Self) -> @ast.Node?
 pub fn Edge::copy(Self) -> Self
 pub fn Edge::import_ast(Self) -> @ast.Node?
@@ -59,8 +57,6 @@ pub fn Edge::last_ref(Self) -> Reference?
 pub fn Edge::new(EdgeID, Scalar?, Map?, Array[EdgeReference]) -> Self
 pub fn Edge::parent(Self, Map) -> Node?
 pub fn Edge::path(Self) -> NodePath?
-pub impl Eq for Edge
-pub impl Show for Edge
 
 pub struct EdgeID {
   src_path : Array[String]
@@ -71,7 +67,7 @@ pub struct EdgeID {
   dst_arrow : Bool
   index : Int?
   glob : Bool
-}
+} derive(Eq, @debug.Debug)
 pub fn EdgeID::copy(Self) -> Self
 pub fn EdgeID::dst_path_syntax(Self) -> Array[@ast.StringValue]
 pub fn EdgeID::matches(Self, Self) -> Bool
@@ -79,8 +75,6 @@ pub fn EdgeID::new(Array[String], Array[String], Bool, Bool, src_path_syntax? : 
 pub fn EdgeID::src_path_syntax(Self) -> Array[@ast.StringValue]
 pub fn EdgeID::with_glob(Array[String], Array[String], Bool, Bool, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
 pub fn EdgeID::with_index(Array[String], Array[String], Bool, Bool, Int, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
-pub impl Eq for EdgeID
-pub impl Show for EdgeID
 
 pub struct EdgeReference {
   range : @lexer.Range
@@ -90,13 +84,11 @@ pub struct EdgeReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-}
+} derive(Eq, @debug.Debug)
 pub fn EdgeReference::ast(Self) -> @ast.Node?
 pub fn EdgeReference::context(Self) -> RefContext?
 pub fn EdgeReference::from_ast(@ast.Edge, Int, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
 pub fn EdgeReference::new(@lexer.Range, Int, Bool) -> Self
-pub impl Eq for EdgeReference
-pub impl Show for EdgeReference
 
 pub struct Field {
   name : String
@@ -106,7 +98,7 @@ pub struct Field {
   references : Array[FieldReference]
   import_ast : @ast.Node?
   path : NodePath?
-}
+} derive(Eq, @debug.Debug)
 pub fn Field::array(Self) -> IRArray?
 pub fn Field::ast(Self) -> @ast.Node?
 pub fn Field::copy(Self) -> Self
@@ -125,8 +117,6 @@ pub fn Field::new(String, Scalar?, Composite?, Array[FieldReference], name_synta
 pub fn Field::parent(Self, Map) -> Node?
 pub fn Field::path(Self) -> NodePath?
 pub fn Field::simple(String, name_syntax? : @ast.StringValue?) -> Self
-pub impl Eq for Field
-pub impl Show for Field
 
 pub struct FieldReference {
   range : @lexer.Range
@@ -138,13 +128,11 @@ pub struct FieldReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-}
+} derive(Eq, @debug.Debug)
 pub fn FieldReference::ast(Self) -> @ast.Node?
 pub fn FieldReference::context(Self) -> RefContext?
 pub fn FieldReference::from_ast(@ast.StringValue, @ast.KeyPath, Int, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
 pub fn FieldReference::new(@lexer.Range, String, Int, Bool) -> Self
-pub impl Eq for FieldReference
-pub impl Show for FieldReference
 
 pub struct FilterContext {
   field : Field
@@ -157,7 +145,7 @@ pub struct IRArray {
   ast : @ast.Node?
   source_path : String?
   path : NodePath?
-}
+} derive(Eq, @debug.Debug)
 pub fn IRArray::ast(Self) -> @ast.Node?
 pub fn IRArray::copy(Self) -> Self
 pub fn IRArray::from_ast(@ast.ArrayValue, Array[Value], source_path? : String?) -> Self
@@ -165,8 +153,6 @@ pub fn IRArray::new(Array[Value]) -> Self
 pub fn IRArray::parent(Self, Map) -> Node?
 pub fn IRArray::path(Self) -> NodePath?
 pub fn IRArray::source_path(Self) -> String?
-pub impl Eq for IRArray
-pub impl Show for IRArray
 
 pub struct ImportResolver((String) -> String?)
 #deprecated
@@ -180,7 +166,7 @@ pub struct Map {
   import_ast : @ast.Node?
   source_path : String?
   path : NodePath?
-}
+} derive(Eq, @debug.Debug)
 pub fn Map::add_edge(Self, Edge) -> Unit
 pub fn Map::add_field(Self, Field) -> Unit
 pub fn Map::apply_glob_properties(Self, Array[String], Self, Array[(Bool, String, String)]) -> Unit
@@ -206,8 +192,6 @@ pub fn Map::reindex_paths(Self) -> Self
 pub fn Map::single_glob(Self, Array[String]) -> Array[Field]
 pub fn Map::source_path(Self) -> String?
 pub fn Map::triple_glob(Self) -> Array[Field]
-pub impl Eq for Map
-pub impl Show for Map
 
 pub(all) enum Node {
   Scalar(Scalar)
@@ -217,7 +201,7 @@ pub(all) enum Node {
   Map(Map)
   Composite(Composite)
   Value(Value)
-}
+} derive(Eq, @debug.Debug)
 pub fn Node::ast(Self) -> @ast.Node?
 pub fn Node::children(Self) -> Array[Self]
 pub fn Node::copy(Self) -> Self
@@ -228,17 +212,13 @@ pub fn Node::last_ref(Self) -> Reference?
 pub fn Node::node_type(Self) -> String
 pub fn Node::parent(Self, Map) -> Self?
 pub fn Node::path(Self) -> NodePath?
-pub impl Eq for Node
-pub impl Show for Node
 
 pub struct NodePath {
   segments : Array[NodePathSegment]
-}
+} derive(Eq, @debug.Debug)
 pub fn NodePath::append(Self, NodePathSegment) -> Self
 pub fn NodePath::parent(Self) -> Self?
 pub fn NodePath::root() -> Self
-pub impl Eq for NodePath
-pub impl Show for NodePath
 
 pub(all) enum NodePathSegment {
   FieldStep(String, Bool)
@@ -246,32 +226,26 @@ pub(all) enum NodePathSegment {
   PrimaryStep
   CompositeStep
   ArrayItemStep(Int)
-}
-pub impl Eq for NodePathSegment
-pub impl Show for NodePathSegment
+} derive(Eq, @debug.Debug)
 
 pub struct RefContext {
   edge : @ast.Edge?
   key : @ast.Key?
   scope : @ast.Map?
   source_path : String?
-}
+} derive(Eq, @debug.Debug)
 pub fn RefContext::new(@ast.Edge?, @ast.Key?, @ast.Map?, source_path? : String?) -> Self
-pub impl Eq for RefContext
-pub impl Show for RefContext
 
 pub(all) enum Reference {
   FieldRef(FieldReference)
   EdgeRef(EdgeReference)
-}
+} derive(Eq, @debug.Debug)
 pub fn Reference::ast(Self) -> @ast.Node?
 pub fn Reference::context(Self) -> RefContext?
 pub fn Reference::due_to_glob(Self) -> Bool
 pub fn Reference::due_to_lazy_glob(Self) -> Bool
 pub fn Reference::primary(Self) -> Bool
 pub fn Reference::range(Self) -> @lexer.Range
-pub impl Eq for Reference
-pub impl Show for Reference
 
 pub struct Scalar {
   value : ScalarValue
@@ -279,7 +253,7 @@ pub struct Scalar {
   ast : @ast.Node?
   source_path : String?
   path : NodePath?
-}
+} derive(Eq, @debug.Debug)
 pub fn Scalar::as_bool(Self) -> Bool?
 pub fn Scalar::as_double(Self) -> Double?
 pub fn Scalar::as_int(Self) -> Int?
@@ -303,28 +277,22 @@ pub fn Scalar::path(Self) -> NodePath?
 pub fn Scalar::source_path(Self) -> String?
 pub fn Scalar::string(String) -> Self
 pub fn Scalar::to_string(Self) -> String
-pub impl Eq for Scalar
-pub impl Show for Scalar
 
 pub(all) enum ScalarValue {
   Null
   Bool(String)
   Number(String)
   String(@ast.StringValue)
-}
-pub impl Eq for ScalarValue
-pub impl Show for ScalarValue
+} derive(Eq, @debug.Debug)
 
 pub(all) enum Value {
   Scalar(Scalar)
   Array(IRArray)
   Map(Map)
-}
+} derive(Eq, @debug.Debug)
 pub fn Value::as_array(Self) -> IRArray?
 pub fn Value::as_map(Self) -> Map?
 pub fn Value::as_scalar(Self) -> Scalar?
-pub impl Eq for Value
-pub impl Show for Value
 
 // Type aliases
 

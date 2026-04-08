@@ -30,7 +30,7 @@ using @graph {
 pub struct LegendLayoutConfig {
   font_size : Int
   margin : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn LegendLayoutConfig::new(font_size : Int) -> LegendLayoutConfig {
@@ -47,14 +47,14 @@ pub struct LegendLayout {
   stroke : String
   title : TitleLayout?
   entries : Array[LegendEntryLayout]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub struct TitleLayout {
   x : Double
   y : Double
   text : String
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Pre-positioned legend entry layout.
@@ -91,7 +91,7 @@ pub enum LegendEntryLayout {
     label_y~ : Double
   )
   Separator(x1~ : Double, x2~ : Double, y~ : Double)
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn estimate_text_width(text : String, font_size : Int) -> Double {

@@ -258,11 +258,11 @@ test "straight edge when curved=false" {
     #|}
   let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
   let edges = graph.get_edges()
-  assert_eq(edges.length(), 1)
+  @debug.assert_eq(edges.length(), 1)
   let edge = edges[0]
   assert_true(edge.style.curved is Some(_))
   match edge.style.curved {
-    Some(v) => assert_eq(v.get_value(), "false")
+    Some(v) => @debug.assert_eq(v.get_value(), "false")
     None => assert_false(true)
   }
 }
@@ -324,7 +324,7 @@ test "edge label has computed position" {
   let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
   // The edge should have a label_box set by automatic positioning
   let edges = graph.get_edges()
-  assert_eq(edges.length(), 1)
+  @debug.assert_eq(edges.length(), 1)
   let edge = edges[0]
   assert_true(edge.label_box is Some(_))
 }

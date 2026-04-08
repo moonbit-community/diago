@@ -19,14 +19,36 @@ pub struct Box {
   y : Double
   width : Double
   height : Double
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// A 2D point
 pub struct Point {
   x : Double
   y : Double
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for Box with output(self, logger) {
+  logger.write_string("{x: ")
+  logger.write_object(self.x)
+  logger.write_string(", y: ")
+  logger.write_object(self.y)
+  logger.write_string(", width: ")
+  logger.write_object(self.width)
+  logger.write_string(", height: ")
+  logger.write_object(self.height)
+  logger.write_char('}')
+}
+
+///|
+pub impl Show for Point with output(self, logger) {
+  logger.write_string("{x: ")
+  logger.write_object(self.x)
+  logger.write_string(", y: ")
+  logger.write_object(self.y)
+  logger.write_char('}')
+}
 
 ///|
 pub fn Box::new(x : Double, y : Double, width : Double, height : Double) -> Box {

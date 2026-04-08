@@ -59,7 +59,7 @@ pub struct CharSet {
   circle : Char
   oval : Char
   star : Char
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// ASCII character set - uses only 7-bit ASCII characters

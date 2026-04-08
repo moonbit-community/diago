@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Milky2018/diago/ascii"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 
 // Errors
@@ -39,7 +43,7 @@ pub struct CharSet {
   circle : Char
   oval : Char
   star : Char
-}
+} derive(@debug.Debug)
 pub fn CharSet::arrow_down(Self) -> Char
 pub fn CharSet::arrow_left(Self) -> Char
 pub fn CharSet::arrow_right(Self) -> Char
@@ -76,7 +80,6 @@ pub fn CharSet::top_right_arc(Self) -> Char
 pub fn CharSet::underscore(Self) -> Char
 pub fn CharSet::unicode() -> Self
 pub fn CharSet::vertical(Self) -> Char
-pub impl Show for CharSet
 
 pub struct Grid {
   width : Int

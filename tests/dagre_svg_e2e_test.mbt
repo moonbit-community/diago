@@ -38,7 +38,7 @@ test "examples: dagre svg e2e snapshots and reference semantic parity" {
     let snapshot_svg = read_required_file(
       "examples/diago-dagre-output/" + name + ".svg",
     ).unwrap()
-    assert_eq(
+    @debug.assert_eq(
       normalize_svg_snapshot(actual_svg),
       normalize_svg_snapshot(snapshot_svg),
       msg="\{name}: diago dagre svg snapshot mismatch",
@@ -61,7 +61,7 @@ test "examples: dagre svg e2e snapshots and reference semantic parity" {
     let semantic_diff = semantic_snapshot_mismatch_summary(
       diago_semantic_snapshot, reference_semantic,
     )
-    assert_eq(
+    @debug.assert_eq(
       diago_semantic_snapshot,
       reference_semantic,
       msg="\{name}: semantic snapshot diverges from reference dagre output (\{semantic_diff})",
@@ -72,7 +72,7 @@ test "examples: dagre svg e2e snapshots and reference semantic parity" {
     let visual_diff = semantic_snapshot_mismatch_summary(
       diago_visual_snapshot, reference_visual,
     )
-    assert_eq(
+    @debug.assert_eq(
       diago_visual_snapshot,
       reference_visual,
       msg="\{name}: visual style snapshot diverges from reference dagre output (\{visual_diff})",

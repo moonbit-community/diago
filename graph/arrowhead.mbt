@@ -45,7 +45,12 @@ pub(all) enum ArrowheadType {
   CfOneOptional
   /// Crow's foot: zero or more, optional (crow's foot with circle)
   CfManyOptional
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for ArrowheadType with output(self, logger) {
+  logger.write_string(self.to_arrowhead_string())
+}
 
 ///|
 /// Parse an arrowhead type from a string

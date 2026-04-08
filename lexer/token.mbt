@@ -20,7 +20,7 @@ pub struct Position {
   line : Int // 0-based line
   column : Int // 0-based column (in characters)
   offset : Int // 0-based codepoint offset
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// A range in source code from start to end position.
@@ -29,7 +29,7 @@ pub struct Range {
   path : String
   start : Position
   end : Position
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Token types for the diago language
@@ -79,14 +79,14 @@ pub enum TokenKind {
 
   // End of file
   Eof
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// String literal types
 pub enum StringType {
   SingleQuoted
   DoubleQuoted
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// A token with its kind, range, and raw text
@@ -94,7 +94,7 @@ pub struct Token {
   kind : TokenKind
   range : Range
   raw : String // original source text
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn Position::new(line : Int, column : Int, offset : Int) -> Position {

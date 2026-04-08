@@ -4,6 +4,7 @@ package "Milky2018/diago/engine_dagre"
 import {
   "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -14,10 +15,9 @@ pub fn debug_build_dagre_input_json(@graph.GraphInput, @engine_api.LayoutConfig,
 // Types and methods
 pub struct DagreEngine {
   _marker : Unit
-}
+} derive(@debug.Debug)
 pub fn DagreEngine::new() -> Self
 pub impl @engine_api.LayoutEngine for DagreEngine
-pub impl Show for DagreEngine
 
 // Type aliases
 

@@ -25,7 +25,7 @@
 pub struct Map {
   range : @lexer.Range
   nodes : Array[MapNode]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Nodes that can appear inside a Map
@@ -35,7 +35,7 @@ pub(all) enum MapNode {
   Substitution(Substitution)
   Import(Import)
   Key(Key)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// A key declaration in a map
@@ -56,7 +56,7 @@ pub struct Key {
   edge_key : KeyPath?
   primary : Scalar?
   value : Value?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// A path of identifiers separated by dots
@@ -64,7 +64,7 @@ pub struct Key {
 pub struct KeyPath {
   range : @lexer.Range
   path : Array[StringValue]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// An edge between two nodes
@@ -74,7 +74,7 @@ pub struct Edge {
   src_arrow : String
   dst : KeyPath
   dst_arrow : String
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Index into an edge group
@@ -82,7 +82,7 @@ pub struct EdgeIndex {
   range : @lexer.Range
   index : Int?
   glob : Bool
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Values that can appear on the right side of a colon
@@ -93,14 +93,14 @@ pub(all) enum Value {
   Import(Import)
   /// Scalar label followed by a map block: `name: Label { props }`
   BlockScalar(Value, Map)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// An array value
 pub struct ArrayValue {
   range : @lexer.Range
   nodes : Array[ArrayNode]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Nodes that can appear inside an array
@@ -110,7 +110,7 @@ pub(all) enum ArrayNode {
   Substitution(Substitution)
   Import(Import)
   Value(Value)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Scalar values
@@ -119,7 +119,7 @@ pub(all) enum Scalar {
   Boolean(@lexer.Range, Bool)
   Number(@lexer.Range, String)
   String(StringValue)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// String values with their quote style
@@ -128,7 +128,7 @@ pub(all) enum StringValue {
   SingleQuoted(@lexer.Range, String)
   DoubleQuoted(DoubleQuotedString)
   Block(BlockString)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Unquoted string that may contain substitutions
@@ -136,14 +136,14 @@ pub struct UnquotedString {
   range : @lexer.Range
   value : Array[Interpolation]
   pattern : Array[String]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Double-quoted string that may contain substitutions
 pub struct DoubleQuotedString {
   range : @lexer.Range
   value : Array[Interpolation]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Block string (|md, |sh, etc.)
@@ -152,14 +152,14 @@ pub struct BlockString {
   quote : String
   tag : String
   value : String
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Part of an interpolated string
 pub(all) enum Interpolation {
   Text(String)
   Sub(Substitution)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Variable substitution ($var or ${var})
@@ -167,7 +167,7 @@ pub struct Substitution {
   range : @lexer.Range
   spread : Bool
   path : Array[StringValue]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Import declaration (@path/to/file)
@@ -176,7 +176,7 @@ pub struct Import {
   spread : Bool
   pre : String
   path : Array[StringValue]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 // ============================================================================
 // Constructor helpers
@@ -312,7 +312,7 @@ pub(all) enum Node {
   BlockString(BlockString)
   Substitution(Substitution)
   Import(Import)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 // ============================================================================
 // Helper methods

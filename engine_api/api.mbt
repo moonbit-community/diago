@@ -35,7 +35,7 @@ pub struct LayoutConfig {
   default_height : Double
   /// Edge padding from objects
   edge_padding : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Layout direction
@@ -44,7 +44,18 @@ pub(all) enum Direction {
   Right
   Up
   Left
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for Direction with output(self, logger) {
+  let text = match self {
+    Down => "Down"
+    Right => "Right"
+    Up => "Up"
+    Left => "Left"
+  }
+  logger.write_string(text)
+}
 
 ///|
 /// Layout engine capability flags aligned with the reference's layout feature model.
@@ -53,7 +64,7 @@ pub(all) enum LayoutFeature {
   ContainerDimensions
   TopLeft
   DescendantEdges
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Layout error
@@ -61,7 +72,28 @@ pub(all) suberror LayoutError {
   InvalidGraph(String)
   CycleDetected(String)
   Unsupported(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for LayoutError with output(self, logger) {
+  match self {
+    LayoutError::InvalidGraph(message) => {
+      logger.write_string("InvalidGraph(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    LayoutError::CycleDetected(message) => {
+      logger.write_string("CycleDetected(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    LayoutError::Unsupported(message) => {
+      logger.write_string("Unsupported(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+  }
+}
 
 ///|
 /// Construct an `engine_api.LayoutError` from outside this package.

@@ -43,7 +43,7 @@ priv struct Style {
   mut fill_pattern : String?
   mut sketch : Bool?
   mut curved : Bool?
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn Style::new() -> Style {
@@ -109,7 +109,7 @@ priv struct Object {
   mut top : Int?
   mut left : Int?
   mut direction : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn Object::new(
@@ -186,7 +186,7 @@ priv struct Edge {
   mut reference_count : Int
   src_column_index : Int?
   dst_column_index : Int?
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn Edge::new(
@@ -245,7 +245,7 @@ priv enum LegendEntry {
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn LegendEntry::shape(
@@ -286,7 +286,7 @@ priv struct Legend {
   mut padding : Double
   mut entry_gap : Double
   mut icon_size : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn Legend::new() -> Legend {
@@ -355,25 +355,25 @@ priv struct Graph {
   steps : Array[Step]
   mut legend : Legend?
   mut is_folder_only : Bool
-} derive(Show)
+} derive(Debug)
 
 ///|
 priv struct Layer {
   name : String
   graph : Graph
-} derive(Show)
+} derive(Debug)
 
 ///|
 priv struct Scenario {
   name : String
   graph : Graph
-} derive(Show)
+} derive(Debug)
 
 ///|
 priv struct Step {
   name : String
   graph : Graph
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn Layer::new(name : String, graph : Graph) -> Layer {
@@ -817,7 +817,33 @@ pub(all) suberror GraphCompileError {
   InvalidStyle(String)
   MissingObject(String)
   Semantic(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for GraphCompileError with output(self, logger) {
+  match self {
+    GraphCompileError::InvalidShape(message) => {
+      logger.write_string("InvalidShape(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    GraphCompileError::InvalidStyle(message) => {
+      logger.write_string("InvalidStyle(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    GraphCompileError::MissingObject(message) => {
+      logger.write_string("MissingObject(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    GraphCompileError::Semantic(message) => {
+      logger.write_string("Semantic(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+  }
+}
 
 ///|
 /// Compile an IR Map to GraphInput

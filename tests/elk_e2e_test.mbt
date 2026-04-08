@@ -37,7 +37,7 @@ test "examples: elk svg e2e snapshots and reference semantic parity" {
     let snapshot_svg = read_required_file(
       "examples/diago-elk-svg-output/" + name + ".svg",
     ).unwrap()
-    assert_eq(
+    @debug.assert_eq(
       normalize_svg_snapshot(actual_svg),
       normalize_svg_snapshot(snapshot_svg),
     )
@@ -59,7 +59,7 @@ test "examples: elk svg e2e snapshots and reference semantic parity" {
     let semantic_diff = semantic_snapshot_mismatch_summary(
       diago_semantic_snapshot, reference_semantic,
     )
-    assert_eq(
+    @debug.assert_eq(
       diago_semantic_snapshot,
       reference_semantic,
       msg="\{name}: semantic snapshot diverges from reference elk output (\{semantic_diff})",
@@ -70,7 +70,7 @@ test "examples: elk svg e2e snapshots and reference semantic parity" {
     let visual_diff = semantic_snapshot_mismatch_summary(
       diago_visual_snapshot, reference_visual,
     )
-    assert_eq(
+    @debug.assert_eq(
       diago_visual_snapshot,
       reference_visual,
       msg="\{name}: visual style snapshot diverges from reference elk output (\{visual_diff})",
@@ -93,7 +93,7 @@ test "examples: elk ascii e2e snapshots" {
     let snapshot_ascii = read_required_file(
       "examples/diago-elk-ascii-output/" + name + ".txt",
     ).unwrap()
-    assert_eq(
+    @debug.assert_eq(
       normalize_text_snapshot(actual_ascii),
       normalize_text_snapshot(snapshot_ascii),
       msg="\{name}: diago elk ascii snapshot mismatch",
@@ -102,7 +102,7 @@ test "examples: elk ascii e2e snapshots" {
     let d2_ascii = read_required_file(
       "examples/reference-elk-ascii-output/" + name + ".txt",
     ).unwrap()
-    assert_eq(
+    @debug.assert_eq(
       normalize_text_snapshot(actual_ascii),
       normalize_text_snapshot(d2_ascii),
       msg="\{name}: elk ascii diverges from reference output",
@@ -120,7 +120,7 @@ test "examples: elk unicode e2e snapshots" {
     let snapshot_unicode = read_required_file(
       "examples/diago-elk-unicode-output/" + name + ".txt",
     ).unwrap()
-    assert_eq(
+    @debug.assert_eq(
       normalize_text_snapshot(actual_unicode),
       normalize_text_snapshot(snapshot_unicode),
       msg="\{name}: diago elk unicode snapshot mismatch",
@@ -129,7 +129,7 @@ test "examples: elk unicode e2e snapshots" {
     let d2_unicode = read_required_file(
       "examples/reference-elk-unicode-output/" + name + ".txt",
     ).unwrap()
-    assert_eq(
+    @debug.assert_eq(
       normalize_text_snapshot(actual_unicode),
       normalize_text_snapshot(d2_unicode),
       msg="\{name}: elk unicode diverges from reference output",

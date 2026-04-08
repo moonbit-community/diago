@@ -3,6 +3,7 @@ package "Milky2018/diago/themes"
 
 import {
   "Milky2018/diago/diagram",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -34,8 +35,7 @@ pub struct ColorPalette {
   aa5 : String
   ab4 : String
   ab5 : String
-}
-pub impl Show for ColorPalette
+} derive(@debug.Debug)
 
 pub struct SpecialRules {
   mono : Bool
@@ -44,9 +44,8 @@ pub struct SpecialRules {
   container_dots : Bool
   caps_lock : Bool
   all_paper : Bool
-}
+} derive(@debug.Debug)
 pub fn SpecialRules::default() -> Self
-pub impl Show for SpecialRules
 
 pub struct Theme {
   id : Int
@@ -54,7 +53,7 @@ pub struct Theme {
   colors : ColorPalette
   rules : SpecialRules
   is_dark : Bool
-}
+} derive(@debug.Debug)
 pub fn Theme::accent_color(Self) -> String
 pub fn Theme::background_color(Self) -> String
 pub fn Theme::container_fill(Self, Int) -> String
@@ -67,7 +66,6 @@ pub fn Theme::resolve(Self, String) -> String
 pub fn Theme::stroke_color(Self) -> String
 pub fn Theme::text_color(Self) -> String
 pub fn Theme::with_overrides(Self, @diagram.ThemeOverrides?) -> Self
-pub impl Show for Theme
 
 // Type aliases
 

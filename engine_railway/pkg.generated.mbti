@@ -4,6 +4,7 @@ package "Milky2018/diago/engine_railway"
 import {
   "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -13,10 +14,9 @@ import {
 // Types and methods
 pub struct RailwayEngine {
   _marker : Unit
-}
+} derive(@debug.Debug)
 pub fn RailwayEngine::new() -> Self
 pub impl @engine_api.LayoutEngine for RailwayEngine
-pub impl Show for RailwayEngine
 
 pub struct RailwayLanePlan {
   lane_by_edge : Map[Int, Int]

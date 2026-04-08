@@ -22,7 +22,7 @@
 pub struct FragmentOperandLayout {
   condition : String?
   separator_y : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn FragmentOperandLayout::new(
@@ -40,7 +40,7 @@ pub struct SequenceFragmentLayout {
   start_index : Int
   end_index : Int
   operands : Array[FragmentOperandLayout]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn SequenceFragmentLayout::new(
@@ -65,7 +65,7 @@ pub struct LayoutPatch {
   activation_boxes : Array[(String, Box)]
   sequence_notes : Array[(String, String, Box)]
   sequence_fragments : Array[SequenceFragmentLayout]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn LayoutPatch::new() -> LayoutPatch {

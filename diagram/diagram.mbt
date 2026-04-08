@@ -23,7 +23,7 @@
 pub(all) enum ConfigDataValue {
   Text(String)
   StringArray(Array[String])
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Configuration extracted from source (vars/config).
@@ -43,7 +43,7 @@ pub struct Config {
   salt : String?
   omit_version : Bool?
   data : Map[String, ConfigDataValue]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn Config::new() -> Config {
@@ -130,7 +130,7 @@ pub struct Shape {
   grid_column_span : Int?
   grid_row_span : Int?
   near : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Renderable connection.
@@ -162,7 +162,7 @@ pub struct Connection {
   label_box : @graph.Box?
   src_column_index : Int?
   dst_column_index : Int?
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Render-ready diagram.
@@ -185,7 +185,7 @@ pub struct Diagram {
   scenarios : Array[Diagram]
   steps : Array[Diagram]
   legend : @graph.LegendInput?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn Diagram::has_layers(self : Diagram) -> Bool {

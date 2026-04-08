@@ -42,7 +42,7 @@ pub struct ColorPalette {
   /// Alternative colors B (AB4, AB5)
   ab4 : String
   ab5 : String
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Special rendering rules
@@ -59,7 +59,7 @@ pub struct SpecialRules {
   caps_lock : Bool
   /// All backgrounds white
   all_paper : Bool
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn SpecialRules::default() -> SpecialRules {
@@ -81,7 +81,7 @@ pub struct Theme {
   colors : ColorPalette
   rules : SpecialRules
   is_dark : Bool
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn Theme::get_id(self : Theme) -> Int {

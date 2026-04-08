@@ -3,6 +3,7 @@ package "Milky2018/diago/graph"
 
 import {
   "Milky2018/diago/lexer",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -34,14 +35,13 @@ pub(all) enum ArrowheadType {
   CfManyRequired
   CfOneOptional
   CfManyOptional
-}
+} derive(Eq, @debug.Debug)
 pub fn ArrowheadType::from_string(String) -> Self
 pub fn ArrowheadType::is_crows_foot(Self) -> Bool
 pub fn ArrowheadType::marker_id(Self, Bool) -> String
 pub fn ArrowheadType::marker_url(Self, Bool) -> String
 pub fn ArrowheadType::to_arrowhead_string(Self) -> String
 pub fn ArrowheadType::to_ascii(Self, Bool) -> String
-pub impl Eq for ArrowheadType
 pub impl Show for ArrowheadType
 
 pub struct Box {
@@ -49,7 +49,7 @@ pub struct Box {
   y : Double
   width : Double
   height : Double
-}
+} derive(Eq, @debug.Debug)
 pub fn Box::bottom_left(Self) -> Point
 pub fn Box::bottom_right(Self) -> Point
 pub fn Box::center(Self) -> Point
@@ -63,7 +63,6 @@ pub fn Box::new(Double, Double, Double, Double) -> Self
 pub fn Box::top_left(Self) -> Point
 pub fn Box::top_right(Self) -> Point
 pub fn Box::zero() -> Self
-pub impl Eq for Box
 pub impl Show for Box
 
 pub struct EdgeInput {
@@ -93,7 +92,7 @@ pub struct EdgeInput {
   label_box : Box?
   src_column_index : Int?
   dst_column_index : Int?
-}
+} derive(@debug.Debug)
 pub fn EdgeInput::from_model(EdgeModel) -> Self
 pub fn EdgeInput::from_parts(Int, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int, Int, Box?, Int?, Int?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference]) -> Self
 pub fn EdgeInput::get_dst_id(Self) -> String
@@ -102,7 +101,6 @@ pub fn EdgeInput::get_src_id(Self) -> String
 pub fn EdgeInput::lookup_dst_id(Self) -> String
 pub fn EdgeInput::lookup_src_id(Self) -> String
 pub fn EdgeInput::new(Int, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
-pub impl Show for EdgeInput
 
 pub struct EdgeModel {
   index : Int
@@ -131,12 +129,11 @@ pub struct EdgeModel {
   label_box : Box?
   src_column_index : Int?
   dst_column_index : Int?
-}
+} derive(@debug.Debug)
 pub fn EdgeModel::new(Int, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
 pub fn EdgeModel::with_label(Self, String) -> Self
 pub fn EdgeModel::with_label_box(Self, Box?) -> Self
 pub fn EdgeModel::with_route(Self, Array[Point]) -> Self
-pub impl Show for EdgeModel
 
 pub struct EdgeReference {
   range : @lexer.Range
@@ -146,37 +143,30 @@ pub struct EdgeReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-}
+} derive(Eq, @debug.Debug)
 pub fn EdgeReference::contained_by(Self, String) -> Bool
 pub fn EdgeReference::new(@lexer.Range, Int, String?, String?, Bool, Bool, Bool) -> Self
-pub impl Eq for EdgeReference
-pub impl Show for EdgeReference
 
 pub struct FragmentOperandInput {
   condition : String?
-}
+} derive(@debug.Debug)
 pub fn FragmentOperandInput::new(String?) -> Self
-pub impl Show for FragmentOperandInput
 
 pub struct FragmentOperandLayout {
   condition : String?
   separator_y : Double
-}
+} derive(@debug.Debug)
 pub fn FragmentOperandLayout::new(String?, Double) -> Self
-pub impl Show for FragmentOperandLayout
 
 pub struct FragmentOperandModel {
   condition : String?
   separator_y : Double
-}
-pub impl Show for FragmentOperandModel
+} derive(@debug.Debug)
 
 pub(all) enum GraphDataValue {
   Text(String)
   StringArray(Array[String])
-}
-pub impl Eq for GraphDataValue
-pub impl Show for GraphDataValue
+} derive(Eq, @debug.Debug)
 
 pub struct GraphInput {
   name : String
@@ -193,7 +183,7 @@ pub struct GraphInput {
   legend : LegendInput?
   is_folder_only : Bool
   data : Map[String, GraphDataValue]
-}
+} derive(@debug.Debug)
 pub fn GraphInput::children_of(Self, ObjectInput) -> Array[ObjectInput]
 pub fn GraphInput::find_object(Self, String) -> ObjectInput?
 pub fn GraphInput::from_model(GraphModel) -> Self
@@ -201,7 +191,6 @@ pub fn GraphInput::from_parts(String, ObjectInput, Array[ObjectInput], Array[Edg
 pub fn GraphInput::get_edges(Self) -> Array[EdgeInput]
 pub fn GraphInput::get_objects(Self) -> Array[ObjectInput]
 pub fn GraphInput::new(String) -> Self
-pub impl Show for GraphInput
 
 pub struct GraphModel {
   name : String
@@ -217,25 +206,22 @@ pub struct GraphModel {
   legend : LegendModel?
   is_folder_only : Bool
   data : Map[String, GraphDataValue]
-}
+} derive(@debug.Debug)
 pub fn GraphModel::add_edge(Self, EdgeModel) -> Self
 pub fn GraphModel::add_object(Self, ObjectModel) -> Self
 pub fn GraphModel::new(String) -> Self
 pub fn GraphModel::with_legend(Self, LegendModel?) -> Self
-pub impl Show for GraphModel
 
 pub struct LayerInput {
   name : String
   graph : GraphInput
-}
+} derive(@debug.Debug)
 pub fn LayerInput::new(String, GraphInput) -> Self
-pub impl Show for LayerInput
 
 pub struct LayerModel {
   name : String
   graph : GraphModel
-}
-pub impl Show for LayerModel
+} derive(@debug.Debug)
 
 pub struct LayoutPatch {
   nodes : Map[String, Box]
@@ -247,9 +233,8 @@ pub struct LayoutPatch {
   activation_boxes : Array[(String, Box)]
   sequence_notes : Array[(String, String, Box)]
   sequence_fragments : Array[SequenceFragmentLayout]
-}
+} derive(@debug.Debug)
 pub fn LayoutPatch::new() -> Self
-pub impl Show for LayoutPatch
 
 pub struct Legend {
   title : String?
@@ -260,7 +245,7 @@ pub struct Legend {
   padding : Double
   entry_gap : Double
   icon_size : Double
-}
+} derive(@debug.Debug)
 pub fn Legend::add_connection(Self, ArrowheadType, ArrowheadType, String) -> Unit
 pub fn Legend::add_entry(Self, LegendEntry) -> Unit
 pub fn Legend::add_separator(Self) -> Unit
@@ -276,31 +261,28 @@ pub fn Legend::set_position(Self, LegendPosition) -> Self
 pub fn Legend::set_stroke(Self, String) -> Self
 pub fn Legend::set_title(Self, String) -> Self
 pub fn Legend::with_position(LegendPosition) -> Self
-pub impl Show for Legend
 
 pub(all) enum LegendEntry {
   ShapeEntry(shape~ : ShapeType, label~ : String, style~ : StyleInput?)
   ConnectionEntry(src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
   CustomEntry(icon~ : String, label~ : String)
   Separator
-}
+} derive(@debug.Debug)
 pub fn LegendEntry::connection(ArrowheadType, ArrowheadType, String, StyleInput?) -> Self
 pub fn LegendEntry::custom(String, String) -> Self
 pub fn LegendEntry::separator() -> Self
 pub fn LegendEntry::shape(ShapeType, String, StyleInput?) -> Self
-pub impl Show for LegendEntry
 
 pub enum LegendEntryInput {
   ShapeEntry(shape~ : ShapeType, label~ : String, style~ : StyleInput?)
   ConnectionEntry(src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
   CustomEntry(icon~ : String, label~ : String)
   Separator
-}
+} derive(@debug.Debug)
 pub fn LegendEntryInput::connection(ArrowheadType, ArrowheadType, String, StyleInput?) -> Self
 pub fn LegendEntryInput::custom(String, String) -> Self
 pub fn LegendEntryInput::separator() -> Self
 pub fn LegendEntryInput::shape(ShapeType, String, StyleInput?) -> Self
-pub impl Show for LegendEntryInput
 
 pub struct LegendInput {
   title : String?
@@ -311,12 +293,11 @@ pub struct LegendInput {
   padding : Double
   entry_gap : Double
   icon_size : Double
-}
+} derive(@debug.Debug)
 pub fn LegendInput::entry_count(Self) -> Int
 pub fn LegendInput::from_model(LegendModel) -> Self
 pub fn LegendInput::from_parts(String?, LegendPosition, Array[LegendEntryInput], String?, String?, Double, Double, Double) -> Self
 pub fn LegendInput::is_empty(Self) -> Bool
-pub impl Show for LegendInput
 
 pub struct LegendModel {
   title : String?
@@ -327,9 +308,8 @@ pub struct LegendModel {
   padding : Double
   entry_gap : Double
   icon_size : Double
-}
+} derive(@debug.Debug)
 pub fn LegendModel::new() -> Self
-pub impl Show for LegendModel
 
 pub(all) enum LegendPosition {
   TopLeft
@@ -337,11 +317,9 @@ pub(all) enum LegendPosition {
   BottomLeft
   BottomRight
   Hidden
-}
+} derive(Eq, @debug.Debug)
 pub fn LegendPosition::from_string(String) -> Self
 pub fn LegendPosition::to_position_string(Self) -> String
-pub impl Eq for LegendPosition
-pub impl Show for LegendPosition
 
 pub struct ObjectInput {
   id : String
@@ -376,7 +354,7 @@ pub struct ObjectInput {
   top : Int?
   left : Int?
   direction : String?
-}
+} derive(@debug.Debug)
 pub fn ObjectInput::from_model(ObjectModel) -> Self
 pub fn ObjectInput::from_parts(String, String, ShapeType, StyleInput, Box?, Box?, Array[String], Int, String?, String?, String?, Array[String], Int?, Int?, Double?, Double?, Double?, Int?, Int?, String?, Int?, Int?, direction? : String?, language? : String?, sql_constraints? : Array[String], id_val? : String, id_syntax? : String, abs_id_syntax? : String, references? : Array[ObjectReference], icon_position? : String?, tooltip_position? : String?, label_position? : String?) -> Self
 pub fn ObjectInput::get_box(Self) -> Box?
@@ -384,7 +362,6 @@ pub fn ObjectInput::get_label_box(Self) -> Box?
 pub fn ObjectInput::lookup_id(Self) -> String
 pub fn ObjectInput::new(String, id_val? : String, id_syntax? : String, abs_id_syntax? : String) -> Self
 pub fn ObjectInput::with_direction(Self, String?) -> Self
-pub impl Show for ObjectInput
 
 pub struct ObjectModel {
   id : String
@@ -419,13 +396,12 @@ pub struct ObjectModel {
   top : Int?
   left : Int?
   direction : String?
-}
+} derive(@debug.Debug)
 pub fn ObjectModel::add_child(Self, Self) -> Self
 pub fn ObjectModel::new(String, id_val? : String, id_syntax? : String, abs_id_syntax? : String) -> Self
 pub fn ObjectModel::with_box(Self, Box?) -> Self
 pub fn ObjectModel::with_label(Self, String) -> Self
 pub fn ObjectModel::with_label_box(Self, Box?) -> Self
-pub impl Show for ObjectModel
 
 pub struct ObjectReference {
   range : @lexer.Range
@@ -436,16 +412,14 @@ pub struct ObjectReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-}
+} derive(Eq, @debug.Debug)
 pub fn ObjectReference::contained_by(Self, String) -> Bool
 pub fn ObjectReference::new(@lexer.Range, Int, Bool, String?, String?, Bool, Bool, Bool) -> Self
-pub impl Eq for ObjectReference
-pub impl Show for ObjectReference
 
 pub struct Point {
   x : Double
   y : Double
-}
+} derive(Eq, @debug.Debug)
 pub fn Point::add(Self, Self) -> Self
 pub fn Point::distance(Self, Self) -> Double
 pub fn Point::get_x(Self) -> Double
@@ -454,7 +428,6 @@ pub fn Point::new(Double, Double) -> Self
 pub fn Point::scale(Self, Double) -> Self
 pub fn Point::sub(Self, Self) -> Self
 pub fn Point::zero() -> Self
-pub impl Eq for Point
 pub impl Show for Point
 
 pub struct Route {
@@ -462,7 +435,7 @@ pub struct Route {
   waypoints : Array[Waypoint]
   src_arrowhead : ArrowheadType
   dst_arrowhead : ArrowheadType
-}
+} derive(@debug.Debug)
 pub fn Route::add_point(Self, Double, Double) -> Unit
 pub fn Route::add_waypoint(Self, Waypoint) -> Unit
 pub fn Route::end(Self) -> Waypoint?
@@ -473,33 +446,28 @@ pub fn Route::new() -> Self
 pub fn Route::start(Self) -> Waypoint?
 pub fn Route::to_points(Self) -> Array[Point]
 pub fn Route::with_style(RouteStyle) -> Self
-pub impl Show for Route
 
 pub(all) enum RouteStyle {
   Straight
   Curved
   Elbow
   Orthogonal
-}
+} derive(Eq, @debug.Debug)
 pub fn RouteStyle::from_string(String) -> Self
 pub fn RouteStyle::is_curved(Self) -> Bool
 pub fn RouteStyle::is_orthogonal(Self) -> Bool
 pub fn RouteStyle::to_route_string(Self) -> String
-pub impl Eq for RouteStyle
-pub impl Show for RouteStyle
 
 pub struct ScenarioInput {
   name : String
   graph : GraphInput
-}
+} derive(@debug.Debug)
 pub fn ScenarioInput::new(String, GraphInput) -> Self
-pub impl Show for ScenarioInput
 
 pub struct ScenarioModel {
   name : String
   graph : GraphModel
-}
-pub impl Show for ScenarioModel
+} derive(@debug.Debug)
 
 pub struct SequenceFragmentInput {
   fragment_type : String
@@ -507,10 +475,9 @@ pub struct SequenceFragmentInput {
   start_index : Int
   end_index : Int
   operands : Array[FragmentOperandInput]
-}
+} derive(@debug.Debug)
 pub fn SequenceFragmentInput::from_model(SequenceFragmentModel) -> Self
 pub fn SequenceFragmentInput::new(String, String?, Int, Int, Array[FragmentOperandInput]) -> Self
-pub impl Show for SequenceFragmentInput
 
 pub struct SequenceFragmentLayout {
   fragment_type : String
@@ -519,9 +486,8 @@ pub struct SequenceFragmentLayout {
   start_index : Int
   end_index : Int
   operands : Array[FragmentOperandLayout]
-}
+} derive(@debug.Debug)
 pub fn SequenceFragmentLayout::new(String, String?, Box?, Int, Int, Array[FragmentOperandLayout]) -> Self
-pub impl Show for SequenceFragmentLayout
 
 pub struct SequenceFragmentModel {
   fragment_type : String
@@ -530,9 +496,8 @@ pub struct SequenceFragmentModel {
   start_index : Int
   end_index : Int
   operands : Array[FragmentOperandModel]
-}
+} derive(@debug.Debug)
 pub fn SequenceFragmentModel::new(String, Int, Int) -> Self
-pub impl Show for SequenceFragmentModel
 
 pub(all) enum ShapeType {
   Rectangle
@@ -561,7 +526,7 @@ pub(all) enum ShapeType {
   Octagon
   C4Person
   C4Container
-}
+} derive(Eq, @debug.Debug)
 pub fn ShapeType::default_aspect_ratio(Self) -> Double
 pub fn ShapeType::from_string(String) -> Self
 pub fn ShapeType::has_inside_label(Self) -> Bool
@@ -569,21 +534,17 @@ pub fn ShapeType::is_3d_shape(Self) -> Bool
 pub fn ShapeType::is_container(Self) -> Bool
 pub fn ShapeType::is_text_only(Self) -> Bool
 pub fn ShapeType::to_shape_string(Self) -> String
-pub impl Eq for ShapeType
-pub impl Show for ShapeType
 
 pub struct StepInput {
   name : String
   graph : GraphInput
-}
+} derive(@debug.Debug)
 pub fn StepInput::new(String, GraphInput) -> Self
-pub impl Show for StepInput
 
 pub struct StepModel {
   name : String
   graph : GraphModel
-}
-pub impl Show for StepModel
+} derive(@debug.Debug)
 
 pub struct StyleInput {
   opacity : StyleValue?
@@ -609,12 +570,10 @@ pub struct StyleInput {
   fill_pattern : StyleValue?
   sketch : StyleValue?
   curved : StyleValue?
-}
+} derive(Eq, @debug.Debug)
 pub fn StyleInput::from_model(StyleModel) -> Self
 pub fn StyleInput::from_parts(StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?) -> Self
 pub fn StyleInput::new() -> Self
-pub impl Eq for StyleInput
-pub impl Show for StyleInput
 
 pub struct StyleModel {
   opacity : StyleValue?
@@ -640,15 +599,13 @@ pub struct StyleModel {
   fill_pattern : StyleValue?
   sketch : StyleValue?
   curved : StyleValue?
-}
+} derive(Eq, @debug.Debug)
 pub fn StyleModel::new() -> Self
-pub impl Eq for StyleModel
-pub impl Show for StyleModel
 
 pub struct StyleValue {
   value : String
   range : @lexer.Range
-}
+} derive(Eq, @debug.Debug)
 pub fn StyleValue::as_bool(Self) -> Bool?
 pub fn StyleValue::as_double(Self) -> Double?
 pub fn StyleValue::as_int(Self) -> Int?
@@ -664,18 +621,15 @@ pub fn StyleValue::get_range(Self) -> @lexer.Range
 pub fn StyleValue::get_value(Self) -> String
 pub fn StyleValue::new(String, @lexer.Range) -> Self
 pub fn StyleValue::synthetic(String) -> Self
-pub impl Eq for StyleValue
-pub impl Show for StyleValue
 
 pub struct Waypoint {
   x : Double
   y : Double
   control : (Double, Double)?
-}
+} derive(@debug.Debug)
 pub fn Waypoint::new(Double, Double) -> Self
 pub fn Waypoint::to_point(Self) -> Point
 pub fn Waypoint::with_control(Double, Double, Double, Double) -> Self
-pub impl Show for Waypoint
 
 // Type aliases
 

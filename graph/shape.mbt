@@ -55,7 +55,7 @@ pub(all) enum ShapeType {
   // C4 Model shapes
   C4Person
   C4Container
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Parse a shape type from a string

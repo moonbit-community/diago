@@ -36,7 +36,7 @@ pub struct ThemeOverrides {
   aa5 : String?
   ab4 : String?
   ab5 : String?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn ThemeOverrides::new() -> ThemeOverrides {

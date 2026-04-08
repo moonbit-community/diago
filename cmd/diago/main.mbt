@@ -23,7 +23,7 @@ enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 fn output_extension(mode : OutputMode) -> String {
@@ -76,13 +76,13 @@ enum LayoutEngineChoice {
   Dagre
   Elk
   Railway
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 enum DumpInputEngine {
   Dagre
   Elk
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 priv struct CompiledSourceResult {

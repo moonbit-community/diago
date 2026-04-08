@@ -3,6 +3,7 @@ package "Milky2018/diago/engine_api"
 
 import {
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -21,8 +22,7 @@ pub(all) suberror LayoutError {
   InvalidGraph(String)
   CycleDetected(String)
   Unsupported(String)
-}
-pub impl Eq for LayoutError
+} derive(Eq, @debug.Debug)
 pub impl Show for LayoutError
 
 // Types and methods
@@ -31,8 +31,7 @@ pub(all) enum Direction {
   Right
   Up
   Left
-}
-pub impl Eq for Direction
+} derive(Eq, @debug.Debug)
 pub impl Show for Direction
 
 pub struct LayoutConfig {
@@ -42,19 +41,16 @@ pub struct LayoutConfig {
   default_width : Double
   default_height : Double
   edge_padding : Double
-}
+} derive(@debug.Debug)
 pub fn LayoutConfig::new() -> Self
 pub fn LayoutConfig::with_spacing(Double, Double) -> Self
-pub impl Show for LayoutConfig
 
 pub(all) enum LayoutFeature {
   NearObject
   ContainerDimensions
   TopLeft
   DescendantEdges
-}
-pub impl Eq for LayoutFeature
-pub impl Show for LayoutFeature
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

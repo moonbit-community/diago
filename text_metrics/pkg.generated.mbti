@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Milky2018/diago/text_metrics"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn measure_edge_label(String, Int) -> TextDimensions
 
@@ -25,15 +29,13 @@ pub struct MeasuredText {
   dimensions : TextDimensions
   line_count : Int
   max_line_width : Double
-}
-pub impl Eq for MeasuredText
+} derive(Eq, @debug.Debug)
 pub impl Show for MeasuredText
 
 pub struct TextDimensions {
   width : Double
   height : Double
-}
-pub impl Eq for TextDimensions
+} derive(Eq, @debug.Debug)
 pub impl Show for TextDimensions
 
 // Type aliases

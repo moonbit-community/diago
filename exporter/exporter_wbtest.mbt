@@ -56,8 +56,8 @@ test "classes block is treated as reserved during object compilation" {
   let classes = extract_classes(ir)
   let graph = Graph::new("root")
   compile_objects(graph, ir, "", "", classes)
-  assert_eq(graph.objects.length(), 1)
-  assert_eq(graph.objects[0].id, "alice")
+  @debug.assert_eq(graph.objects.length(), 1)
+  @debug.assert_eq(graph.objects[0].id, "alice")
 }
 
 ///|
@@ -77,7 +77,7 @@ test "board graphs carry folder-only metadata" {
 
   let graph = compile("root", ir) catch { e => fail(e.to_string()) }
   assert_true(graph.is_folder_only)
-  assert_eq(graph.layers.length(), 1)
+  @debug.assert_eq(graph.layers.length(), 1)
   assert_false(graph.layers[0].graph.is_folder_only)
   assert_true(graph.layers[0].graph.find_object("service") is Some(_))
 }
@@ -111,12 +111,15 @@ test "scenarios and steps inherit base board objects while layers stay isolated"
   }
   assert_false(graph.scenarios[0].graph.is_folder_only)
   assert_false(graph.steps[0].graph.is_folder_only)
-  assert_eq(
+  @debug.assert_eq(
     scenario_x.style.opacity,
     Some(@graph.StyleValue::from_string("0.5")),
   )
-  assert_eq(step_x.style.opacity, Some(@graph.StyleValue::from_string("0.5")))
-  assert_eq(layer_x.style.opacity, None)
+  @debug.assert_eq(
+    step_x.style.opacity,
+    Some(@graph.StyleValue::from_string("0.5")),
+  )
+  @debug.assert_eq(layer_x.style.opacity, None)
 }
 
 ///|
@@ -132,12 +135,12 @@ test "scenario overlays preserve base objects and apply overrides" {
     #|}
   let graph = compile_source_graph(source).unwrap()
   let scenario = graph.scenarios[0].graph
-  assert_eq(scenario.objects.length(), 2)
-  assert_eq(scenario.edges.length(), 1)
+  @debug.assert_eq(scenario.objects.length(), 2)
+  @debug.assert_eq(scenario.edges.length(), 1)
   guard scenario.find_object("x") is Some(x) else {
     fail("expected overlaid object")
   }
-  assert_eq(x.style.opacity, Some(@graph.StyleValue::from_string("0.1")))
+  @debug.assert_eq(x.style.opacity, Some(@graph.StyleValue::from_string("0.1")))
 }
 
 ///|
@@ -164,10 +167,10 @@ test "board primary labels override explicit labels and base labels are not inhe
     #|  }
     #|}
   let graph = compile_source_graph(source).unwrap()
-  assert_eq(graph.layers[0].graph.root.label, "one")
-  assert_eq(graph.layers[1].graph.root.label, "two")
-  assert_eq(graph.scenarios[0].graph.root.label, "b")
-  assert_eq(graph.steps[0].graph.root.label, "root")
+  @debug.assert_eq(graph.layers[0].graph.root.label, "one")
+  @debug.assert_eq(graph.layers[1].graph.root.label, "two")
+  @debug.assert_eq(graph.scenarios[0].graph.root.label, "b")
+  @debug.assert_eq(graph.steps[0].graph.root.label, "root")
 }
 
 ///|
@@ -220,7 +223,7 @@ test "board links canonicalize quoted board targets" {
   guard graph.find_object("x") is Some(x) else {
     fail("expected linked object")
   }
-  assert_eq(x.link, Some("root.layers.\"cat.go\""))
+  @debug.assert_eq(x.link, Some("root.layers.\"cat.go\""))
 }
 
 ///|
@@ -261,12 +264,12 @@ test "board links resolve relative underscores and discard invalid links" {
   guard kitten_board.find_object("remote") is Some(remote) else {
     fail("expected remote-link object")
   }
-  assert_eq(question.link, Some("root.layers.cat"))
-  assert_eq(plain.link, None)
-  assert_eq(up.link, Some("root.layers.cat"))
-  assert_eq(self.link, None)
-  assert_eq(missing.link, None)
-  assert_eq(remote.link, Some("https://example.com/docs"))
+  @debug.assert_eq(question.link, Some("root.layers.cat"))
+  @debug.assert_eq(plain.link, None)
+  @debug.assert_eq(up.link, Some("root.layers.cat"))
+  @debug.assert_eq(self.link, None)
+  @debug.assert_eq(missing.link, None)
+  @debug.assert_eq(remote.link, Some("https://example.com/docs"))
 }
 
 ///|
@@ -443,11 +446,14 @@ test "grid nested simple edges fixture compiles edge classes on grid descendants
       }
     }
   }
-  assert_eq(red_inner_grid_edges.length(), 2)
+  @debug.assert_eq(red_inner_grid_edges.length(), 2)
   for edge in red_inner_grid_edges {
-    assert_eq(edge.style.stroke, Some(@graph.StyleValue::from_string("red")))
+    @debug.assert_eq(
+      edge.style.stroke,
+      Some(@graph.StyleValue::from_string("red")),
+    )
   }
-  assert_eq(container_chain_edges.length(), 2)
+  @debug.assert_eq(container_chain_edges.length(), 2)
 }
 
 ///|
@@ -466,12 +472,12 @@ test "label icon and tooltip near fields follow position semantics" {
     #|}
   let graph = compile_source_graph(source).unwrap()
   guard graph.find_object("hey") is Some(hey) else { fail("expected object") }
-  assert_eq(hey.label, "sushi")
-  assert_eq(hey.icon, Some("https://asdf.com"))
-  assert_eq(hey.tooltip, Some("hover text"))
-  assert_eq(hey.label_position, Some("OUTSIDE_TOP_LEFT"))
-  assert_eq(hey.icon_position, Some("BORDER_RIGHT_MIDDLE"))
-  assert_eq(hey.tooltip_position, Some("center-left"))
+  @debug.assert_eq(hey.label, "sushi")
+  @debug.assert_eq(hey.icon, Some("https://asdf.com"))
+  @debug.assert_eq(hey.tooltip, Some("hover text"))
+  @debug.assert_eq(hey.label_position, Some("OUTSIDE_TOP_LEFT"))
+  @debug.assert_eq(hey.icon_position, Some("BORDER_RIGHT_MIDDLE"))
+  @debug.assert_eq(hey.tooltip_position, Some("center-left"))
 }
 
 ///|
@@ -485,9 +491,9 @@ test "separate near fields and null position resets follow position semantics" {
     #|}
   let graph = compile_source_graph(source).unwrap()
   guard graph.find_object("hey") is Some(hey) else { fail("expected object") }
-  assert_eq(hey.label, "sushi")
-  assert_eq(hey.label_position, Some("OUTSIDE_TOP_LEFT"))
-  assert_eq(hey.tooltip_position, None)
+  @debug.assert_eq(hey.label, "sushi")
+  @debug.assert_eq(hey.label_position, Some("OUTSIDE_TOP_LEFT"))
+  @debug.assert_eq(hey.tooltip_position, None)
 }
 
 ///|
@@ -543,36 +549,36 @@ test "legend config follows the compile semantics and defaults" {
     fail("expected legend to be compiled")
   }
 
-  assert_eq(legend.title, Some("凡例"))
-  assert_eq(legend.position, @graph.LegendPosition::BottomRight)
-  assert_eq(legend.fill, Some("#ffffff"))
-  assert_eq(legend.stroke, Some("#DEE1EB"))
-  assert_eq(legend.padding, 20.0)
-  assert_eq(legend.entry_gap, 15.0)
-  assert_eq(legend.icon_size, 24.0)
-  assert_eq(legend.entry_count(), 4)
-  assert_eq(legend.entries.length(), 5)
+  @debug.assert_eq(legend.title, Some("凡例"))
+  @debug.assert_eq(legend.position, @graph.LegendPosition::BottomRight)
+  @debug.assert_eq(legend.fill, Some("#ffffff"))
+  @debug.assert_eq(legend.stroke, Some("#DEE1EB"))
+  @debug.assert_eq(legend.padding, 20.0)
+  @debug.assert_eq(legend.entry_gap, 15.0)
+  @debug.assert_eq(legend.icon_size, 24.0)
+  @debug.assert_eq(legend.entry_count(), 4)
+  @debug.assert_eq(legend.entries.length(), 5)
 
   match legend.entries[0] {
     @graph.ShapeEntry(shape~, label~, style~) => {
-      assert_eq(shape, @graph.ShapeType::Person)
-      assert_eq(label, "A person who interacts with the system")
+      @debug.assert_eq(shape, @graph.ShapeType::Person)
+      @debug.assert_eq(label, "A person who interacts with the system")
       guard style is Some(style_input) else {
         fail("expected user legend style")
       }
-      assert_eq(style_input.fill.unwrap().get_value(), "#f5f5f5")
+      @debug.assert_eq(style_input.fill.unwrap().get_value(), "#f5f5f5")
     }
     _ => fail("expected first legend entry to be user shape")
   }
 
   match legend.entries[1] {
     @graph.ShapeEntry(shape~, label~, style~) => {
-      assert_eq(shape, @graph.ShapeType::Cylinder)
-      assert_eq(label, "Stores application data")
+      @debug.assert_eq(shape, @graph.ShapeType::Cylinder)
+      @debug.assert_eq(label, "Stores application data")
       guard style is Some(style_input) else {
         fail("expected database legend style")
       }
-      assert_eq(style_input.fill.unwrap().get_value(), "#b5d3ff")
+      @debug.assert_eq(style_input.fill.unwrap().get_value(), "#b5d3ff")
     }
     _ => fail("expected second legend entry to be database shape")
   }
@@ -581,26 +587,26 @@ test "legend config follows the compile semantics and defaults" {
 
   match legend.entries[3] {
     @graph.ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
-      assert_eq(src_arrow, @graph.ArrowheadType::None)
-      assert_eq(dst_arrow, @graph.ArrowheadType::Triangle)
-      assert_eq(label, "Reads data")
+      @debug.assert_eq(src_arrow, @graph.ArrowheadType::None)
+      @debug.assert_eq(dst_arrow, @graph.ArrowheadType::Triangle)
+      @debug.assert_eq(label, "Reads data")
       guard style is Some(style_input) else {
         fail("expected reads-data legend style")
       }
-      assert_eq(style_input.stroke.unwrap().get_value(), "blue")
+      @debug.assert_eq(style_input.stroke.unwrap().get_value(), "blue")
     }
     _ => fail("expected fourth legend entry to be reads-data connection")
   }
 
   match legend.entries[4] {
     @graph.ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
-      assert_eq(src_arrow, @graph.ArrowheadType::None)
-      assert_eq(dst_arrow, @graph.ArrowheadType::Triangle)
-      assert_eq(label, "Returns results")
+      @debug.assert_eq(src_arrow, @graph.ArrowheadType::None)
+      @debug.assert_eq(dst_arrow, @graph.ArrowheadType::Triangle)
+      @debug.assert_eq(label, "Returns results")
       guard style is Some(style_input) else {
         fail("expected returns-results legend style")
       }
-      assert_eq(style_input.stroke_dash.unwrap().get_value(), "5")
+      @debug.assert_eq(style_input.stroke_dash.unwrap().get_value(), "5")
     }
     _ => fail("expected fifth legend entry to be returns-results connection")
   }
@@ -625,17 +631,17 @@ test "legend config keeps zero-opacity edges like the reference compiler" {
   guard graph.legend is Some(legend) else {
     fail("expected legend to be compiled")
   }
-  assert_eq(legend.entry_count(), 3)
+  @debug.assert_eq(legend.entry_count(), 3)
   guard legend.entries.last() is Some(last_entry) else {
     fail("expected trailing legend connection entry")
   }
   match last_entry {
     @graph.ConnectionEntry(label~, style~, ..) => {
-      assert_eq(label, "Hidden")
+      @debug.assert_eq(label, "Hidden")
       guard style is Some(style_input) else {
         fail("expected style on hidden legend edge")
       }
-      assert_eq(style_input.opacity.unwrap().get_value(), "0")
+      @debug.assert_eq(style_input.opacity.unwrap().get_value(), "0")
     }
     _ => fail("expected trailing legend entry to be connection")
   }
@@ -690,8 +696,8 @@ test "graph objects preserve explicit language and sql constraints" {
   guard graph.find_object("orders.id") is Some(column) else {
     fail("expected sql column object")
   }
-  assert_eq(snippet.language, Some("text"))
-  assert_eq(column.sql_constraints, ["primary_key", "unique"])
+  @debug.assert_eq(snippet.language, Some("text"))
+  @debug.assert_eq(column.sql_constraints, ["primary_key", "unique"])
 }
 
 ///|
@@ -805,9 +811,11 @@ test "sort_graph_by_references reorders objects edges and children by source ran
 
   sort_graph_by_references(graph)
 
-  assert_eq(graph.objects.map(fn(obj) { obj.id }), ["early", "late", "parent"])
-  assert_eq(graph.edges.map(fn(edge) { edge.index }), [1, 2])
-  assert_eq(parent.children.map(fn(child) { child.id }), [
+  @debug.assert_eq(graph.objects.map(fn(obj) { obj.id }), [
+    "early", "late", "parent",
+  ])
+  @debug.assert_eq(graph.edges.map(fn(edge) { edge.index }), [1, 2])
+  @debug.assert_eq(parent.children.map(fn(child) { child.id }), [
     "parent.early", "parent.late",
   ])
 }

@@ -37,7 +37,7 @@ test "auto layout honors vars config layout-engine" {
     source,
     options=CompileOptions::new().with_layout_engine(LayoutEngine::Dagre),
   )
-  assert_eq(auto_svg, dagre_svg)
+  @debug.assert_eq(auto_svg, dagre_svg)
 }
 
 ///|
@@ -55,7 +55,7 @@ test "elk layout can be selected from options and vars config" {
     options=CompileOptions::new().with_layout_engine(LayoutEngine::Elk),
   )
   assert_true(auto_svg.contains("<svg"))
-  assert_eq(auto_svg, elk_svg)
+  @debug.assert_eq(auto_svg, elk_svg)
 }
 
 ///|
@@ -167,7 +167,7 @@ test "compile_diagram supports board target selection" {
   )
   assert_true(diagram.find_object("a") is Some(_))
   assert_true(diagram.find_object("e") is None)
-  assert_eq(diagram.scenarios.length(), 0)
+  @debug.assert_eq(diagram.scenarios.length(), 0)
 }
 
 ///|
@@ -191,8 +191,8 @@ test "compile_diagram target star keeps child boards while empty target trims ro
     source,
     options=CompileOptions::new().with_target_spec(Some("")),
   )
-  assert_eq(board.scenarios.length(), 1)
-  assert_eq(root_only.layers.length(), 0)
+  @debug.assert_eq(board.scenarios.length(), 1)
+  @debug.assert_eq(root_only.layers.length(), 0)
 }
 
 ///|
@@ -329,7 +329,7 @@ test "vars config pad is preserved in diagram config" {
     #|a -> b
   let diagram = compile_diagram(source)
   match diagram.config {
-    Some(config) => assert_eq(config.pad, Some(16.0))
+    Some(config) => @debug.assert_eq(config.pad, Some(16.0))
     None => fail("expected diagram config")
   }
 }

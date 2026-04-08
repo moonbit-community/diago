@@ -24,7 +24,7 @@ struct Parser {
   mut in_edge_group : Bool
   mut in_array : Bool
   errors : ParseErrors
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Parse a diago source string into an AST

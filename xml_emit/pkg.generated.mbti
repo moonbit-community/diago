@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Milky2018/diago/xml_emit"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn cdata(String) -> String
 
@@ -60,16 +64,12 @@ pub struct XmlElement {
   name : String
   attrs : Map[String, String]
   children : Array[XmlNode]
-}
-pub impl Eq for XmlElement
-pub impl Show for XmlElement
+} derive(Eq, @debug.Debug)
 
 pub enum XmlNode {
   NodeElement(XmlElement)
   NodeText(String)
-}
-pub impl Eq for XmlNode
-pub impl Show for XmlNode
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

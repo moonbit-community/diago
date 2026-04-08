@@ -5,6 +5,7 @@ import {
   "Milky2018/diago/diagram",
   "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -34,26 +35,20 @@ pub(all) enum LayoutEngine {
   Dagre
   Elk
   Railway
-}
-pub impl Eq for LayoutEngine
-pub impl Show for LayoutEngine
+} derive(Eq, @debug.Debug)
 
 pub(all) enum LibError {
   LayoutError(String)
   RenderError(String)
   ConfigError(String)
   TargetError(String)
-}
-pub impl Eq for LibError
-pub impl Show for LibError
+} derive(Eq, @debug.Debug)
 
 pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-}
-pub impl Eq for OutputMode
-pub impl Show for OutputMode
+} derive(Eq, @debug.Debug)
 
 pub struct RenderOptions {
   output_mode : OutputMode

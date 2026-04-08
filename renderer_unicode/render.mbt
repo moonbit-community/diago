@@ -19,7 +19,7 @@
 /// Unicode renderer
 pub struct UnicodeRenderer {
   _marker : Unit
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn UnicodeRenderer::new() -> UnicodeRenderer {

@@ -156,17 +156,17 @@ test "get_board supports explicit and shorthand nested paths" {
     @graph.LayerInput::new("layer-one", layer_graph),
   ])
 
-  assert_eq(
+  @debug.assert_eq(
     diagram
     .get_board(["layers", "layer-one", "scenarios", "scenario-one"])
     .unwrap().name,
     "scenario-one",
   )
-  assert_eq(
+  @debug.assert_eq(
     diagram.get_board(["layer-one", "scenario-one"]).unwrap().name,
     "scenario-one",
   )
-  assert_eq(diagram.get_board(["root"]).unwrap().name, "root")
+  @debug.assert_eq(diagram.get_board(["root"]).unwrap().name, "root")
 }
 
 ///|
@@ -181,8 +181,14 @@ test "has_shape recurses across nested boards" {
     @graph.LayerInput::new("layer-one", layer_graph),
   ])
 
-  assert_eq(diagram.has_shape(fn(shape) { shape.id == "nested.service" }), true)
-  assert_eq(diagram.has_shape(fn(shape) { shape.id == "missing" }), false)
+  @debug.assert_eq(
+    diagram.has_shape(fn(shape) { shape.id == "nested.service" }),
+    true,
+  )
+  @debug.assert_eq(
+    diagram.has_shape(fn(shape) { shape.id == "missing" }),
+    false,
+  )
 }
 
 ///|
@@ -281,8 +287,8 @@ test "hash_id follows target config bytes and salt" {
     config=Some(test_config(4)),
   )
 
-  assert_eq(a.hash_id(None) == b.hash_id(None), false)
-  assert_eq(a.hash_id(None) == a.hash_id(Some("salt")), false)
+  @debug.assert_eq(a.hash_id(None) == b.hash_id(None), false)
+  @debug.assert_eq(a.hash_id(None) == a.hash_id(Some("salt")), false)
 }
 
 ///|
@@ -326,7 +332,7 @@ test "diagram bytes encode typed theme overrides like the target config json" {
     ),
   )
 
-  assert_eq(
+  @debug.assert_eq(
     diagram.bytes(),
     "[{\"id\":\"node\",\"semanticId\":\"node\",\"label\":\"Node\",\"shapeType\":\"rectangle\",\"style\":{},\"childIds\":[],\"zIndex\":0,\"classes\":[],\"sqlConstraints\":[]}][]{\"id\":\"root\",\"semanticId\":\"root\",\"label\":\"root\",\"shapeType\":\"rectangle\",\"style\":{},\"childIds\":[],\"zIndex\":0,\"classes\":[],\"sqlConstraints\":[]}{\"themeID\":3,\"themeOverrides\":{\"n1\":\"black\",\"b1\":\"red\",\"aa4\":\"#f0ff3a\"}}",
   )

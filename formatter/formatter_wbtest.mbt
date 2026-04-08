@@ -47,7 +47,7 @@ test "format file map has trailing newline" {
     ),
   ])
   let out = format(map, FormatConfig::new())
-  assert_eq(out, "x: 1\n")
+  @debug.assert_eq(out, "x: 1\n")
 }
 
 ///|
@@ -69,7 +69,7 @@ test "format block comment uses triple quotes" {
     ),
   ])
   let out = format(map, FormatConfig::new())
-  assert_eq(out, "\"\"\" hi \"\"\"\nx\n")
+  @debug.assert_eq(out, "\"\"\" hi \"\"\"\nx\n")
 }
 
 ///|
@@ -98,7 +98,7 @@ test "format edge key follows the parenthesized style" {
   )
   let map = @ast.Map::new(r(0), [@ast.MapNode::Key(key)])
   let out = format(map, FormatConfig::new())
-  assert_eq(out, "(a -> b)[0].style.stroke: red\n")
+  @debug.assert_eq(out, "(a -> b)[0].style.stroke: red\n")
 }
 
 ///|
@@ -116,5 +116,5 @@ test "format unquoted null is escaped like the reference" {
   )
   let map = @ast.Map::new(r(0), [@ast.MapNode::Key(key)])
   let out = format(map, FormatConfig::new())
-  assert_eq(out, "x: 'null'\n")
+  @debug.assert_eq(out, "x: 'null'\n")
 }

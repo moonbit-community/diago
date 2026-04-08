@@ -59,9 +59,9 @@ test "exporter compiles layers/scenarios/steps" {
   for step in graph.steps {
     step_names.push(step.name)
   }
-  assert_eq(layer_names, ["L1"])
-  assert_eq(scenario_names, ["S1"])
-  assert_eq(step_names, ["step1"])
+  @debug.assert_eq(layer_names, ["L1"])
+  @debug.assert_eq(scenario_names, ["S1"])
+  @debug.assert_eq(step_names, ["step1"])
   assert_true(graph.layers[0].graph.find_object("b") is Some(_))
   assert_true(graph.scenarios[0].graph.find_object("c") is Some(_))
   assert_true(graph.steps[0].graph.find_object("d") is Some(_))
@@ -83,12 +83,12 @@ test "exporter object IDs are deterministic" {
   for o in g2.get_objects() {
     ids2.push(o.id)
   }
-  assert_eq(ids1, ids2)
+  @debug.assert_eq(ids1, ids2)
   let e1 = g1.get_edges()[0]
   let e2 = g2.get_edges()[0]
-  assert_eq(e1.index, e2.index)
-  assert_eq(e1.src_id, e2.src_id)
-  assert_eq(e1.dst_id, e2.dst_id)
+  @debug.assert_eq(e1.index, e2.index)
+  @debug.assert_eq(e1.src_id, e2.src_id)
+  @debug.assert_eq(e1.dst_id, e2.dst_id)
 }
 
 ///|
@@ -105,14 +105,14 @@ test "graph lookups prefer absolute syntax IDs before flattened semantic IDs" {
   guard graph.find_object("a.b") is Some(nested) else {
     fail("expected nested object")
   }
-  assert_eq(quoted.id, "a.b")
-  assert_eq(quoted.id_val, "a.b")
-  assert_eq(quoted.id_syntax, "\"a.b\"")
-  assert_eq(quoted.abs_id_syntax, "\"a.b\"")
-  assert_eq(nested.id, "a.b")
-  assert_eq(nested.id_val, "b")
-  assert_eq(nested.id_syntax, "b")
-  assert_eq(nested.abs_id_syntax, "a.b")
+  @debug.assert_eq(quoted.id, "a.b")
+  @debug.assert_eq(quoted.id_val, "a.b")
+  @debug.assert_eq(quoted.id_syntax, "\"a.b\"")
+  @debug.assert_eq(quoted.abs_id_syntax, "\"a.b\"")
+  @debug.assert_eq(nested.id, "a.b")
+  @debug.assert_eq(nested.id_val, "b")
+  @debug.assert_eq(nested.id_syntax, "b")
+  @debug.assert_eq(nested.abs_id_syntax, "a.b")
 }
 
 ///|
@@ -135,28 +135,28 @@ test "exporter carries syntax IDs for objects and edge endpoints" {
   guard graph.find_object("\"<---->\"") is Some(special_obj) else {
     fail("expected special-character object")
   }
-  assert_eq(null_obj.id, "null")
-  assert_eq(null_obj.id_val, "null")
-  assert_eq(null_obj.id_syntax, "'null'")
-  assert_eq(null_obj.abs_id_syntax, "'null'")
-  assert_eq(shape_obj.id, "special.shape")
-  assert_eq(shape_obj.id_val, "shape")
-  assert_eq(shape_obj.id_syntax, "shape")
-  assert_eq(shape_obj.abs_id_syntax, "special.shape")
-  assert_eq(special_obj.id, "<---->")
-  assert_eq(special_obj.id_val, "<---->")
-  assert_eq(special_obj.id_syntax, "\"<---->\"")
-  assert_eq(special_obj.abs_id_syntax, "\"<---->\"")
+  @debug.assert_eq(null_obj.id, "null")
+  @debug.assert_eq(null_obj.id_val, "null")
+  @debug.assert_eq(null_obj.id_syntax, "'null'")
+  @debug.assert_eq(null_obj.abs_id_syntax, "'null'")
+  @debug.assert_eq(shape_obj.id, "special.shape")
+  @debug.assert_eq(shape_obj.id_val, "shape")
+  @debug.assert_eq(shape_obj.id_syntax, "shape")
+  @debug.assert_eq(shape_obj.abs_id_syntax, "special.shape")
+  @debug.assert_eq(special_obj.id, "<---->")
+  @debug.assert_eq(special_obj.id_val, "<---->")
+  @debug.assert_eq(special_obj.id_syntax, "\"<---->\"")
+  @debug.assert_eq(special_obj.abs_id_syntax, "\"<---->\"")
 
   let edge0 = graph.get_edges()[0]
-  assert_eq(edge0.src_id, "<---->")
-  assert_eq(edge0.src_id_syntax, "\"<---->\"")
-  assert_eq(edge0.dst_id, "special.shape")
-  assert_eq(edge0.dst_id_syntax, "special.shape")
+  @debug.assert_eq(edge0.src_id, "<---->")
+  @debug.assert_eq(edge0.src_id_syntax, "\"<---->\"")
+  @debug.assert_eq(edge0.dst_id, "special.shape")
+  @debug.assert_eq(edge0.dst_id_syntax, "special.shape")
 
   let edge1 = graph.get_edges()[1]
-  assert_eq(edge1.src_id, "null")
-  assert_eq(edge1.src_id_syntax, "'null'")
-  assert_eq(edge1.dst_id, "<---->")
-  assert_eq(edge1.dst_id_syntax, "\"<---->\"")
+  @debug.assert_eq(edge1.src_id, "null")
+  @debug.assert_eq(edge1.src_id_syntax, "'null'")
+  @debug.assert_eq(edge1.dst_id, "<---->")
+  @debug.assert_eq(edge1.dst_id_syntax, "\"<---->\"")
 }

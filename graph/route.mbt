@@ -28,7 +28,7 @@ pub(all) enum RouteStyle {
   Elbow
   /// Optimal axis-aligned routing that avoids obstacles
   Orthogonal
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Parse route style from string
@@ -80,7 +80,7 @@ pub struct Waypoint {
   y : Double
   /// Optional control point for curves (for bezier curves)
   control : (Double, Double)?
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Create a simple waypoint
@@ -116,7 +116,7 @@ pub struct Route {
   src_arrowhead : ArrowheadType
   /// Destination arrowhead type
   dst_arrowhead : ArrowheadType
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Create a new empty route with default style

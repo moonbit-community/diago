@@ -19,7 +19,7 @@
 ///|
 pub struct RailwayEngine {
   _marker : Unit
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn RailwayEngine::new() -> RailwayEngine {

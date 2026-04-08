@@ -5,6 +5,7 @@ import {
   "Milky2018/diago/ascii",
   "Milky2018/diago/diagram",
   "Milky2018/diago/render_api",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -20,17 +21,15 @@ pub struct AsciiConfig {
   font_width : Double
   font_height : Double
   scale : Double
-}
+} derive(@debug.Debug)
 pub fn AsciiConfig::new() -> Self
 pub fn AsciiConfig::unicode() -> Self
-pub impl Show for AsciiConfig
 
 pub struct AsciiRenderer {
   _marker : Unit
-}
+} derive(@debug.Debug)
 pub fn AsciiRenderer::new() -> Self
 pub impl @render_api.Renderer for AsciiRenderer
-pub impl Show for AsciiRenderer
 
 // Type aliases
 

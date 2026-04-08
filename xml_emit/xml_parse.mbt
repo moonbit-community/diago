@@ -26,14 +26,14 @@
 pub enum XmlNode {
   NodeElement(XmlElement)
   NodeText(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub struct XmlElement {
   name : String
   attrs : Map[String, String]
   children : Array[XmlNode]
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 priv struct Parser {

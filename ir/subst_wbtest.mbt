@@ -23,7 +23,7 @@ test "resolve simple variable" {
   guard s.composite is Some(Composite::Map(sm)) else { fail("expected map") }
   guard sm.get_field("fill") is Some(f) else { fail("expected fill") }
   guard f.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "red")
+  @debug.assert_eq(p.to_string(), "red")
 }
 
 ///|
@@ -37,7 +37,7 @@ test "resolve nested variable" {
   guard b.composite is Some(Composite::Map(bm)) else { fail("expected map") }
   guard bm.get_field("fill") is Some(f) else { fail("expected fill") }
   guard f.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "blue")
+  @debug.assert_eq(p.to_string(), "blue")
 }
 
 ///|
@@ -49,7 +49,7 @@ test "resolve simple dollar variable" {
   let ir = compile(ast)
   guard ir.get_field("node") is Some(n) else { fail("expected node") }
   guard n.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "Server")
+  @debug.assert_eq(p.to_string(), "Server")
 }
 
 ///|
@@ -70,7 +70,7 @@ test "deeply nested variable substitution (3+ levels)" {
   let ir = compile(ast)
   guard ir.get_field("x") is Some(x) else { fail("expected x") }
   guard x.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "deep")
+  @debug.assert_eq(p.to_string(), "deep")
 }
 
 ///|
@@ -87,7 +87,7 @@ test "variable shadowing in nested scopes" {
   guard c.composite is Some(Composite::Map(cm)) else { fail("expected map") }
   guard cm.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "inner")
+  @debug.assert_eq(p.to_string(), "inner")
 }
 
 ///|
@@ -104,7 +104,7 @@ test "outer variable accessible when not shadowed" {
   guard c.composite is Some(Composite::Map(cm)) else { fail("expected map") }
   guard cm.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "outer")
+  @debug.assert_eq(p.to_string(), "outer")
 }
 
 ///|
@@ -114,9 +114,9 @@ test "edge label substitution" {
     #|a -> b: ${msg}
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
-  assert_eq(ir.edges.length(), 1)
+  @debug.assert_eq(ir.edges.length(), 1)
   guard ir.edges[0].primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "hello")
+  @debug.assert_eq(p.to_string(), "hello")
 }
 
 ///|
@@ -128,7 +128,7 @@ test "unquoted interpolation - embedded ${} substitution" {
   let ir = compile(ast)
   guard ir.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "pre-hi-post")
+  @debug.assert_eq(p.to_string(), "pre-hi-post")
 }
 
 ///|
@@ -140,7 +140,7 @@ test "unquoted interpolation - embedded $var substitution" {
   let ir = compile(ast)
   guard ir.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "pre-hi post")
+  @debug.assert_eq(p.to_string(), "pre-hi post")
 }
 
 ///|
@@ -152,7 +152,7 @@ test "double quoted substitution" {
   let ir = compile(ast)
   guard ir.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "hi")
+  @debug.assert_eq(p.to_string(), "hi")
 }
 
 ///|
@@ -166,7 +166,7 @@ test "double quoted substitution - composite errors" {
   }
   match result {
     Err(InvalidSubstitution(msg)) =>
-      assert_eq(msg, "cannot substitute map variable \"m\" in quotes")
+      @debug.assert_eq(msg, "cannot substitute map variable \"m\" in quotes")
     _ => fail("expected InvalidSubstitution")
   }
 }
@@ -178,9 +178,9 @@ test "double quoted substitution in edge label" {
     #|a -> b: "${x}"
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
-  assert_eq(ir.edges.length(), 1)
+  @debug.assert_eq(ir.edges.length(), 1)
   guard ir.edges[0].primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "hi")
+  @debug.assert_eq(p.to_string(), "hi")
 }
 
 ///|
@@ -194,7 +194,7 @@ test "double quoted substitution in edge label - composite errors" {
   }
   match result {
     Err(InvalidSubstitution(msg)) =>
-      assert_eq(msg, "cannot substitute map variable \"m\" in quotes")
+      @debug.assert_eq(msg, "cannot substitute map variable \"m\" in quotes")
     _ => fail("expected InvalidSubstitution")
   }
 }
@@ -208,9 +208,9 @@ test "double quoted substitution in array element" {
   let ir = compile(ast)
   guard ir.get_field("arr") is Some(arr) else { fail("expected arr") }
   guard arr.array() is Some(a) else { fail("expected array") }
-  assert_eq(a.values.length(), 1)
+  @debug.assert_eq(a.values.length(), 1)
   guard a.values[0] is Value::Scalar(s) else { fail("expected scalar") }
-  assert_eq(s.to_string(), "hi")
+  @debug.assert_eq(s.to_string(), "hi")
 }
 
 ///|
@@ -224,7 +224,7 @@ test "block string substitution" {
   let ir = compile(ast)
   guard ir.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "pre hi post")
+  @debug.assert_eq(p.to_string(), "pre hi post")
 }
 
 ///|
@@ -238,7 +238,7 @@ test "block string substitution skips code spans" {
   let ir = compile(ast)
   guard ir.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "pre hi `code ${x}` post")
+  @debug.assert_eq(p.to_string(), "pre hi `code ${x}` post")
 }
 
 ///|
@@ -252,5 +252,5 @@ test "block string substitution supports dotted and unprefixed nested vars" {
   let ir = compile(ast)
   guard ir.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
-  assert_eq(p.to_string(), "hi hi")
+  @debug.assert_eq(p.to_string(), "hi hi")
 }

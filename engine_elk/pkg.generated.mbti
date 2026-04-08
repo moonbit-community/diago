@@ -4,6 +4,7 @@ package "Milky2018/diago/engine_elk"
 import {
   "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -14,10 +15,9 @@ pub fn debug_build_elk_input_json(@graph.GraphInput, @engine_api.LayoutConfig, @
 // Types and methods
 pub struct ElkEngine {
   _marker : Unit
-}
+} derive(@debug.Debug)
 pub fn ElkEngine::new() -> Self
 pub impl @engine_api.LayoutEngine for ElkEngine
-pub impl Show for ElkEngine
 
 // Type aliases
 

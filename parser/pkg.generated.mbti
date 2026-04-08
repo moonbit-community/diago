@@ -4,6 +4,7 @@ package "Milky2018/diago/parser"
 import {
   "Milky2018/diago/ast",
   "Milky2018/diago/lexer",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -19,23 +20,20 @@ pub fn parse_with_path(String, String) -> (@ast.Map, ParseErrors)
 pub struct ParseError {
   range : @lexer.Range
   message : String
-}
-pub impl Eq for ParseError
+} derive(Eq, @debug.Debug)
 pub impl Show for ParseError
 
 pub struct ParseErrors {
   errors : Array[ParseError]
-}
+} derive(Eq, @debug.Debug)
 pub fn ParseErrors::add(Self, @lexer.Range, String) -> Unit
 pub fn ParseErrors::is_empty(Self) -> Bool
 pub fn ParseErrors::new() -> Self
 pub fn ParseErrors::to_string(Self) -> String
-pub impl Eq for ParseErrors
 pub impl Show for ParseErrors
 
-type Parser
+type Parser derive(@debug.Debug)
 pub fn Parser::new(String, Array[@lexer.Token]) -> Self
-pub impl Show for Parser
 
 // Type aliases
 

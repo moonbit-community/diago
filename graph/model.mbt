@@ -20,7 +20,7 @@
 pub(all) enum GraphDataValue {
   Text(String)
   StringArray(Array[String])
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Immutable legend configuration
@@ -33,7 +33,7 @@ pub struct LegendModel {
   padding : Double
   entry_gap : Double
   icon_size : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn LegendModel::new() -> LegendModel {
@@ -55,7 +55,7 @@ pub struct FragmentOperandModel {
   /// Immutable sequence fragment operand
   condition : String?
   separator_y : Double
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Immutable sequence fragment
@@ -66,7 +66,7 @@ pub struct SequenceFragmentModel {
   start_index : Int
   end_index : Int
   operands : Array[FragmentOperandModel]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn SequenceFragmentModel::new(
@@ -94,7 +94,7 @@ pub struct ObjectReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn ObjectReference::new(
@@ -128,7 +128,7 @@ pub struct EdgeReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn EdgeReference::new(
@@ -177,7 +177,7 @@ pub struct StyleModel {
   fill_pattern : StyleValue?
   sketch : StyleValue?
   curved : StyleValue?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn StyleModel::new() -> StyleModel {
@@ -243,7 +243,7 @@ pub struct ObjectModel {
   top : Int?
   left : Int?
   direction : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn ObjectModel::new(
@@ -317,7 +317,7 @@ pub struct EdgeModel {
   label_box : Box?
   src_column_index : Int?
   dst_column_index : Int?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn EdgeModel::new(
@@ -383,7 +383,7 @@ pub struct GraphModel {
   legend : LegendModel?
   is_folder_only : Bool
   data : Map[String, GraphDataValue]
-} derive(Show)
+} derive(Debug)
 
 ///|
 #warnings("-struct_never_constructed")
@@ -391,7 +391,7 @@ pub struct LayerModel {
   /// Immutable layer model
   name : String
   graph : GraphModel
-} derive(Show)
+} derive(Debug)
 
 ///|
 #warnings("-struct_never_constructed")
@@ -399,7 +399,7 @@ pub struct ScenarioModel {
   /// Immutable scenario model
   name : String
   graph : GraphModel
-} derive(Show)
+} derive(Debug)
 
 ///|
 #warnings("-struct_never_constructed")
@@ -407,7 +407,7 @@ pub struct StepModel {
   /// Immutable step model
   name : String
   graph : GraphModel
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn GraphModel::new(name : String) -> GraphModel {

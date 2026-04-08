@@ -3,6 +3,7 @@ package "Milky2018/diago/diagram"
 
 import {
   "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -27,17 +28,14 @@ pub struct Config {
   salt : String?
   omit_version : Bool?
   data : Map[String, ConfigDataValue]
-}
+} derive(@debug.Debug)
 pub fn Config::from_parts(Bool?, Int?, Int?, ThemeOverrides?, ThemeOverrides?, Double?, Bool?, String?, Double?, Bool?, String?, Bool?, Map[String, ConfigDataValue]) -> Self
 pub fn Config::new() -> Self
-pub impl Show for Config
 
 pub(all) enum ConfigDataValue {
   Text(String)
   StringArray(Array[String])
-}
-pub impl Eq for ConfigDataValue
-pub impl Show for ConfigDataValue
+} derive(Eq, @debug.Debug)
 
 pub struct Connection {
   index : Int
@@ -65,8 +63,7 @@ pub struct Connection {
   label_box : @graph.Box?
   src_column_index : Int?
   dst_column_index : Int?
-}
-pub impl Show for Connection
+} derive(@debug.Debug)
 
 pub struct Diagram {
   name : String
@@ -85,7 +82,7 @@ pub struct Diagram {
   scenarios : Array[Diagram]
   steps : Array[Diagram]
   legend : @graph.LegendInput?
-}
+} derive(@debug.Debug)
 pub fn Diagram::bytes(Self) -> String
 pub fn Diagram::find_object(Self, String) -> Shape?
 pub fn Diagram::get_board(Self, Array[String]) -> Self?
@@ -101,7 +98,6 @@ pub fn Diagram::has_steps(Self) -> Bool
 pub fn Diagram::hash_id(Self, String?) -> String
 pub fn Diagram::with_render_hash_config(Self, Int, Int?, Bool) -> Self
 pub fn Diagram::without_children(Self) -> Self
-pub impl Show for Diagram
 
 pub struct Shape {
   id : String
@@ -132,11 +128,10 @@ pub struct Shape {
   grid_column_span : Int?
   grid_row_span : Int?
   near : String?
-}
+} derive(@debug.Debug)
 pub fn Shape::center(Self) -> @graph.Point?
 pub fn Shape::get_box(Self) -> @graph.Box?
 pub fn Shape::get_id(Self) -> String
-pub impl Show for Shape
 
 pub struct ThemeOverrides {
   n1 : String?
@@ -157,15 +152,13 @@ pub struct ThemeOverrides {
   aa5 : String?
   ab4 : String?
   ab5 : String?
-}
+} derive(Eq, @debug.Debug)
 pub fn ThemeOverrides::entries(Self) -> Array[(String, String)]
 pub fn ThemeOverrides::get(Self, String) -> String?
 pub fn ThemeOverrides::is_empty(Self) -> Bool
 pub fn ThemeOverrides::merge(Self, Self) -> Self
 pub fn ThemeOverrides::new() -> Self
 pub fn ThemeOverrides::with_code(Self, String, String) -> Self
-pub impl Eq for ThemeOverrides
-pub impl Show for ThemeOverrides
 
 // Type aliases
 

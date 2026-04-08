@@ -21,7 +21,28 @@ pub(all) suberror RenderError {
   UnsupportedFormat(String)
   RenderFailed(String)
   InvalidDiagram(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for RenderError with output(self, logger) {
+  match self {
+    RenderError::UnsupportedFormat(message) => {
+      logger.write_string("UnsupportedFormat(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    RenderError::RenderFailed(message) => {
+      logger.write_string("RenderFailed(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    RenderError::InvalidDiagram(message) => {
+      logger.write_string("InvalidDiagram(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+  }
+}
 
 ///|
 /// Construct an error from outside this package
@@ -52,7 +73,7 @@ pub struct RenderConfig {
   background : String
   /// Whether to use dark mode
   dark_mode : Bool
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn RenderConfig::new() -> RenderConfig {

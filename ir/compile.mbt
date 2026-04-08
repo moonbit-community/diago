@@ -28,7 +28,38 @@ pub(all) suberror CompileError {
   DuplicateField(String)
   InvalidSubstitution(String)
   ImportError(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for CompileError with output(self, logger) {
+  match self {
+    CompileError::InvalidKey(message) => {
+      logger.write_string("InvalidKey(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    CompileError::InvalidValue(message) => {
+      logger.write_string("InvalidValue(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    CompileError::DuplicateField(message) => {
+      logger.write_string("DuplicateField(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    CompileError::InvalidSubstitution(message) => {
+      logger.write_string("InvalidSubstitution(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+    CompileError::ImportError(message) => {
+      logger.write_string("ImportError(")
+      logger.write_object(message)
+      logger.write_char(')')
+    }
+  }
+}
 
 ///|
 priv struct ResolvedPath {

@@ -56,8 +56,8 @@ test "constant near place shifts left for outside-right labels like the referenc
     outside_right, "top-left", 0.0, 0.0, 100.0, 80.0, 60.0, 40.0,
   )
   let (label_width, _) = object_label_dimensions(outside_right).unwrap()
-  assert_eq(adjusted_pos.0, plain_pos.0 - label_width)
-  assert_eq(adjusted_pos.1, plain_pos.1)
+  @debug.assert_eq(adjusted_pos.0, plain_pos.0 - label_width)
+  @debug.assert_eq(adjusted_pos.1, plain_pos.1)
 }
 
 ///|
@@ -71,6 +71,6 @@ test "constant near place shifts down for outside-top labels like the reference"
     outside_top, "bottom-right", 0.0, 0.0, 100.0, 80.0, 60.0, 40.0,
   )
   let (_, label_height) = object_label_dimensions(outside_top).unwrap()
-  assert_eq(adjusted_pos.0, plain_pos.0)
-  assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
+  @debug.assert_eq(adjusted_pos.0, plain_pos.0)
+  @debug.assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
 }

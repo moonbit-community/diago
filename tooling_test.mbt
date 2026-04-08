@@ -18,9 +18,9 @@ test "get_ref_ranges supports key references" {
     #|a: 1
     #|a: 2
   let ranges = try! get_ref_ranges(source, "a")
-  assert_eq(ranges.length(), 2)
-  assert_eq(ranges[0].start.line, 0)
-  assert_eq(ranges[1].start.line, 1)
+  @debug.assert_eq(ranges.length(), 2)
+  @debug.assert_eq(ranges[0].start.line, 0)
+  @debug.assert_eq(ranges[1].start.line, 1)
 }
 
 ///|
@@ -29,9 +29,9 @@ test "get_ref_ranges supports edge references" {
     #|a -> b
     #|a -> b
   let ranges = try! get_ref_ranges(source, "a -> b")
-  assert_eq(ranges.length(), 2)
-  assert_eq(ranges[0].start.line, 0)
-  assert_eq(ranges[1].start.line, 1)
+  @debug.assert_eq(ranges.length(), 2)
+  @debug.assert_eq(ranges[0].start.line, 0)
+  @debug.assert_eq(ranges[1].start.line, 1)
 }
 
 ///|
@@ -43,9 +43,9 @@ test "get_board_path_at_position returns board path" {
     #|  }
     #|}
   let path = get_board_path_at_position(source, 2, 6)
-  assert_eq(path.length(), 2)
-  assert_eq(path[0], "layers")
-  assert_eq(path[1], "core")
+  @debug.assert_eq(path.length(), 2)
+  @debug.assert_eq(path[0], "layers")
+  @debug.assert_eq(path[1], "core")
 }
 
 ///|

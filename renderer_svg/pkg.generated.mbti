@@ -7,6 +7,7 @@ import {
   "Milky2018/diago/layout_svg",
   "Milky2018/diago/render_api",
   "Milky2018/diago/svg",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -61,20 +62,18 @@ pub struct SvgConfig {
   no_xml_tag : Bool
   salt : String?
   omit_version : Bool
-}
+} derive(@debug.Debug)
 pub fn SvgConfig::new() -> Self
 pub fn SvgConfig::with_padding(Self, Double) -> Self
 pub fn SvgConfig::with_render_options(Self, Int?, @diagram.ThemeOverrides?, @diagram.ThemeOverrides?, Bool, Bool, Double?, Bool, String?, Bool) -> Self
 pub fn SvgConfig::with_theme(Int) -> Self
 pub fn SvgConfig::with_theme_name(String) -> Self
-pub impl Show for SvgConfig
 
 pub struct SvgRenderer {
   _marker : Unit
-}
+} derive(@debug.Debug)
 pub fn SvgRenderer::new() -> Self
 pub impl @render_api.Renderer for SvgRenderer
-pub impl Show for SvgRenderer
 
 pub struct SvgShapeContext {
   svg : @svg.Svg

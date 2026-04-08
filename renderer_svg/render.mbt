@@ -19,7 +19,7 @@
 /// SVG renderer
 pub struct SvgRenderer {
   _marker : Unit
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn SvgRenderer::new() -> SvgRenderer {

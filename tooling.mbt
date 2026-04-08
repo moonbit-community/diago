@@ -21,7 +21,7 @@ pub(all) enum CompletionKind {
   Style
   Shape
   Value
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub struct CompletionItem {
@@ -29,7 +29,7 @@ pub struct CompletionItem {
   kind : CompletionKind
   detail : String
   insert_text : String
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 priv enum RefSelector {

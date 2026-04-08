@@ -20,7 +20,7 @@ pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 pub(all) enum LayoutEngine {
@@ -28,7 +28,7 @@ pub(all) enum LayoutEngine {
   Dagre
   Elk
   Railway
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 pub struct ParseOptions {
@@ -285,7 +285,7 @@ pub(all) suberror DiagoError {
   RenderError(String)
   ConfigError(String)
   TargetError(String)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub fn parse(

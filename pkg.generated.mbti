@@ -7,6 +7,7 @@ import {
   "Milky2018/diago/graph",
   "Milky2018/diago/ir",
   "Milky2018/diago/lexer",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -36,9 +37,7 @@ pub(all) suberror DiagoError {
   RenderError(String)
   ConfigError(String)
   TargetError(String)
-}
-pub impl Eq for DiagoError
-pub impl Show for DiagoError
+} derive(Eq, @debug.Debug)
 
 // Types and methods
 pub struct CompileOptions {
@@ -82,27 +81,21 @@ pub struct CompletionItem {
   kind : CompletionKind
   detail : String
   insert_text : String
-}
-pub impl Eq for CompletionItem
-pub impl Show for CompletionItem
+} derive(Eq, @debug.Debug)
 
 pub(all) enum CompletionKind {
   Keyword
   Style
   Shape
   Value
-}
-pub impl Eq for CompletionKind
-pub impl Show for CompletionKind
+} derive(Eq, @debug.Debug)
 
 pub(all) enum LayoutEngine {
   Auto
   Dagre
   Elk
   Railway
-}
-pub impl Eq for LayoutEngine
-pub impl Show for LayoutEngine
+} derive(Eq, @debug.Debug)
 
 pub struct LayoutPlugin((@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String])
 #deprecated
@@ -114,9 +107,7 @@ pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-}
-pub impl Eq for OutputMode
-pub impl Show for OutputMode
+} derive(Eq, @debug.Debug)
 
 pub struct ParseOptions {
   base_path : String?
