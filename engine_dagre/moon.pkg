@@ -4,10 +4,12 @@ import {
   "Milky2018/diago/text_metrics",
   "Milky2018/moon_dagre",
   "moonbitlang/core/math",
+  "moonbitlang/core/debug",
 }
 
 import {
   "Milky2018/diago/parser",
   "Milky2018/diago/ir",
   "Milky2018/diago/exporter",
+  "moonbitlang/core/debug",
 } for "test"

@@ -1,4 +1,5 @@
 import {
   "Milky2018/moon_yazi",
   "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/debug",
 }

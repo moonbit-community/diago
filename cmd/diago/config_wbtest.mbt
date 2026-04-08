@@ -51,7 +51,7 @@ test "cli theme overrides vars config theme-id" {
     false,
     None,
   ).unwrap()
-  assert_true(not(svg.contains("text-mono")))
+  assert_true(!svg.contains("text-mono"))
 }
 
 ///|
@@ -228,7 +228,7 @@ test "vars config no-xml-tag omits XML declaration" {
     false,
     None,
   ).unwrap()
-  assert_true(not(svg.contains("<?xml")))
+  assert_true(!svg.contains("<?xml"))
 }
 
 ///|
@@ -333,7 +333,7 @@ test "dark-theme-id does not replace base light theme when theme-id is absent" {
     false,
     None,
   ).unwrap()
-  assert_true(not(svg.contains("text-mono")))
+  assert_true(!svg.contains("text-mono"))
 }
 
 ///|
@@ -647,7 +647,7 @@ test "omit-version removes the version attribute" {
     false,
     None,
   ).unwrap()
-  assert_true(not(omit_svg.contains("data-d2-version=\"")))
+  assert_true(!omit_svg.contains("data-d2-version=\""))
 }
 
 ///|

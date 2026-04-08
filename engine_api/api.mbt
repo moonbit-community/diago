@@ -411,7 +411,7 @@ fn normalize_sequence_root(graph : @graph.GraphInput) -> @graph.GraphInput {
   }
   let root_child_ids : Array[String] = []
   for obj in graph.objects {
-    if not(child_ids.contains(obj.abs_id_syntax)) {
+    if !child_ids.contains(obj.abs_id_syntax) {
       root_child_ids.push(obj.abs_id_syntax)
     }
   }

@@ -15,7 +15,7 @@
 ///|
 test "dagre engine can layout simple graph" {
   let (ast, errors) = @parser.parse("a -> b")
-  if not(errors.is_empty()) {
+  if !errors.is_empty() {
     fail("parse errors: \{errors}")
   }
   let ir = @ir.compile(ast) catch { e => fail("ir error: \{e}") }

@@ -425,10 +425,10 @@ fn compute_cut_values(
         Some(successors) =>
           for succ in successors {
             let succ_in_tail = is_in_subtree(succ, dst, tree_info)
-            if in_tail && not(succ_in_tail) {
+            if in_tail && !succ_in_tail {
               // Edge from tail to head side
               cut_value = cut_value + 1
-            } else if not(in_tail) && succ_in_tail {
+            } else if !in_tail && succ_in_tail {
               // Edge from head to tail side
               cut_value = cut_value - 1
             }
@@ -522,10 +522,10 @@ fn find_entering_edge(
         for succ in successors {
           let succ_in_tail = tail_side.contains(succ)
           // Edge crossing from head to tail (opposite direction of leaving)
-          if not(in_tail) && succ_in_tail {
+          if !in_tail && succ_in_tail {
             // Check if it's a non-tree edge
             let is_tree_edge = is_in_tree(node, succ, tree_edges)
-            if not(is_tree_edge) {
+            if !is_tree_edge {
               let slack = compute_slack(node, succ, layers)
               if slack < best_slack {
                 best_slack = slack

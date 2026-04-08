@@ -6,4 +6,5 @@ import {
   "Milky2018/moon_elk/graph/json" @moon_elk_json,
   "moonbitlang/core/json",
   "moonbitlang/core/math",
+  "moonbitlang/core/debug",
 }

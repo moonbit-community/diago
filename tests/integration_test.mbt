@@ -45,7 +45,7 @@ fn compile_to_diagram(
   direction : @engine_api.Direction,
 ) -> Result[@diagram.Diagram, String] {
   let (ast, errors) = @parser.parse(source)
-  if not(errors.is_empty()) {
+  if !errors.is_empty() {
     return Err("Parse errors: \{errors}")
   }
   let ir = @ir.compile(ast) catch { e => return Err("IR error: \{e}") }
@@ -492,7 +492,7 @@ fn compile_with_theme(
   theme_id : Int,
 ) -> Result[String, String] {
   let (ast, errors) = @parser.parse(source)
-  if not(errors.is_empty()) {
+  if !errors.is_empty() {
     return Err("Parse errors: \{errors}")
   }
   let ir = @ir.compile(ast) catch { e => return Err("IR error: \{e}") }
@@ -542,7 +542,7 @@ test "terminal theme no corner radius" {
   let svg = compile_with_theme(source, 300).unwrap()
   // Terminal theme no_corner_radius should override border-radius to 0
   // Check that there's no rx="10" in the output
-  assert_true(not(svg.contains("rx=\"10\"")))
+  assert_true(!svg.contains("rx=\"10\""))
 }
 
 ///|

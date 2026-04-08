@@ -412,7 +412,7 @@ fn get_shape_boundary(
         }
       }
 
-      if shape.label != "" && h_c % 2 == 0 && not(preserve_height) {
+      if shape.label != "" && h_c % 2 == 0 && !preserve_height {
         if h_c > 2 {
           h_c -= 1
           y1 += 1
@@ -683,7 +683,7 @@ fn draw_rect(
   let mut y1 = y1_0
   let mut w_c = w0
   let mut h_c = h0
-  if label != "" && h_c % 2 == 0 && not(preserve_height) {
+  if label != "" && h_c % 2 == 0 && !preserve_height {
     if h_c > 2 {
       h_c -= 1
       y1 += 1

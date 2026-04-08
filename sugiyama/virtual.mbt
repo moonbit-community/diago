@@ -98,7 +98,7 @@ pub fn is_virtual_node(node_id : String) -> Bool {
 ///|
 /// Get the edge index from a virtual node ID
 pub fn get_virtual_edge_index(node_id : String) -> Int? {
-  if not(node_id.has_prefix("__virtual_")) {
+  if !node_id.has_prefix("__virtual_") {
     return None
   }
   // Format: __virtual_{edge_index}_{layer}

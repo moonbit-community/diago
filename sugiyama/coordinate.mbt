@@ -358,7 +358,7 @@ fn place_block(
   x[v] = 0.0
   let mut w = v
   let mut done = false
-  while not(done) {
+  while !done {
     let w_pos = pos.get(w).unwrap_or(0)
     // Find predecessor in same layer
     let pred_pos = if left_to_right { w_pos - 1 } else { w_pos + 1 }
@@ -817,7 +817,7 @@ fn center_parents_over_children(
     // Only consider edges going to next layer
     if src_layer >= 0 && dst_layer == src_layer + 1 {
       match children_map.get(src) {
-        Some(arr) => if not(arr.contains(dst)) { arr.push(dst) }
+        Some(arr) => if !arr.contains(dst) { arr.push(dst) }
         None => children_map[src] = [dst]
       }
     }

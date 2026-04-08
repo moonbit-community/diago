@@ -6,6 +6,7 @@ import {
   "Milky2018/diago/renderer_ascii",
   "Milky2018/diago/renderer_unicode",
   "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/debug",
 }
 
 options(

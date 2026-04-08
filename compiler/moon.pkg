@@ -5,4 +5,5 @@ import {
   "Milky2018/diago/graph",
   "Milky2018/diago/ir",
   "Milky2018/diago/parser",
+  "moonbitlang/core/debug",
 }

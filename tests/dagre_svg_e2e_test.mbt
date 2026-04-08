@@ -1071,7 +1071,7 @@ fn find_substring(s : String, pattern : String) -> Int? {
 
 ///|
 fn parse_double_safe(s : String) -> Double? {
-  try @strconv.parse_double(s) catch {
+  try @string.parse_double(s) catch {
     _ => None
   } noraise {
     v => Some(v)

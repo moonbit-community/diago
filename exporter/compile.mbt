@@ -3773,7 +3773,7 @@ fn compile_steps(
 
 ///|
 fn parse_double(s : String) -> Double? {
-  try @strconv.parse_double(s) catch {
+  try @string.parse_double(s) catch {
     _ => None
   } noraise {
     v => Some(v)
@@ -3871,7 +3871,7 @@ fn parse_bend_points_array(arr : @ir.IRArray) -> Array[Point] {
 
 ///|
 fn parse_int(s : String) -> Int? {
-  try @strconv.parse_int(s) catch {
+  try @string.parse_int(s) catch {
     _ => None
   } noraise {
     v => Some(v)

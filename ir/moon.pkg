@@ -3,8 +3,11 @@ import {
   "Milky2018/diago/lexer",
   "Milky2018/diago/parser",
   "moonbitlang/core/strconv",
+  "moonbitlang/core/string",
+  "moonbitlang/core/debug",
 }
 
 import {
   "Milky2018/diago/lexer",
+  "moonbitlang/core/debug",
 } for "wbtest"

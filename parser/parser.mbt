@@ -133,7 +133,7 @@ fn Parser::peek(self : Parser) -> @lexer.TokenKind {
 ///|
 fn Parser::advance(self : Parser) -> @lexer.Token {
   let token = self.current()
-  if not(self.is_at_end()) {
+  if !self.is_at_end() {
     self.pos += 1
   }
   token
@@ -141,7 +141,7 @@ fn Parser::advance(self : Parser) -> @lexer.Token {
 
 ///|
 fn Parser::skip_trivia(self : Parser) -> Unit {
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     match self.peek() {
       @lexer.Newline => {
         let _ = self.advance()
@@ -163,12 +163,12 @@ fn Parser::error(self : Parser, message : String) -> Unit {
 
 ///|
 fn Parser::parse_map(self : Parser, is_file_map : Bool) -> @ast.Map {
-  if not(is_file_map) {
+  if !is_file_map {
     self.depth += 1
   }
   let start = self.current().range.start
   let nodes : Array[@ast.MapNode] = []
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     self.skip_trivia()
     if self.is_at_end() {
       break
@@ -192,7 +192,7 @@ fn Parser::parse_map(self : Parser, is_file_map : Bool) -> @ast.Map {
       Some(node) => nodes.push(node)
       None =>
         // Error recovery: skip to next line
-        while not(self.is_at_end()) {
+        while !self.is_at_end() {
           match self.peek() {
             @lexer.Newline | @lexer.Semicolon | @lexer.RightBrace => break
             _ => {
@@ -204,7 +204,7 @@ fn Parser::parse_map(self : Parser, is_file_map : Bool) -> @ast.Map {
   }
   let end = self.current().range.end
   let map = @ast.Map::new(@lexer.Range::new(start, end), nodes)
-  if not(is_file_map) {
+  if !is_file_map {
     self.depth -= 1
   }
   map
@@ -339,7 +339,7 @@ fn Parser::parse_key(self : Parser) -> @ast.Key? {
 
   // Parse edges (-> <- <->)
   self.skip_whitespace_not_newline()
-  while not(self.is_at_end()) && can_start_edge_token(self.current()) {
+  while !self.is_at_end() && can_start_edge_token(self.current()) {
     match self.parse_edge(key_path) {
       Some(edge) => {
         let dst = edge.dst
@@ -452,7 +452,7 @@ fn Parser::parse_key_path(self : Parser) -> @ast.KeyPath? {
     }
     None => return None
   }
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     match self.peek() {
       @lexer.Dot => {
         let _ = self.advance()
@@ -511,7 +511,7 @@ fn Parser::parse_string_for_key(self : Parser) -> @ast.StringValue? {
   let start = self.current().range.start
   let mut end = start
   let mut consumed = false
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     if self.pos + 1 < self.tokens.length() {
       match (self.peek(), self.tokens[self.pos + 1].kind) {
         (@lexer.Ident(text), @lexer.Newline) =>
@@ -543,7 +543,7 @@ fn Parser::parse_string_for_key(self : Parser) -> @ast.StringValue? {
     consumed = true
     end = token.range.end
   }
-  if not(consumed) {
+  if !consumed {
     return None
   }
 
@@ -665,7 +665,7 @@ fn Parser::parse_edge(self : Parser, src_key : @ast.KeyPath?) -> @ast.Edge? {
   // Support compatibility edge operator line continuation:
   // src --\
   //   -> dst
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     match self.peek() {
       @lexer.Ident(text) =>
         if text == "\\" && self.pos + 1 < self.tokens.length() {
@@ -731,7 +731,7 @@ fn Parser::parse_edge(self : Parser, src_key : @ast.KeyPath?) -> @ast.Edge? {
         Some(v) => v
         None => dst_start
       }
-      while not(self.is_at_end()) {
+      while !self.is_at_end() {
         match self.peek() {
           @lexer.Newline
           | @lexer.Semicolon
@@ -817,7 +817,7 @@ fn Parser::parse_edge_group(
     }
   }
   self.skip_whitespace_not_newline()
-  while not(self.is_at_end()) && self.current().is_edge_op() {
+  while !self.is_at_end() && self.current().is_edge_op() {
     match self.parse_edge(key_path) {
       Some(edge) => {
         let dst = edge.dst
@@ -890,7 +890,7 @@ fn Parser::parse_edge_index(self : Parser) -> @ast.EdgeIndex? {
     }
     @lexer.Number(num_str) => {
       let _ = self.advance()
-      try @strconv.parse_int(num_str) catch {
+      try @string.parse_int(num_str) catch {
         _ => {
           self.error("invalid edge index")
           (None, false)
@@ -962,7 +962,7 @@ fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
   self.in_array = true
   let nodes : Array[@ast.ArrayNode] = []
   self.skip_trivia()
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     match self.peek() {
       @lexer.RightBracket => break
       @lexer.Comma => {
@@ -1150,7 +1150,7 @@ fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
       let mut end_pos = self.current().range.end
       let mut seg_start = start_pos
       let segs : Array[@ast.Interpolation] = []
-      while not(self.is_at_end()) {
+      while !self.is_at_end() {
         match self.peek() {
           @lexer.Dollar | @lexer.DollarBrace =>
             match self.parse_substitution() {
@@ -1227,7 +1227,7 @@ fn Parser::parse_unquoted_scalar_run(self : Parser) -> @ast.Scalar? {
   let mut seg_start = start_pos
   let segs : Array[@ast.Interpolation] = []
 
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     if self.pos + 1 < self.tokens.length() {
       match (self.peek(), self.tokens[self.pos + 1].kind) {
         (@lexer.Ident(text), @lexer.Newline) =>
@@ -1345,7 +1345,7 @@ fn Parser::parse_block_string(self : Parser) -> @ast.BlockString? {
   let mut implicit_indent = ""
   while i < chars.length() {
     let c = chars[i]
-    if not(is_block_string_space(c)) {
+    if !is_block_string_space(c) {
       implicit_indent = self.get_indent()
       break
     }
@@ -1380,7 +1380,7 @@ fn Parser::parse_block_string(self : Parser) -> @ast.BlockString? {
 
   // Advance token cursor through the terminator (but not beyond it).
   let mut end_pos = pipe.range.end
-  while not(self.is_at_end()) && self.current().range.end.offset <= close_end {
+  while !self.is_at_end() && self.current().range.end.offset <= close_end {
     let t = self.advance()
     end_pos = t.range.end
   }
@@ -1653,7 +1653,7 @@ fn split_leading_indent(s : String, max_spaces : Int) -> (String, String) {
   let mut i = 0
   while i < chars.length() {
     let c = chars[i]
-    if not(is_block_string_space(c)) {
+    if !is_block_string_space(c) {
       break
     }
     i = i + 1
@@ -1833,7 +1833,7 @@ fn Parser::parse_substitution(self : Parser) -> @ast.Substitution? {
     }
   }
   if is_brace {
-    while not(self.is_at_end()) {
+    while !self.is_at_end() {
       match self.peek() {
         @lexer.Dot => {
           let dot = self.advance()
@@ -1927,7 +1927,7 @@ fn Parser::parse_import(self : Parser, spread : Bool) -> @ast.Import? {
       return None
     }
   }
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     match self.peek() {
       @lexer.Dot => {
         let dot = self.advance()

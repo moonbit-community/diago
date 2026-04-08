@@ -17,4 +17,5 @@ import {
   "moonbitlang/core/math",
   "moonbitlang/x/codec/base64",
   "moonbit-community/cmark/cmark_html",
+  "moonbitlang/core/debug",
 }

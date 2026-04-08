@@ -315,7 +315,7 @@ test "dark-theme-id alone does not replace base light theme" {
     #|}
     #|a -> b
   let svg = compile(source)
-  assert_true(not(svg.contains("text-mono")))
+  assert_true(!svg.contains("text-mono"))
 }
 
 ///|
@@ -353,7 +353,5 @@ test "without dark-theme-id svg keeps static theme colors" {
   let source =
     #|a -> b
   let svg = compile(source)
-  assert_true(
-    not(svg.contains("@media screen and (prefers-color-scheme: dark)")),
-  )
+  assert_true(!svg.contains("@media screen and (prefers-color-scheme: dark)"))
 }

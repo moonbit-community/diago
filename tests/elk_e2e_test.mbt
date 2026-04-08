@@ -175,7 +175,7 @@ fn compile_elk_diagram(
   direction : @engine_api.Direction,
 ) -> Result[@diagram.Diagram, String] {
   let (ast, errors) = @parser.parse(source)
-  if not(errors.is_empty()) {
+  if !errors.is_empty() {
     return Err("Parse errors: \{errors}")
   }
   let ir = @ir.compile(ast) catch { e => return Err("IR error: \{e}") }

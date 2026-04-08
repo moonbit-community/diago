@@ -1544,8 +1544,8 @@ pub fn Scalar::as_bool(self : Scalar) -> Bool? {
 ///|
 pub fn Scalar::as_int(self : Scalar) -> Int? {
   match self.value {
-    Number(n) => Some(@strconv.parse_int(n)) catch { _ => None }
-    String(s) => Some(@strconv.parse_int(s.content())) catch { _ => None }
+    Number(n) => Some(@string.parse_int(n)) catch { _ => None }
+    String(s) => Some(@string.parse_int(s.content())) catch { _ => None }
     _ => None
   }
 }
@@ -1553,8 +1553,8 @@ pub fn Scalar::as_int(self : Scalar) -> Int? {
 ///|
 pub fn Scalar::as_double(self : Scalar) -> Double? {
   match self.value {
-    Number(n) => Some(@strconv.parse_double(n)) catch { _ => None }
-    String(s) => Some(@strconv.parse_double(s.content())) catch { _ => None }
+    Number(n) => Some(@string.parse_double(n)) catch { _ => None }
+    String(s) => Some(@string.parse_double(s.content())) catch { _ => None }
     _ => None
   }
 }

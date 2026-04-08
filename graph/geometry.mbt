@@ -112,12 +112,10 @@ pub fn Box::contains(self : Box, p : Point) -> Bool {
 ///|
 /// Check if this box intersects another
 pub fn Box::intersects(self : Box, other : Box) -> Bool {
-  not(
-    self.x + self.width < other.x ||
-    other.x + other.width < self.x ||
-    self.y + self.height < other.y ||
-    other.y + other.height < self.y,
-  )
+  !(self.x + self.width < other.x ||
+  other.x + other.width < self.x ||
+  self.y + self.height < other.y ||
+  other.y + other.height < self.y)
 }
 
 ///|

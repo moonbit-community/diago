@@ -129,7 +129,7 @@ pub fn render_ascii(diagram : @diagram.Diagram, config : AsciiConfig) -> String 
     inline_child_shape_parent_ids,
   }
   for conn in diagram.connections {
-    if not(connection_has_arrow(conn)) {
+    if !connection_has_arrow(conn) {
       draw_connection_route(route_ctx, conn, x_offset, y_offset)
     }
   }

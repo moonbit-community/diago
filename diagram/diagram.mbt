@@ -210,7 +210,7 @@ pub fn Diagram::without_children(self : Diagram) -> Diagram {
 ///|
 pub fn Diagram::has_legend(self : Diagram) -> Bool {
   match self.legend {
-    Some(l) => not(l.is_empty()) && l.position != @graph.Hidden
+    Some(l) => !l.is_empty() && l.position != @graph.Hidden
     None => false
   }
 }

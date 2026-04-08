@@ -733,14 +733,14 @@ pub fn StyleValue::as_bool(self : StyleValue) -> Bool? {
 
 ///|
 pub fn StyleValue::as_int(self : StyleValue) -> Int? {
-  Some(@strconv.parse_int(self.value)) catch {
+  Some(@string.parse_int(self.value)) catch {
     _ => None
   }
 }
 
 ///|
 pub fn StyleValue::as_double(self : StyleValue) -> Double? {
-  Some(@strconv.parse_double(self.value)) catch {
+  Some(@string.parse_double(self.value)) catch {
     _ => None
   }
 }

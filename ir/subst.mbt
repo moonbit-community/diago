@@ -672,7 +672,7 @@ fn replace_substitutions_markdown(
   let mut i = 0
   while i < chars.length() {
     // Toggle fenced code blocks on ``` when not in inline code.
-    if not(in_inline) &&
+    if !in_inline &&
       i + 2 < chars.length() &&
       chars[i] == '`' &&
       chars[i + 1] == '`' &&
@@ -680,16 +680,16 @@ fn replace_substitutions_markdown(
       out.write_string(replace_variables(seg.to_string(), variables))
       seg.reset()
       out.write_string("```")
-      in_fenced = not(in_fenced)
+      in_fenced = !in_fenced
       i = i + 3
       continue
     }
     // Toggle inline code on ` when not in fenced code.
-    if not(in_fenced) && chars[i] == '`' {
+    if !in_fenced && chars[i] == '`' {
       out.write_string(replace_variables(seg.to_string(), variables))
       seg.reset()
       out.write_char('`')
-      in_inline = not(in_inline)
+      in_inline = !in_inline
       i = i + 1
       continue
     }

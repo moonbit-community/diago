@@ -86,7 +86,7 @@ pub fn Grid::text(self : Grid, x : Int, y : Int, text : String) -> Unit {
 
 ///|
 pub fn Grid::draw_label(self : Grid, x : Int, y : Int, label : String) -> Unit {
-  if not(self.is_in_bounds(x, y)) {
+  if !self.is_in_bounds(x, y) {
     return
   }
   let lines = label.split("\n")
@@ -358,7 +358,7 @@ pub fn Grid::to_compact_string(self : Grid, cs : CharSet) -> String {
       let out_col = col - start_col
       if ch == cs.vertical() || ch == cs.horizontal() {
         route_columns.push(out_col)
-        if not(route_type_set) {
+        if !route_type_set {
           route_type = ch
           route_type_set = true
         } else if route_type != ch {

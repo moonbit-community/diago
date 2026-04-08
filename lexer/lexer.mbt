@@ -46,7 +46,7 @@ pub fn Lexer::with_path(path : String, source : String) -> Lexer {
 ///|
 /// Tokenize the entire source and return tokens
 pub fn Lexer::tokenize(self : Lexer) -> (Array[Token], Array[LexError]) {
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     self.scan_token()
   }
   // Add EOF token
@@ -205,7 +205,7 @@ fn Lexer::scan_token(self : Lexer) -> Unit {
 
 ///|
 fn Lexer::skip_whitespace(self : Lexer) -> Unit {
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     match self.peek() {
       ' ' | '\t' | '\r' => {
         let _ = self.advance()
@@ -278,7 +278,7 @@ fn Lexer::scan_left_angle(self : Lexer, start : Position) -> Unit {
 ///|
 fn Lexer::scan_line_comment(self : Lexer, start : Position) -> Unit {
   let content_start = self.pos
-  while not(self.is_at_end()) && self.peek() != '\n' {
+  while !self.is_at_end() && self.peek() != '\n' {
     let _ = self.advance()
   }
   let raw = self.slice_source(content_start, self.pos)
@@ -295,7 +295,7 @@ fn Lexer::scan_line_comment(self : Lexer, start : Position) -> Unit {
 fn Lexer::scan_block_comment(self : Lexer, start : Position) -> Unit {
   let content_start = self.pos
   let mut depth = 1
-  while not(self.is_at_end()) && depth > 0 {
+  while !self.is_at_end() && depth > 0 {
     if self.peek() == '/' && self.peek_next() == '*' {
       let _ = self.advance()
       let _ = self.advance()
@@ -320,7 +320,7 @@ fn Lexer::scan_block_comment(self : Lexer, start : Position) -> Unit {
 ///|
 fn Lexer::scan_single_quoted_string(self : Lexer, start : Position) -> Unit {
   let content_start = self.pos
-  while not(self.is_at_end()) && self.peek() != '\'' {
+  while !self.is_at_end() && self.peek() != '\'' {
     if self.peek() == '\\' && self.peek_next() == '\'' {
       let _ = self.advance() // skip backslash
       let _ = self.advance()
@@ -334,7 +334,7 @@ fn Lexer::scan_single_quoted_string(self : Lexer, start : Position) -> Unit {
     }
   }
   let content = self.slice_source(content_start, self.pos)
-  if not(self.is_at_end()) && self.peek() == '\'' {
+  if !self.is_at_end() && self.peek() == '\'' {
     let _ = self.advance()
     // consume closing quote
   } else {
@@ -346,10 +346,10 @@ fn Lexer::scan_single_quoted_string(self : Lexer, start : Position) -> Unit {
 ///|
 fn Lexer::scan_double_quoted_string(self : Lexer, start : Position) -> Unit {
   let content_start = self.pos
-  while not(self.is_at_end()) && self.peek() != '"' {
+  while !self.is_at_end() && self.peek() != '"' {
     if self.peek() == '\\' {
       let _ = self.advance() // skip backslash
-      if not(self.is_at_end()) {
+      if !self.is_at_end() {
         let _ = self.advance()
         // skip escaped char
       }
@@ -362,7 +362,7 @@ fn Lexer::scan_double_quoted_string(self : Lexer, start : Position) -> Unit {
     }
   }
   let content = self.slice_source(content_start, self.pos)
-  if not(self.is_at_end()) && self.peek() == '"' {
+  if !self.is_at_end() && self.peek() == '"' {
     let _ = self.advance()
     // consume closing quote
   } else {
@@ -377,7 +377,7 @@ fn Lexer::scan_triple_quoted_block_comment(
   start : Position,
 ) -> Unit {
   let content_start = self.pos
-  while not(self.is_at_end()) {
+  while !self.is_at_end() {
     if self.peek() == '"' &&
       self.peek_next() == '"' &&
       self.peek_offset(2) == '"' {
@@ -406,13 +406,13 @@ fn Lexer::scan_number(self : Lexer, start : Position, first : Char) -> Unit {
   let buf = StringBuilder::new()
   buf.write_char(first)
   // Integer part
-  while not(self.is_at_end()) && is_digit(self.peek()) {
+  while !self.is_at_end() && is_digit(self.peek()) {
     buf.write_char(self.advance())
   }
   // Decimal part
   if self.peek() == '.' && is_digit(self.peek_next()) {
     buf.write_char(self.advance()) // consume '.'
-    while not(self.is_at_end()) && is_digit(self.peek()) {
+    while !self.is_at_end() && is_digit(self.peek()) {
       buf.write_char(self.advance())
     }
   }
@@ -422,7 +422,7 @@ fn Lexer::scan_number(self : Lexer, start : Position, first : Char) -> Unit {
     if self.peek() == '+' || self.peek() == '-' {
       buf.write_char(self.advance())
     }
-    while not(self.is_at_end()) && is_digit(self.peek()) {
+    while !self.is_at_end() && is_digit(self.peek()) {
       buf.write_char(self.advance())
     }
   }
@@ -433,7 +433,7 @@ fn Lexer::scan_number(self : Lexer, start : Position, first : Char) -> Unit {
 fn Lexer::scan_identifier(self : Lexer, start : Position, first : Char) -> Unit {
   let buf = StringBuilder::new()
   buf.write_char(first)
-  while not(self.is_at_end()) && is_ident_continue(self.peek()) {
+  while !self.is_at_end() && is_ident_continue(self.peek()) {
     if self.peek() == '-' {
       let next = self.peek_next()
       if next == '>' || next == '-' {

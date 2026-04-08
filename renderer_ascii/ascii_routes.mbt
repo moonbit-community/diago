@@ -164,7 +164,7 @@ fn force_horizontal_vertical_route(
       break
     }
   }
-  if not(has_diagonals) {
+  if !has_diagonals {
     return routes
   }
 
@@ -354,7 +354,7 @@ fn shift_point_until_empty(
   while true {
     let xi = round_int(x)
     let yi = round_int(y)
-    if not(ctx.canvas.is_in_bounds(xi, yi)) {
+    if !ctx.canvas.is_in_bounds(xi, yi) {
       break
     }
     if ctx.canvas.get(xi, yi) == ' ' {
@@ -457,7 +457,7 @@ fn draw_segment_between_points(
     x = round_int(fx)
     y = round_int(fy)
 
-    if not(ctx.canvas.is_in_bounds(x, y)) {
+    if !ctx.canvas.is_in_bounds(x, y) {
       fx += sx
       fy += sy
       continue
@@ -562,7 +562,7 @@ fn draw_route_segment(
   from_boundary : Boundary,
   to_boundary : Boundary,
 ) -> Unit {
-  if not(ctx.canvas.is_in_bounds(x, y)) {
+  if !ctx.canvas.is_in_bounds(x, y) {
     return
   }
   let existing = ctx.canvas.get(x, y)

@@ -9,4 +9,5 @@ import {
   "Milky2018/diago/lib",
   "moonbitlang/x/fs",
   "moonbitlang/x/path",
+  "moonbitlang/core/debug",
 }

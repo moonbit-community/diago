@@ -30,12 +30,12 @@ fn compile_theme_overrides_map(
     if field.primary is Some(value) {
       let raw_key = field.name
       let key = raw_key.to_upper()
-      if not(is_valid_theme_override_key(key)) {
+      if !is_valid_theme_override_key(key) {
         errors.push("\"\{raw_key}\" is not a valid theme code")
         continue
       }
       let color_value = value.to_string()
-      if not(is_valid_theme_override_color(color_value)) {
+      if !is_valid_theme_override_color(color_value) {
         errors.push(
           "expected \"\{raw_key}\" to be a valid named color (\"orange\") or a hex code (\"#f0ff3a\")",
         )
@@ -44,7 +44,7 @@ fn compile_theme_overrides_map(
       overrides = overrides.with_code(key, color_value)
     }
   }
-  if not(errors.is_empty()) {
+  if !errors.is_empty() {
     return Err(ConfigError(errors.join("; ")))
   }
   if overrides.is_empty() {
@@ -97,7 +97,7 @@ fn is_css_named_color(value : String) -> Bool {
 
 ///|
 fn is_hex_color(value : String) -> Bool {
-  if not(value.has_prefix("#")) {
+  if !value.has_prefix("#") {
     return false
   }
   let n = value.length()
@@ -106,7 +106,7 @@ fn is_hex_color(value : String) -> Bool {
   }
   for i in 1..<n {
     match value[i].to_char() {
-      Some(c) => if not(is_hex_digit(c)) { return false }
+      Some(c) => if !is_hex_digit(c) { return false }
       None => return false
     }
   }

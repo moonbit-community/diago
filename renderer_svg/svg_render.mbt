@@ -3283,7 +3283,7 @@ fn object_children(obj : Shape, all_objects : Array[Shape]) -> Array[Shape] {
   for child_id in obj.child_ids {
     let mut found = false
     for candidate in all_objects {
-      if not(found) && candidate.id == child_id {
+      if !found && candidate.id == child_id {
         children.push(candidate)
         found = true
       }
@@ -3647,7 +3647,7 @@ fn render_svg_object(
     }
     "class" => {
       // UML class shape - render in appropriate pass
-      if not(is_foreground) {
+      if !is_foreground {
         render_svg_class(
           svg,
           box,
@@ -3695,7 +3695,7 @@ fn render_svg_object(
       return // Don't render the default label
     }
     "sql_table" => {
-      if not(is_foreground) {
+      if !is_foreground {
         render_svg_sql_table(
           svg,
           box,
@@ -3743,7 +3743,7 @@ fn render_svg_object(
       return // Don't render the default label
     }
     "circle" | "oval" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -3814,7 +3814,7 @@ fn render_svg_object(
         }
       }
     "cylinder" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -3847,7 +3847,7 @@ fn render_svg_object(
         )
       }
     "diamond" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -3880,7 +3880,7 @@ fn render_svg_object(
         )
       }
     "hexagon" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -3913,7 +3913,7 @@ fn render_svg_object(
         )
       }
     "octagon" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -3940,7 +3940,7 @@ fn render_svg_object(
         render_svg_octagon(svg, box, fill, stroke, stroke_width)
       }
     "parallelogram" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -3973,7 +3973,7 @@ fn render_svg_object(
         )
       }
     "person" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4006,7 +4006,7 @@ fn render_svg_object(
         )
       }
     "c4_person" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if is_multiple {
           let mbox = shifted_multiple_box(box)
           render_svg_c4_person(
@@ -4030,7 +4030,7 @@ fn render_svg_object(
         )
       }
     "c4_container" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if is_multiple {
           let mbox = shifted_multiple_box(box)
           render_svg_c4_container(
@@ -4054,7 +4054,7 @@ fn render_svg_object(
         )
       }
     "cloud" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4087,7 +4087,7 @@ fn render_svg_object(
         )
       }
     "document" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4120,7 +4120,7 @@ fn render_svg_object(
         )
       }
     "queue" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4153,7 +4153,7 @@ fn render_svg_object(
         )
       }
     "stored_data" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4186,7 +4186,7 @@ fn render_svg_object(
         )
       }
     "page" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4219,7 +4219,7 @@ fn render_svg_object(
         )
       }
     "package" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4252,7 +4252,7 @@ fn render_svg_object(
         )
       }
     "step" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4285,7 +4285,7 @@ fn render_svg_object(
         )
       }
     "callout" =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           render_sketch_box_shape(
             svg,
@@ -4318,7 +4318,7 @@ fn render_svg_object(
         )
       }
     _ =>
-      if not(is_foreground) {
+      if !is_foreground {
         if use_sketch &&
           !is_three_d &&
           render_sketch_box_shape(
@@ -4392,9 +4392,9 @@ fn render_svg_object(
       }
   }
   // Background pass: render decorations (double border, dots)
-  if not(is_foreground) {
+  if !is_foreground {
     // Add double border if specified by style or theme rule for outer containers
-    let is_outer_container = is_container(obj) && not(obj.id.contains("."))
+    let is_outer_container = is_container(obj) && !obj.id.contains(".")
     let needs_double_border = style_bool(obj.style.double_border, false) ||
       (theme.rules.outer_container_double_border && is_outer_container)
     if needs_double_border {

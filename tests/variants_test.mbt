@@ -20,7 +20,7 @@ fn compile_graph_no_layout(
   source : String,
 ) -> Result[@graph.GraphInput, String] {
   let (ast, errors) = @parser.parse(source)
-  if not(errors.is_empty()) {
+  if !errors.is_empty() {
     return Err("Parse errors: \{errors}")
   }
   let ir = @ir.compile(ast) catch { e => return Err("IR error: \{e}") }

@@ -167,7 +167,7 @@ fn object_children(obj : Shape, all_objects : Array[Shape]) -> Array[Shape] {
   for child_id in obj.child_ids {
     let mut found = false
     for candidate in all_objects {
-      if not(found) && candidate.id == child_id {
+      if !found && candidate.id == child_id {
         children.push(candidate)
         found = true
       }
@@ -717,7 +717,7 @@ pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
   }
   let roots : Array[Shape] = []
   for obj in diagram.shapes {
-    if not(child_ids.contains(obj.id)) {
+    if !child_ids.contains(obj.id) {
       roots.push(obj)
     }
   }

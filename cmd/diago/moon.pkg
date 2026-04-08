@@ -18,6 +18,7 @@ import {
   "moonbitlang/x/sys",
   "moonbitlang/x/path",
   "moonbitlang/core/argparse",
+  "moonbitlang/core/debug",
 }
 
 options(
