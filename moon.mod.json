@@ -12,8 +12,8 @@
     "gmlewis/io": "0.23.3",
     "gmlewis/zlib": "0.21.3",
     "dowdiness/js_engine": "0.1.0",
-    "Milky2018/moon_dagre": "0.2.4",
-    "Milky2018/moon_elk": "0.1.14"
+    "Milky2018/moon_elk": "0.1.14",
+    "Milky2018/moon_dagre": "0.2.5"
   },
   "readme": "README.mbt.md",
   "repository": "https://github.com/moonbit-community/diago",
