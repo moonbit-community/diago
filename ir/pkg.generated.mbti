@@ -155,8 +155,6 @@ pub fn IRArray::path(Self) -> NodePath?
 pub fn IRArray::source_path(Self) -> String?
 
 pub struct ImportResolver((String) -> String?)
-#deprecated
-pub fn ImportResolver::inner(Self) -> (String) -> String?
 pub fn ImportResolver::new((String) -> String?) -> Self
 
 pub struct Map {

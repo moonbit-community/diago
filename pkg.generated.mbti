@@ -98,8 +98,6 @@ pub(all) enum LayoutEngine {
 } derive(Eq, @debug.Debug)
 
 pub struct LayoutPlugin((@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String])
-#deprecated
-pub fn LayoutPlugin::inner(Self) -> (@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String]
 pub fn LayoutPlugin::new((@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String]) -> Self
 pub fn LayoutPlugin::run(Self, @graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String]
 
@@ -118,8 +116,6 @@ pub fn ParseOptions::with_base_path(Self, String?) -> Self
 pub fn ParseOptions::with_import_resolver(Self, @ir.ImportResolver?) -> Self
 
 pub struct RoutePlugin((@graph.GraphInput) -> Result[@graph.GraphInput, String])
-#deprecated
-pub fn RoutePlugin::inner(Self) -> (@graph.GraphInput) -> Result[@graph.GraphInput, String]
 pub fn RoutePlugin::new((@graph.GraphInput) -> Result[@graph.GraphInput, String]) -> Self
 pub fn RoutePlugin::run(Self, @graph.GraphInput) -> Result[@graph.GraphInput, String]
 
