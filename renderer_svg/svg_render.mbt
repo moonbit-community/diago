@@ -1212,7 +1212,7 @@ fn css_named_color_rgb(color : String) -> (Int, Int, Int)? {
 
 ///|
 fn parse_css_rgb(color : String) -> (Int, Int, Int)? {
-  let normalized = color.trim().to_lower().to_string()
+  let normalized = color.trim().to_lower().to_owned()
   if normalized == "transparent" {
     return Some((0, 0, 0))
   }
@@ -2701,7 +2701,7 @@ fn add_fill_patterns(
 ) -> Unit {
   let _ = config
   // Collect unique patterns used
-  let patterns_used : @hashset.HashSet[String] = @hashset.new()
+  let patterns_used : @hashset.HashSet[String] = HashSet([])
   match style_fill_pattern_key(graph.root.style.fill_pattern) {
     Some(pattern) => patterns_used.add(pattern)
     None => ()
@@ -2826,7 +2826,7 @@ fn compute_graph_bounds(
   theme : @themes.Theme,
 ) -> (Double, Double, Double, Double) {
   let mut bounds = (0.0, 0.0, 0.0, 0.0, true)
-  let inline_child_ids : @hashset.HashSet[String] = @hashset.new()
+  let inline_child_ids : @hashset.HashSet[String] = HashSet([])
   for parent in graph.shapes {
     if parent.shape_type == Class || parent.shape_type == SqlTable {
       for child_id in parent.child_ids {

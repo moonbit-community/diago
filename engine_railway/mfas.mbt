@@ -255,7 +255,7 @@ fn els_tarjan_plan(
 ) -> DagPlan raise @engine_api.LayoutError {
   let n = g.objects.length()
   let ids : Array[String] = g.objects.map(o => o.id)
-  let id_to_idx : Map[String, Int] = Map::new(capacity=n * 2)
+  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx.set(ids[i], i)
   }

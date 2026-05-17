@@ -3743,7 +3743,7 @@ fn sql_root_port_group_obj_id(group_key : String) -> String {
   if parts.is_empty() {
     group_key
   } else {
-    parts[0].to_string()
+    parts[0].to_owned()
   }
 }
 
@@ -7787,7 +7787,7 @@ fn d2_split_abs_id_parts(id : String) -> Array[String] {
     return out
   }
   for part in id.split(".") {
-    out.push(part.to_string())
+    out.push(part.to_owned())
   }
   out
 }

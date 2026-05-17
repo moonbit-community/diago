@@ -268,7 +268,7 @@ fn dump_input_for_file(
 
 ///|
 fn basename_string(path : String) -> String {
-  @path.Path(path).basename().to_string()
+  @path.Path(path).basename().to_owned()
 }
 
 ///|
@@ -297,7 +297,7 @@ fn parse_uint(s : String) -> Int? {
 
 ///|
 fn parse_theme_id_option(value : String, fallback : Int?) -> Int? {
-  match parse_uint(value.trim().to_string()) {
+  match parse_uint(value.trim().to_owned()) {
     Some(v) => Some(v)
     None => fallback
   }
@@ -305,7 +305,7 @@ fn parse_theme_id_option(value : String, fallback : Int?) -> Int? {
 
 ///|
 fn parse_scale_option(value : String, fallback : Double?) -> Double? {
-  let parsed = parse_non_negative_double(value.trim().to_string())
+  let parsed = parse_non_negative_double(value.trim().to_owned())
   match parsed {
     Some(v) => if v > 0.0 { Some(v) } else { fallback }
     None => fallback
@@ -323,15 +323,15 @@ fn merge_theme_overrides(
 ///|
 fn parse_override_pairs(raw : String) -> @diagram.ThemeOverrides? {
   let mut out = @diagram.ThemeOverrides::new()
-  let mut s = raw.trim().to_string()
+  let mut s = raw.trim().to_owned()
   if s.has_prefix("{") {
-    s = s.strip_prefix("{").unwrap().to_string()
+    s = s.strip_prefix("{").unwrap().to_owned()
   }
   if s.has_suffix("}") {
-    s = s.strip_suffix("}").unwrap().to_string()
+    s = s.strip_suffix("}").unwrap().to_owned()
   }
   for pair_raw in s.split(",") {
-    let pair = pair_raw.trim().to_string()
+    let pair = pair_raw.trim().to_owned()
     if pair == "" {
       continue
     }
@@ -367,13 +367,13 @@ fn find_pair_separator(s : String) -> Int {
 
 ///|
 fn normalize_override_component(s : String) -> String {
-  let mut out = s.trim().to_string()
+  let mut out = s.trim().to_owned()
   if out.has_prefix("\"") && out.has_suffix("\"") && out.length() >= 2 {
     out = string_slice(out, 1, out.length() - 1)
   } else if out.has_prefix("'") && out.has_suffix("'") && out.length() >= 2 {
     out = string_slice(out, 1, out.length() - 1)
   }
-  out.trim().to_string()
+  out.trim().to_owned()
 }
 
 ///|
@@ -1234,7 +1234,7 @@ fn parse_target_selection(spec : String) -> Result[TargetSelection, String] {
   let target = if no_children {
     spec
   } else {
-    spec[:spec.length() - 2].to_string()
+    spec[:spec.length() - 2].to_owned()
   }
   if target.length() == 0 {
     return Ok({ path: [], no_children })

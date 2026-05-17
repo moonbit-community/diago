@@ -200,5 +200,5 @@ fn normalize_text_snapshot(text : String) -> String {
   .replace(old="\r\n", new="\n")
   .replace(old="\r", new="\n")
   .trim()
-  .to_string()
+  .to_owned()
 }

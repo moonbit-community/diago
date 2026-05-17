@@ -1317,7 +1317,7 @@ fn is_remote_or_absolute_link(s : String) -> Bool {
     return true
   }
   match string_index_of_char(s, ':') {
-    Some(index) => index > 0 && is_uri_scheme(s[:index].to_string())
+    Some(index) => index > 0 && is_uri_scheme(s[:index].to_owned())
     None => false
   }
 }

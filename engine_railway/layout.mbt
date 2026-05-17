@@ -30,7 +30,7 @@ fn layout_graph(
   let plan = els_tarjan_plan(layout_input)
   let (self_loop, reversed_set) = dag_edge_index_sets(plan)
   let n = layout_input.objects.length()
-  let id_to_idx : Map[String, Int] = Map::new(capacity=n * 2)
+  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx.set(layout_input.objects[i].id, i)
   }
@@ -283,8 +283,8 @@ fn route_edges_railway(
   level_heights : Array[Double],
   reserved_label_boxes : Array[@graph.Box],
 ) -> Unit raise @engine_api.LayoutError {
-  let gap_rail_reservations = Ref::new({})
-  let channel_reservations = Ref::new([])
+  let gap_rail_reservations = Ref({})
+  let channel_reservations = Ref([])
   let ordered_edges = layout_input.edges.copy()
   ordered_edges.sort_by(fn(a, b) {
     let a_self = self_loop.contains(a.index)

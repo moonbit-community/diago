@@ -520,7 +520,7 @@ fn trim_comment_common_indent(s : String) -> String {
   let lines = s.split("\n").collect()
   let mut min_spaces = -1
   for line in lines {
-    let text = line.to_string()
+    let text = line.to_owned()
     if text.length() == 0 {
       continue
     }
@@ -548,7 +548,7 @@ fn trim_comment_common_indent(s : String) -> String {
   }
   let out : Array[String] = []
   for line in lines {
-    let text = line.to_string()
+    let text = line.to_owned()
     if text.length() == 0 {
       out.push(text)
       continue

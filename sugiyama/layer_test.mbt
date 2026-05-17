@@ -42,18 +42,18 @@ test "layer assignment classes example - alice and bob at top" {
   let layer_result = assign_layers(graph, cycle_result)
 
   // alice and bob should be at layer 0 (sources)
-  inspect(layer_result.layers.get("alice"), content="Some(0)")
-  inspect(layer_result.layers.get("bob"), content="Some(0)")
+  debug_inspect(layer_result.layers.get("alice"), content="Some(0)")
+  debug_inspect(layer_result.layers.get("bob"), content="Some(0)")
 
   // web1 and web2 should be at layer 1
-  inspect(layer_result.layers.get("web1"), content="Some(1)")
-  inspect(layer_result.layers.get("web2"), content="Some(1)")
+  debug_inspect(layer_result.layers.get("web1"), content="Some(1)")
+  debug_inspect(layer_result.layers.get("web2"), content="Some(1)")
 
   // db1 should be at layer 2
-  inspect(layer_result.layers.get("db1"), content="Some(2)")
+  debug_inspect(layer_result.layers.get("db1"), content="Some(2)")
 
   // db2 should be at layer 3
-  inspect(layer_result.layers.get("db2"), content="Some(3)")
+  debug_inspect(layer_result.layers.get("db2"), content="Some(3)")
 }
 
 ///|
@@ -72,9 +72,9 @@ test "assign_layers simple chain" {
   let layer_a = result.layers.get("a")
   let layer_b = result.layers.get("b")
   let layer_c = result.layers.get("c")
-  inspect(layer_a, content="Some(0)")
-  inspect(layer_b, content="Some(1)")
-  inspect(layer_c, content="Some(2)")
+  debug_inspect(layer_a, content="Some(0)")
+  debug_inspect(layer_b, content="Some(1)")
+  debug_inspect(layer_c, content="Some(2)")
 }
 
 ///|
@@ -126,9 +126,9 @@ test "assign_layers independent nodes" {
   let result = assign_layers(graph, cycle_result)
   // All nodes should be in layer 0
   inspect(result.layer_count, content="1")
-  inspect(result.layers.get("a"), content="Some(0)")
-  inspect(result.layers.get("b"), content="Some(0)")
-  inspect(result.layers.get("c"), content="Some(0)")
+  debug_inspect(result.layers.get("a"), content="Some(0)")
+  debug_inspect(result.layers.get("b"), content="Some(0)")
+  debug_inspect(result.layers.get("c"), content="Some(0)")
 }
 
 ///|

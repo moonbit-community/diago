@@ -163,18 +163,18 @@ fn collect_text_style_tokens(svg : String, out : Array[String]) -> Unit {
     return
   }
   for i in 1..<parts.length() {
-    let part = parts[i].to_string()
+    let part = parts[i].to_owned()
     let gt_parts = part.split(">").collect()
     if gt_parts.length() < 2 {
       continue
     }
-    let attrs = gt_parts[0].to_string()
-    let tail = gt_parts[1].to_string()
+    let attrs = gt_parts[0].to_owned()
+    let tail = gt_parts[1].to_owned()
     let text_parts = tail.split("</text>").collect()
     if text_parts.length() == 0 {
       continue
     }
-    let label = normalize_inline_text(strip_xml_tags(text_parts[0].to_string()))
+    let label = normalize_inline_text(strip_xml_tags(text_parts[0].to_owned()))
     if label.length() == 0 {
       continue
     }
@@ -194,12 +194,12 @@ fn collect_shape_style_tokens(
     return
   }
   for i in 1..<parts.length() {
-    let part = parts[i].to_string()
+    let part = parts[i].to_owned()
     let close_index = match find_substring(part, ">") {
       Some(v) => v
       None => continue
     }
-    let attrs = slice_string(part, 0, close_index).trim().to_string()
+    let attrs = slice_string(part, 0, close_index).trim().to_owned()
     if attrs.length() == 0 {
       continue
     }
@@ -247,7 +247,7 @@ fn merge_inline_style(
 ) -> Unit {
   let declarations = raw_style.split(";").collect()
   for declaration in declarations {
-    let item = declaration.to_string().trim().to_string()
+    let item = declaration.to_owned().trim().to_owned()
     if item.is_empty() {
       continue
     }
@@ -255,8 +255,8 @@ fn merge_inline_style(
       Some(v) => v
       None => continue
     }
-    let key = slice_string(item, 0, colon).trim().to_string().to_lower()
-    let value = slice_string(item, colon + 1, item.length()).trim().to_string()
+    let key = slice_string(item, 0, colon).trim().to_owned().to_lower()
+    let value = slice_string(item, colon + 1, item.length()).trim().to_owned()
     if value.is_empty() || !is_visual_style_key(key) {
       continue
     }
@@ -453,7 +453,7 @@ fn semantic_snapshot_mismatch_summary(a : String, b : String) -> String {
 fn snapshot_line_counts(snapshot : String) -> Map[String, Int] {
   let counts : Map[String, Int] = {}
   for line in snapshot.split("\n").collect() {
-    let key = line.to_string()
+    let key = line.to_owned()
     if key.length() == 0 {
       continue
     }
@@ -485,7 +485,7 @@ fn normalize_svg_snapshot(svg : String) -> String {
     ),
   )
   .trim()
-  .to_string()
+  .to_owned()
 }
 
 ///|
@@ -664,9 +664,9 @@ fn normalize_image_href_payloads(svg : String) -> String {
     return svg
   }
   let out = StringBuilder::new()
-  out.write_string(parts[0].to_string())
+  out.write_string(parts[0].to_owned())
   for i in 1..<parts.length() {
-    let part = parts[i].to_string()
+    let part = parts[i].to_owned()
     let close_index = match find_substring(part, "/>") {
       Some(v) => v
       None =>
@@ -854,18 +854,18 @@ fn extract_text_positions(svg : String) -> Map[String, Array[(Double, Double)]] 
     return positions
   }
   for i in 1..<parts.length() {
-    let part = parts[i].to_string()
+    let part = parts[i].to_owned()
     let gt_parts = part.split(">").collect()
     if gt_parts.length() < 2 {
       continue
     }
-    let attrs = gt_parts[0].to_string()
-    let tail = gt_parts[1].to_string()
+    let attrs = gt_parts[0].to_owned()
+    let tail = gt_parts[1].to_owned()
     let text_parts = tail.split("</text>").collect()
     if text_parts.length() == 0 {
       continue
     }
-    let label = normalize_inline_text(strip_xml_tags(text_parts[0].to_string()))
+    let label = normalize_inline_text(strip_xml_tags(text_parts[0].to_owned()))
     if label.length() == 0 {
       continue
     }
@@ -897,7 +897,7 @@ fn extract_edge_endpoints_and_cubic(
     return result
   }
   for i in 1..<parts.length() {
-    let part = parts[i].to_string()
+    let part = parts[i].to_owned()
     let close_index = match find_substring(part, "/>") {
       Some(v) => v
       None => continue
@@ -1108,7 +1108,7 @@ fn extract_text_counts(svg : String) -> Map[String, Int] {
     if text_parts.length() == 0 {
       continue
     }
-    let label = normalize_inline_text(strip_xml_tags(text_parts[0].to_string()))
+    let label = normalize_inline_text(strip_xml_tags(text_parts[0].to_owned()))
     if label.length() == 0 {
       continue
     }
@@ -1152,7 +1152,7 @@ fn normalize_inline_text(s : String) -> String {
       prev_space = false
     }
   }
-  sb.to_string().trim().to_string()
+  sb.to_string().trim().to_owned()
 }
 
 ///|
