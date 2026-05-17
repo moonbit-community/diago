@@ -45,8 +45,5 @@ pub impl @engine_api.LayoutEngine for RailwayEngine with engine_name(_self) -> S
 pub impl @engine_api.LayoutEngine for RailwayEngine with features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
-  [
-    @engine_api.LayoutFeature::ContainerDimensions,
-    @engine_api.LayoutFeature::DescendantEdges,
-  ]
+  [ContainerDimensions, DescendantEdges]
 }

@@ -88,7 +88,7 @@ priv struct Utf8FontFile {
 
 ///|
 fn new_utf8_font(reader : FileReader) -> Utf8FontFile {
-  Utf8FontFile::{
+  {
     file_reader: reader,
     last_rune: 0,
     table_descriptions: {},
@@ -97,7 +97,7 @@ fn new_utf8_font(reader : FileReader) -> Utf8FontFile {
     char_symbol_dictionary: {},
     ascent: 0,
     descent: 0,
-    bbox: FontBox::{ x_min: 0, y_min: 0, x_max: 0, y_max: 0 },
+    bbox: { x_min: 0, y_min: 0, x_max: 0, y_max: 0 },
     cap_height: 0,
     stem_v: 0,
     italic_angle: 0,
@@ -440,7 +440,7 @@ fn Utf8FontFile::generate_table_descriptions(self : Utf8FontFile) -> Unit {
     let checksum_lo = self.read_uint16()
     let position = self.read_uint32()
     let size = self.read_uint32()
-    self.table_descriptions[name] = TableDescription::{
+    self.table_descriptions[name] = {
       name,
       checksum_hi,
       checksum_lo,
@@ -1385,8 +1385,8 @@ fn sfnt_aligned_table_for_checksum(
 fn compress_zlib_default(data : Array[Byte]) -> Array[Byte]? {
   let compressed = @moon_yazi.compress(
     Bytes::from_array(data[:]),
-    @moon_yazi.Format::Zlib,
-    @moon_yazi.CompressionLevel::Default,
+    Zlib,
+    Default,
   ) catch {
     _ => return None
   }

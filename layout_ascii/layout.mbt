@@ -158,7 +158,7 @@ fn get_short_id(id : String) -> String {
 
 ///|
 fn is_container(obj : Shape) -> Bool {
-  obj.shape_type != @graph.SqlTable && obj.child_ids.length() > 0
+  obj.shape_type != SqlTable && obj.child_ids.length() > 0
 }
 
 ///|
@@ -280,7 +280,7 @@ fn compute_object_size(
     Some(size) => return size
     None => ()
   }
-  if obj.shape_type == @graph.SqlTable {
+  if obj.shape_type == SqlTable {
     let children = object_children(obj, all_objects)
     let header_height = 3
     let num_columns = children.length()
@@ -344,7 +344,7 @@ fn create_positioned_box(
   config : AsciiLayoutConfig,
   sizes : Map[String, (Int, Int)],
 ) -> AsciiBox {
-  if obj.shape_type == @graph.SqlTable {
+  if obj.shape_type == SqlTable {
     let child_objects = object_children(obj, all_objects)
     let columns : Array[AsciiBox] = []
     for child in child_objects {
@@ -478,12 +478,12 @@ fn legend_offsets(
   width : Int,
   height : Int,
 ) -> (Int, Int) {
-  let dx = if position == @graph.TopLeft || position == @graph.BottomLeft {
+  let dx = if position == TopLeft || position == BottomLeft {
     width + 4
   } else {
     0
   }
-  let dy = if position == @graph.TopLeft || position == @graph.TopRight {
+  let dy = if position == TopLeft || position == TopRight {
     height + 3
   } else {
     0
@@ -640,13 +640,13 @@ fn truncate_string(s : String, max_len : Int) -> String {
 ///|
 fn shape_to_icon(shape : ShapeType) -> String {
   match shape {
-    @graph.Rectangle | @graph.Square => "[]"
-    @graph.Circle | @graph.Oval => "()"
-    @graph.Diamond => "<>"
-    @graph.Cylinder => "||"
-    @graph.Person => "/\\"
-    @graph.Cloud => "(~)"
-    @graph.Document => "[~]"
+    Rectangle | Square => "[]"
+    Circle | Oval => "()"
+    Diamond => "<>"
+    Cylinder => "||"
+    Person => "/\\"
+    Cloud => "(~)"
+    Document => "[~]"
     _ => "[]"
   }
 }
@@ -786,7 +786,7 @@ pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
 
   // Legend layout and diagram shifting.
   let (boxes, legend_info) = match diagram.legend {
-    Some(legend) if !(legend.is_empty() || legend.position == @graph.Hidden) => {
+    Some(legend) if !(legend.is_empty() || legend.position == Hidden) => {
       let (lw, lh) = legend_size(legend)
       let (dx, dy) = legend_offsets(legend.position, lw, lh)
       (shift_boxes(base_boxes, dx, dy), Some((legend, lw, lh)))
@@ -796,14 +796,14 @@ pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
   let (diagram_width, diagram_height) = compute_canvas_size(boxes, config)
   let (canvas_width, canvas_height) = match legend_info {
     Some((legend, lw, lh)) => {
-      let extra_w = if legend.position == @graph.TopRight ||
-        legend.position == @graph.BottomRight {
+      let extra_w = if legend.position == TopRight ||
+        legend.position == BottomRight {
         lw + 4
       } else {
         0
       }
-      let extra_h = if legend.position == @graph.BottomLeft ||
-        legend.position == @graph.BottomRight {
+      let extra_h = if legend.position == BottomLeft ||
+        legend.position == BottomRight {
         lh + 3
       } else {
         0
@@ -824,14 +824,14 @@ pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
   let legend = match legend_info {
     Some((legend, _lw, _lh)) => {
       let x = match legend.position {
-        @graph.TopLeft | @graph.BottomLeft => 1
-        @graph.TopRight | @graph.BottomRight => diagram_width + 2
-        @graph.Hidden => 1
+        TopLeft | BottomLeft => 1
+        TopRight | BottomRight => diagram_width + 2
+        Hidden => 1
       }
       let y = match legend.position {
-        @graph.TopLeft | @graph.TopRight => 0
-        @graph.BottomLeft | @graph.BottomRight => diagram_height + 1
-        @graph.Hidden => 0
+        TopLeft | TopRight => 0
+        BottomLeft | BottomRight => diagram_height + 1
+        Hidden => 0
       }
       Some((legend, plan_legend(legend, x, y)))
     }

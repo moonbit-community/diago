@@ -19,7 +19,7 @@ fn layout_graph(
   direction : @engine_api.Direction,
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
   keep_legacy_railway_symbols_alive()
-  if graph.root.shape_type == @graph.SequenceDiagram {
+  if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_diagram_railway(graph, config)
   }
   let patch = @graph.LayoutPatch::new()

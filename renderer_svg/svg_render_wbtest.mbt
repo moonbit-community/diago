@@ -25,7 +25,7 @@ fn test_object_input(
   @graph.ObjectInput::from_parts(
     "node",
     label,
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     Some(box),
     None,

@@ -65,18 +65,11 @@ pub fn render_legend_svg(
   // Render each entry
   for entry in layout.entries {
     match entry {
-      @layout_svg.LegendEntryLayout::Shape(
-        icon_box~,
-        shape~,
-        label~,
-        style~,
-        label_x~,
-        label_y~
-      ) =>
+      Shape(icon_box~, shape~, label~, style~, label_x~, label_y~) =>
         render_shape_entry(
           svg, icon_box, shape, label, style, label_x, label_y, config,
         )
-      @layout_svg.LegendEntryLayout::Connection(
+      Connection(
         line_start_x~,
         line_end_x~,
         line_y~,
@@ -91,19 +84,11 @@ pub fn render_legend_svg(
           svg, line_start_x, line_end_x, line_y, src_arrow, dst_arrow, label, style,
           label_x, label_y, config,
         )
-      @layout_svg.LegendEntryLayout::Custom(
-        icon_x~,
-        icon_y~,
-        icon_size~,
-        icon~,
-        label~,
-        label_x~,
-        label_y~
-      ) =>
+      Custom(icon_x~, icon_y~, icon_size~, icon~, label~, label_x~, label_y~) =>
         render_custom_entry(
           svg, icon_x, icon_y, icon_size, icon, label, label_x, label_y, config,
         )
-      @layout_svg.LegendEntryLayout::Separator(x1~, x2~, y~) =>
+      Separator(x1~, x2~, y~) =>
         svg.add(
           @xml_emit.Element::new("line")
           .attr_num("x1", x1)

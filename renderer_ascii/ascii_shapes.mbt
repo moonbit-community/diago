@@ -43,8 +43,7 @@ fn style_is_mono(value : @graph.StyleValue?) -> Bool {
 
 ///|
 fn has_outside_bottom_label(shape_type : @graph.ShapeType) -> Bool {
-  shape_type == @graph.ShapeType::Person ||
-  shape_type == @graph.ShapeType::Image
+  shape_type == Person || shape_type == Image
 }
 
 ///|
@@ -73,7 +72,7 @@ fn default_shape_label_position(
   }
   let is_bold = style_bool(shape.style.bold, false)
   let is_italic = style_bool(shape.style.italic, false)
-  let is_mono = shape.shape_type == @graph.ShapeType::Code ||
+  let is_mono = shape.shape_type == Code ||
     style_is_mono(shape.style.font_family)
   let dims = @text_metrics.measure_label(
     shape.label,
@@ -178,7 +177,7 @@ fn infer_label_position_from_boxes(
 ///|
 fn resolve_shape_label_position(shape : @diagram.Shape) -> String {
   guard shape.label != "" else { return DEFAULT_LABEL_POSITION }
-  if shape.shape_type == @graph.ShapeType::Text || is_markdown_shape(shape) {
+  if shape.shape_type == Text || is_markdown_shape(shape) {
     // Match the reference ASCII behavior: markdown content affects shape sizing
     // but is not directly drawn as plain text. Text shapes also render without
     // plaintext labels in the reference ASCII output.
@@ -234,7 +233,7 @@ fn draw_diagram_shape(
       }
 
       match shape.shape_type {
-        @graph.ShapeType::Rectangle | @graph.ShapeType::Square =>
+        Rectangle | Square =>
           draw_rect(
             ctx,
             draw_x,
@@ -246,63 +245,63 @@ fn draw_diagram_shape(
             "",
             preserve_height~,
           )
-        @graph.ShapeType::Page =>
+        Page =>
           draw_page(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Hexagon =>
+        Hexagon =>
           draw_hex(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Person =>
+        Person =>
           draw_person(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::StoredData =>
+        StoredData =>
           draw_stored_data(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Cylinder =>
+        Cylinder =>
           draw_cylinder(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Package =>
+        Package =>
           draw_package(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Parallelogram =>
+        Parallelogram =>
           draw_parallelogram(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Queue =>
+        Queue =>
           draw_queue(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Step =>
+        Step =>
           draw_step(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Callout =>
+        Callout =>
           draw_callout(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Document =>
+        Document =>
           draw_document(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Diamond =>
+        Diamond =>
           draw_diamond(
             ctx, draw_x, draw_y, draw_w, draw_h, label_text, label_position,
           )
-        @graph.ShapeType::Class =>
+        Class =>
           draw_class_shape(
             ctx, draw_x, draw_y, draw_w, draw_h, shape, all_shapes, label_position,
           )
-        @graph.ShapeType::SqlTable =>
+        SqlTable =>
           draw_sql_table_shape(
             ctx, draw_x, draw_y, draw_w, draw_h, shape, all_shapes, label_position,
           )
-        @graph.ShapeType::Code =>
+        Code =>
           draw_rect(
             ctx,
             draw_x,
@@ -315,7 +314,7 @@ fn draw_diagram_shape(
             preserve_height~,
             render_label=false,
           )
-        @graph.ShapeType::Cloud =>
+        Cloud =>
           draw_rect(
             ctx,
             draw_x,
@@ -327,7 +326,7 @@ fn draw_diagram_shape(
             ctx.chars.cloud().to_string(),
             preserve_height~,
           )
-        @graph.ShapeType::Circle =>
+        Circle =>
           draw_rect(
             ctx,
             draw_x,
@@ -339,7 +338,7 @@ fn draw_diagram_shape(
             ctx.chars.oval().to_string(),
             preserve_height~,
           )
-        @graph.ShapeType::Oval =>
+        Oval =>
           draw_rect(
             ctx,
             draw_x,

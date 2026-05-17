@@ -47,7 +47,7 @@ pub struct DiagramOptions {
 pub fn DiagramOptions::new() -> DiagramOptions {
   {
     layout_engine: Auto,
-    direction: @engine_api.Down,
+    direction: Down,
     target_spec: None,
     layout_plugin: None,
     route_plugin: None,

@@ -124,8 +124,7 @@ fn is_inner_member_of_sql_or_class(
       Some(parent_id) => {
         match object_by_id.get(parent_id) {
           Some(parent) =>
-            if parent.shape_type == @graph.SqlTable ||
-              parent.shape_type == @graph.Class {
+            if parent.shape_type == SqlTable || parent.shape_type == Class {
               return true
             }
           None => ()
@@ -237,7 +236,7 @@ fn collapse_sql_or_class_endpoint_id(
       Some(v) => v
       None => break
     }
-    if parent.shape_type != @graph.SqlTable && parent.shape_type != @graph.Class {
+    if parent.shape_type != SqlTable && parent.shape_type != Class {
       break
     }
     current = parent_id
@@ -282,8 +281,8 @@ fn resolve_container_endpoint_railway(
 ///|
 fn is_layout_container_candidate(obj : @graph.ObjectInput) -> Bool {
   !obj.child_ids.is_empty() &&
-  obj.shape_type != @graph.Class &&
-  obj.shape_type != @graph.SqlTable
+  obj.shape_type != Class &&
+  obj.shape_type != SqlTable
 }
 
 ///|
@@ -1185,8 +1184,8 @@ fn spread_sibling_boxes_railway(
         }
         match object_by_id.get(child_id) {
           Some(obj) =>
-            if obj.shape_type != @graph.Class &&
-              obj.shape_type != @graph.SqlTable &&
+            if obj.shape_type != Class &&
+              obj.shape_type != SqlTable &&
               (!root_only_containers || is_layout_container_candidate(obj)) {
               sibling_ids.push(child_id)
             }

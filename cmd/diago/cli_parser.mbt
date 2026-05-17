@@ -41,7 +41,7 @@ fn match_values(matches : @argparse.Matches, key : String) -> Array[String] {
 
 ///|
 fn build_cli_command() -> @argparse.Command {
-  @argparse.Command(
+  Command(
     "diago",
     about="Diago diagram compiler",
     subcommand_required=true,
@@ -51,8 +51,8 @@ fn build_cli_command() -> @argparse.Command {
       build_fmt_subcommand(),
       build_validate_subcommand(),
       build_layout_subcommand(),
-      @argparse.Command("themes", about="List all available themes"),
-      @argparse.Command("version", about="Print diago version"),
+      Command("themes", about="List all available themes"),
+      Command("version", about="Print diago version"),
       build_internal_dump_input_subcommand(),
     ],
   )
@@ -60,48 +60,44 @@ fn build_cli_command() -> @argparse.Command {
 
 ///|
 fn build_render_subcommand() -> @argparse.Command {
-  @argparse.Command(
+  Command(
     "render",
     about="Render diagram to svg/ascii/unicode",
     flags=[
-      @argparse.FlagArg(
-        "stdin",
-        long="stdin",
-        about="Read diago source from stdin",
-      ),
-      @argparse.FlagArg(
+      FlagArg("stdin", long="stdin", about="Read diago source from stdin"),
+      FlagArg(
         "watch",
         long="watch",
         about="Watch input file and rebuild on changes",
       ),
-      @argparse.FlagArg(
+      FlagArg(
         "center",
         short='c',
         long="center",
         about="Center the SVG in the containing viewbox",
         env="DIAGO_CENTER",
       ),
-      @argparse.FlagArg(
+      FlagArg(
         "sketch",
         short='s',
         long="sketch",
         about="Render the diagram in global sketch mode",
         env="DIAGO_SKETCH",
       ),
-      @argparse.FlagArg(
+      FlagArg(
         "bundle",
         long="bundle",
         about="Bundle image hrefs as data URIs (default: true)",
         negatable=true,
         env="DIAGO_BUNDLE",
       ),
-      @argparse.FlagArg(
+      FlagArg(
         "no-xml-tag",
         long="no-xml-tag",
         about="Omit XML declaration in SVG output",
         env="DIAGO_NO_XML_TAG",
       ),
-      @argparse.FlagArg(
+      FlagArg(
         "omit-version",
         long="omit-version",
         about="Omit the version attribute in SVG output",
@@ -109,172 +105,141 @@ fn build_render_subcommand() -> @argparse.Command {
       ),
     ],
     options=[
-      @argparse.OptionArg(
+      OptionArg(
         "format",
         long="format",
         about="Output format: svg|ascii|unicode",
         env="DIAGO_FORMAT",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "layout",
         short='l',
         about="Layout engine: dagre|elk|railway (default: dagre)",
         env="DIAGO_LAYOUT",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "target",
         long="target",
         about="Render specific board path (e.g. layers.core)",
         env="DIAGO_TARGET",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "theme",
         short='t',
         about="Use specified theme (SVG mode)",
         env="DIAGO_THEME",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "pad",
         long="pad",
         about="Pixels padded around the rendered diagram",
         env="DIAGO_PAD",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "dark-theme",
         long="dark-theme",
         about="Use dark theme ID when no light theme is set",
         env="DIAGO_DARK_THEME",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "dark-theme-id",
         long="dark-theme-id",
         about="Alias of --dark-theme",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "theme-overrides",
         long="theme-overrides",
         about="Override light theme colors (comma-separated K=V pairs)",
-        action=@argparse.OptionAction::Append,
+        action=Append,
         env="DIAGO_THEME_OVERRIDES",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "dark-theme-overrides",
         long="dark-theme-overrides",
         about="Override dark theme colors (comma-separated K=V pairs)",
-        action=@argparse.OptionAction::Append,
+        action=Append,
         env="DIAGO_DARK_THEME_OVERRIDES",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "scale",
         long="scale",
         about="Scale SVG width/height by factor N",
         env="DIAGO_SCALE",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "salt",
         long="salt",
         about="Salt SVG marker/pattern IDs",
         env="DIAGO_SALT",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "interval",
         short='i',
         long="interval",
         about="Watch poll interval in milliseconds (default: 500)",
         env="DIAGO_WATCH_INTERVAL",
       ),
-      @argparse.OptionArg(
+      OptionArg(
         "output",
         short='o',
         long="output",
         about="Output file path. Use '-' to write stdout",
       ),
     ],
-    positionals=[
-      @argparse.PositionArg(
-        "paths",
-        num_args=@argparse.ValueRange(lower=0, upper=2),
-      ),
-    ],
+    positionals=[PositionArg("paths", num_args=ValueRange(lower=0, upper=2))],
   )
 }
 
 ///|
 fn build_fmt_subcommand() -> @argparse.Command {
-  @argparse.Command(
+  Command(
     "fmt",
     about="Format diagram files in place",
     flags=[
-      @argparse.FlagArg(
+      FlagArg(
         "check",
         long="check",
         about="Exit non-zero if files are not formatted",
         env="DIAGO_CHECK",
       ),
     ],
-    positionals=[
-      @argparse.PositionArg("files", num_args=@argparse.ValueRange(lower=1)),
-    ],
+    positionals=[PositionArg("files", num_args=ValueRange(lower=1))],
   )
 }
 
 ///|
 fn build_validate_subcommand() -> @argparse.Command {
-  @argparse.Command(
+  Command(
     "validate",
     about="Validate diago source",
-    flags=[
-      @argparse.FlagArg(
-        "stdin",
-        long="stdin",
-        about="Read diago source from stdin",
-      ),
-    ],
-    positionals=[
-      @argparse.PositionArg(
-        "paths",
-        num_args=@argparse.ValueRange(lower=0, upper=1),
-      ),
-    ],
+    flags=[FlagArg("stdin", long="stdin", about="Read diago source from stdin")],
+    positionals=[PositionArg("paths", num_args=ValueRange(lower=0, upper=1))],
   )
 }
 
 ///|
 fn build_layout_subcommand() -> @argparse.Command {
-  @argparse.Command(
-    "layout",
-    about="List layout engines or inspect one engine",
-    positionals=[
-      @argparse.PositionArg(
-        "engine",
-        num_args=@argparse.ValueRange(lower=0, upper=1),
-      ),
-    ],
-  )
+  Command("layout", about="List layout engines or inspect one engine", positionals=[
+    PositionArg("engine", num_args=ValueRange(lower=0, upper=1)),
+  ])
 }
 
 ///|
 fn build_internal_dump_input_subcommand() -> @argparse.Command {
-  @argparse.Command(
+  Command(
     "__dump-input",
     about="Internal: dump layout engine input JSON",
     hidden=true,
     options=[
-      @argparse.OptionArg(
-        "engine",
-        long="engine",
-        about="Dump engine: elk|dagre",
-      ),
-      @argparse.OptionArg(
+      OptionArg("engine", long="engine", about="Dump engine: elk|dagre"),
+      OptionArg(
         "out-dir",
         long="out-dir",
         about="Output directory path",
         required=true,
       ),
     ],
-    positionals=[
-      @argparse.PositionArg("paths", num_args=@argparse.ValueRange(lower=0)),
-    ],
+    positionals=[PositionArg("paths", num_args=ValueRange(lower=0))],
   )
 }
 
@@ -563,7 +528,7 @@ fn parse_internal_dump_input_request(
             "Error: unsupported dump engine '\{value}'. Expected elk or dagre.",
           )
       }
-    None => DumpInputEngine::Elk
+    None => Elk
   }
   guard first_match_value(matches, "out-dir") is Some(out_dir) else {
     return Err("Error: --out-dir is required.")

@@ -38,8 +38,8 @@ fn parse_render(
             input_path: None,
             output_path: None,
             from_stdin: false,
-            output_mode: OutputMode::Svg,
-            layout_engine: LayoutEngineChoice::Dagre,
+            output_mode: Svg,
+            layout_engine: Dagre,
             layout_explicit: false,
             target_spec: None,
             theme_name: None,
@@ -66,8 +66,8 @@ fn parse_render(
         input_path: None,
         output_path: None,
         from_stdin: false,
-        output_mode: OutputMode::Svg,
-        layout_engine: LayoutEngineChoice::Dagre,
+        output_mode: Svg,
+        layout_engine: Dagre,
         layout_explicit: false,
         target_spec: None,
         theme_name: None,
@@ -101,7 +101,7 @@ test "render default output path is input.svg" {
   let req = parse_render(["diago", "render", "demo.d2"], {})
   @debug.assert_eq(req.input_path, Some("demo.d2"))
   @debug.assert_eq(req.output_path, Some("demo.svg"))
-  @debug.assert_eq(req.output_mode, OutputMode::Svg)
+  @debug.assert_eq(req.output_mode, Svg)
 }
 
 ///|
@@ -159,7 +159,7 @@ test "precedence: cli overrides env for layout" {
   let req = parse_render(["diago", "render", "demo.d2", "--layout", "dagre"], {
     "DIAGO_LAYOUT": "elk",
   })
-  @debug.assert_eq(req.layout_engine, LayoutEngineChoice::Dagre)
+  @debug.assert_eq(req.layout_engine, Dagre)
   assert_true(req.layout_explicit)
 }
 
@@ -168,7 +168,7 @@ test "precedence: env overrides defaults for layout" {
   let req = parse_render(["diago", "render", "demo.d2"], {
     "DIAGO_LAYOUT": "elk",
   })
-  @debug.assert_eq(req.layout_engine, LayoutEngineChoice::Elk)
+  @debug.assert_eq(req.layout_engine, Elk)
   assert_true(req.layout_explicit)
 }
 
@@ -208,7 +208,7 @@ test "render parses typed theme override flags" {
 ///|
 test "only DIAGO_ env prefix is recognized" {
   let req = parse_render(["diago", "render", "demo.d2"], { "D2_LAYOUT": "elk" })
-  @debug.assert_eq(req.layout_engine, LayoutEngineChoice::Dagre)
+  @debug.assert_eq(req.layout_engine, Dagre)
   assert_false(req.layout_explicit)
 }
 
@@ -251,15 +251,7 @@ test "precedence: env layout overrides invalid vars config layout-engine" {
     #|  }
     #|}
     #|a -> b
-  let auto_result = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  )
+  let auto_result = compile_source(source, Svg, None, None, Dagre, false, None)
   assert_true(auto_result is Err(_))
 
   let req = parse_render(["diago", "render", "demo.d2"], {
@@ -296,10 +288,10 @@ test "compile_source reports invalid target syntax" {
     #|}
   let result = compile_source(
     source,
-    OutputMode::Svg,
+    Svg,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     Some("layers.\"core"),
   )

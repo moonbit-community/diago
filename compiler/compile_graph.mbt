@@ -152,7 +152,7 @@ fn compile_config_data_map(
   let data : Map[String, @diagram.ConfigDataValue] = {}
   for field in data_map.fields {
     if field.primary is Some(value) {
-      data[field.name] = @diagram.ConfigDataValue::Text(value.to_string())
+      data[field.name] = Text(value.to_string())
     } else if field.array() is Some(array) {
       let values : Array[String] = []
       for item in array.values {
@@ -160,9 +160,9 @@ fn compile_config_data_map(
           values.push(scalar.to_string())
         }
       }
-      data[field.name] = @diagram.ConfigDataValue::StringArray(values)
+      data[field.name] = StringArray(values)
     } else if field.has_composite() {
-      data[field.name] = @diagram.ConfigDataValue::StringArray([])
+      data[field.name] = StringArray([])
     }
   }
   data
@@ -177,14 +177,13 @@ fn graph_data_from_source_config(
     Some(config) =>
       for key, value in config.data {
         data[key] = match value {
-          @diagram.ConfigDataValue::Text(text) =>
-            @graph.GraphDataValue::Text(text)
-          @diagram.ConfigDataValue::StringArray(items) => {
+          Text(text) => Text(text)
+          StringArray(items) => {
             let copied : Array[String] = []
             for item in items {
               copied.push(item)
             }
-            @graph.GraphDataValue::StringArray(copied)
+            StringArray(copied)
           }
         }
       }

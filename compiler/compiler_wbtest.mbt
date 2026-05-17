@@ -26,11 +26,8 @@ test "compile_graph attaches vars config data to graph input" {
     #|a -> b
   let result = compile_graph("diagram", source).unwrap()
   let graph = result.graph_input()
-  @debug.assert_eq(graph.data["cat"], @graph.GraphDataValue::Text("hat"))
-  @debug.assert_eq(
-    graph.data["later"],
-    @graph.GraphDataValue::StringArray(["1", "5", "2"]),
-  )
+  @debug.assert_eq(graph.data["cat"], Text("hat"))
+  @debug.assert_eq(graph.data["later"], StringArray(["1", "5", "2"]))
 }
 
 ///|

@@ -85,7 +85,7 @@ priv struct CliRequest {
 ///|
 fn CliRequest::themes() -> CliRequest {
   {
-    command: CliCommand::Themes,
+    command: Themes,
     render: None,
     fmt: None,
     validate: None,
@@ -97,7 +97,7 @@ fn CliRequest::themes() -> CliRequest {
 ///|
 fn CliRequest::version() -> CliRequest {
   {
-    command: CliCommand::Version,
+    command: Version,
     render: None,
     fmt: None,
     validate: None,
@@ -109,7 +109,7 @@ fn CliRequest::version() -> CliRequest {
 ///|
 fn CliRequest::render(req : RenderRequest) -> CliRequest {
   {
-    command: CliCommand::Render,
+    command: Render,
     render: Some(req),
     fmt: None,
     validate: None,
@@ -121,7 +121,7 @@ fn CliRequest::render(req : RenderRequest) -> CliRequest {
 ///|
 fn CliRequest::fmt(req : FmtRequest) -> CliRequest {
   {
-    command: CliCommand::Fmt,
+    command: Fmt,
     render: None,
     fmt: Some(req),
     validate: None,
@@ -133,7 +133,7 @@ fn CliRequest::fmt(req : FmtRequest) -> CliRequest {
 ///|
 fn CliRequest::validate(req : ValidateRequest) -> CliRequest {
   {
-    command: CliCommand::Validate,
+    command: Validate,
     render: None,
     fmt: None,
     validate: Some(req),
@@ -145,7 +145,7 @@ fn CliRequest::validate(req : ValidateRequest) -> CliRequest {
 ///|
 fn CliRequest::layout(req : LayoutRequest) -> CliRequest {
   {
-    command: CliCommand::Layout,
+    command: Layout,
     render: None,
     fmt: None,
     validate: None,
@@ -157,7 +157,7 @@ fn CliRequest::layout(req : LayoutRequest) -> CliRequest {
 ///|
 fn CliRequest::dump_input(req : DumpInputRequest) -> CliRequest {
   {
-    command: CliCommand::InternalDumpInput,
+    command: InternalDumpInput,
     render: None,
     fmt: None,
     validate: None,

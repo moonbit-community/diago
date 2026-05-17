@@ -26,7 +26,7 @@ test "dagre engine can layout simple graph" {
     DagreEngine::new(),
     graph_input,
     @engine_api.LayoutConfig::new(),
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("layout error: \{e}")
   }

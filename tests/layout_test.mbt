@@ -17,7 +17,7 @@
 
 ///|
 test "objects have positions after layout" {
-  let graph = compile_to_graph("a\nb\nc", @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph("a\nb\nc", Down).unwrap()
   for obj in graph.get_objects() {
     let box = obj.get_box()
     assert_true(box is Some(_))
@@ -26,10 +26,7 @@ test "objects have positions after layout" {
 
 ///|
 test "objects have positive dimensions" {
-  let graph = compile_to_graph(
-    "server: Web Server",
-    @engine_api.Direction::Down,
-  ).unwrap()
+  let graph = compile_to_graph("server: Web Server", Down).unwrap()
   for obj in graph.get_objects() {
     if obj.get_box() is Some(box) {
       assert_true(box.get_width() > 0.0)
@@ -42,7 +39,7 @@ test "objects have positive dimensions" {
 
 ///|
 test "multiple objects don't overlap" {
-  let graph = compile_to_graph("a\nb\nc", @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph("a\nb\nc", Down).unwrap()
   let objects = graph.get_objects()
   for i in 0..<objects.length() {
     for j in (i + 1)..<objects.length() {
@@ -60,7 +57,7 @@ test "multiple objects don't overlap" {
 
 ///|
 test "down direction stacks objects vertically" {
-  let graph = compile_to_graph("a\nb", @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph("a\nb", Down).unwrap()
   let a = graph.find_object("a").unwrap()
   let b = graph.find_object("b").unwrap()
   match (a.get_box(), b.get_box()) {
@@ -78,7 +75,7 @@ test "down direction stacks objects vertically" {
 
 ///|
 test "right direction stacks objects horizontally" {
-  let graph = compile_to_graph("a\nb", @engine_api.Direction::Right).unwrap()
+  let graph = compile_to_graph("a\nb", Right).unwrap()
   let a = graph.find_object("a").unwrap()
   let b = graph.find_object("b").unwrap()
   match (a.get_box(), b.get_box()) {
@@ -109,7 +106,7 @@ test "quoted syntax identities survive dagre elk and railway layout" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -117,7 +114,7 @@ test "quoted syntax identities survive dagre elk and railway layout" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -125,7 +122,7 @@ test "quoted syntax identities survive dagre elk and railway layout" {
     @engine_railway.RailwayEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("railway layout error: \{e}")
   }
@@ -189,7 +186,7 @@ test "reference nested_layout_bug root grid keeps nested container as a grid cel
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -197,7 +194,7 @@ test "reference nested_layout_bug root grid keeps nested container as a grid cel
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -324,7 +321,7 @@ test "reference nested_diagram_types keeps nested sequence descendants inside th
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -332,7 +329,7 @@ test "reference nested_diagram_types keeps nested sequence descendants inside th
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -457,7 +454,7 @@ test "reference connected_container matches stable target geometry" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -465,7 +462,7 @@ test "reference connected_container matches stable target geometry" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -554,7 +551,7 @@ test "reference container_edges matches stable target geometry" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -562,7 +559,7 @@ test "reference container_edges matches stable target geometry" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -670,7 +667,7 @@ test "reference container geometry matches stable target output" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -678,7 +675,7 @@ test "reference container geometry matches stable target output" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -804,7 +801,7 @@ test "reference straight hierarchy geometry matches stable target output" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -812,7 +809,7 @@ test "reference straight hierarchy geometry matches stable target output" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -938,7 +935,7 @@ test "reference different subgraphs match stable target output" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -946,7 +943,7 @@ test "reference different subgraphs match stable target output" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1085,7 +1082,7 @@ test "reference grid_nested_simple_edges preserves nested grid child order" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Right,
+    Right,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1093,7 +1090,7 @@ test "reference grid_nested_simple_edges preserves nested grid child order" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Right,
+    Right,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1168,7 +1165,7 @@ test "reference grid_nested_gap0 matches stable nested grid boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1176,7 +1173,7 @@ test "reference grid_nested_gap0 matches stable nested grid boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1305,7 +1302,7 @@ test "reference grid_nested grid-with-container matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1313,7 +1310,7 @@ test "reference grid_nested grid-with-container matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1400,7 +1397,7 @@ test "reference grid_nested grid-in-grid matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1408,7 +1405,7 @@ test "reference grid_nested grid-in-grid matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1515,7 +1512,7 @@ test "reference grid_nested grid-with-nested-containers matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1523,7 +1520,7 @@ test "reference grid_nested grid-with-nested-containers matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1681,7 +1678,7 @@ test "reference grid_nested grid-with-grid-with-grid matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1689,7 +1686,7 @@ test "reference grid_nested grid-with-grid-with-grid matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1841,7 +1838,7 @@ test "reference empty_nested_grid matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1849,7 +1846,7 @@ test "reference empty_nested_grid matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1908,7 +1905,7 @@ test "reference empty_sequence matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1916,7 +1913,7 @@ test "reference empty_sequence matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -1974,7 +1971,7 @@ test "reference sequence nested groups match stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -1982,7 +1979,7 @@ test "reference sequence nested groups match stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -2026,7 +2023,7 @@ test "reference sequence nested span matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -2034,7 +2031,7 @@ test "reference sequence nested span matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -2060,7 +2057,7 @@ test "reference sequence inter span self matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -2068,7 +2065,7 @@ test "reference sequence inter span self matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -2434,7 +2431,7 @@ test "reference nested_steps matches stable boxes" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -2442,7 +2439,7 @@ test "reference nested_steps matches stable boxes" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -2531,7 +2528,7 @@ test "reference multiple_constant_nears matches stable target geometry" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -2539,7 +2536,7 @@ test "reference multiple_constant_nears matches stable target geometry" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -2565,7 +2562,7 @@ test "reference constant_near_title matches stable target geometry" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -2573,7 +2570,7 @@ test "reference constant_near_title matches stable target geometry" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -2609,7 +2606,7 @@ test "reference grid_edge_across_cell matches stable target geometry" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -2617,7 +2614,7 @@ test "reference grid_edge_across_cell matches stable target geometry" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -3024,7 +3021,7 @@ test "reference grid_in_constant_near matches stable target geometry" {
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -3032,7 +3029,7 @@ test "reference grid_in_constant_near matches stable target geometry" {
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -3177,7 +3174,7 @@ test "container contains children" {
     #|  child1
     #|  child2
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let parent = graph.find_object("parent").unwrap()
   let child1 = graph.find_object("parent.child1").unwrap()
   let child2 = graph.find_object("parent.child2").unwrap()
@@ -3210,7 +3207,7 @@ test "nested children are packed inside parent" {
     #|  child1
     #|  child2
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let child1 = graph.find_object("parent.child1").unwrap()
   let child2 = graph.find_object("parent.child2").unwrap()
   match (child1.get_box(), child2.get_box()) {
@@ -3241,7 +3238,7 @@ test "constant near containers keep descendants and cross edges aligned in dagre
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("dagre layout error: \{e}")
   }
@@ -3251,7 +3248,7 @@ test "constant near containers keep descendants and cross edges aligned in dagre
     @engine_elk.ElkEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk layout error: \{e}")
   }
@@ -3320,7 +3317,7 @@ fn assert_constant_near_container_layout(
 
 ///|
 test "edges have route points" {
-  let graph = compile_to_graph("a -> b", @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph("a -> b", Down).unwrap()
   let edges = graph.get_edges()
   assert_true(edges.length() == 1)
   let route = edges[0].route
@@ -3338,7 +3335,7 @@ test "edge bend points override routing" {
     #|a -> b {
     #|  bend-points: [[10, 20], [30, 40]]
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let edge = graph.get_edges()[0]
   guard edge.bend_points is Some(bend_points) else {
     fail("expected edge bend points")
@@ -3354,7 +3351,7 @@ test "edge bend points override routing" {
 
 ///|
 test "edge route connects source to destination" {
-  let graph = compile_to_graph("a -> b", @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph("a -> b", Down).unwrap()
   let a = graph.find_object("a").unwrap()
   let b = graph.find_object("b").unwrap()
   let edges = graph.get_edges()
@@ -3382,10 +3379,7 @@ test "edge route connects source to destination" {
 
 ///|
 test "label width affects object size" {
-  let graph = compile_to_graph(
-    "short\nthis_is_a_very_long_label_name",
-    @engine_api.Direction::Down,
-  ).unwrap()
+  let graph = compile_to_graph("short\nthis_is_a_very_long_label_name", Down).unwrap()
   let short = graph.find_object("short").unwrap()
   let long = graph.find_object("this_is_a_very_long_label_name").unwrap()
   match (short.get_box(), long.get_box()) {
@@ -3404,7 +3398,7 @@ test "shape is preserved in graph" {
     #|db {
     #|  shape: cylinder
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let db = graph.find_object("db").unwrap()
   inspect(db.shape_type.to_shape_string(), content="cylinder")
 }
@@ -3415,7 +3409,7 @@ test "shape with label is preserved" {
     #|database: Database {
     #|  shape: cylinder
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let db = graph.find_object("database").unwrap()
   inspect(db.label, content="Database")
   inspect(db.shape_type.to_shape_string(), content="cylinder")
@@ -3427,7 +3421,7 @@ test "objects ordered by definition" {
     #|server
     #|database
     #|cache
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let server = graph.find_object("server").unwrap()
   let database = graph.find_object("database").unwrap()
   let cache = graph.find_object("cache").unwrap()
@@ -3474,7 +3468,7 @@ test "sql_table edges connect to correct rows" {
     #|users.id <-> posts.user_id
     #|posts.id <-> comments.post_id
     #|users.id <-> comments.user_id
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let users_box = graph.find_object("users").unwrap().get_box().unwrap()
   let posts_box = graph.find_object("posts").unwrap().get_box().unwrap()
   let comments_box = graph.find_object("comments").unwrap().get_box().unwrap()
@@ -3546,7 +3540,7 @@ test "sql_table edges are clipped to boxes" {
     #|users.id <-> posts.user_id
     #|posts.id <-> comments.post_id
     #|users.id <-> comments.user_id
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   for edge in graph.get_edges() {
     let route = edge.route
     assert_true(route.length() >= 2, msg="sql_table edge should have a route")

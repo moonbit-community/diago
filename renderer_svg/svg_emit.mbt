@@ -505,11 +505,11 @@ fn d2_legend_corpus(legend : @graph.LegendInput) -> String {
   }
   for entry in legend.entries {
     match entry {
-      @graph.ShapeEntry(label~, ..) => sb.write_string(label)
-      @graph.ConnectionEntry(label~, ..) => sb.write_string(label)
+      ShapeEntry(label~, ..) => sb.write_string(label)
+      ConnectionEntry(label~, ..) => sb.write_string(label)
       // The reference corpus includes legend shape/connection labels only.
-      @graph.CustomEntry(..) => ()
-      @graph.Separator => ()
+      CustomEntry(..) => ()
+      Separator => ()
     }
   }
   sb.to_string()
@@ -770,7 +770,7 @@ fn d2_hash_shape_type(shape_type : ShapeType) -> String {
 ///|
 fn d2_hash_arrowhead_value(arrowhead : ArrowheadType) -> String {
   match arrowhead {
-    @graph.None => "none"
+    None => "none"
     Triangle => "triangle"
     Diamond => "diamond"
     Circle => "circle"
@@ -1378,9 +1378,8 @@ fn d2_hash_config_data_map(m : Map[String, @diagram.ConfigDataValue]) -> String 
   let fields : Array[D2JsonField] = []
   for key in keys {
     let value = match m[key] {
-      @diagram.ConfigDataValue::Text(text) => d2_json_string(text)
-      @diagram.ConfigDataValue::StringArray(items) =>
-        d2_json_string_array(items)
+      Text(text) => d2_json_string(text)
+      StringArray(items) => d2_json_string_array(items)
     }
     fields.push(d2_json_field(key, value))
   }

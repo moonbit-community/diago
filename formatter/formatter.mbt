@@ -62,9 +62,9 @@ fn range_is_one_line(r : @lexer.Range) -> Bool {
 ///|
 fn is_board_node(n : @ast.MapNode) -> Bool {
   match n {
-    @ast.MapNode::Key(k) =>
+    Key(k) =>
       match (k.key, k.value) {
-        (Some(kp), Some(@ast.Value::Map(m))) =>
+        (Some(kp), Some(Map(m))) =>
           if kp.path.length() == 0 || m.nodes.length() == 0 {
             false
           } else {
@@ -82,7 +82,7 @@ fn is_board_node(n : @ast.MapNode) -> Bool {
 ///|
 fn is_comment_map_node(n : @ast.MapNode) -> Bool {
   match n {
-    @ast.MapNode::Comment(_, _) | @ast.MapNode::BlockComment(_, _) => true
+    Comment(_, _) | BlockComment(_, _) => true
     _ => false
   }
 }
@@ -90,7 +90,7 @@ fn is_comment_map_node(n : @ast.MapNode) -> Bool {
 ///|
 fn is_comment_array_node(n : @ast.ArrayNode) -> Bool {
   match n {
-    @ast.ArrayNode::Comment(_, _) | @ast.ArrayNode::BlockComment(_, _) => true
+    Comment(_, _) | BlockComment(_, _) => true
     _ => false
   }
 }
@@ -180,22 +180,22 @@ fn Printer::format_map(
 ///|
 fn Printer::format_map_node(self : Printer, n : @ast.MapNode) -> Unit {
   match n {
-    @ast.MapNode::Comment(_, text) => self.format_comment(text)
-    @ast.MapNode::BlockComment(r, text) => self.format_block_comment(r, text)
-    @ast.MapNode::Substitution(sub) => self.format_substitution(sub)
-    @ast.MapNode::Import(imp) => self.format_import(imp)
-    @ast.MapNode::Key(key) => self.format_key(key)
+    Comment(_, text) => self.format_comment(text)
+    BlockComment(r, text) => self.format_block_comment(r, text)
+    Substitution(sub) => self.format_substitution(sub)
+    Import(imp) => self.format_import(imp)
+    Key(key) => self.format_key(key)
   }
 }
 
 ///|
 fn Printer::format_array_node(self : Printer, n : @ast.ArrayNode) -> Unit {
   match n {
-    @ast.ArrayNode::Comment(_, text) => self.format_comment(text)
-    @ast.ArrayNode::BlockComment(r, text) => self.format_block_comment(r, text)
-    @ast.ArrayNode::Substitution(sub) => self.format_substitution(sub)
-    @ast.ArrayNode::Import(imp) => self.format_import(imp)
-    @ast.ArrayNode::Value(v) => self.format_value(v)
+    Comment(_, text) => self.format_comment(text)
+    BlockComment(r, text) => self.format_block_comment(r, text)
+    Substitution(sub) => self.format_substitution(sub)
+    Import(imp) => self.format_import(imp)
+    Value(v) => self.format_value(v)
   }
 }
 
@@ -301,7 +301,7 @@ fn Printer::format_key(self : Printer, k : @ast.Key) -> Unit {
     None => ()
   }
 
-  if k.value is Some(@ast.Value::Map(m)) && m.nodes.length() == 0 {
+  if k.value is Some(Map(m)) && m.nodes.length() == 0 {
     return
   }
   match k.value {
@@ -320,11 +320,11 @@ fn Printer::format_key(self : Printer, k : @ast.Key) -> Unit {
 ///|
 fn Printer::format_value(self : Printer, v : @ast.Value) -> Unit {
   match v {
-    @ast.Value::Scalar(s) => self.format_scalar(s)
-    @ast.Value::Array(a) => self.format_array(a)
-    @ast.Value::Map(m) => self.format_map(m, false)
-    @ast.Value::Import(i) => self.format_import(i)
-    @ast.Value::BlockScalar(label, m) => {
+    Scalar(s) => self.format_scalar(s)
+    Array(a) => self.format_array(a)
+    Map(m) => self.format_map(m, false)
+    Import(i) => self.format_import(i)
+    BlockScalar(label, m) => {
       self.format_value(label)
       self.sb.write_char(' ')
       self.format_map(m, false)
@@ -386,29 +386,28 @@ fn Printer::format_array(self : Printer, a : @ast.ArrayValue) -> Unit {
 ///|
 fn Printer::format_scalar(self : Printer, scalar : @ast.Scalar) -> Unit {
   match scalar {
-    @ast.Scalar::Null(_) => self.sb.write_string("null")
-    @ast.Scalar::Boolean(_, b) =>
-      self.sb.write_string(if b { "true" } else { "false" })
-    @ast.Scalar::Number(_, raw) => self.sb.write_string(raw)
-    @ast.Scalar::String(s) => self.format_string_value(s)
+    Null(_) => self.sb.write_string("null")
+    Boolean(_, b) => self.sb.write_string(if b { "true" } else { "false" })
+    Number(_, raw) => self.sb.write_string(raw)
+    String(s) => self.format_string_value(s)
   }
 }
 
 ///|
 fn Printer::format_string_value(self : Printer, s : @ast.StringValue) -> Unit {
   match s {
-    @ast.StringValue::Unquoted(u) => self.format_interpolations(u.value, false)
-    @ast.StringValue::DoubleQuoted(dq) => {
+    Unquoted(u) => self.format_interpolations(u.value, false)
+    DoubleQuoted(dq) => {
       self.sb.write_char('"')
       self.format_interpolations(dq.value, true)
       self.sb.write_char('"')
     }
-    @ast.StringValue::SingleQuoted(_, v) => {
+    SingleQuoted(_, v) => {
       self.sb.write_char('\'')
       self.sb.write_string(escape_single_quoted_value(v))
       self.sb.write_char('\'')
     }
-    @ast.StringValue::Block(bs) => self.format_block_string(bs)
+    Block(bs) => self.format_block_string(bs)
   }
 }
 
@@ -420,8 +419,8 @@ fn Printer::format_interpolations(
 ) -> Unit {
   for box in boxes {
     match box {
-      @ast.Interpolation::Sub(sub) => self.format_substitution(sub)
-      @ast.Interpolation::Text(text) => {
+      Sub(sub) => self.format_substitution(sub)
+      Text(text) => {
         let mut raw = if is_double_string {
           escape_double_quoted_value(text, self.in_key)
         } else {

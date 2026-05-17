@@ -33,27 +33,27 @@ pub(all) suberror CompileError {
 ///|
 pub impl Show for CompileError with output(self, logger) {
   match self {
-    CompileError::InvalidKey(message) => {
+    InvalidKey(message) => {
       logger.write_string("InvalidKey(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    CompileError::InvalidValue(message) => {
+    InvalidValue(message) => {
       logger.write_string("InvalidValue(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    CompileError::DuplicateField(message) => {
+    DuplicateField(message) => {
       logger.write_string("DuplicateField(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    CompileError::InvalidSubstitution(message) => {
+    InvalidSubstitution(message) => {
       logger.write_string("InvalidSubstitution(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    CompileError::ImportError(message) => {
+    ImportError(message) => {
       logger.write_string("ImportError(")
       logger.write_object(message)
       logger.write_char(')')
@@ -94,19 +94,19 @@ fn compile_map_nodes(
 ) -> Unit raise CompileError {
   for node in nodes {
     match node {
-      @ast.MapNode::Comment(_, _) => () // Skip comments
-      @ast.MapNode::BlockComment(_, _) => () // Skip block comments
-      @ast.MapNode::Substitution(sub) =>
+      Comment(_, _) => () // Skip comments
+      BlockComment(_, _) => () // Skip block comments
+      Substitution(sub) =>
         // Placeholder field to be resolved during substitution pass.
         // We use an empty name to represent "no key" (reference behavior).
         ir.add_field(
           Field::new("", Some(substitution_scalar(sub, source_path)), None, []),
         )
-      @ast.MapNode::Import(_) =>
-        raise CompileError::ImportError(
+      Import(_) =>
+        raise ImportError(
           "imports require a resolver; use compile_with_imports",
         )
-      @ast.MapNode::Key(key) => compile_key(ir, key, scope_ast, source_path)
+      Key(key) => compile_key(ir, key, scope_ast, source_path)
     }
   }
 }
@@ -191,21 +191,20 @@ fn compile_key(
     )
     // Ensure field has a map composite
     match field.composite {
-      Some(Composite::Map(m)) => current_map = m
+      Some(Map(m)) => current_map = m
       None => {
         let new_map = Map::new()
         let field = Field::new(
           field.name,
           field.primary,
-          Some(Composite::Map(new_map)),
+          Some(Map(new_map)),
           field.references,
           name_syntax=field.name_syntax(),
         )
         current_map.set_field(field)
         current_map = new_map
       }
-      Some(_) =>
-        raise CompileError::InvalidKey("field already has non-map value")
+      Some(_) => raise InvalidKey("field already has non-map value")
     }
   }
   // Set the final field
@@ -288,7 +287,7 @@ fn extract_glob_and_path(key_path : @ast.KeyPath) -> (Array[String], Int) {
   // Find the first element with a glob pattern
   for i, elem in path {
     match elem {
-      @ast.StringValue::Unquoted(us) =>
+      Unquoted(us) =>
         if us.pattern.length() > 0 {
           pattern = us.pattern
           glob_index = i
@@ -320,10 +319,10 @@ fn build_nested_properties(
   if remaining_path.length() == 0 {
     // No remaining path, use value directly
     match key.value {
-      Some(@ast.Value::Map(m)) =>
+      Some(Map(m)) =>
         for node in m.nodes {
           match node {
-            @ast.MapNode::Key(prop_key) =>
+            Key(prop_key) =>
               if !prop_key.ampersand && !prop_key.not_ampersand {
                 match prop_key.key {
                   Some(pk) => {
@@ -337,7 +336,7 @@ fn build_nested_properties(
                         name_syntax=Some(pk.path[0]),
                       )
                       let prop_field = match prop_key.value {
-                        Some(@ast.Value::Scalar(sv)) =>
+                        Some(Scalar(sv)) =>
                           Field::new(
                             prop_field.name,
                             Some(compile_scalar(sv, source_path)),
@@ -384,7 +383,7 @@ fn build_nested_properties(
       let field = Field::new(
         field.name,
         field.primary,
-        Some(Composite::Map(inner)),
+        Some(Map(inner)),
         field.references,
         name_syntax=field.name_syntax(),
       )
@@ -437,7 +436,7 @@ fn build_nested_properties(
       None =>
         // Check if value is a scalar
         match key.value {
-          Some(@ast.Value::Scalar(sv)) =>
+          Some(Scalar(sv)) =>
             Field::new(
               final_field.name,
               Some(compile_scalar(sv, source_path)),
@@ -458,14 +457,14 @@ fn build_nested_properties(
 fn collect_filters_from_value(key : @ast.Key) -> Array[(Bool, String, String)] {
   let filters : Array[(Bool, String, String)] = []
   match key.value {
-    Some(@ast.Value::Map(m)) =>
+    Some(Map(m)) =>
       for node in m.nodes {
         match node {
-          @ast.MapNode::Key(filter_key) =>
+          Key(filter_key) =>
             if filter_key.ampersand || filter_key.not_ampersand {
               // This is a filter
               match (filter_key.key, filter_key.value) {
-                (Some(fk), Some(@ast.Value::Scalar(sv))) => {
+                (Some(fk), Some(Scalar(sv))) => {
                   let filter_name = fk.to_strings().last().unwrap_or("")
                   let filter_value = compile_scalar(sv, None).to_string()
                   filters.push(
@@ -517,7 +516,7 @@ fn expand_edge_endpoint_paths(
   let segment = segments[index]
   let is_last = index == segments.length() - 1
   match segment {
-    @ast.StringValue::Unquoted(us) =>
+    Unquoted(us) =>
       if us.pattern.length() > 0 {
         let candidates = current_map.single_glob(us.pattern)
         for field in candidates {
@@ -533,7 +532,7 @@ fn expand_edge_endpoint_paths(
             out.push(next_path)
           } else {
             match field.composite {
-              Some(Composite::Map(m)) =>
+              Some(Map(m)) =>
                 expand_edge_endpoint_paths(
                   m,
                   segments,
@@ -556,7 +555,7 @@ fn expand_edge_endpoint_paths(
               out.push(next_path)
             } else {
               match field.composite {
-                Some(Composite::Map(m)) =>
+                Some(Map(m)) =>
                   expand_edge_endpoint_paths(
                     m,
                     segments,
@@ -582,7 +581,7 @@ fn expand_edge_endpoint_paths(
             out.push(next_path)
           } else {
             match field.composite {
-              Some(Composite::Map(m)) =>
+              Some(Map(m)) =>
                 expand_edge_endpoint_paths(
                   m,
                   segments,
@@ -681,16 +680,15 @@ fn compile_edges(
       match (existing, value) {
         (Some(e), Some(v)) =>
           match v {
-            @ast.Value::Scalar(s) =>
-              (Some(compile_scalar(s, source_path)), e.map)
-            @ast.Value::Map(m) => {
+            Scalar(s) => (Some(compile_scalar(s, source_path)), e.map)
+            Map(m) => {
               let ir_map = Map::from_ast(m, source_path~)
               compile_map_nodes(ir_map, m, m.nodes, source_path~)
               (e.primary, Some(ir_map))
             }
-            @ast.Value::BlockScalar(label, m) => {
+            BlockScalar(label, m) => {
               let updated_primary = match label {
-                @ast.Value::Scalar(s) => Some(compile_scalar(s, source_path))
+                Scalar(s) => Some(compile_scalar(s, source_path))
                 _ => e.primary
               }
               let ir_map = Map::from_ast(m, source_path~)
@@ -702,18 +700,16 @@ fn compile_edges(
         (Some(e), None) => (e.primary, e.map)
         (None, Some(v)) =>
           match v {
-            @ast.Value::Scalar(s) =>
-              (Some(compile_scalar(s, source_path)), None)
-            @ast.Value::Map(m) => {
+            Scalar(s) => (Some(compile_scalar(s, source_path)), None)
+            Map(m) => {
               let ir_map = Map::from_ast(m, source_path~)
               compile_map_nodes(ir_map, m, m.nodes, source_path~)
               (None, Some(ir_map))
             }
-            @ast.Value::BlockScalar(label, m) => {
+            BlockScalar(label, m) => {
               let mut primary : Scalar? = None
               match label {
-                @ast.Value::Scalar(s) =>
-                  primary = Some(compile_scalar(s, source_path))
+                Scalar(s) => primary = Some(compile_scalar(s, source_path))
                 _ => ()
               }
               let ir_map = Map::from_ast(m, source_path~)
@@ -890,13 +886,13 @@ fn ensure_field_path(ir : Map, path : ResolvedPath) -> Unit {
   for i, _ in path.names {
     let field = current.ensure_field_by_syntax(path.syntax[i])
     match field.composite {
-      Some(Composite::Map(m)) => current = m
+      Some(Map(m)) => current = m
       None => {
         let new_map = Map::new()
         let field = Field::new(
           field.name,
           field.primary,
-          Some(Composite::Map(new_map)),
+          Some(Map(new_map)),
           field.references,
           name_syntax=field.name_syntax(),
         )
@@ -954,7 +950,7 @@ fn append_field_references_for_path_at(
     return
   }
   match updated.composite {
-    Some(Composite::Map(next)) =>
+    Some(Map(next)) =>
       append_field_references_for_path_at(
         next,
         path,
@@ -974,7 +970,7 @@ fn compile_value(
   source_path : String?,
 ) -> Field raise CompileError {
   match value {
-    @ast.Value::Scalar(s) =>
+    Scalar(s) =>
       Field::new(
         field.name,
         Some(compile_scalar(s, source_path)),
@@ -982,35 +978,33 @@ fn compile_value(
         field.references,
         name_syntax=field.name_syntax(),
       )
-    @ast.Value::Map(m) => {
+    Map(m) => {
       let ir_map = Map::from_ast(m, source_path~)
       compile_map_nodes(ir_map, m, m.nodes, source_path~)
       Field::new(
         field.name,
         field.primary,
-        Some(Composite::Map(ir_map)),
+        Some(Map(ir_map)),
         field.references,
         name_syntax=field.name_syntax(),
       )
     }
-    @ast.Value::Array(a) => {
+    Array(a) => {
       let ir_array = compile_array(a, source_path)
       Field::new(
         field.name,
         field.primary,
-        Some(Composite::Array(ir_array)),
+        Some(Array(ir_array)),
         field.references,
         name_syntax=field.name_syntax(),
       )
     }
-    @ast.Value::Import(_) =>
-      raise CompileError::ImportError(
-        "imports require a resolver; use compile_with_imports",
-      )
-    @ast.Value::BlockScalar(label, m) => {
+    Import(_) =>
+      raise ImportError("imports require a resolver; use compile_with_imports")
+    BlockScalar(label, m) => {
       // "name: Label { props }" - Label is primary, props is composite
       let field = match label {
-        @ast.Value::Scalar(s) =>
+        Scalar(s) =>
           Field::new(
             field.name,
             Some(compile_scalar(s, source_path)),
@@ -1025,7 +1019,7 @@ fn compile_value(
       Field::new(
         field.name,
         field.primary,
-        Some(Composite::Map(ir_map)),
+        Some(Map(ir_map)),
         field.references,
         name_syntax=field.name_syntax(),
       )
@@ -1041,15 +1035,15 @@ fn compile_array(
   let values : Array[Value] = []
   for node in arr.nodes {
     match node {
-      @ast.ArrayNode::Comment(_, _) => ()
-      @ast.ArrayNode::BlockComment(_, _) => ()
-      @ast.ArrayNode::Substitution(sub) =>
-        values.push(Value::Scalar(substitution_scalar(sub, source_path)))
-      @ast.ArrayNode::Import(_) =>
-        raise CompileError::ImportError(
+      Comment(_, _) => ()
+      BlockComment(_, _) => ()
+      Substitution(sub) =>
+        values.push(Scalar(substitution_scalar(sub, source_path)))
+      Import(_) =>
+        raise ImportError(
           "imports require a resolver; use compile_with_imports",
         )
-      @ast.ArrayNode::Value(v) => values.push(compile_ast_value(v, source_path))
+      Value(v) => values.push(compile_ast_value(v, source_path))
     }
   }
   IRArray::from_ast(arr, values, source_path~)
@@ -1061,12 +1055,8 @@ fn substitution_scalar(
   source_path : String?,
 ) -> Scalar {
   Scalar::from_ast(
-    @ast.Node::Substitution(sub),
-    ScalarValue::String(
-      @ast.StringValue::Unquoted(
-        @ast.UnquotedString::new(sub.range, [@ast.Interpolation::Sub(sub)], []),
-      ),
-    ),
+    Substitution(sub),
+    String(Unquoted(@ast.UnquotedString::new(sub.range, [Sub(sub)], []))),
     source_path~,
   )
 }
@@ -1077,22 +1067,20 @@ fn compile_ast_value(
   source_path : String?,
 ) -> Value raise CompileError {
   match value {
-    @ast.Value::Scalar(s) => Value::Scalar(compile_scalar(s, source_path))
-    @ast.Value::Map(m) => {
+    Scalar(s) => Scalar(compile_scalar(s, source_path))
+    Map(m) => {
       let ir_map = Map::from_ast(m, source_path~)
       compile_map_nodes(ir_map, m, m.nodes, source_path~)
-      Value::Map(ir_map)
+      Map(ir_map)
     }
-    @ast.Value::Array(a) => Value::Array(compile_array(a, source_path))
-    @ast.Value::Import(_) =>
-      raise CompileError::ImportError(
-        "imports require a resolver; use compile_with_imports",
-      )
-    @ast.Value::BlockScalar(_, m) => {
+    Array(a) => Array(compile_array(a, source_path))
+    Import(_) =>
+      raise ImportError("imports require a resolver; use compile_with_imports")
+    BlockScalar(_, m) => {
       // For arrays, just use the map part (label is ignored in array context)
       let ir_map = Map::from_ast(m, source_path~)
       compile_map_nodes(ir_map, m, m.nodes, source_path~)
-      Value::Map(ir_map)
+      Map(ir_map)
     }
   }
 }
@@ -1100,29 +1088,14 @@ fn compile_ast_value(
 ///|
 fn compile_scalar(scalar : @ast.Scalar, source_path : String?) -> Scalar {
   match scalar {
-    @ast.Scalar::Null(_r) =>
+    Null(_r) => Scalar::from_ast(Scalar(scalar), Null, source_path~)
+    Boolean(_r, b) =>
       Scalar::from_ast(
-        @ast.Node::Scalar(scalar),
-        ScalarValue::Null,
+        Scalar(scalar),
+        Bool(if b { "true" } else { "false" }),
         source_path~,
       )
-    @ast.Scalar::Boolean(_r, b) =>
-      Scalar::from_ast(
-        @ast.Node::Scalar(scalar),
-        ScalarValue::Bool(if b { "true" } else { "false" }),
-        source_path~,
-      )
-    @ast.Scalar::Number(_r, n) =>
-      Scalar::from_ast(
-        @ast.Node::Scalar(scalar),
-        ScalarValue::Number(n),
-        source_path~,
-      )
-    @ast.Scalar::String(sv) =>
-      Scalar::from_ast(
-        @ast.Node::StringValue(sv),
-        ScalarValue::String(sv),
-        source_path~,
-      )
+    Number(_r, n) => Scalar::from_ast(Scalar(scalar), Number(n), source_path~)
+    String(sv) => Scalar::from_ast(StringValue(sv), String(sv), source_path~)
   }
 }

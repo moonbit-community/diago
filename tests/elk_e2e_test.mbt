@@ -139,7 +139,7 @@ test "examples: elk unicode e2e snapshots" {
 
 ///|
 fn compile_elk_svg(source : String) -> Result[String, String] {
-  match compile_elk_diagram(source, @engine_api.Direction::Down) {
+  match compile_elk_diagram(source, Down) {
     Ok(diagram) => {
       let render_config = @renderer_svg.SvgConfig::new()
       try @renderer_svg.render(diagram, render_config) catch {
@@ -154,7 +154,7 @@ fn compile_elk_svg(source : String) -> Result[String, String] {
 
 ///|
 fn compile_elk_ascii(source : String) -> Result[String, String] {
-  match compile_elk_diagram(source, @engine_api.Direction::Down) {
+  match compile_elk_diagram(source, Down) {
     Ok(diagram) =>
       Ok(@renderer_ascii.render(diagram, @renderer_ascii.AsciiConfig::new()))
     Err(e) => Err(e)
@@ -163,7 +163,7 @@ fn compile_elk_ascii(source : String) -> Result[String, String] {
 
 ///|
 fn compile_elk_unicode(source : String) -> Result[String, String] {
-  match compile_elk_diagram(source, @engine_api.Direction::Down) {
+  match compile_elk_diagram(source, Down) {
     Ok(diagram) => Ok(@renderer_unicode.render(diagram))
     Err(e) => Err(e)
   }

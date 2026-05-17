@@ -35,7 +35,7 @@ fn get_dir_path(file_path : String) -> String? {
 fn default_import_resolver(base_path : String?) -> @ir.ImportResolver {
   @ir.ImportResolver::new(fn(import_path) {
     let full_path = match base_path {
-      Some(base) => @path.Path(base).join(@path.Path(import_path)).to_string()
+      Some(base) => @path.Path(base).join(Path(import_path)).to_string()
       None => import_path
     }
     let path_with_ext = if full_path.has_suffix(".d2") {

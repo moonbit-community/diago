@@ -397,7 +397,7 @@ fn is_constant_near_candidate_like_d2(
 
 ///|
 fn is_nested_diagram_candidate_like_d2(obj : @graph.ObjectInput) -> Bool {
-  obj.shape_type == @graph.SequenceDiagram ||
+  obj.shape_type == SequenceDiagram ||
   obj.grid_rows is Some(_) ||
   obj.grid_columns is Some(_)
 }
@@ -825,7 +825,7 @@ fn extract_nested_include_self_graph_like_d2(
   let root = @graph.ObjectInput::from_parts(
     "root",
     "",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,

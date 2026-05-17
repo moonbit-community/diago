@@ -39,10 +39,8 @@ fn Map::resolve_substitutions_with_stack(
     if name_lower == "vars" {
       // Still resolve substitutions inside vars blocks (with itself at top of stack).
       match self.fields[i].composite {
-        Some(Composite::Map(m)) =>
-          m.resolve_substitutions_with_stack(local_stack, true)
-        Some(Composite::Array(a)) =>
-          a.resolve_substitutions_with_stack(local_stack)
+        Some(Map(m)) => m.resolve_substitutions_with_stack(local_stack, true)
+        Some(Array(a)) => a.resolve_substitutions_with_stack(local_stack)
         None => ()
       }
       i = i + 1
@@ -61,10 +59,8 @@ fn Map::resolve_substitutions_with_stack(
 
     // Recurse into composite after primary resolution.
     match self.fields[i].composite {
-      Some(Composite::Map(m)) =>
-        m.resolve_substitutions_with_stack(local_stack, false)
-      Some(Composite::Array(a)) =>
-        a.resolve_substitutions_with_stack(local_stack)
+      Some(Map(m)) => m.resolve_substitutions_with_stack(local_stack, false)
+      Some(Array(a)) => a.resolve_substitutions_with_stack(local_stack)
       None => ()
     }
     i = i + 1
@@ -100,15 +96,15 @@ fn IRArray::resolve_substitutions_with_stack(
   let mut i = 0
   while i < self.values.length() {
     match self.values[i] {
-      Value::Scalar(s) => {
+      Scalar(s) => {
         let action = resolve_scalar_in_array(self, i, s, vars_stack)
         if action {
           // Element was replaced/removed, stay at same index.
           continue
         }
       }
-      Value::Map(m) => m.resolve_substitutions_with_stack(vars_stack, false)
-      Value::Array(a) => a.resolve_substitutions_with_stack(vars_stack)
+      Map(m) => m.resolve_substitutions_with_stack(vars_stack, false)
+      Array(a) => a.resolve_substitutions_with_stack(vars_stack)
     }
     i = i + 1
   }
@@ -162,9 +158,9 @@ fn resolve_scalar_in_field(
   in_vars_map : Bool,
 ) -> (Bool, (Scalar?, Composite?)) raise CompileError {
   match primary.value {
-    ScalarValue::String(sv) =>
+    String(sv) =>
       match sv {
-        @ast.StringValue::Unquoted(us) =>
+        Unquoted(us) =>
           resolve_unquoted_in_field(
             parent_map,
             field_index,
@@ -175,7 +171,7 @@ fn resolve_scalar_in_field(
             vars_stack,
             in_vars_map,
           )
-        @ast.StringValue::DoubleQuoted(dqs) => {
+        DoubleQuoted(dqs) => {
           let resolved = resolve_double_quoted_in_field(
             primary.range,
             dqs,
@@ -185,7 +181,7 @@ fn resolve_scalar_in_field(
           )
           (false, (Some(resolved), composite))
         }
-        @ast.StringValue::Block(bs) => {
+        Block(bs) => {
           let resolved = resolve_block_string_in_scalar(
             primary.range,
             bs,
@@ -211,8 +207,8 @@ fn resolve_double_quoted_in_field(
   let buf = StringBuilder::new()
   for seg in dqs.value {
     match seg {
-      @ast.Interpolation::Text(s) => buf.write_string(s)
-      @ast.Interpolation::Sub(sub) => {
+      Text(s) => buf.write_string(s)
+      Sub(sub) => {
         let resolved = resolve_from_stack(
           vars_stack,
           sub,
@@ -224,11 +220,11 @@ fn resolve_double_quoted_in_field(
           None =>
             match resolved.composite {
               Some(_) =>
-                raise CompileError::InvalidSubstitution(
+                raise InvalidSubstitution(
                   "cannot substitute map variable \"\{sub_path_string(sub)}\" in quotes",
                 )
               None =>
-                raise CompileError::InvalidSubstitution(
+                raise InvalidSubstitution(
                   "cannot substitute variable without value: \"\{sub_path_string(sub)}\"",
                 )
             }
@@ -237,11 +233,9 @@ fn resolve_double_quoted_in_field(
     }
   }
   let new_sv = @ast.StringValue::DoubleQuoted(
-    @ast.DoubleQuotedString::new(range, [
-      @ast.Interpolation::Text(buf.to_string()),
-    ]),
+    @ast.DoubleQuotedString::new(range, [Text(buf.to_string())]),
   )
-  Scalar::at(range, ScalarValue::String(new_sv))
+  Scalar::at(range, String(new_sv))
 }
 
 ///|
@@ -258,7 +252,7 @@ fn resolve_unquoted_in_field(
   // Whole substitution (`${x}`) is handled specially (may set composite or spread).
   if us.value.length() == 1 {
     match us.value[0] {
-      @ast.Interpolation::Sub(sub) =>
+      Sub(sub) =>
         return resolve_single_sub_in_field(
           parent_map, field_index, field_name, range, sub, composite, vars_stack,
           in_vars_map,
@@ -272,8 +266,8 @@ fn resolve_unquoted_in_field(
   let mut updated_composite = composite
   for seg in us.value {
     match seg {
-      @ast.Interpolation::Text(s) => buf.write_string(s)
-      @ast.Interpolation::Sub(sub) => {
+      Text(s) => buf.write_string(s)
+      Sub(sub) => {
         let resolved = resolve_from_stack(
           vars_stack,
           sub,
@@ -282,11 +276,11 @@ fn resolve_unquoted_in_field(
         )
         guard resolved.primary is Some(rp) else {
           if resolved.composite is None {
-            raise CompileError::InvalidSubstitution(
+            raise InvalidSubstitution(
               "cannot substitute variable without value: \"\{sub_path_string(sub)}\"",
             )
           }
-          raise CompileError::InvalidSubstitution(
+          raise InvalidSubstitution(
             "cannot substitute composite variable \"\{sub_path_string(sub)}\" as part of a string",
           )
         }
@@ -299,16 +293,9 @@ fn resolve_unquoted_in_field(
     }
   }
   let new_sv = @ast.StringValue::Unquoted(
-    @ast.UnquotedString::new(
-      range,
-      [@ast.Interpolation::Text(buf.to_string())],
-      [],
-    ),
+    @ast.UnquotedString::new(range, [Text(buf.to_string())], []),
   )
-  (
-    false,
-    (Some(Scalar::at(range, ScalarValue::String(new_sv))), updated_composite),
-  )
+  (false, (Some(Scalar::at(range, String(new_sv))), updated_composite))
 }
 
 ///|
@@ -330,15 +317,15 @@ fn resolve_single_sub_in_field(
   )
   if sub.spread {
     guard resolved.composite is Some(rc) else {
-      raise CompileError::InvalidSubstitution("cannot spread non-composite")
+      raise InvalidSubstitution("cannot spread non-composite")
     }
     match rc {
-      Composite::Map(rm) => {
+      Map(rm) => {
         let inserted = expand_substitution(parent_map, rm, field_index)
         let _ = parent_map.fields.remove(field_index + inserted)
         return (true, (None, None))
       }
-      Composite::Array(_) => {
+      Array(_) => {
         // reference behavior: placeholder is removed even if nothing can be expanded into a map.
         let _ = parent_map.fields.remove(field_index)
         return (true, (None, None))
@@ -358,7 +345,7 @@ fn resolve_single_sub_in_field(
       match resolved.composite {
         Some(c) => (false, (None, Some(clone_composite(c))))
         None =>
-          raise CompileError::InvalidSubstitution(
+          raise InvalidSubstitution(
             "cannot substitute variable without value: \"\{sub_path_string(sub)}\"",
           )
       }
@@ -379,27 +366,27 @@ fn resolve_edge_primary_and_map(
   let mut out_map = edge_map
   guard primary is Some(p) else { return (out_primary, out_map) }
   match p.value {
-    ScalarValue::String(sv) =>
+    String(sv) =>
       match sv {
-        @ast.StringValue::Unquoted(us) =>
+        Unquoted(us) =>
           if us.value.length() == 1 {
             match us.value[0] {
-              @ast.Interpolation::Sub(sub) => {
+              Sub(sub) => {
                 let resolved = resolve_from_stack(vars_stack, sub, None, false)
                 match resolved.primary {
                   Some(rp) => out_primary = Some(clone_scalar(rp))
                   None => out_primary = None
                 }
                 match resolved.composite {
-                  Some(Composite::Map(m)) => out_map = Some(clone_map(m))
-                  Some(Composite::Array(_)) =>
-                    raise CompileError::InvalidSubstitution(
+                  Some(Map(m)) => out_map = Some(clone_map(m))
+                  Some(Array(_)) =>
+                    raise InvalidSubstitution(
                       "cannot substitute array variable \"\{sub_path_string(sub)}\" to an edge",
                     )
                   None => ()
                 }
                 if resolved.primary is None && resolved.composite is None {
-                  raise CompileError::InvalidSubstitution(
+                  raise InvalidSubstitution(
                     "cannot substitute variable without value: \"\{sub_path_string(sub)}\"",
                   )
                 }
@@ -410,8 +397,8 @@ fn resolve_edge_primary_and_map(
             let buf = StringBuilder::new()
             for seg in us.value {
               match seg {
-                @ast.Interpolation::Text(s) => buf.write_string(s)
-                @ast.Interpolation::Sub(sub) => {
+                Text(s) => buf.write_string(s)
+                Sub(sub) => {
                   let resolved = resolve_from_stack(
                     vars_stack,
                     sub,
@@ -420,19 +407,19 @@ fn resolve_edge_primary_and_map(
                   )
                   guard resolved.primary is Some(rp) else {
                     if resolved.composite is None {
-                      raise CompileError::InvalidSubstitution(
+                      raise InvalidSubstitution(
                         "cannot substitute variable without value: \"\{sub_path_string(sub)}\"",
                       )
                     }
-                    raise CompileError::InvalidSubstitution(
+                    raise InvalidSubstitution(
                       "cannot substitute composite variable \"\{sub_path_string(sub)}\" as part of a string",
                     )
                   }
                   buf.write_string(rp.to_string())
                   match resolved.composite {
-                    Some(Composite::Map(m)) => out_map = Some(clone_map(m))
-                    Some(Composite::Array(_)) =>
-                      raise CompileError::InvalidSubstitution(
+                    Some(Map(m)) => out_map = Some(clone_map(m))
+                    Some(Array(_)) =>
+                      raise InvalidSubstitution(
                         "cannot substitute array variable \"\{sub_path_string(sub)}\" to an edge",
                       )
                     None => ()
@@ -444,23 +431,19 @@ fn resolve_edge_primary_and_map(
             out_primary = Some(
               Scalar::at(
                 r,
-                ScalarValue::String(
-                  @ast.StringValue::Unquoted(
-                    @ast.UnquotedString::new(
-                      r,
-                      [@ast.Interpolation::Text(buf.to_string())],
-                      [],
-                    ),
+                String(
+                  Unquoted(
+                    @ast.UnquotedString::new(r, [Text(buf.to_string())], []),
                   ),
                 ),
               ),
             )
           }
-        @ast.StringValue::DoubleQuoted(dqs) =>
+        DoubleQuoted(dqs) =>
           out_primary = Some(
             resolve_double_quoted_in_field(p.range, dqs, vars_stack, "", false),
           )
-        @ast.StringValue::Block(bs) =>
+        Block(bs) =>
           out_primary = Some(
             resolve_block_string_in_scalar(p.range, bs, vars_stack),
           )
@@ -483,12 +466,12 @@ fn resolve_scalar_in_array(
   vars_stack : Array[Map],
 ) -> Bool raise CompileError {
   match scalar.value {
-    ScalarValue::String(sv) =>
+    String(sv) =>
       match sv {
-        @ast.StringValue::Unquoted(us) =>
+        Unquoted(us) =>
           resolve_unquoted_in_array(arr, index, scalar.range, us, vars_stack)
-        @ast.StringValue::DoubleQuoted(dqs) => {
-          arr.values[index] = Value::Scalar(
+        DoubleQuoted(dqs) => {
+          arr.values[index] = Scalar(
             resolve_double_quoted_in_field(
               scalar.range,
               dqs,
@@ -499,8 +482,8 @@ fn resolve_scalar_in_array(
           )
           false
         }
-        @ast.StringValue::Block(bs) => {
-          arr.values[index] = Value::Scalar(
+        Block(bs) => {
+          arr.values[index] = Scalar(
             resolve_block_string_in_scalar(scalar.range, bs, vars_stack),
           )
           false
@@ -521,16 +504,14 @@ fn resolve_unquoted_in_array(
 ) -> Bool raise CompileError {
   if us.value.length() == 1 {
     match us.value[0] {
-      @ast.Interpolation::Sub(sub) => {
+      Sub(sub) => {
         let resolved = resolve_from_stack(vars_stack, sub, None, false)
         if sub.spread {
           guard resolved.composite is Some(rc) else {
-            raise CompileError::InvalidSubstitution(
-              "cannot spread non-composite",
-            )
+            raise InvalidSubstitution("cannot spread non-composite")
           }
           match rc {
-            Composite::Array(a) => {
+            Array(a) => {
               let out : Array[Value] = []
               for v in a.values {
                 out.push(clone_value(v))
@@ -542,15 +523,13 @@ fn resolve_unquoted_in_array(
               }
               return true
             }
-            Composite::Map(_) =>
-              raise CompileError::InvalidSubstitution(
-                "cannot spread non-array into array",
-              )
+            Map(_) =>
+              raise InvalidSubstitution("cannot spread non-array into array")
           }
         }
         match resolved.primary {
           Some(rp) => {
-            arr.values[index] = Value::Scalar(clone_scalar(rp))
+            arr.values[index] = Scalar(clone_scalar(rp))
             false
           }
           None =>
@@ -564,16 +543,16 @@ fn resolve_unquoted_in_array(
     let buf = StringBuilder::new()
     for seg in us.value {
       match seg {
-        @ast.Interpolation::Text(s) => buf.write_string(s)
-        @ast.Interpolation::Sub(sub) => {
+        Text(s) => buf.write_string(s)
+        Sub(sub) => {
           let resolved = resolve_from_stack(vars_stack, sub, None, false)
           guard resolved.primary is Some(rp) else {
             if resolved.composite is None {
-              raise CompileError::InvalidSubstitution(
+              raise InvalidSubstitution(
                 "cannot substitute variable without value: \"\{sub_path_string(sub)}\"",
               )
             }
-            raise CompileError::InvalidSubstitution(
+            raise InvalidSubstitution(
               "cannot substitute composite variable \"\{sub_path_string(sub)}\" as part of a string",
             )
           }
@@ -582,15 +561,9 @@ fn resolve_unquoted_in_array(
       }
     }
     let new_sv = @ast.StringValue::Unquoted(
-      @ast.UnquotedString::new(
-        range,
-        [@ast.Interpolation::Text(buf.to_string())],
-        [],
-      ),
+      @ast.UnquotedString::new(range, [Text(buf.to_string())], []),
     )
-    arr.values[index] = Value::Scalar(
-      Scalar::at(range, ScalarValue::String(new_sv)),
-    )
+    arr.values[index] = Scalar(Scalar::at(range, String(new_sv)))
     false
   }
 }
@@ -614,7 +587,7 @@ fn resolve_block_string_in_scalar(
   }
   let replaced = replace_substitutions_markdown(bs.value, variables)
   let new_bs = @ast.BlockString::new(range, bs.quote, bs.tag, replaced)
-  Scalar::at(range, ScalarValue::String(@ast.StringValue::Block(new_bs)))
+  Scalar::at(range, String(Block(new_bs)))
 }
 
 ///|
@@ -628,7 +601,7 @@ fn collect_block_string_variables(
       None => ()
     }
     match f.composite {
-      Some(Composite::Map(m)) => {
+      Some(Map(m)) => {
         let nested : Array[(String, String)] = []
         collect_block_string_variables(m, nested)
         for kv in nested {
@@ -736,7 +709,7 @@ fn prepend_vars_stack(m : Map, vars_stack : Array[Map]) -> Array[Map] {
   match m.get_field("vars") {
     Some(f) =>
       match f.composite {
-        Some(Composite::Map(vm)) => {
+        Some(Map(vm)) => {
           let out : Array[Map] = [vm]
           for v in vars_stack {
             out.push(v)
@@ -763,8 +736,8 @@ fn resolve_from_stack(
         // reference behavior: a found `null` shadows outer scopes and behaves like unresolved.
         match f.primary {
           Some(p) =>
-            if p.value is ScalarValue::Null {
-              raise CompileError::InvalidSubstitution(
+            if p.value is Null {
+              raise InvalidSubstitution(
                 "could not resolve variable \"\{sub_path_string(sub)}\"",
               )
             }
@@ -779,7 +752,7 @@ fn resolve_from_stack(
   match found {
     Some(f) => f
     None =>
-      raise CompileError::InvalidSubstitution(
+      raise InvalidSubstitution(
         "could not resolve variable \"\{sub_path_string(sub)}\"",
       )
   }
@@ -811,7 +784,7 @@ fn resolve_in_vars(
           return Some(f)
         }
         match f.composite {
-          Some(Composite::Map(m)) => current = m
+          Some(Map(m)) => current = m
           _ => return None
         }
       }
@@ -908,16 +881,15 @@ fn overlay_field(base : Field, overlay : Field) -> Field {
   match overlay.composite {
     Some(oc) =>
       match oc {
-        Composite::Map(om) =>
+        Map(om) =>
           match composite {
-            Some(Composite::Map(bm)) => {
+            Some(Map(bm)) => {
               overlay_map(bm, om)
-              composite = Some(Composite::Map(bm))
+              composite = Some(Map(bm))
             }
-            _ => composite = Some(Composite::Map(clone_map(om)))
+            _ => composite = Some(Map(clone_map(om)))
           }
-        Composite::Array(oa) =>
-          composite = Some(Composite::Array(clone_array(oa)))
+        Array(oa) => composite = Some(Array(clone_array(oa)))
       }
     None => ()
   }
@@ -1011,8 +983,8 @@ fn clone_scalar(s : Scalar) -> Scalar {
 ///|
 fn clone_composite(c : Composite) -> Composite {
   match c {
-    Composite::Map(m) => Composite::Map(clone_map(m))
-    Composite::Array(a) => Composite::Array(clone_array(a))
+    Map(m) => Map(clone_map(m))
+    Array(a) => Array(clone_array(a))
   }
 }
 
@@ -1093,9 +1065,9 @@ fn clone_edge(e : Edge) -> Edge {
 ///|
 fn clone_value(v : Value) -> Value {
   match v {
-    Value::Scalar(s) => Value::Scalar(clone_scalar(s))
-    Value::Map(m) => Value::Map(clone_map(m))
-    Value::Array(a) => Value::Array(clone_array(a))
+    Scalar(s) => Scalar(clone_scalar(s))
+    Map(m) => Map(clone_map(m))
+    Array(a) => Array(clone_array(a))
   }
 }
 

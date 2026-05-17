@@ -162,7 +162,7 @@ fn compile_diago_svg(
     Err(err) => return Err(err)
   }
   let render_options = @lib.RenderOptions::new()
-    .with_output_mode(@lib.Svg)
+    .with_output_mode(Svg)
     .with_theme_name(theme_name)
   match @lib.render(diagram, options=render_options) {
     Ok(svg) => Ok(svg)
@@ -183,7 +183,7 @@ fn compile_diago_text(
       match
         @lib.render(
           diagram,
-          options=@lib.RenderOptions::new().with_output_mode(@lib.Ascii),
+          options=@lib.RenderOptions::new().with_output_mode(Ascii),
         ) {
         Ok(text) => Ok(text)
         Err(err) => Err(lib_error_message(err))
@@ -204,7 +204,7 @@ fn compile_to_diagram(
   }
   let diagram_options = @lib.DiagramOptions::new()
     .with_layout_engine(resolve_layout_engine(engine))
-    .with_direction(@engine_api.Down)
+    .with_direction(Down)
   match
     @lib.compile_diagram(
       compiled.graph_input(),
@@ -219,31 +219,31 @@ fn compile_to_diagram(
 ///|
 fn resolve_layout_engine(engine : Int) -> @lib.LayoutEngine {
   if engine == 1 {
-    @lib.Elk
+    Elk
   } else if engine == 2 {
-    @lib.Railway
+    Railway
   } else {
-    @lib.Dagre
+    Dagre
   }
 }
 
 ///|
 fn compiler_error_message(err : @compiler.CompileError) -> String {
   match err {
-    @compiler.ParseError(message) => message
-    @compiler.IOError(message) => message
-    @compiler.IrError(message) => message
-    @compiler.GraphError(message) => message
-    @compiler.ConfigError(message) => message
+    ParseError(message) => message
+    IOError(message) => message
+    IrError(message) => message
+    GraphError(message) => message
+    ConfigError(message) => message
   }
 }
 
 ///|
 fn lib_error_message(err : @lib.LibError) -> String {
   match err {
-    @lib.LayoutError(message) => message
-    @lib.RenderError(message) => message
-    @lib.ConfigError(message) => message
-    @lib.TargetError(message) => message
+    LayoutError(message) => message
+    RenderError(message) => message
+    ConfigError(message) => message
+    TargetError(message) => message
   }
 }

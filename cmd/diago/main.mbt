@@ -28,27 +28,27 @@ enum OutputMode {
 ///|
 fn output_extension(mode : OutputMode) -> String {
   match mode {
-    OutputMode::Svg => ".svg"
-    OutputMode::Ascii => ".ascii.txt"
-    OutputMode::Unicode => ".unicode.txt"
+    Svg => ".svg"
+    Ascii => ".ascii.txt"
+    Unicode => ".unicode.txt"
   }
 }
 
 ///|
 fn output_mode_name(mode : OutputMode) -> String {
   match mode {
-    OutputMode::Svg => "svg"
-    OutputMode::Ascii => "ascii"
-    OutputMode::Unicode => "unicode"
+    Svg => "svg"
+    Ascii => "ascii"
+    Unicode => "unicode"
   }
 }
 
 ///|
 fn parse_stdout_format(value : String) -> OutputMode? {
   match value.to_lower() {
-    "svg" => Some(OutputMode::Svg)
-    "ascii" => Some(OutputMode::Ascii)
-    "unicode" => Some(OutputMode::Unicode)
+    "svg" => Some(Svg)
+    "ascii" => Some(Ascii)
+    "unicode" => Some(Unicode)
     _ => None
   }
 }
@@ -56,11 +56,11 @@ fn parse_stdout_format(value : String) -> OutputMode? {
 ///|
 fn infer_output_mode_from_path(path : String) -> OutputMode? {
   if path.has_suffix(".svg") {
-    Some(OutputMode::Svg)
+    Some(Svg)
   } else if path.has_suffix(".ascii.txt") {
-    Some(OutputMode::Ascii)
+    Some(Ascii)
   } else if path.has_suffix(".unicode.txt") {
-    Some(OutputMode::Unicode)
+    Some(Unicode)
   } else {
     None
   }
@@ -93,9 +93,9 @@ priv struct CompiledSourceResult {
 ///|
 fn parse_layout_engine(name : String) -> LayoutEngineChoice? {
   match name.to_lower() {
-    "dagre" => Some(LayoutEngineChoice::Dagre)
-    "elk" => Some(LayoutEngineChoice::Elk)
-    "railway" => Some(LayoutEngineChoice::Railway)
+    "dagre" => Some(Dagre)
+    "elk" => Some(Elk)
+    "railway" => Some(Railway)
     _ => None
   }
 }
@@ -103,17 +103,17 @@ fn parse_layout_engine(name : String) -> LayoutEngineChoice? {
 ///|
 fn layout_engine_name(engine : LayoutEngineChoice) -> String {
   match engine {
-    LayoutEngineChoice::Dagre => "dagre"
-    LayoutEngineChoice::Elk => "elk"
-    LayoutEngineChoice::Railway => "railway"
+    Dagre => "dagre"
+    Elk => "elk"
+    Railway => "railway"
   }
 }
 
 ///|
 fn parse_dump_input_engine(name : String) -> DumpInputEngine? {
   match name.to_lower() {
-    "dagre" => Some(DumpInputEngine::Dagre)
-    "elk" => Some(DumpInputEngine::Elk)
+    "dagre" => Some(Dagre)
+    "elk" => Some(Elk)
     _ => None
   }
 }
@@ -176,7 +176,7 @@ fn collect_default_dump_input_sources() -> Result[Array[String], String] {
   let paths : Array[String] = []
   for entry in entries {
     if entry.has_suffix(".d2") {
-      paths.push(@path.Path("examples").join(@path.Path(entry)).to_string())
+      paths.push(@path.Path("examples").join(Path(entry)).to_string())
     }
   }
   paths.sort_by(fn(a, b) { a.compare(b) })
@@ -243,23 +243,23 @@ fn dump_input_for_file(
   }
 
   let input_json = match dump_engine {
-    DumpInputEngine::Elk =>
+    Elk =>
       @engine_elk.debug_build_elk_input_json(
         graph_input,
         @engine_api.LayoutConfig::new(),
-        @engine_api.Down,
+        Down,
       )
-    DumpInputEngine::Dagre =>
+    Dagre =>
       @engine_dagre.debug_build_dagre_input_json(
         graph_input,
         @engine_api.LayoutConfig::new(),
-        @engine_api.Down,
+        Down,
       ) catch {
         e => return Err("Dagre input build error in '\{input_path}': \{e}")
       }
   }
   let output_name = replace_extension(basename_string(input_path), ".json")
-  let out_path = @path.Path(out_dir).join(@path.Path(output_name)).to_string()
+  let out_path = @path.Path(out_dir).join(Path(output_name)).to_string()
   @fs.write_string_to_file(out_path, input_json.stringify(escape_slash=false)) catch {
     e => return Err("Error writing file '\{out_path}': \{e}")
   }
@@ -500,7 +500,7 @@ fn compile_source_with_warnings(
   omit_version? : Bool? = None,
 ) -> Result[CompiledSourceResult, String] {
   match output_mode {
-    OutputMode::Svg =>
+    Svg =>
       compile_diago_svg_with_warnings(
         source,
         theme_name,
@@ -520,7 +520,7 @@ fn compile_source_with_warnings(
         salt~,
         omit_version~,
       )
-    OutputMode::Ascii =>
+    Ascii =>
       match
         compile_diago_ascii(
           source, base_path, layout_engine, layout_explicit, target_spec,
@@ -528,7 +528,7 @@ fn compile_source_with_warnings(
         Ok(output) => Ok({ output, warning: None })
         Err(err) => Err(err)
       }
-    OutputMode::Unicode =>
+    Unicode =>
       match
         compile_diago_unicode(
           source, base_path, layout_engine, layout_explicit, target_spec,
@@ -717,30 +717,30 @@ fn compile_to_diagram(
   )
   let config = @engine_api.LayoutConfig::new()
   let laid_out_graph = match effective_layout_engine {
-    LayoutEngineChoice::Dagre =>
+    Dagre =>
       @engine_api.layout_with_engine(
         @engine_dagre.DagreEngine::new(),
         graph_input,
         config,
-        @engine_api.Down,
+        Down,
       ) catch {
         e => return Err("Layout error: \{e}")
       }
-    LayoutEngineChoice::Elk =>
+    Elk =>
       @engine_api.layout_with_engine(
         @engine_elk.ElkEngine::new(),
         graph_input,
         config,
-        @engine_api.Down,
+        Down,
       ) catch {
         e => return Err("Layout error: \{e}")
       }
-    LayoutEngineChoice::Railway =>
+    Railway =>
       @engine_api.layout_with_engine(
         @engine_railway.RailwayEngine::new(),
         graph_input,
         config,
-        @engine_api.Down,
+        Down,
       ) catch {
         e => return Err("Layout error: \{e}")
       }
@@ -1026,7 +1026,7 @@ fn compile_config_data_map(
   let data : Map[String, @diagram.ConfigDataValue] = {}
   for field in data_map.fields {
     if field.primary is Some(value) {
-      data[field.name] = @diagram.ConfigDataValue::Text(value.to_string())
+      data[field.name] = Text(value.to_string())
     } else if field.array() is Some(array) {
       let values : Array[String] = []
       for item in array.values {
@@ -1034,9 +1034,9 @@ fn compile_config_data_map(
           values.push(scalar.to_string())
         }
       }
-      data[field.name] = @diagram.ConfigDataValue::StringArray(values)
+      data[field.name] = StringArray(values)
     } else if field.has_composite() {
-      data[field.name] = @diagram.ConfigDataValue::StringArray([])
+      data[field.name] = StringArray([])
     }
   }
   data
@@ -1051,14 +1051,13 @@ fn graph_data_from_source_config(
     Some(config) =>
       for key, value in config.data {
         data[key] = match value {
-          @diagram.ConfigDataValue::Text(text) =>
-            @graph.GraphDataValue::Text(text)
-          @diagram.ConfigDataValue::StringArray(items) => {
+          Text(text) => Text(text)
+          StringArray(items) => {
             let copied : Array[String] = []
             for item in items {
               copied.push(item)
             }
-            @graph.GraphDataValue::StringArray(copied)
+            StringArray(copied)
           }
         }
       }
@@ -1252,7 +1251,7 @@ fn create_import_resolver(base_path : String?) -> @ir.ImportResolver {
   @ir.ImportResolver::new(fn(import_path) {
     // Build full path
     let full_path = match base_path {
-      Some(base) => @path.Path(base).join(@path.Path(import_path)).to_string()
+      Some(base) => @path.Path(base).join(Path(import_path)).to_string()
       None => import_path
     }
     // Add the default source extension if not present.

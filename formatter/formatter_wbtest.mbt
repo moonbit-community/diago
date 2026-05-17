@@ -14,9 +14,7 @@ fn r2(start_line : Int, end_line : Int) -> @lexer.Range {
 ///|
 fn uq(text : String, line : Int) -> @ast.StringValue {
   let range = r(line)
-  @ast.StringValue::Unquoted(
-    @ast.UnquotedString::new(range, [@ast.Interpolation::Text(text)], []),
-  )
+  Unquoted(@ast.UnquotedString::new(range, [Text(text)], []))
 }
 
 ///|
@@ -42,9 +40,7 @@ fn key_with_value(name : String, value : @ast.Value, line : Int) -> @ast.Key {
 ///|
 test "format file map has trailing newline" {
   let map = @ast.Map::new(r(0), [
-    @ast.MapNode::Key(
-      key_with_value("x", @ast.Value::Scalar(@ast.Scalar::Number(r(0), "1")), 0),
-    ),
+    Key(key_with_value("x", Scalar(Number(r(0), "1")), 0)),
   ])
   let out = format(map, FormatConfig::new())
   @debug.assert_eq(out, "x: 1\n")
@@ -53,8 +49,8 @@ test "format file map has trailing newline" {
 ///|
 test "format block comment uses triple quotes" {
   let map = @ast.Map::new(r2(0, 1), [
-    @ast.MapNode::BlockComment(r(0), "hi"),
-    @ast.MapNode::Key(
+    BlockComment(r(0), "hi"),
+    Key(
       @ast.Key::new(
         r(1),
         false,
@@ -87,16 +83,12 @@ test "format edge key follows the parenthesized style" {
     Some(edge_key),
     None,
     Some(
-      @ast.Value::Scalar(
-        @ast.Scalar::String(
-          @ast.StringValue::Unquoted(
-            @ast.UnquotedString::new(r(0), [@ast.Interpolation::Text("red")], []),
-          ),
-        ),
+      Scalar(
+        String(Unquoted(@ast.UnquotedString::new(r(0), [Text("red")], []))),
       ),
     ),
   )
-  let map = @ast.Map::new(r(0), [@ast.MapNode::Key(key)])
+  let map = @ast.Map::new(r(0), [Key(key)])
   let out = format(map, FormatConfig::new())
   @debug.assert_eq(out, "(a -> b)[0].style.stroke: red\n")
 }
@@ -105,16 +97,10 @@ test "format edge key follows the parenthesized style" {
 test "format unquoted null is escaped like the reference" {
   let key = key_with_value(
     "x",
-    @ast.Value::Scalar(
-      @ast.Scalar::String(
-        @ast.StringValue::Unquoted(
-          @ast.UnquotedString::new(r(0), [@ast.Interpolation::Text("null")], []),
-        ),
-      ),
-    ),
+    Scalar(String(Unquoted(@ast.UnquotedString::new(r(0), [Text("null")], [])))),
     0,
   )
-  let map = @ast.Map::new(r(0), [@ast.MapNode::Key(key)])
+  let map = @ast.Map::new(r(0), [Key(key)])
   let out = format(map, FormatConfig::new())
   @debug.assert_eq(out, "x: 'null'\n")
 }

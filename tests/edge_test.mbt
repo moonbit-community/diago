@@ -256,7 +256,7 @@ test "straight edge when curved=false" {
     #|a -> b {
     #|  style.curved: false
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let edges = graph.get_edges()
   @debug.assert_eq(edges.length(), 1)
   let edge = edges[0]
@@ -321,7 +321,7 @@ test "corner anchors" {
 test "edge label has computed position" {
   let source =
     #|a -> b: test label
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   // The edge should have a label_box set by automatic positioning
   let edges = graph.get_edges()
   @debug.assert_eq(edges.length(), 1)
@@ -335,7 +335,7 @@ test "multiple edge labels are positioned" {
     #|a -> b: first
     #|b -> c: second
     #|c -> d: third
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   // All edges with labels should have label_box set
   for edge in graph.get_edges() {
     if edge.label != "" {

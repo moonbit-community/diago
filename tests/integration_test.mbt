@@ -25,7 +25,7 @@
 ///|
 /// Compile diago source to SVG
 fn compile(source : String) -> Result[String, String] {
-  match compile_to_diagram(source, @engine_api.Direction::Down) {
+  match compile_to_diagram(source, Down) {
     Ok(diagram) => {
       let render_config = @renderer_svg.SvgConfig::new()
       try @renderer_svg.render(diagram, render_config) catch {
@@ -76,7 +76,7 @@ fn compile_to_graph(
 ///|
 /// Compile diago source to ASCII art
 fn compile_ascii(source : String) -> Result[String, String] {
-  match compile_to_diagram(source, @engine_api.Direction::Down) {
+  match compile_to_diagram(source, Down) {
     Ok(diagram) => {
       let render_config = @renderer_ascii.AsciiConfig::new()
       Ok(@renderer_ascii.render(diagram, render_config))
@@ -504,7 +504,7 @@ fn compile_with_theme(
     @engine_dagre.DagreEngine::new(),
     graph_input,
     config,
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => return Err("Layout error: \{e}")
   }

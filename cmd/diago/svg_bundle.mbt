@@ -58,7 +58,7 @@ fn bundle_local_svg_images(
   base_path : String?,
   cache_images? : Bool = false,
 ) -> SvgBundleResult {
-  bundle_svg_images_in_scope(svg, base_path, BundleScope::Local, cache_images)
+  bundle_svg_images_in_scope(svg, base_path, Local, cache_images)
 }
 
 ///|
@@ -66,7 +66,7 @@ fn bundle_remote_svg_images(
   svg : String,
   cache_images? : Bool = false,
 ) -> SvgBundleResult {
-  bundle_svg_images_in_scope(svg, None, BundleScope::Remote, cache_images)
+  bundle_svg_images_in_scope(svg, None, Remote, cache_images)
 }
 
 ///|
@@ -131,8 +131,8 @@ fn bundle_image_tag(
   let normalized = normalize_source_reference(href)
   let is_remote = is_http_source(normalized)
   match scope {
-    BundleScope::Local => if is_remote { return { tag, error_href: None } }
-    BundleScope::Remote => if !is_remote { return { tag, error_href: None } }
+    Local => if is_remote { return { tag, error_href: None } }
+    Remote => if !is_remote { return { tag, error_href: None } }
   }
   let key = bundle_cache_key(normalized, base_path)
   if lookup_bundle_failure_cache(failed_cache, key) is Some(_) {
@@ -371,8 +371,8 @@ fn bundle_scope_error(
     return None
   }
   let scope_name = match scope {
-    BundleScope::Local => "local"
-    BundleScope::Remote => "remote"
+    Local => "local"
+    Remote => "remote"
   }
   Some(
     "failed to bundle " +
@@ -541,7 +541,7 @@ fn resolve_local_image_path(source : String, base_path : String?) -> String {
   }
   match base_path {
     Some(base) =>
-      @path.Path(base).join(@path.Path(normalized)).normalize().to_string()
+      @path.Path(base).join(Path(normalized)).normalize().to_string()
     None => @path.Path(normalized).normalize().to_string()
   }
 }

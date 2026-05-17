@@ -20,7 +20,7 @@ test "resolve simple variable" {
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
   guard ir.get_field("server") is Some(s) else { fail("expected server") }
-  guard s.composite is Some(Composite::Map(sm)) else { fail("expected map") }
+  guard s.composite is Some(Map(sm)) else { fail("expected map") }
   guard sm.get_field("fill") is Some(f) else { fail("expected fill") }
   guard f.primary is Some(p) else { fail("expected primary") }
   @debug.assert_eq(p.to_string(), "red")
@@ -34,7 +34,7 @@ test "resolve nested variable" {
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
   guard ir.get_field("box") is Some(b) else { fail("expected box") }
-  guard b.composite is Some(Composite::Map(bm)) else { fail("expected map") }
+  guard b.composite is Some(Map(bm)) else { fail("expected map") }
   guard bm.get_field("fill") is Some(f) else { fail("expected fill") }
   guard f.primary is Some(p) else { fail("expected primary") }
   @debug.assert_eq(p.to_string(), "blue")
@@ -84,7 +84,7 @@ test "variable shadowing in nested scopes" {
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
   guard ir.get_field("container") is Some(c) else { fail("expected container") }
-  guard c.composite is Some(Composite::Map(cm)) else { fail("expected map") }
+  guard c.composite is Some(Map(cm)) else { fail("expected map") }
   guard cm.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
   @debug.assert_eq(p.to_string(), "inner")
@@ -101,7 +101,7 @@ test "outer variable accessible when not shadowed" {
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
   guard ir.get_field("container") is Some(c) else { fail("expected container") }
-  guard c.composite is Some(Composite::Map(cm)) else { fail("expected map") }
+  guard c.composite is Some(Map(cm)) else { fail("expected map") }
   guard cm.get_field("label") is Some(lbl) else { fail("expected label") }
   guard lbl.primary is Some(p) else { fail("expected primary") }
   @debug.assert_eq(p.to_string(), "outer")
@@ -209,7 +209,7 @@ test "double quoted substitution in array element" {
   guard ir.get_field("arr") is Some(arr) else { fail("expected arr") }
   guard arr.array() is Some(a) else { fail("expected array") }
   @debug.assert_eq(a.values.length(), 1)
-  guard a.values[0] is Value::Scalar(s) else { fail("expected scalar") }
+  guard a.values[0] is Scalar(s) else { fail("expected scalar") }
   @debug.assert_eq(s.to_string(), "hi")
 }
 

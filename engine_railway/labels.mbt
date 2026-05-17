@@ -39,7 +39,7 @@ fn object_size_with_objects(
     explicit_w : Double,
     explicit_h : Double,
   ) -> (Double, Double) {
-    if shape_type == @graph.Circle || shape_type == @graph.Square {
+    if shape_type == Circle || shape_type == Square {
       if explicit_w > 0.0 && explicit_h <= 0.0 {
         return (explicit_w, explicit_w)
       }
@@ -50,7 +50,7 @@ fn object_size_with_objects(
     (explicit_w, explicit_h)
   }
 
-  if obj.shape_type == @graph.Code {
+  if obj.shape_type == Code {
     let font_size = match obj.style.font_size {
       Some(v) => v.as_int().unwrap_or(16)
       None => 16
@@ -88,7 +88,7 @@ fn object_size_with_objects(
       explicit_or_auto(explicit_h, auto_h),
     )
   }
-  if obj.shape_type == @graph.SqlTable && !object_by_id.is_empty() {
+  if obj.shape_type == SqlTable && !object_by_id.is_empty() {
     let (estimated_w, estimated_h) = estimate_sql_table_size(obj, object_by_id)
     let auto_w = @cmp.maximum(config.default_width, estimated_w)
     let auto_h = @cmp.maximum(config.default_height, estimated_h)
@@ -106,7 +106,7 @@ fn object_size_with_objects(
       explicit_or_auto(explicit_h, auto_h),
     )
   }
-  if obj.shape_type == @graph.Class && !object_by_id.is_empty() {
+  if obj.shape_type == Class && !object_by_id.is_empty() {
     let (estimated_w, estimated_h) = estimate_class_size(obj, object_by_id)
     let auto_w = @cmp.maximum(config.default_width, estimated_w)
     let auto_h = @cmp.maximum(config.default_height, estimated_h)
@@ -148,7 +148,7 @@ fn object_size_with_objects(
   } else {
     config.default_height
   }
-  let queue_min_width = if obj.shape_type == @graph.Queue {
+  let queue_min_width = if obj.shape_type == Queue {
     // Queue labels are placed in a narrower inner box.
     // Keep width generous enough to avoid clipping/overflow.
     dims.width + 80.0
@@ -180,9 +180,9 @@ fn object_size_with_objects(
 fn default_object_bold_for_sizing(obj : @graph.ObjectInput) -> Bool {
   // Keep sizing assumptions aligned with SVG object-label defaults.
   obj.child_ids.is_empty() &&
-  obj.shape_type != @graph.Text &&
-  obj.shape_type != @graph.Class &&
-  obj.shape_type != @graph.SqlTable
+  obj.shape_type != Text &&
+  obj.shape_type != Class &&
+  obj.shape_type != SqlTable
 }
 
 ///|

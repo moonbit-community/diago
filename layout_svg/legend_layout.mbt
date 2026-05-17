@@ -144,18 +144,17 @@ pub fn compute_legend_layout(
   bounds : (Double, Double, Double, Double),
   config : LegendLayoutConfig,
 ) -> LegendLayout? {
-  if legend.is_empty() || legend.position == @graph.Hidden {
+  if legend.is_empty() || legend.position == Hidden {
     return None
   }
   let (min_x, min_y, max_x, max_y) = bounds
   let (width, height) = calculate_size(legend, config.font_size)
   let margin = config.margin
   let (x, y) = match legend.position {
-    @graph.TopLeft => (min_x + margin, min_y + margin)
-    @graph.TopRight => (max_x - width - margin, min_y + margin)
-    @graph.BottomLeft => (min_x + margin, max_y - height - margin)
-    @graph.BottomRight | @graph.Hidden =>
-      (max_x - width - margin, max_y - height - margin)
+    TopLeft => (min_x + margin, min_y + margin)
+    TopRight => (max_x - width - margin, min_y + margin)
+    BottomLeft => (min_x + margin, max_y - height - margin)
+    BottomRight | Hidden => (max_x - width - margin, max_y - height - margin)
   }
   let fill = legend.fill.unwrap_or("#ffffff")
   let stroke = legend.stroke.unwrap_or("#cccccc")
@@ -184,14 +183,7 @@ pub fn compute_legend_layout(
           legend.icon_size / 2.0 +
           config.font_size.to_double() * 0.35
         entries.push(
-          LegendEntryLayout::Shape(
-            icon_box~,
-            shape~,
-            label~,
-            style~,
-            label_x~,
-            label_y~,
-          ),
+          Shape(icon_box~, shape~, label~, style~, label_x~, label_y~),
         )
         current_y = current_y + legend.icon_size + legend.entry_gap
       }
@@ -204,7 +196,7 @@ pub fn compute_legend_layout(
           legend.icon_size / 2.0 +
           config.font_size.to_double() * 0.35
         entries.push(
-          LegendEntryLayout::Connection(
+          Connection(
             line_start_x~,
             line_end_x~,
             line_y~,
@@ -227,7 +219,7 @@ pub fn compute_legend_layout(
           icon_size / 2.0 +
           config.font_size.to_double() * 0.35
         entries.push(
-          LegendEntryLayout::Custom(
+          Custom(
             icon_x~,
             icon_y~,
             icon_size~,
@@ -243,7 +235,7 @@ pub fn compute_legend_layout(
         let y = current_y + 2.0
         let x1 = x + legend.padding
         let x2 = x + width - legend.padding
-        entries.push(LegendEntryLayout::Separator(x1~, x2~, y~))
+        entries.push(Separator(x1~, x2~, y~))
         current_y = current_y + 4.0 + legend.entry_gap
       }
     }

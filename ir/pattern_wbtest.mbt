@@ -84,7 +84,7 @@ test "double_glob" {
   let server_map = Map::new()
   server_map.add_field(Field::simple("db"))
   server_map.add_field(Field::simple("cache"))
-  m.add_field(Field::new("server", None, Some(Composite::Map(server_map)), []))
+  m.add_field(Field::new("server", None, Some(Map(server_map)), []))
   m.add_field(Field::simple("client"))
   // Double glob should return all fields recursively
   let fields = m.double_glob()
@@ -98,7 +98,7 @@ test "double_glob skips board keywords" {
   // Add layers with children
   let layers_map = Map::new()
   layers_map.add_field(Field::simple("layer1"))
-  m.add_field(Field::new("layers", None, Some(Composite::Map(layers_map)), []))
+  m.add_field(Field::new("layers", None, Some(Map(layers_map)), []))
   // Double glob should not include layers or its children
   let fields = m.double_glob()
   @debug.assert_eq(fields.length(), 1) // only server
@@ -111,7 +111,7 @@ test "triple_glob includes all" {
   // Add layers with children
   let layers_map = Map::new()
   layers_map.add_field(Field::simple("layer1"))
-  m.add_field(Field::new("layers", None, Some(Composite::Map(layers_map)), []))
+  m.add_field(Field::new("layers", None, Some(Map(layers_map)), []))
   // Triple glob should include fields inside layers
   let fields = m.triple_glob()
   @debug.assert_eq(fields.length(), 2) // server and layer1 (not layers itself)
@@ -135,10 +135,10 @@ test "quoted reserved names are not treated as reserved in globs" {
     Field::simple(
       "style",
       name_syntax=Some(
-        @ast.StringValue::DoubleQuoted(
+        DoubleQuoted(
           @ast.DoubleQuotedString::new(
             @lexer.Range::new(@lexer.Position::zero(), @lexer.Position::zero()),
-            [@ast.Interpolation::Text("style")],
+            [Text("style")],
           ),
         ),
       ),
@@ -158,7 +158,7 @@ test "evaluate_filter shape" {
   field_map.add_field(
     Field::new("shape", Some(Scalar::string("rectangle")), None, []),
   )
-  let field = Field::new("mybox", None, Some(Composite::Map(field_map)), [])
+  let field = Field::new("mybox", None, Some(Map(field_map)), [])
   let parent = Map::new()
   parent.add_field(field)
   let ctx = FilterContext::new(field, parent)
@@ -191,9 +191,7 @@ test "apply_glob_properties" {
   m.apply_glob_properties(["server", "*"], props, [])
   // server1 and server2 should have fill property
   guard m.get_field("server1") is Some(s1) else { fail("expected server1") }
-  guard s1.composite is Some(Composite::Map(s1m)) else {
-    fail("expected server1 map")
-  }
+  guard s1.composite is Some(Map(s1m)) else { fail("expected server1 map") }
   guard s1m.get_field("fill") is Some(fill) else { fail("expected fill") }
   @debug.assert_eq(fill.primary, Some(Scalar::string("red")))
 }
@@ -206,11 +204,11 @@ test "apply_glob_properties with filter" {
   s1map.add_field(
     Field::new("shape", Some(Scalar::string("rectangle")), None, []),
   )
-  m.add_field(Field::new("server1", None, Some(Composite::Map(s1map)), []))
+  m.add_field(Field::new("server1", None, Some(Map(s1map)), []))
   // Create server2 with shape: circle
   let s2map = Map::new()
   s2map.add_field(Field::new("shape", Some(Scalar::string("circle")), None, []))
-  m.add_field(Field::new("server2", None, Some(Composite::Map(s2map)), []))
+  m.add_field(Field::new("server2", None, Some(Map(s2map)), []))
   // Create properties
   let props = Map::new()
   props.add_field(Field::new("fill", Some(Scalar::string("blue")), None, []))
@@ -219,18 +217,14 @@ test "apply_glob_properties with filter" {
   m.apply_glob_properties(["**"], props, filters)
   // Only server1 should have fill=blue
   guard m.get_field("server1") is Some(s1) else { fail("expected server1") }
-  guard s1.composite is Some(Composite::Map(s1m)) else {
-    fail("expected server1 map")
-  }
+  guard s1.composite is Some(Map(s1m)) else { fail("expected server1 map") }
   guard s1m.get_field("fill") is Some(fill1) else {
     fail("expected fill in server1")
   }
   @debug.assert_eq(fill1.primary, Some(Scalar::string("blue")))
   // server2 should not have fill=blue (still has circle shape only)
   guard m.get_field("server2") is Some(s2) else { fail("expected server2") }
-  guard s2.composite is Some(Composite::Map(s2m)) else {
-    fail("expected server2 map")
-  }
+  guard s2.composite is Some(Map(s2m)) else { fail("expected server2 map") }
   // server2 should not have fill field
   assert_true(s2m.get_field("fill") is None)
 }

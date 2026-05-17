@@ -142,7 +142,7 @@ fn repack_levels_left_to_right(
   direction : @engine_api.Direction,
   config : @engine_api.LayoutConfig,
 ) -> Unit {
-  if direction != @engine_api.Down {
+  if direction != Down {
     return
   }
   let anchor_candidates : Array[Double] = []

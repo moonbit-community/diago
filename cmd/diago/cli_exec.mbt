@@ -37,35 +37,35 @@ fn run_cli(raw_args : Array[String], env : Map[String, String]) -> Unit {
 ///|
 fn execute_cli_request(request : CliRequest) -> Result[Unit, String] {
   match request.command {
-    CliCommand::Render =>
+    Render =>
       match request.render {
         Some(render_req) => execute_render(render_req)
         None => Err("internal error: missing render request")
       }
-    CliCommand::Fmt =>
+    Fmt =>
       match request.fmt {
         Some(fmt_req) => execute_fmt(fmt_req)
         None => Err("internal error: missing fmt request")
       }
-    CliCommand::Validate =>
+    Validate =>
       match request.validate {
         Some(validate_req) => execute_validate(validate_req)
         None => Err("internal error: missing validate request")
       }
-    CliCommand::Layout =>
+    Layout =>
       match request.layout {
         Some(layout_req) => execute_layout(layout_req)
         None => Err("internal error: missing layout request")
       }
-    CliCommand::Themes => {
+    Themes => {
       list_themes()
       Ok(())
     }
-    CliCommand::Version => {
+    Version => {
       println(CLI_VERSION)
       Ok(())
     }
-    CliCommand::InternalDumpInput =>
+    InternalDumpInput =>
       match request.dump_input {
         Some(dump_req) => execute_internal_dump_input(dump_req)
         None => Err("internal error: missing dump-input request")
@@ -126,7 +126,7 @@ fn compile_render_source(
   source : String,
   base_path : String?,
 ) -> Result[CompiledSourceResult, String] {
-  if request.output_mode == OutputMode::Svg {
+  if request.output_mode == Svg {
     return compile_source_with_warnings(
       source,
       request.output_mode,
@@ -188,12 +188,12 @@ fn render_output_write_plan(
 ) -> RenderOutputWritePlan {
   match compiled.warning {
     Some(warning) =>
-      if output_mode == OutputMode::Svg {
-        RenderOutputWritePlan::WriteThenWarn(warning)
+      if output_mode == Svg {
+        WriteThenWarn(warning)
       } else {
-        RenderOutputWritePlan::WarnOnly(warning)
+        WarnOnly(warning)
       }
-    None => RenderOutputWritePlan::WriteOnly
+    None => WriteOnly
   }
 }
 
@@ -204,14 +204,14 @@ fn write_render_output(
   compiled : CompiledSourceResult,
 ) -> Result[Unit, String] {
   match render_output_write_plan(output_mode, compiled) {
-    RenderOutputWritePlan::WriteOnly =>
+    WriteOnly =>
       write_compiled_output(output_mode, output_path, compiled.output)
-    RenderOutputWritePlan::WriteThenWarn(warning) =>
+    WriteThenWarn(warning) =>
       match write_compiled_output(output_mode, output_path, compiled.output) {
         Ok(_) => Err(warning)
         Err(err) => Err(err)
       }
-    RenderOutputWritePlan::WarnOnly(warning) => Err(warning)
+    WarnOnly(warning) => Err(warning)
   }
 }
 

@@ -18,9 +18,8 @@ test "render output plan writes svg before surfacing bundling warning" {
     output: "<svg/>",
     warning: Some("bundle warning"),
   }
-  match render_output_write_plan(OutputMode::Svg, compiled) {
-    RenderOutputWritePlan::WriteThenWarn(warning) =>
-      @debug.assert_eq(warning, "bundle warning")
+  match render_output_write_plan(Svg, compiled) {
+    WriteThenWarn(warning) => @debug.assert_eq(warning, "bundle warning")
     _ => fail("expected svg warning plan to write before returning warning")
   }
 }
@@ -31,9 +30,8 @@ test "render output plan keeps warnings write-free for non-svg outputs" {
     output: "<svg/>",
     warning: Some("bundle warning"),
   }
-  match render_output_write_plan(OutputMode::Unicode, compiled) {
-    RenderOutputWritePlan::WarnOnly(warning) =>
-      @debug.assert_eq(warning, "bundle warning")
+  match render_output_write_plan(Unicode, compiled) {
+    WarnOnly(warning) => @debug.assert_eq(warning, "bundle warning")
     _ => fail("expected non-svg warning plan to skip writing output")
   }
 }
@@ -41,12 +39,12 @@ test "render output plan keeps warnings write-free for non-svg outputs" {
 ///|
 test "render output plan writes normally when no warning exists" {
   let compiled : CompiledSourceResult = { output: "<svg/>", warning: None }
-  match render_output_write_plan(OutputMode::Svg, compiled) {
-    RenderOutputWritePlan::WriteOnly => ()
+  match render_output_write_plan(Svg, compiled) {
+    WriteOnly => ()
     _ => fail("expected svg output without warning to write normally")
   }
-  match render_output_write_plan(OutputMode::Unicode, compiled) {
-    RenderOutputWritePlan::WriteOnly => ()
+  match render_output_write_plan(Unicode, compiled) {
+    WriteOnly => ()
     _ => fail("expected non-svg output without warning to write normally")
   }
 }
