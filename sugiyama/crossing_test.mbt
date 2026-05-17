@@ -152,7 +152,7 @@ test "minimize_crossings preserves original order for unconnected nodes" {
   let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
   // All nodes should be in one layer, in original definition order
   inspect(crossing_result.ordered_layers.length(), content="1")
-  inspect(
+  debug_inspect(
     crossing_result.ordered_layers[0],
     content="[\"a\", \"b\", \"c\", \"d\"]",
   )

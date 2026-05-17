@@ -71,7 +71,7 @@ test "sort objects by z-index depth and stable order" {
     test_object("api", -1),
   ])
   let sorted = sort_objects_by_depth(input)
-  inspect(
+  debug_inspect(
     sorted.map(fn(shape) { shape.id }),
     content="[\"api\", \"app\", \"app.service\", \"app.db\", \"other.root\"]",
   )
@@ -85,7 +85,7 @@ test "sort objects preserves export order for equal z-index and depth" {
     test_object("gamma.one", 3),
   ])
   let sorted = sort_objects_by_depth(input)
-  inspect(
+  debug_inspect(
     sorted.map(fn(shape) { shape.id }),
     content="[\"alpha.one\", \"beta.one\", \"gamma.one\"]",
   )
@@ -99,7 +99,7 @@ test "sort objects prefers container before non-container on tie" {
     test_object("group.child", 0),
   ])
   let sorted = sort_objects_by_depth(input)
-  inspect(
+  debug_inspect(
     sorted.map(fn(shape) { shape.id }),
     content="[\"group\", \"leaf\", \"group.child\"]",
   )
@@ -113,7 +113,7 @@ test "sort objects keeps containers before leaves even when deeper" {
     test_object("aws.vpc.subnet.ec2", 0),
   ])
   let sorted = sort_objects_by_depth(input)
-  inspect(
+  debug_inspect(
     sorted.map(fn(shape) { shape.id }),
     content="[\"aws.s3\", \"aws.vpc.subnet\", \"aws.vpc.subnet.ec2\"]",
   )
@@ -127,7 +127,7 @@ test "sort objects treats quoted dots as a single syntax segment" {
     test_object("aws.vpc.subnet", 0),
   ])
   let sorted = sort_objects_by_depth(input)
-  inspect(
+  debug_inspect(
     sorted.map(fn(shape) { shape.id }),
     content="[\"\\\"a.b\\\"\", \"a.b\", \"aws.vpc.subnet\"]",
   )
