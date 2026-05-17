@@ -124,7 +124,7 @@ fn bundle_image_tag(
     Some(value) => value
     None => return { tag, error_href: None }
   }
-  let href = decode_xml_attr_entities(href_raw).trim().to_string()
+  let href = decode_xml_attr_entities(href_raw).trim().to_owned()
   if href == "" || href.has_prefix("data:") {
     return { tag, error_href: None }
   }
@@ -409,7 +409,7 @@ fn resolve_bundle_mime_type(
   provided_content_type : String,
 ) -> String {
   let mime_type = if provided_content_type.trim() != "" {
-    provided_content_type.trim().to_string()
+    provided_content_type.trim().to_owned()
   } else {
     detect_mime_type(source_hint, bytes)
   }
@@ -606,9 +606,9 @@ fn parse_last_content_type_header(header_text : String) -> String? {
   }
   let mut i = lines.length() - 1
   while true {
-    let line = lines[i].trim().to_string()
+    let line = lines[i].trim().to_owned()
     if line.to_lower().has_prefix("content-type:") {
-      return Some(slice_string(line, 13, line.length()).trim().to_string())
+      return Some(slice_string(line, 13, line.length()).trim().to_owned())
     }
     if i == 0 {
       break

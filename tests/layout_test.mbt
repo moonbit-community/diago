@@ -2089,7 +2089,7 @@ fn assert_empty_sequence_like_d2(
         endpoints.push("\{edge.lookup_src_id()} -> \{edge.lookup_dst_id()}")
       }
       fail(
-        "\{engine_name} expected edge A -> B in empty_sequence fixture, got \{endpoints}",
+        "\{engine_name} expected edge A -> B in empty_sequence fixture, got \{@debug.to_string(endpoints)}",
       )
     }
   }
@@ -3487,7 +3487,7 @@ test "sql_table edges connect to correct rows" {
     let route = edge.route
     guard route.length() >= 2 else { continue }
     edge_debug.push(
-      "\{edge.src_id}[\{edge.src_column_index}] -> \{edge.dst_id}[\{edge.dst_column_index}]",
+      "\{edge.src_id}[\{@debug.to_string(edge.src_column_index)}] -> \{edge.dst_id}[\{@debug.to_string(edge.dst_column_index)}]",
     )
     if edge.src_id == "users" && edge.dst_id == "posts" {
       found_users_posts = true

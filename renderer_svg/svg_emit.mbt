@@ -108,7 +108,7 @@ fn d2_fixed6(value : Double) -> String {
 
 ///|
 fn d2_normalized_color(value : String) -> String {
-  value.trim().to_lower().to_string()
+  value.trim().to_lower().to_owned()
 }
 
 ///|
@@ -161,7 +161,7 @@ fn d2_sketch_color_pairs(theme : @themes.Theme) -> Array[(String, String)] {
 
 ///|
 fn d2_theme_token(value : String, theme : @themes.Theme) -> String? {
-  let token_candidate = value.trim().to_upper().to_string()
+  let token_candidate = value.trim().to_upper().to_owned()
   let normalized = d2_normalized_color(value)
   for entry in d2_theme_color_pairs(theme) {
     if token_candidate == entry.0 {
@@ -1547,7 +1547,7 @@ fn d2_split_abs_id(id : String) -> Array[String] {
   let parts : Array[String] = []
   if id != "" {
     for part in id.split(".") {
-      parts.push(part.to_string())
+      parts.push(part.to_owned())
     }
   }
   parts
@@ -1819,7 +1819,7 @@ fn d2_render_text_spans(text : String, x : Double, height : Double) -> String {
     if i == 0 {
       dy = 0.0
     }
-    let line_string = line.to_string()
+    let line_string = line.to_owned()
     let escaped = if line_string == "" {
       " "
     } else {

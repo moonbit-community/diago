@@ -521,7 +521,7 @@ fn parse_target_selection(spec : String) -> Result[TargetSelection, String] {
   let target = if no_children {
     spec
   } else {
-    spec[:spec.length() - 2].to_string()
+    spec[:spec.length() - 2].to_owned()
   }
   if target.length() == 0 {
     return Ok({ path: [], no_children })

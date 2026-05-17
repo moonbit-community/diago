@@ -47,7 +47,7 @@ fn FileReader::read(self : FileReader, n : Int) -> Array[Byte] {
   let start = self.reader_position
   let end_ = start + n
   self.reader_position = end_
-  self.array[start:end_].to_array()
+  self.array[start:end_].to_owned()
 }
 
 ///|
@@ -215,7 +215,7 @@ fn is_plausible_sfnt(data : Array[Byte]) -> Bool {
   let tags : Map[String, Bool] = {}
   for i in 0..<num_tables {
     let rec = 12 + i * 16
-    let tag = bytes4_to_string(data[rec:rec + 4].to_array())
+    let tag = bytes4_to_string(data[rec:rec + 4].to_owned())
     tags[tag] = true
     let offset = match safe_read_u32_be(data, rec + 8) {
       Some(v) => v
@@ -1004,7 +1004,7 @@ fn Utf8FontFile::assemble_tables(self : Utf8FontFile) -> Array[Byte] {
     let data = self.out_tables_data[key].copy()
     data.append([b'\x00', b'\x00', b'\x00'])
     let padded = data.length() / 4 * 4
-    answer.append(data[0:padded].to_array())
+    answer.append(data[0:padded].to_owned())
   }
 
   let (sum_hi, sum_lo) = self.generate_checksum(answer)
@@ -1071,7 +1071,7 @@ fn Utf8FontFile::generate_cut_font(
     None => ()
     Some(post_table0) => {
       let post_table : Array[Byte] = [b'\x00', b'\x03', b'\x00', b'\x00']
-      post_table.append(post_table0[4:16].to_array())
+      post_table.append(post_table0[4:16].to_owned())
       post_table.append([
         b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00',
         b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00',
@@ -1109,19 +1109,19 @@ fn Utf8FontFile::generate_cut_font(
     offsets.push(pos)
     let symbol_pos = self.symbol_position[original_symbol_idx]
     let symbol_len = self.symbol_position[original_symbol_idx + 1] - symbol_pos
-    let mut data = symbol_data[symbol_pos:symbol_pos + symbol_len].to_array()
+    let mut data = symbol_data[symbol_pos:symbol_pos + symbol_len].to_owned()
     let mut up = 0
     if symbol_len > 0 {
-      up = unpack_uint16(data[0:2].to_array())
+      up = unpack_uint16(data[0:2].to_owned())
     }
 
     if symbol_len > 2 && (up & (1 << 15)) != 0 {
       let mut pos_in_symbol = 10
       let mut flags = symbol_continue
       while (flags & symbol_continue) != 0 {
-        up = unpack_uint16(data[pos_in_symbol:pos_in_symbol + 2].to_array())
+        up = unpack_uint16(data[pos_in_symbol:pos_in_symbol + 2].to_owned())
         flags = up
-        up = unpack_uint16(data[pos_in_symbol + 2:pos_in_symbol + 4].to_array())
+        up = unpack_uint16(data[pos_in_symbol + 2:pos_in_symbol + 4].to_owned())
         let symbol_idx = up
 
         let x0 = self.symbol_data.get_or_default(original_symbol_idx, {})
@@ -1325,7 +1325,7 @@ fn parse_sfnt_entries(data : Array[Byte]) -> Array[SfntTableEntry]? {
       length > data.length() - offset {
       return None
     }
-    let tag = bytes4_to_string(data[rec:rec + 4].to_array())
+    let tag = bytes4_to_string(data[rec:rec + 4].to_owned())
     entries.push({ tag, tag_u32, check_sum, offset, length })
   }
   Some(entries)
@@ -1356,7 +1356,7 @@ fn sfnt_table_data(data : Array[Byte], entry : SfntTableEntry) -> Array[Byte]? {
     entry.length > data.length() - entry.offset {
     return None
   }
-  Some(data[entry.offset:entry.offset + entry.length].to_array())
+  Some(data[entry.offset:entry.offset + entry.length].to_owned())
 }
 
 ///|
@@ -1372,9 +1372,9 @@ fn sfnt_aligned_table_for_checksum(
     return None
   }
   if entry.offset + aligned <= data.length() {
-    return Some(data[entry.offset:entry.offset + aligned].to_array())
+    return Some(data[entry.offset:entry.offset + aligned].to_owned())
   }
-  let padded = data[entry.offset:entry.offset + entry.length].to_array()
+  let padded = data[entry.offset:entry.offset + entry.length].to_owned()
   while padded.length() < aligned {
     padded.push(b'\x00')
   }
@@ -1423,7 +1423,7 @@ pub fn sfnt_to_woff(in_buf : Bytes) -> Bytes? {
     sfnt_size = u32_add(sfnt_size, align4(entry.length))
   }
 
-  let mut csum = sfnt_calc_checksum(data[0:12].to_array())
+  let mut csum = sfnt_calc_checksum(data[0:12].to_owned())
   let mut sfnt_offset = 12 + sorted_entries.length() * 16
   for entry in sorted_entries {
     let dir_entry : Array[Byte] = []

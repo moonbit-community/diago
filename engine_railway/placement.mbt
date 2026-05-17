@@ -1005,13 +1005,14 @@ fn place_nodes_grid(
   direction : @engine_api.Direction,
   levels : Array[Level],
 ) -> (Map[String, @graph.Box], Array[Double]) {
-  let boxes = Map::new()
+  let boxes = Map([])
   let level_heights = []
   let level_spans : Array[Double] = []
   let level_max_heights : Array[Double] = []
   let level_max_widths : Array[Double] = []
   let mut global_span = 0.0
-  let object_by_id : Map[String, @graph.ObjectInput] = Map::new(
+  let object_by_id : Map[String, @graph.ObjectInput] = Map(
+    [],
     capacity=graph.objects.length() * 2,
   )
   for obj in graph.objects {

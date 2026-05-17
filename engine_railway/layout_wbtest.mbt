@@ -310,7 +310,7 @@ test "railway assign_ports keeps fanout ports ordered by destination axis" {
   id_to_idx["b"] = 2
   id_to_idx["c"] = 3
   let depths = [0, 1, 1, 1]
-  let self_loop : @hashset.HashSet[Int] = @hashset.HashSet::new()
+  let self_loop : @hashset.HashSet[Int] = HashSet([])
   let boxes : Map[String, @graph.Box] = {}
   boxes["s"] = @graph.Box::new(0.0, 0.0, 180.0, 80.0)
   boxes["a"] = @graph.Box::new(0.0, 220.0, 120.0, 70.0)
@@ -367,7 +367,7 @@ test "railway downward destination ports keep left bias" {
   id_to_idx["b"] = 1
   id_to_idx["t"] = 2
   let depths = [0, 0, 1]
-  let self_loop : @hashset.HashSet[Int] = @hashset.HashSet::new()
+  let self_loop : @hashset.HashSet[Int] = HashSet([])
   let boxes : Map[String, @graph.Box] = {}
   boxes["a"] = @graph.Box::new(0.0, 0.0, 120.0, 70.0)
   boxes["b"] = @graph.Box::new(260.0, 0.0, 120.0, 70.0)
@@ -840,7 +840,7 @@ test "railway levels reduce simple bipartite crossing" {
   g.edges.push(@graph.EdgeInput::new(1, "b", "c", false, true))
 
   let n = g.objects.length()
-  let id_to_idx : Map[String, Int] = Map::new(capacity=n * 2)
+  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx[g.objects[i].id] = i
   }
@@ -1729,7 +1729,7 @@ test "railway does not detour for container top band outside title box" {
 
 ///|
 test "railway offsets overlapping vertical channel anchors" {
-  let reservations = Ref::new(([] : Array[ChannelReservation]))
+  let reservations = Ref(([] : Array[ChannelReservation]))
   let config = @engine_api.LayoutConfig::new()
   let first = reserve_channel_anchor(
     -47.0,

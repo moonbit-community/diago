@@ -568,8 +568,9 @@ fn allocate_interval_tracks(intervals : Array[EdgeInterval]) -> Map[Int, Int] {
       a.end.compare(b.end)
     }
   })
-  let active : @priority_queue.PriorityQueue[@cmp.Reverse[TrackUsage]] = @priority_queue.new()
-  let free : @priority_queue.PriorityQueue[@cmp.Reverse[Int]] = @priority_queue.new()
+  let active : @priority_queue.PriorityQueue[@cmp.Reverse[TrackUsage]] = PriorityQueue([],
+  )
+  let free : @priority_queue.PriorityQueue[@cmp.Reverse[Int]] = PriorityQueue([])
   let mut next_track = 0
   for it in ordered {
     // Release tracks whose interval ended before this one begins.
@@ -660,8 +661,9 @@ fn allocate_span_lanes(spans : Array[EdgeSpan]) -> (Map[Int, Int], Int) {
       a.end.compare(b.end)
     }
   })
-  let active : @priority_queue.PriorityQueue[@cmp.Reverse[LaneUsage]] = @priority_queue.new()
-  let free : @priority_queue.PriorityQueue[@cmp.Reverse[Int]] = @priority_queue.new()
+  let active : @priority_queue.PriorityQueue[@cmp.Reverse[LaneUsage]] = PriorityQueue([],
+  )
+  let free : @priority_queue.PriorityQueue[@cmp.Reverse[Int]] = PriorityQueue([])
   let mut next_lane = 0
   for it in ordered {
     while active.peek() is Some(Reverse(u)) && u.end <= it.start {
@@ -919,9 +921,9 @@ fn optimize_lane_order_exhaustive(
     }
   }
 
-  let best_order_ref = Ref::new(best_order)
-  let best_score_ref = Ref::new(best_score)
-  let has_best_ref = Ref::new(has_best)
+  let best_order_ref = Ref(best_order)
+  let best_score_ref = Ref(best_score)
+  let has_best_ref = Ref(has_best)
   dfs(
     0, used, current, lane_count, edges, base_lane_by_edge, best_order_ref, best_score_ref,
     has_best_ref,

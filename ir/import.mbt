@@ -168,7 +168,7 @@ fn join_import_pre(pre : String, file : String) -> String {
   let is_abs = combined.length() > 0 && combined.to_array()[0] == '/'
   let parts : Array[String] = []
   for seg in combined.split("/").collect() {
-    let s = seg.to_string()
+    let s = seg.to_owned()
     if s == "" || s == "." {
       continue
     }

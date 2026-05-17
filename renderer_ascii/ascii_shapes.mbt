@@ -1397,7 +1397,7 @@ fn classify_class_member(child : @diagram.Shape) -> ClassMember {
   let display_name = effective_visibility + name_without_visibility
   let mut field_type = child.label
   if is_method {
-    let trimmed = child.label.trim().to_string()
+    let trimmed = child.label.trim().to_owned()
     if trimmed == "" ||
       trimmed == raw_name ||
       trimmed == name_without_visibility ||

@@ -396,7 +396,7 @@ fn regular_text_height_like_reference(text : String, font_size : Int) -> Double 
   let mut first_content_line = -1
   let mut last_content_line = -1
   for i, line in lines {
-    if line.to_string().trim() == "" {
+    if line.to_owned().trim() == "" {
       continue
     }
     if first_content_line < 0 {
@@ -522,7 +522,7 @@ fn measure_text_with_mode(
 
   // Convert iter to array for indexing
   for line in lines_iter {
-    lines.push(line.to_string())
+    lines.push(line.to_owned())
   }
 
   let total_height = if use_code_line_height {
@@ -660,7 +660,7 @@ fn measure_text_with_dot_bounds_kind(
   let base = measure_text_with_mode(text, font_size, kind, is_mono, false)
   let mut max_line_width = 0.0
   for line in text.split("\n") {
-    let line_text = line.to_string()
+    let line_text = line.to_owned()
     let line_measured = measure_text_with_mode(
       line_text, font_size, kind, is_mono, false,
     )

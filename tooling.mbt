@@ -64,7 +64,10 @@ pub fn get_ref_ranges(
   let ir_map = parse(source, options~)
   let board_root = match find_map_by_path(ir_map, board_path) {
     Some(m) => m
-    None => raise TargetError("Target board not found: \{board_path}")
+    None =>
+      raise TargetError(
+        "Target board not found: \{@debug.to_string(board_path)}",
+      )
   }
   let selector = parse_ref_selector(key)
   let ranges : Array[@lexer.Range] = []
@@ -309,7 +312,7 @@ fn line_prefix_at(source : String, line : Int, column : Int) -> String {
   let mut index = 0
   for raw_line in source.split("\n") {
     if index == line {
-      let line_text = raw_line.to_string()
+      let line_text = raw_line.to_owned()
       let end = if column < line_text.length() {
         column
       } else {
@@ -324,7 +327,7 @@ fn line_prefix_at(source : String, line : Int, column : Int) -> String {
 
 ///|
 fn detect_completion_context(prefix : String) -> CompletionContext? {
-  let normalized = prefix.trim().to_lower().to_string()
+  let normalized = prefix.trim().to_lower().to_owned()
   if normalized.length() == 0 {
     return None
   }
