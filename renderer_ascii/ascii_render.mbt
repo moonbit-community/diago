@@ -172,7 +172,7 @@ fn calculate_extended_bounds(
         max_x = max_int(max_x, shape_right)
         max_y = max_int(max_y, shape_bottom)
 
-        if shape.shape_type == @graph.ShapeType::C4Person {
+        if shape.shape_type == C4Person {
           let head_radius = (box.width * 0.22).to_int()
           let head_center_y = (box.height * 0.18).to_int()
           let head_top = box.y.to_int() + head_center_y - head_radius
@@ -185,11 +185,7 @@ fn calculate_extended_bounds(
         }
 
         if style_bool_local(shape.style.three_d, false) {
-          let offset_y = if shape.shape_type == @graph.ShapeType::Hexagon {
-            7
-          } else {
-            15
-          }
+          let offset_y = if shape.shape_type == Hexagon { 7 } else { 15 }
           min_y = min_int(min_y, floor_int(box.y) - offset_y - stroke_width)
           max_x = max_int(
             max_x,
@@ -372,8 +368,7 @@ fn collect_inline_child_shape_parent_ids(
 ) -> Map[String, String] {
   let ids : Map[String, String] = {}
   for shape in shapes {
-    if shape.shape_type == @graph.ShapeType::SqlTable ||
-      shape.shape_type == @graph.ShapeType::Class {
+    if shape.shape_type == SqlTable || shape.shape_type == Class {
       for child_id in shape.child_ids {
         ids[child_id] = shape.id
       }
@@ -482,7 +477,7 @@ fn estimate_shape_label_bounds(
   }
   let is_bold = style_bool_local(shape.style.bold, false)
   let is_italic = style_bool_local(shape.style.italic, false)
-  let is_mono = shape.shape_type == @graph.ShapeType::Code ||
+  let is_mono = shape.shape_type == Code ||
     style_is_mono_local(shape.style.font_family)
   let dims = @text_metrics.measure_label(
     shape.label,
@@ -533,8 +528,7 @@ fn default_shape_label_position_for_bounds(
   shape : @diagram.Shape,
   box : @graph.Box,
 ) -> String {
-  if shape.shape_type == @graph.ShapeType::SqlTable ||
-    shape.shape_type == @graph.ShapeType::Class {
+  if shape.shape_type == SqlTable || shape.shape_type == Class {
     return "INSIDE_TOP_CENTER"
   }
   let font_size = match shape.style.font_size {
@@ -543,7 +537,7 @@ fn default_shape_label_position_for_bounds(
   }
   let is_bold = style_bool_local(shape.style.bold, false)
   let is_italic = style_bool_local(shape.style.italic, false)
-  let is_mono = shape.shape_type == @graph.ShapeType::Code ||
+  let is_mono = shape.shape_type == Code ||
     style_is_mono_local(shape.style.font_family)
   let dims = @text_metrics.measure_label(
     shape.label,
@@ -571,8 +565,7 @@ fn default_shape_label_position_for_bounds(
     } else {
       "OUTSIDE_TOP_CENTER"
     }
-  } else if shape.shape_type == @graph.ShapeType::Person ||
-    shape.shape_type == @graph.ShapeType::Image {
+  } else if shape.shape_type == Person || shape.shape_type == Image {
     "OUTSIDE_BOTTOM_CENTER"
   } else if shape.icon is Some(_) {
     "INSIDE_TOP_CENTER"

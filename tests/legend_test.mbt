@@ -28,7 +28,7 @@ test "legend auto populates graph" {
     #|    user -> db: reads
     #|  }
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   assert_true(graph.has_legend())
 }
 

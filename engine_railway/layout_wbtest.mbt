@@ -34,7 +34,7 @@ test "railway layout routes via virtual nodes" {
   let e_ac = make_edge_between(a, c)
   g.edges.append([e_ab, e_bc, e_ac])
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
 
   // Virtual nodes are not emitted as node boxes.
   assert_true(patch.nodes.get(forward_virtual_node_label(1)) is None)
@@ -97,7 +97,7 @@ test "railway layout back edge avoids per-level waypoints" {
   let e_cx = make_edge_between(c, x)
   g.edges.append([e_xy, e_yz, e_zc, e_cx])
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let plan = els_tarjan_plan(g)
   let (_self_loop, reversed) = dag_edge_index_sets(plan)
   // Pick any reversed edge (a back edge) and assert it doesn't include a
@@ -160,7 +160,7 @@ test "railway layout offsets overlapping back edges" {
   let e_fd = make_edge_between(f, d)
   g.edges.append([e_ab, e_bc, e_ca, e_de, e_ef, e_fd])
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let plan = els_tarjan_plan(g)
   let (_self_loop, reversed) = dag_edge_index_sets(plan)
   let reversed_edges : Array[Int] = []
@@ -210,7 +210,7 @@ test "railway layout offsets overlapping gap rails" {
   let e_x2_y1 = make_edge_between(x2, y1)
   g.edges.append([e_x1_y1, e_x2_y2, e_x1_y2, e_x2_y1])
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let r_a = patch.edges.get(e_x1_y2.index).unwrap_or([])
   let r_b = patch.edges.get(e_x2_y1.index).unwrap_or([])
   assert_true(
@@ -237,7 +237,7 @@ test "railway lane optimizer minimizes fanout rail crossings" {
   let e_x2_y1 = @graph.EdgeInput::new(3, "x2", "y1", false, true)
   g.edges.append([e_x1_y1, e_x2_y2, e_x1_y2, e_x2_y1])
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let left_route = patch.edges.get(e_x1_y2.index).unwrap_or([])
   let right_route = patch.edges.get(e_x2_y1.index).unwrap_or([])
   assert_true(left_route.length() >= 4 && right_route.length() >= 4)
@@ -321,7 +321,7 @@ test "railway assign_ports keeps fanout ports ordered by destination axis" {
     id_to_idx,
     depths,
     self_loop,
-    @engine_api.Down,
+    Down,
     @engine_api.LayoutConfig::new(),
     boxes,
   )
@@ -339,8 +339,8 @@ test "railway long edge anchor prefers central channel when clear" {
   let anchor = long_edge_channel_anchor(
     start,
     end,
-    @engine_api.Down,
-    @engine_api.Down,
+    Down,
+    Down,
     0,
     @engine_api.LayoutConfig::new(),
     {},
@@ -377,7 +377,7 @@ test "railway downward destination ports keep left bias" {
     id_to_idx,
     depths,
     self_loop,
-    @engine_api.Down,
+    Down,
     @engine_api.LayoutConfig::new(),
     boxes,
   )
@@ -397,7 +397,7 @@ test "railway layout respects Right direction" {
   g.objects.append([a, b])
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Right)
+  let patch = layout_graph(g, config, Right)
   let a_box = patch.nodes.get("a").unwrap()
   let b_box = patch.nodes.get("b").unwrap()
   assert_true(b_box.x > a_box.x, msg="b should be to the right of a")
@@ -411,7 +411,7 @@ test "railway layout respects Left direction" {
   g.objects.append([a, b])
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Left)
+  let patch = layout_graph(g, config, Left)
   let a_box = patch.nodes.get("a").unwrap()
   let b_box = patch.nodes.get("b").unwrap()
   assert_true(b_box.x < a_box.x, msg="b should be to the left of a")
@@ -425,7 +425,7 @@ test "railway layout respects Up direction" {
   g.objects.append([a, b])
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Up)
+  let patch = layout_graph(g, config, Up)
   let a_box = patch.nodes.get("a").unwrap()
   let b_box = patch.nodes.get("b").unwrap()
   assert_true(b_box.y < a_box.y, msg="b should be above a")
@@ -451,7 +451,7 @@ test "railway layout fans out shared source ports" {
   let e1 = make_edge_between(x, y2)
   g.edges.append([e0, e1])
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let r0 = patch.edges.get(e0.index).unwrap_or([])
   let r1 = patch.edges.get(e1.index).unwrap_or([])
   assert_true(r0.length() >= 2 && r1.length() >= 2)
@@ -488,7 +488,7 @@ test "railway layout keeps endpoint tangents vertical" {
   let e_x1z = make_edge_between(x1, z)
   g.edges.append([e_xy, e_xz, e_x1y, e_x1z])
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let r_xy = patch.edges.get(e_xy.index).unwrap_or([])
   let r_x1z = patch.edges.get(e_x1z.index).unwrap_or([])
   assert_true(r_xy.length() >= 2 && r_x1z.length() >= 2)
@@ -541,7 +541,7 @@ test "simple DAG" {
 
   // 
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let r2 = patch.edges.get(e2.index).unwrap_or([])
   let r3 = patch.edges.get(e3.index).unwrap_or([])
   assert_true(r2.length() >= 2 && r3.length() >= 2)
@@ -574,7 +574,7 @@ test "railway down direction left-aligns first node per rank" {
     @graph.EdgeInput::new(1, "root", "right", false, true),
   ])
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let root_box = patch.nodes.get("root").unwrap()
   let left_box = patch.nodes.get("left").unwrap()
   let right_box = patch.nodes.get("right").unwrap()
@@ -608,7 +608,7 @@ test "A -> B" {
 
   // 
   let config = @engine_api.LayoutConfig::new()
-  let patch = layout_graph(g, config, @engine_api.Down)
+  let patch = layout_graph(g, config, Down)
   let route = patch.edges.get(e0.index).unwrap_or([])
   assert_true(route.length() >= 2)
   let start = route[0]
@@ -657,7 +657,7 @@ test "railway layout computes edge label boxes" {
   g.objects.append([a, b])
   g.edges.push(edge)
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let label_box = patch.edge_labels
     .get(edge.index)
     .unwrap_or(@graph.Box::new(0.0, 0.0, 0.0, 0.0))
@@ -721,7 +721,7 @@ test "railway layout separates reciprocal edge labels" {
   g.edges.push(labeled_edge(0, "a", "b", "request"))
   g.edges.push(labeled_edge(1, "b", "a", "response"))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let l0 = patch.edge_labels
     .get(0)
     .unwrap_or(@graph.Box::new(0.0, 0.0, 0.0, 0.0))
@@ -742,7 +742,7 @@ test "railway layout splits reciprocal edge channels at endpoints" {
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   g.edges.push(@graph.EdgeInput::new(1, "b", "a", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let r0 = patch.edges.get(0).unwrap_or([])
   let r1 = patch.edges.get(1).unwrap_or([])
   assert_true(r0.length() >= 2 && r1.length() >= 2)
@@ -762,7 +762,7 @@ test "railway layout splits reciprocal channels in legend_auto pattern" {
   let db = @graph.ObjectInput::from_parts(
     "db",
     "db",
-    @graph.Cylinder,
+    Cylinder,
     @graph.StyleInput::new(),
     None,
     None,
@@ -790,7 +790,7 @@ test "railway layout splits reciprocal channels in legend_auto pattern" {
   g.edges.push(@graph.EdgeInput::new(2, "db", "server", false, true))
   g.edges.push(@graph.EdgeInput::new(3, "server", "client", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let forward = patch.edges.get(0).unwrap_or([])
   let backward = patch.edges.get(3).unwrap_or([])
   assert_true(forward.length() >= 2 && backward.length() >= 2)
@@ -822,7 +822,7 @@ test "railway layout keeps passthrough layout data" {
     ),
   )
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   assert_true(patch.activation_boxes.length() == 1)
   assert_true(patch.sequence_notes.length() == 1)
   assert_true(patch.sequence_fragments.length() == 1)
@@ -884,7 +884,7 @@ test "railway object size expands for uml class members" {
   let parser = @graph.ObjectInput::from_parts(
     "parser",
     "Diagram Parser",
-    @graph.Class,
+    Class,
     @graph.StyleInput::new(),
     None,
     None,
@@ -911,7 +911,7 @@ test "railway object size expands for uml class members" {
   let reader = @graph.ObjectInput::from_parts(
     "parser.+reader",
     "io.RuneReader",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -935,7 +935,7 @@ test "railway object size expands for uml class members" {
   let reader_pos = @graph.ObjectInput::from_parts(
     "parser.readerPos",
     "d2ast.Position",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -959,7 +959,7 @@ test "railway object size expands for uml class members" {
   let lookahead = @graph.ObjectInput::from_parts(
     "parser.-lookahead",
     "[]rune",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -983,7 +983,7 @@ test "railway object size expands for uml class members" {
   let peekn = @graph.ObjectInput::from_parts(
     "parser.\"#peekn(n int)\"",
     "(s string, eof bool)",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1007,7 +1007,7 @@ test "railway object size expands for uml class members" {
   let peek = @graph.ObjectInput::from_parts(
     "parser.+peek()",
     "(r rune, eof bool)",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1031,7 +1031,7 @@ test "railway object size expands for uml class members" {
   let rewind = @graph.ObjectInput::from_parts(
     "parser.rewind()",
     "void",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1055,7 +1055,7 @@ test "railway object size expands for uml class members" {
   let commit = @graph.ObjectInput::from_parts(
     "parser.commit()",
     "void",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1112,7 +1112,7 @@ test "railway parallel vertical edges avoid endpoint zig-zag" {
   g.edges.push(@graph.EdgeInput::new(3, "server", "database", false, true))
   g.edges.push(@graph.EdgeInput::new(4, "server", "database", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   fn route_is_straight_vertical(route : Array[@graph.Point]) -> Bool {
     if route.length() < 2 {
       return false
@@ -1135,7 +1135,7 @@ test "railway vertical flow keeps arrow tangent vertical" {
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   g.edges.push(@graph.EdgeInput::new(1, "b", "c", false, true))
   g.edges.push(@graph.EdgeInput::new(2, "c", "a", false, true))
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   fn has_vertical_end_tangent(route : Array[@graph.Point]) -> Bool {
     if route.length() < 2 {
       return false
@@ -1180,7 +1180,7 @@ test "railway keeps parallel same-endpoint edges separated" {
   g.objects.append([a, b])
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   g.edges.push(@graph.EdgeInput::new(1, "a", "b", false, true))
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let r0 = patch.edges.get(0).unwrap_or([])
   let r1 = patch.edges.get(1).unwrap_or([])
   assert_true(r0.length() >= 2 && r1.length() >= 2)
@@ -1192,7 +1192,7 @@ test "railway fits container box around children" {
   let container = @graph.ObjectInput::from_parts(
     "container",
     "container",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1218,7 +1218,7 @@ test "railway fits container box around children" {
   let g = @graph.GraphInput::new("testgraph")
   g.objects.append([container, a, b])
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let c_box = patch.nodes.get("container").unwrap()
   let a_box = patch.nodes.get("a").unwrap()
   let b_box = patch.nodes.get("b").unwrap()
@@ -1237,7 +1237,7 @@ test "railway reserves extra top space for container title band" {
   let container_plain = @graph.ObjectInput::from_parts(
     "container",
     "",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1263,11 +1263,7 @@ test "railway reserves extra top space for container title band" {
   let g_plain = @graph.GraphInput::new("testgraph")
   g_plain.objects.append([container_plain, a_plain, b_plain])
   g_plain.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
-  let patch_plain = layout_graph(
-    g_plain,
-    @engine_api.LayoutConfig::new(),
-    @engine_api.Down,
-  )
+  let patch_plain = layout_graph(g_plain, @engine_api.LayoutConfig::new(), Down)
   let c_box_plain = patch_plain.nodes.get("container").unwrap()
   let a_box_plain = patch_plain.nodes.get("a").unwrap()
   let b_box_plain = patch_plain.nodes.get("b").unwrap()
@@ -1276,7 +1272,7 @@ test "railway reserves extra top space for container title band" {
   let container_titled = @graph.ObjectInput::from_parts(
     "container",
     "Web Tier",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1305,7 +1301,7 @@ test "railway reserves extra top space for container title band" {
   let patch_titled = layout_graph(
     g_titled,
     @engine_api.LayoutConfig::new(),
-    @engine_api.Down,
+    Down,
   )
   let c_box_titled = patch_titled.nodes.get("container").unwrap()
   let a_box_titled = patch_titled.nodes.get("a").unwrap()
@@ -1323,7 +1319,7 @@ test "railway container label avoids crossing central edge track" {
   let container = @graph.ObjectInput::from_parts(
     "container",
     "Web Tier",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1369,7 +1365,7 @@ test "railway keeps stable container title bands clear of edges" {
   let web_tier = @graph.ObjectInput::from_parts(
     "web_tier",
     "Web Tier",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1400,7 +1396,7 @@ test "railway keeps stable container title bands clear of edges" {
   g.edges.push(@graph.EdgeInput::new(1, "lb", "web2", false, true))
   g.edges.push(@graph.EdgeInput::new(2, "lb", "web3", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let container_box = patch.nodes.get("web_tier").unwrap()
   let label_box = patch.node_labels.get("web_tier").unwrap()
 
@@ -1417,7 +1413,7 @@ test "railway keeps aligned external edge and title band disjoint" {
   let system = @graph.ObjectInput::from_parts(
     "system",
     "E-Commerce System",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1444,7 +1440,7 @@ test "railway keeps aligned external edge and title band disjoint" {
   g.objects.append([system, user, app])
   g.edges.push(@graph.EdgeInput::new(0, "user", "app", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let label_box = patch.node_labels.get("system").unwrap()
   let route = patch.edges.get(0).unwrap_or([])
 
@@ -1465,7 +1461,7 @@ test "railway keeps nested title bands clear of direct routes" {
   let aws = @graph.ObjectInput::from_parts(
     "aws",
     "AWS Cloud",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1489,7 +1485,7 @@ test "railway keeps nested title bands clear of direct routes" {
   let vpc = @graph.ObjectInput::from_parts(
     "aws.vpc",
     "VPC",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1513,7 +1509,7 @@ test "railway keeps nested title bands clear of direct routes" {
   let subnet = @graph.ObjectInput::from_parts(
     "aws.vpc.subnet",
     "Private Subnet",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1542,7 +1538,7 @@ test "railway keeps nested title bands clear of direct routes" {
     @graph.EdgeInput::new(0, "aws.cdn", "aws.vpc.subnet.server", false, true),
   )
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let route = patch.edges.get(0).unwrap_or([])
   let subnet_label = patch.node_labels.get("aws.vpc.subnet").unwrap()
   let direct_a = route[0]
@@ -1575,7 +1571,7 @@ test "railway nested container title moves off direct provisional edge" {
   let aws = @graph.ObjectInput::from_parts(
     "aws",
     "AWS Cloud",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1599,7 +1595,7 @@ test "railway nested container title moves off direct provisional edge" {
   let vpc = @graph.ObjectInput::from_parts(
     "aws.vpc",
     "VPC",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1623,7 +1619,7 @@ test "railway nested container title moves off direct provisional edge" {
   let subnet = @graph.ObjectInput::from_parts(
     "aws.vpc.subnet",
     "Private Subnet",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1684,7 +1680,7 @@ test "railway does not detour for container top band outside title box" {
   let system = @graph.ObjectInput::from_parts(
     "system",
     "Title",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1712,7 +1708,7 @@ test "railway does not detour for container top band outside title box" {
   g.objects.append([system, user, app, spacer])
   g.edges.push(@graph.EdgeInput::new(0, "user", "app", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let title_box = patch.node_labels.get("system").unwrap()
   let route = patch.edges.get(0).unwrap_or([])
 
@@ -1762,7 +1758,7 @@ test "railway keeps external node outside container bounds" {
   let container = @graph.ObjectInput::from_parts(
     "container",
     "container",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1790,7 +1786,7 @@ test "railway keeps external node outside container bounds" {
   g.objects.append([container, a, b, c])
   g.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   g.edges.push(@graph.EdgeInput::new(1, "b", "c", false, true))
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let ctn = patch.nodes.get("container").unwrap()
   let out = patch.nodes.get("c").unwrap()
   let overlap_x = !(out.x + out.width <= ctn.x || ctn.x + ctn.width <= out.x)
@@ -1803,7 +1799,7 @@ test "railway spreads overlapping siblings in same container" {
   let container = @graph.ObjectInput::from_parts(
     "container",
     "container",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1837,7 +1833,7 @@ test "railway spreads overlapping siblings in same container" {
     g,
     object_by_id,
     parent_id_by_child_id,
-    @engine_api.Down,
+    Down,
     @engine_api.LayoutConfig::new(),
   )
   let l = boxes.get("left").unwrap()
@@ -1850,7 +1846,7 @@ test "railway spreads overlapping top-level container subtrees" {
   let left_container = @graph.ObjectInput::from_parts(
     "left_container",
     "left_container",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1874,7 +1870,7 @@ test "railway spreads overlapping top-level container subtrees" {
   let right_container = @graph.ObjectInput::from_parts(
     "right_container",
     "right_container",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1918,7 +1914,7 @@ test "railway spreads overlapping top-level container subtrees" {
     g,
     object_by_id,
     parent_id_by_child_id,
-    @engine_api.Down,
+    Down,
     @engine_api.LayoutConfig::new(),
   )
   fit_container_boxes_in_map_railway(
@@ -1934,7 +1930,7 @@ test "railway spreads against non-adjacent overlapping sibling subtree" {
   let aws = @graph.ObjectInput::from_parts(
     "aws",
     "AWS Cloud",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1958,7 +1954,7 @@ test "railway spreads against non-adjacent overlapping sibling subtree" {
   let vpc = @graph.ObjectInput::from_parts(
     "aws.vpc",
     "VPC",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -1982,7 +1978,7 @@ test "railway spreads against non-adjacent overlapping sibling subtree" {
   let subnet = @graph.ObjectInput::from_parts(
     "aws.vpc.subnet",
     "Private Subnet",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -2024,7 +2020,7 @@ test "railway spreads against non-adjacent overlapping sibling subtree" {
     g,
     object_by_id,
     parent_id_by_child_id,
-    @engine_api.Down,
+    Down,
     @engine_api.LayoutConfig::new(),
   )
 
@@ -2038,7 +2034,7 @@ test "railway keeps sibling root containers disjoint in container-only graph" {
   let good = @graph.ObjectInput::from_parts(
     "good chips",
     "good chips",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -2062,7 +2058,7 @@ test "railway keeps sibling root containers disjoint in container-only graph" {
   let bad = @graph.ObjectInput::from_parts(
     "bad chips",
     "bad chips",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -2086,7 +2082,7 @@ test "railway keeps sibling root containers disjoint in container-only graph" {
   let chocolate = @graph.ObjectInput::from_parts(
     "chocolate",
     "chocolate",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -2110,7 +2106,7 @@ test "railway keeps sibling root containers disjoint in container-only graph" {
   let chip = @graph.ObjectInput::from_parts(
     "chocolate.chip",
     "chip",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -2141,7 +2137,7 @@ test "railway keeps sibling root containers disjoint in container-only graph" {
     good, bad, chocolate, chip, doritos, ruffles, lays, pringles, cookies,
   ])
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let good_box = patch.nodes.get("good chips").unwrap()
   let bad_box = patch.nodes.get("bad chips").unwrap()
   let chocolate_box = patch.nodes.get("chocolate").unwrap()
@@ -2198,7 +2194,7 @@ test "railway readability gate on architecture style DAG" {
   g.edges.push(@graph.EdgeInput::new(18, "worker2", "storage", false, true))
   g.edges.push(@graph.EdgeInput::new(19, "worker1", "primary", false, true))
 
-  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), @engine_api.Down)
+  let patch = layout_graph(g, @engine_api.LayoutConfig::new(), Down)
   let (
     crossing_count,
     label_overlap_count,
@@ -2224,7 +2220,7 @@ test "railway sequence layout keeps participants aligned and messages horizontal
   let root = @graph.ObjectInput::from_parts(
     "root",
     "root",
-    @graph.SequenceDiagram,
+    SequenceDiagram,
     @graph.StyleInput::new(),
     None,
     None,
@@ -2260,8 +2256,8 @@ test "railway sequence layout keeps participants aligned and messages horizontal
       dst,
       false,
       true,
-      @graph.None,
-      @graph.Triangle,
+      None,
+      Triangle,
       None,
       None,
       None,
@@ -2300,11 +2296,7 @@ test "railway sequence layout keeps participants aligned and messages horizontal
     [],
     None,
   )
-  let patch = layout_graph(
-    graph,
-    @engine_api.LayoutConfig::new(),
-    @engine_api.Down,
-  )
+  let patch = layout_graph(graph, @engine_api.LayoutConfig::new(), Down)
   let a = patch.nodes.get("alice").unwrap()
   let b = patch.nodes.get("bob").unwrap()
   let s = patch.nodes.get("server").unwrap()

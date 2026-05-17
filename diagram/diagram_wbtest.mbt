@@ -53,8 +53,8 @@ fn test_edge(
     dst_id,
     false,
     true,
-    @graph.ArrowheadType::None,
-    @graph.ArrowheadType::Triangle,
+    None,
+    Triangle,
     src_label,
     dst_label,
     None,
@@ -147,7 +147,7 @@ fn test_config(theme_id : Int) -> Config {
 ///|
 test "get_board supports explicit and shorthand nested paths" {
   let scenario_graph = test_graph_input("scenario-one", objects=[
-    test_object("nested.service", "Service", @graph.ShapeType::Rectangle),
+    test_object("nested.service", "Service", Rectangle),
   ])
   let layer_graph = test_graph_input("layer-one", scenarios=[
     @graph.ScenarioInput::new("scenario-one", scenario_graph),
@@ -172,7 +172,7 @@ test "get_board supports explicit and shorthand nested paths" {
 ///|
 test "has_shape recurses across nested boards" {
   let scenario_graph = test_graph_input("scenario-one", objects=[
-    test_object("nested.service", "Service", @graph.ShapeType::Rectangle),
+    test_object("nested.service", "Service", Rectangle),
   ])
   let layer_graph = test_graph_input("layer-one", scenarios=[
     @graph.ScenarioInput::new("scenario-one", scenario_graph),
@@ -195,19 +195,10 @@ test "has_shape recurses across nested boards" {
 test "get_corpus matches compatibility appendices legend and structured members" {
   let legend = @graph.LegendInput::from_parts(
     Some("Legend"),
-    @graph.LegendPosition::TopRight,
+    TopRight,
     [
-      @graph.LegendEntryInput::shape(
-        @graph.ShapeType::Rectangle,
-        "Service",
-        None,
-      ),
-      @graph.LegendEntryInput::connection(
-        @graph.ArrowheadType::None,
-        @graph.ArrowheadType::Triangle,
-        "Uses",
-        None,
-      ),
+      @graph.LegendEntryInput::shape(Rectangle, "Service", None),
+      @graph.LegendEntryInput::connection(None, Triangle, "Uses", None),
     ],
     None,
     None,
@@ -221,24 +212,20 @@ test "get_corpus matches compatibility appendices legend and structured members"
       test_object(
         "user",
         "User",
-        @graph.ShapeType::Rectangle,
+        Rectangle,
         tooltip=Some("tip"),
         link=Some("https://example.com"),
       ),
-      test_object("Account", "Account", @graph.ShapeType::Class, child_ids=[
+      test_object("Account", "Account", Class, child_ids=[
         "Account.+name", "Account.+save()",
       ]),
-      test_object("Account.+name", "string", @graph.ShapeType::Text),
-      test_object("Account.+save()", "", @graph.ShapeType::Text),
-      test_object("users", "users", @graph.ShapeType::SqlTable, child_ids=[
+      test_object("Account.+name", "string", Text),
+      test_object("Account.+save()", "", Text),
+      test_object("users", "users", SqlTable, child_ids=[
         "users.id", "users.email",
       ]),
-      test_object("users.id", "int", @graph.ShapeType::Text, sql_constraints=[
-        "primary_key",
-      ]),
-      test_object("users.email", "text", @graph.ShapeType::Text, sql_constraints=[
-        "unique",
-      ]),
+      test_object("users.id", "int", Text, sql_constraints=["primary_key"]),
+      test_object("users.email", "text", Text, sql_constraints=["unique"]),
     ],
     edges=[
       test_edge(
@@ -262,11 +249,11 @@ test "get_corpus matches compatibility appendices legend and structured members"
 ///|
 test "get_nested_corpus includes nested boards" {
   let layer_graph = test_graph_input("layer-one", objects=[
-    test_object("child", "Child", @graph.ShapeType::Rectangle),
+    test_object("child", "Child", Rectangle),
   ])
   let diagram = test_diagram(
     "root",
-    objects=[test_object("root-node", "Root", @graph.ShapeType::Rectangle)],
+    objects=[test_object("root-node", "Root", Rectangle)],
     layers=[@graph.LayerInput::new("layer-one", layer_graph)],
   )
 
@@ -278,12 +265,12 @@ test "get_nested_corpus includes nested boards" {
 test "hash_id follows target config bytes and salt" {
   let a = test_diagram(
     "root",
-    objects=[test_object("node", "Node", @graph.ShapeType::Rectangle)],
+    objects=[test_object("node", "Node", Rectangle)],
     config=Some(test_config(3)),
   )
   let b = test_diagram(
     "root",
-    objects=[test_object("node", "Node", @graph.ShapeType::Rectangle)],
+    objects=[test_object("node", "Node", Rectangle)],
     config=Some(test_config(4)),
   )
 
@@ -294,7 +281,7 @@ test "hash_id follows target config bytes and salt" {
 ///|
 test "with_render_hash_config feeds render appearance into diagram hash" {
   let base = test_diagram("root", objects=[
-    test_object("node", "Node", @graph.ShapeType::Rectangle),
+    test_object("node", "Node", Rectangle),
   ])
   let themed = base.with_render_hash_config(0, None, false)
   let sketched = base.with_render_hash_config(0, None, true)
@@ -312,7 +299,7 @@ test "diagram bytes encode typed theme overrides like the target config json" {
     .with_code("AA4", "#f0ff3a")
   let diagram = test_diagram(
     "root",
-    objects=[test_object("node", "Node", @graph.ShapeType::Rectangle)],
+    objects=[test_object("node", "Node", Rectangle)],
     config=Some(
       Config::from_parts(
         None,
@@ -348,7 +335,7 @@ test "hash_id includes target position metadata" {
         @graph.ObjectInput::from_parts(
           "node",
           "Node",
-          @graph.ShapeType::Rectangle,
+          Rectangle,
           @graph.StyleInput::new(),
           Some(@graph.Box::new(0.0, 0.0, 120.0, 60.0)),
           None,
@@ -390,7 +377,7 @@ test "hash_id includes target position metadata" {
         @graph.ObjectInput::from_parts(
           "node",
           "Node",
-          @graph.ShapeType::Rectangle,
+          Rectangle,
           @graph.StyleInput::new(),
           Some(@graph.Box::new(0.0, 0.0, 120.0, 60.0)),
           None,

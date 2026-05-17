@@ -172,10 +172,9 @@ fn markdown_measure_block(
   in_list_item : Bool,
 ) -> MarkdownBlockMetrics {
   match block {
-    @cmark.Block::BlankLine(_)
-    | @cmark.Block::HtmlBlock(_)
-    | @cmark.Block::LinkRefDefinition(_) => markdown_block_metrics_empty()
-    @cmark.Block::Blocks(node) => {
+    BlankLine(_) | HtmlBlock(_) | LinkRefDefinition(_) =>
+      markdown_block_metrics_empty()
+    Blocks(node) => {
       let parts : Array[MarkdownBlockMetrics] = []
       for child in node.v.to_array() {
         parts.push(
@@ -186,7 +185,7 @@ fn markdown_measure_block(
       }
       markdown_combine_blocks(parts)
     }
-    @cmark.Block::Paragraph(node) => {
+    Paragraph(node) => {
       let (width, height) = markdown_inline_dimensions(
         node.v.inline,
         base_font_size,
@@ -204,7 +203,7 @@ fn markdown_measure_block(
         margin_bottom: D2_MARKDOWN_P_MARGIN_BOTTOM,
       }
     }
-    @cmark.Block::Heading(node) => {
+    Heading(node) => {
       let heading_font_size = markdown_header_font_size(
         base_font_size,
         node.v.level,
@@ -228,7 +227,7 @@ fn markdown_measure_block(
         margin_bottom: D2_MARKDOWN_H_MARGIN_BOTTOM,
       }
     }
-    @cmark.Block::List(node) => {
+    List(node) => {
       let item_blocks : Array[MarkdownBlockMetrics] = []
       for i in 0..<node.v.items.length() {
         let item = node.v.items[i].v
@@ -262,7 +261,7 @@ fn markdown_measure_block(
       }
       merged
     }
-    @cmark.Block::CodeBlock(node) | @cmark.Block::ExtMathBlock(node) => {
+    CodeBlock(node) | ExtMathBlock(node) => {
       let mut line_count = 0
       let mut max_line_width = 0.0
       let code_font_size = markdown_max_int(
@@ -296,14 +295,14 @@ fn markdown_measure_block(
         margin_bottom: D2_MARKDOWN_P_MARGIN_BOTTOM,
       }
     }
-    @cmark.Block::ThematicBreak(_) =>
+    ThematicBreak(_) =>
       {
         width: 0.0,
         height: 0.25 * base_font_size.to_double(),
         margin_top: D2_MARKDOWN_H_MARGIN_TOP,
         margin_bottom: D2_MARKDOWN_H_MARGIN_TOP,
       }
-    @cmark.Block::BlockQuote(node) => {
+    BlockQuote(node) => {
       let inner = markdown_measure_block(
         node.v.block,
         base_font_size,
@@ -317,14 +316,14 @@ fn markdown_measure_block(
         margin_bottom: D2_MARKDOWN_P_MARGIN_BOTTOM,
       }
     }
-    @cmark.Block::ExtTable(node) => {
+    ExtTable(node) => {
       let mut max_width = 0.0
       let mut total_height = 0.0
       let row_height = D2_MARKDOWN_LINE_HEIGHT * base_font_size.to_double()
       for row in node.v.rows.to_array() {
         total_height = total_height + row_height
         match row.0.v {
-          @cmark.TableRow::Header(cols) | @cmark.TableRow::Data(cols) => {
+          Header(cols) | Data(cols) => {
             let mut row_width = 1.0
             for col in cols.to_array() {
               let (cell_width, _) = markdown_inline_dimensions(
@@ -339,7 +338,7 @@ fn markdown_measure_block(
               max_width = row_width
             }
           }
-          @cmark.TableRow::Sep(cols) => {
+          Sep(cols) => {
             let row_width = cols.length().to_double() *
               (base_font_size.to_double() + 17.0)
             if row_width > max_width {
@@ -355,7 +354,7 @@ fn markdown_measure_block(
         margin_bottom: D2_MARKDOWN_P_MARGIN_BOTTOM,
       }
     }
-    @cmark.Block::ExtFootnoteDefinition(node) =>
+    ExtFootnoteDefinition(node) =>
       markdown_measure_block(node.v.block, base_font_size, list_depth, false)
   }
 }

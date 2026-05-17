@@ -822,22 +822,22 @@ pub(all) suberror GraphCompileError {
 ///|
 pub impl Show for GraphCompileError with output(self, logger) {
   match self {
-    GraphCompileError::InvalidShape(message) => {
+    InvalidShape(message) => {
       logger.write_string("InvalidShape(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    GraphCompileError::InvalidStyle(message) => {
+    InvalidStyle(message) => {
       logger.write_string("InvalidStyle(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    GraphCompileError::MissingObject(message) => {
+    MissingObject(message) => {
       logger.write_string("MissingObject(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    GraphCompileError::Semantic(message) => {
+    Semantic(message) => {
       logger.write_string("Semantic(")
       logger.write_object(message)
       logger.write_char(')')
@@ -872,11 +872,10 @@ fn extract_classes(ir : @ir.Map) -> Map[String, @ir.Map] {
   match ir.get_field("classes") {
     Some(f) =>
       match f.composite {
-        Some(@ir.Composite::Map(classes_map)) =>
+        Some(Map(classes_map)) =>
           for field in classes_map.fields {
             match field.composite {
-              Some(@ir.Composite::Map(class_def)) =>
-                classes[field.name] = class_def
+              Some(Map(class_def)) => classes[field.name] = class_def
               _ => ()
             }
           }
@@ -920,7 +919,7 @@ fn compile_boards_field(
   match ir.get_field(field_name) {
     Some(board_field_container) =>
       match board_field_container.composite {
-        Some(@ir.Composite::Map(boards_map)) =>
+        Some(Map(boards_map)) =>
           for board_field in boards_map.fields {
             if has_board_name(graph, board_field.name) {
               raise Semantic(
@@ -946,7 +945,7 @@ fn compile_board_ir(
   inherit_base : Bool,
 ) -> @ir.Map {
   let overlay = match board_field.composite {
-    Some(@ir.Composite::Map(board_ir)) => board_ir.copy()
+    Some(Map(board_ir)) => board_ir.copy()
     _ => @ir.Map::new()
   }
   if !inherit_base {
@@ -1113,7 +1112,7 @@ fn board_link_path_segments(key_path : @ast.KeyPath) -> Array[(String, Bool)] {
   let path : Array[(String, Bool)] = []
   for segment in key_path.path {
     let unquoted = match segment {
-      @ast.StringValue::Unquoted(_) => true
+      Unquoted(_) => true
       _ => false
     }
     let value = normalize_board_link_segment_value(segment.content(), unquoted)
@@ -1400,7 +1399,7 @@ fn compile_objects(
     }
     // Process composite (nested objects)
     match field.composite {
-      Some(@ir.Composite::Map(inner)) => {
+      Some(Map(inner)) => {
         // Apply class properties first (if specified)
         apply_class(obj, inner, classes)
         // Check for special fields (can override class)
@@ -1424,10 +1423,10 @@ fn class_names_from_field(class_field : @ir.Field) -> Array[String] {
     None => ()
   }
   match class_field.composite {
-    Some(@ir.Composite::Array(arr)) =>
+    Some(Array(arr)) =>
       for value in arr.values {
         match value {
-          @ir.Value::Scalar(s) => class_names.push(s.to_string())
+          Scalar(s) => class_names.push(s.to_string())
           _ => ()
         }
       }
@@ -1486,13 +1485,13 @@ fn compile_children(
     }
     // Process nested composites
     match field.composite {
-      Some(@ir.Composite::Map(inner)) => {
+      Some(Map(inner)) => {
         // Apply class properties first (if specified)
         apply_class(child, inner, classes)
         // Check for special fields (can override class)
         validate_board_root_scope(inner)
         process_special_fields(child, inner)
-        if parent.shape_type == ShapeType::SqlTable {
+        if parent.shape_type == SqlTable {
           let constraints = extract_sql_constraints(inner)
           for c in constraints {
             if c.length() > 0 {
@@ -1524,9 +1523,9 @@ fn set_object_label_from_scalar(obj : Object, scalar : @ir.Scalar) -> Unit {
         set_object_language(obj, Some(tag))
         if tag == "latex" || tag == "markdown" {
           // reference behavior: markdown/latex default to text shape unless explicitly overridden.
-          obj.shape_type = ShapeType::Text
+          obj.shape_type = Text
         } else {
-          obj.shape_type = ShapeType::Code
+          obj.shape_type = Code
         }
       }
     }
@@ -1628,7 +1627,7 @@ fn process_composite_position_field(
   field : @ir.Field,
 ) -> Unit raise GraphCompileError {
   match field.composite {
-    Some(@ir.Composite::Map(position_map)) => {
+    Some(Map(position_map)) => {
       for nested in position_map.fields {
         if nested.name == "near" && nested.name_is_unquoted() {
           match nested.primary {
@@ -1676,10 +1675,10 @@ fn extract_sql_constraints(ir : @ir.Map) -> Array[String] {
         None => ()
       }
       match f.composite {
-        Some(@ir.Composite::Array(arr)) =>
+        Some(Array(arr)) =>
           for v in arr.values {
             match v {
-              @ir.Value::Scalar(s) => out.push(s.to_string())
+              Scalar(s) => out.push(s.to_string())
               _ => ()
             }
           }
@@ -1705,7 +1704,7 @@ fn process_special_fields(
           let shape = s.to_string()
           obj.raw_shape = Some(shape)
           obj.shape_type = ShapeType::from_string(shape)
-          if obj.shape_type == ShapeType::Code {
+          if obj.shape_type == Code {
             // reference behavior: explicit code shape is plaintext.
             set_object_language(obj, Some("text"))
           }
@@ -1804,7 +1803,7 @@ fn process_special_fields(
   match ir.get_field("style") {
     Some(f) =>
       match f.composite {
-        Some(@ir.Composite::Map(style_map)) => {
+        Some(Map(style_map)) => {
           validate_style_keys(style_map)
           process_style(obj.style, style_map)
         }
@@ -1939,7 +1938,7 @@ fn process_special_fields(
 
 ///|
 fn normalize_object_dimensions_for_shape(obj : Object) -> Unit {
-  if obj.shape_type == ShapeType::Circle || obj.shape_type == ShapeType::Square {
+  if obj.shape_type == Circle || obj.shape_type == Square {
     match (obj.width, obj.height) {
       (Some(w), None) => obj.height = Some(w)
       (None, Some(h)) => obj.width = Some(h)
@@ -2500,7 +2499,7 @@ fn compile_edges_in_map(
       continue
     }
     match field.composite {
-      Some(@ir.Composite::Map(inner)) => {
+      Some(Map(inner)) => {
         let child_prefix = if prefix == "" {
           field.name
         } else {
@@ -2591,7 +2590,7 @@ fn process_edge_arrowhead_field(
   is_source : Bool,
 ) -> Unit {
   match field.composite {
-    Some(@ir.Composite::Map(arrowhead_map)) => {
+    Some(Map(arrowhead_map)) => {
       // In map form, primary value is treated as arrowhead label.
       if field.primary is Some(p) {
         if is_source {
@@ -2680,7 +2679,7 @@ fn process_edge_map(
   match edge_map.get_field("style") {
     Some(f) =>
       match f.composite {
-        Some(@ir.Composite::Map(style_map)) => {
+        Some(Map(style_map)) => {
           validate_style_keys(style_map)
           process_style(edge.style, style_map)
         }
@@ -2768,10 +2767,10 @@ fn edge_class_names_from_field(
     None => ()
   }
   match class_field.composite {
-    Some(@ir.Composite::Array(arr)) =>
+    Some(Array(arr)) =>
       for value in arr.values {
         match value {
-          @ir.Value::Scalar(s) => class_names.push(s.to_string())
+          Scalar(s) => class_names.push(s.to_string())
           _ => raise Semantic("invalid value in array")
         }
       }
@@ -2845,7 +2844,7 @@ fn validate_reserved_fields(ir : @ir.Map) -> Unit raise GraphCompileError {
     let keyword = field.name.to_lower()
     if keyword == "style" {
       match field.composite {
-        Some(@ir.Composite::Map(style_map)) => validate_style_keys(style_map)
+        Some(Map(style_map)) => validate_style_keys(style_map)
         _ =>
           if field.primary is None {
             raise Semantic("reserved field \"style\" must have a value")
@@ -3118,7 +3117,7 @@ fn is_inside_sequence_diagram(
   object_by_id : Map[String, Object],
   id : String,
 ) -> Bool {
-  if graph.root.shape_type == ShapeType::SequenceDiagram {
+  if graph.root.shape_type == SequenceDiagram {
     return true
   }
   has_sequence_diagram_ancestor(object_by_id, id)
@@ -3134,7 +3133,7 @@ fn has_sequence_diagram_ancestor(
     Some(parent_id) =>
       match object_by_id.get(parent_id) {
         Some(parent) =>
-          if parent.shape_type == ShapeType::SequenceDiagram {
+          if parent.shape_type == SequenceDiagram {
             true
           } else {
             has_sequence_diagram_ancestor(object_by_id, parent_id)
@@ -3205,7 +3204,7 @@ fn is_inside_sequence_diagram_by_abs_id_syntax(
   object_by_abs_id_syntax : Map[String, Object],
   abs_id_syntax : String,
 ) -> Bool {
-  if graph.root.shape_type == ShapeType::SequenceDiagram {
+  if graph.root.shape_type == SequenceDiagram {
     return true
   }
   has_sequence_diagram_ancestor_by_abs_id_syntax(
@@ -3257,7 +3256,7 @@ fn is_grid_diagram_object(obj : Object) -> Bool {
 
 ///|
 fn is_sequence_diagram_object(obj : Object) -> Bool {
-  obj.shape_type == ShapeType::SequenceDiagram
+  obj.shape_type == SequenceDiagram
 }
 
 ///|
@@ -3337,13 +3336,13 @@ fn compile_legend(
   let vars_field = ir.get_field("vars")
   guard vars_field is Some(vf) else { return }
   let vars_map = match vf.composite {
-    Some(@ir.Composite::Map(m)) => m
+    Some(Map(m)) => m
     _ => return
   }
   let legend_field = vars_map.get_field("d2-legend")
   guard legend_field is Some(lf) else { return }
   let legend_map = match lf.composite {
-    Some(@ir.Composite::Map(m)) => m
+    Some(Map(m)) => m
     _ => return
   }
 
@@ -3455,7 +3454,7 @@ fn parse_legend_entries(arr : @ir.IRArray) -> Array[LegendEntry] {
 ///|
 fn parse_legend_entry(v : @ir.Value) -> LegendEntry? {
   match v {
-    @ir.Value::Scalar(s) => {
+    Scalar(s) => {
       let text = s.to_string()
       if text == "---" || text.to_lower() == "separator" {
         Some(LegendEntry::separator())
@@ -3463,8 +3462,8 @@ fn parse_legend_entry(v : @ir.Value) -> LegendEntry? {
         Some(LegendEntry::custom("•", text))
       }
     }
-    @ir.Value::Array(_) => None
-    @ir.Value::Map(m) => {
+    Array(_) => None
+    Map(m) => {
       // Separator entry
       match m.get_field("separator") {
         Some(sf) =>
@@ -3589,7 +3588,7 @@ fn parse_legend_entry(v : @ir.Value) -> LegendEntry? {
 
 ///|
 fn parse_arrowhead_field(f : @ir.Field) -> ArrowheadType? {
-  if f.composite is Some(@ir.Composite::Map(arrowhead_map)) {
+  if f.composite is Some(Map(arrowhead_map)) {
     match arrowhead_map.get_field("shape") {
       Some(shape_f) =>
         match shape_f.primary {
@@ -3821,14 +3820,14 @@ fn parse_point_string(s : String) -> Point? {
 ///|
 fn parse_point_value(v : @ir.Value) -> Point? {
   match v {
-    @ir.Value::Array(arr) => {
+    Array(arr) => {
       guard arr.values.length() >= 2 else { return None }
       let xs = match arr.values[0] {
-        @ir.Value::Scalar(s) => s.to_string()
+        Scalar(s) => s.to_string()
         _ => return None
       }
       let ys = match arr.values[1] {
-        @ir.Value::Scalar(s) => s.to_string()
+        Scalar(s) => s.to_string()
         _ => return None
       }
       match (parse_double(xs), parse_double(ys)) {
@@ -3836,7 +3835,7 @@ fn parse_point_value(v : @ir.Value) -> Point? {
         _ => None
       }
     }
-    @ir.Value::Map(m) => {
+    Map(m) => {
       let xf = m.get_field("x")
       let yf = m.get_field("y")
       match (xf, yf) {
@@ -3853,7 +3852,7 @@ fn parse_point_value(v : @ir.Value) -> Point? {
         _ => None
       }
     }
-    @ir.Value::Scalar(s) => parse_point_string(s.to_string())
+    Scalar(s) => parse_point_string(s.to_string())
   }
 }
 
@@ -3950,7 +3949,7 @@ fn sql_table_endpoint_info(
     Some(v) => v
     None => return None
   }
-  if parent.shape_type != ShapeType::SqlTable {
+  if parent.shape_type != SqlTable {
     return None
   }
   for i, child in parent.children {
@@ -3968,7 +3967,7 @@ fn sql_table_id_for_endpoint(
 ) -> String? {
   match object_by_id.get(endpoint_id) {
     Some(obj) =>
-      if obj.shape_type == ShapeType::SqlTable {
+      if obj.shape_type == SqlTable {
         Some(obj.id)
       } else {
         match sql_table_endpoint_info(object_by_id, endpoint_id) {
@@ -3998,7 +3997,7 @@ fn handle_root_shape(
 
 ///|
 fn apply_sequence_defaults(graph : Graph) -> Unit {
-  if graph.root.shape_type != ShapeType::SequenceDiagram {
+  if graph.root.shape_type != SequenceDiagram {
     return
   }
   let child_ids : Map[String, Bool] = {}
@@ -4066,14 +4065,14 @@ fn apply_d2_color_defaults(graph : Graph) -> Unit {
 fn d2_default_object_fill(obj : Object) -> String {
   let level = object_depth_from_id(obj.id)
   let shape = obj.shape_type
-  if shape == ShapeType::SqlTable || shape == ShapeType::Class {
+  if shape == SqlTable || shape == Class {
     return "N7"
   }
-  if shape == ShapeType::Rectangle ||
-    shape == ShapeType::Square ||
-    shape == ShapeType::Circle ||
-    shape == ShapeType::Oval ||
-    shape == ShapeType::C4Container {
+  if shape == Rectangle ||
+    shape == Square ||
+    shape == Circle ||
+    shape == Oval ||
+    shape == C4Container {
     if level == 1 {
       if obj.children.is_empty() {
         return "B6"
@@ -4088,34 +4087,28 @@ fn d2_default_object_fill(obj : Object) -> String {
     }
     return "N7"
   }
-  if shape == ShapeType::Cylinder ||
-    shape == ShapeType::StoredData ||
-    shape == ShapeType::Package {
+  if shape == Cylinder || shape == StoredData || shape == Package {
     if level == 1 {
       return "AA4"
     }
     return "AA5"
   }
-  if shape == ShapeType::Step ||
-    shape == ShapeType::Page ||
-    shape == ShapeType::Document {
+  if shape == Step || shape == Page || shape == Document {
     if level == 1 {
       return "AB4"
     }
     return "AB5"
   }
-  if shape == ShapeType::Person || shape == ShapeType::C4Person {
+  if shape == Person || shape == C4Person {
     return "B3"
   }
-  if shape == ShapeType::Diamond {
+  if shape == Diamond {
     return "N4"
   }
-  if shape == ShapeType::Cloud || shape == ShapeType::Callout {
+  if shape == Cloud || shape == Callout {
     return "N7"
   }
-  if shape == ShapeType::Queue ||
-    shape == ShapeType::Parallelogram ||
-    shape == ShapeType::Hexagon {
+  if shape == Queue || shape == Parallelogram || shape == Hexagon {
     return "N5"
   }
   "N7"
@@ -4124,10 +4117,10 @@ fn d2_default_object_fill(obj : Object) -> String {
 ///|
 fn d2_default_object_stroke(obj : Object) -> String {
   let shape = obj.shape_type
-  if shape == ShapeType::Code || shape == ShapeType::Text {
+  if shape == Code || shape == Text {
     return "N1"
   }
-  if shape == ShapeType::Class || shape == ShapeType::SqlTable {
+  if shape == Class || shape == SqlTable {
     return "N1"
   }
   let dash = match obj.style.stroke_dash {
@@ -4167,12 +4160,12 @@ fn apply_d2_text_defaults(graph : Graph) -> Unit {
       obj.abs_id_syntax,
     )
     if obj.style.font_size is None {
-      let default_font_size = if obj.shape_type == ShapeType::Class ||
-        obj.shape_type == ShapeType::SqlTable {
+      let default_font_size = if obj.shape_type == Class ||
+        obj.shape_type == SqlTable {
         20
       } else if !inside_sequence &&
         (is_container || is_grid_diagram) &&
-        obj.shape_type != ShapeType::Text {
+        obj.shape_type != Text {
         container_level_label_size(object_depth_from_id(obj.id))
       } else {
         16
@@ -4182,11 +4175,10 @@ fn apply_d2_text_defaults(graph : Graph) -> Unit {
     if obj.style.bold is None {
       let default_bold = if inside_sequence {
         false
-      } else if obj.shape_type == ShapeType::Class ||
-        obj.shape_type == ShapeType::SqlTable {
+      } else if obj.shape_type == Class || obj.shape_type == SqlTable {
         false
       } else {
-        !is_container && obj.shape_type != ShapeType::Text
+        !is_container && obj.shape_type != Text
       }
       obj.style.bold = Some(default_bold)
     }

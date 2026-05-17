@@ -210,7 +210,7 @@ pub fn Diagram::without_children(self : Diagram) -> Diagram {
 ///|
 pub fn Diagram::has_legend(self : Diagram) -> Bool {
   match self.legend {
-    Some(l) => !l.is_empty() && l.position != @graph.Hidden
+    Some(l) => !l.is_empty() && l.position != Hidden
     None => false
   }
 }
@@ -481,7 +481,7 @@ pub fn Diagram::get_corpus(self : Diagram) -> String {
   let mut appendix_count = 0
   let suppressed_shape_ids : Map[String, Bool] = {}
   for shape in self.shapes {
-    if shape.shape_type == @graph.Class || shape.shape_type == @graph.SqlTable {
+    if shape.shape_type == Class || shape.shape_type == SqlTable {
       for child_id in shape.child_ids {
         suppressed_shape_ids[child_id] = true
       }
@@ -934,10 +934,10 @@ fn legend_corpus(legend : @graph.LegendInput) -> String {
   }
   for entry in legend.entries {
     match entry {
-      @graph.ShapeEntry(label~, ..) => corpus.write_string(label)
-      @graph.ConnectionEntry(label~, ..) => corpus.write_string(label)
-      @graph.CustomEntry(..) => ()
-      @graph.Separator => ()
+      ShapeEntry(label~, ..) => corpus.write_string(label)
+      ConnectionEntry(label~, ..) => corpus.write_string(label)
+      CustomEntry(..) => ()
+      Separator => ()
     }
   }
   corpus.to_string()
@@ -1052,11 +1052,11 @@ fn sql_table_constraint_abbr(child : Shape) -> String {
 fn shape_structured_corpus(shape : Shape, all_shapes : Array[Shape]) -> String {
   let corpus = StringBuilder::new()
   match shape.shape_type {
-    @graph.Class =>
+    Class =>
       for child in object_children(shape, all_shapes) {
         corpus.write_string(class_member_corpus(child))
       }
-    @graph.SqlTable =>
+    SqlTable =>
       for child in object_children(shape, all_shapes) {
         corpus.write_string(short_shape_name(child))
         corpus.write_string(child.label)
@@ -1431,7 +1431,7 @@ fn append_sequence_lifeline_connections(
   shapes : Array[Shape],
   connections : Array[Connection],
 ) -> Unit {
-  if graph.root.shape_type != @graph.SequenceDiagram {
+  if graph.root.shape_type != SequenceDiagram {
     return
   }
 
@@ -1513,8 +1513,8 @@ fn append_sequence_lifeline_connections(
               dst_lookup_id: "",
               src_arrow: false,
               dst_arrow: false,
-              src_arrowhead: @graph.None,
-              dst_arrowhead: @graph.None,
+              src_arrowhead: None,
+              dst_arrowhead: None,
               src_arrowhead_label: None,
               dst_arrowhead_label: None,
               src_arrowhead_label_color: None,
@@ -1554,7 +1554,7 @@ pub fn from_graph(graph : @graph.GraphInput, config : Config?) -> Diagram {
     shapes.push(shape_from_object(obj))
   }
   let connections : Array[Connection] = []
-  if graph.root.shape_type == @graph.SequenceDiagram {
+  if graph.root.shape_type == SequenceDiagram {
     let object_by_abs_id : Map[String, @graph.ObjectInput] = {}
     for obj in graph.objects {
       object_by_abs_id[obj.abs_id_syntax] = obj

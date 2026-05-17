@@ -19,7 +19,7 @@ fn constant_near_label_test_object(
   @graph.ObjectInput::from_parts(
     "cluster",
     "Near label",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,

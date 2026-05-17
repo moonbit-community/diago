@@ -114,7 +114,7 @@ fn Map::double_glob_helper(self : Map, result : Array[Field]) -> Unit {
       }
       // For other reserved keywords, descend but don't add
       match f.composite {
-        Some(Composite::Map(m)) => m.double_glob_helper(result)
+        Some(Map(m)) => m.double_glob_helper(result)
         _ => ()
       }
       continue
@@ -123,7 +123,7 @@ fn Map::double_glob_helper(self : Map, result : Array[Field]) -> Unit {
     result.push(f)
     // Recursively collect from children
     match f.composite {
-      Some(Composite::Map(m)) => m.double_glob_helper(result)
+      Some(Map(m)) => m.double_glob_helper(result)
       _ => ()
     }
   }
@@ -144,7 +144,7 @@ fn Map::triple_glob_helper(self : Map, result : Array[Field]) -> Unit {
     // Skip non-board reserved keywords
     if f.is_reserved_keyword_name() && !f.is_board_keyword_name() {
       match f.composite {
-        Some(Composite::Map(m)) => m.triple_glob_helper(result)
+        Some(Map(m)) => m.triple_glob_helper(result)
         _ => ()
       }
       continue
@@ -155,7 +155,7 @@ fn Map::triple_glob_helper(self : Map, result : Array[Field]) -> Unit {
     }
     // Recursively collect from children
     match f.composite {
-      Some(Composite::Map(m)) => m.triple_glob_helper(result)
+      Some(Map(m)) => m.triple_glob_helper(result)
       _ => ()
     }
   }
@@ -357,7 +357,7 @@ pub fn evaluate_filter(
 /// Get a property value from a field's composite map
 fn get_field_property(field : Field, key : String) -> String? {
   match field.composite {
-    Some(Composite::Map(m)) =>
+    Some(Map(m)) =>
       match m.get_field(key) {
         Some(f) =>
           match f.primary {
@@ -427,7 +427,7 @@ fn Map::apply_multi_glob_properties(
   for f in snapshot {
     // Capture original children before any mutation.
     let child_map = match f.composite {
-      Some(Composite::Map(m)) => Some(m)
+      Some(Map(m)) => Some(m)
       _ => None
     }
     if include_boards {
@@ -477,9 +477,9 @@ fn Map::apply_multi_glob_properties(
 ///|
 fn clone_value_for_properties(v : Value) -> Value {
   match v {
-    Value::Scalar(s) => Value::Scalar(s)
-    Value::Array(a) => Value::Array(clone_irarray_for_properties(a))
-    Value::Map(m) => Value::Map(clone_map_for_properties(m))
+    Scalar(s) => Scalar(s)
+    Array(a) => Array(clone_irarray_for_properties(a))
+    Map(m) => Map(clone_map_for_properties(m))
   }
 }
 
@@ -495,8 +495,8 @@ fn clone_irarray_for_properties(a : IRArray) -> IRArray {
 ///|
 fn clone_composite_for_properties(c : Composite) -> Composite {
   match c {
-    Composite::Array(a) => Composite::Array(clone_irarray_for_properties(a))
-    Composite::Map(m) => Composite::Map(clone_map_for_properties(m))
+    Array(a) => Array(clone_irarray_for_properties(a))
+    Map(m) => Map(clone_map_for_properties(m))
   }
 }
 
@@ -549,13 +549,13 @@ fn merge_properties_into_map(target : Map, src : Map) -> Unit {
           existing.primary
         }
         let composite = match prop.composite {
-          Some(Composite::Map(src_map)) =>
+          Some(Map(src_map)) =>
             match existing.composite {
-              Some(Composite::Map(dst_map)) => {
+              Some(Map(dst_map)) => {
                 merge_properties_into_map(dst_map, src_map)
                 existing.composite
               }
-              _ => Some(Composite::Map(clone_map_for_properties(src_map)))
+              _ => Some(Map(clone_map_for_properties(src_map)))
             }
           Some(other) => Some(clone_composite_for_properties(other))
           None => existing.composite
@@ -585,13 +585,13 @@ fn merge_properties_into_map(target : Map, src : Map) -> Unit {
 fn apply_properties_to_field(field : Field, properties : Map) -> Field {
   // Ensure field has a composite map
   let (field, field_map) = match field.composite {
-    Some(Composite::Map(m)) => (field, m)
+    Some(Map(m)) => (field, m)
     None => {
       let m = Map::new()
       let field = Field::new(
         field.name,
         field.primary,
-        Some(Composite::Map(m)),
+        Some(Map(m)),
         field.references,
         name_syntax=field.name_syntax(),
       )

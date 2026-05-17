@@ -136,7 +136,7 @@ fn parse_ref_selector(key : String) -> RefSelector raise DiagoError {
     raise ConfigError("invalid reference selector: \{key}")
   }
   let map_key = match selector_ast.nodes[0] {
-    @ast.MapNode::Key(k) => k
+    Key(k) => k
     _ => raise ConfigError("invalid reference selector: \{key}")
   }
   if !map_key.edges.is_empty() {
@@ -240,7 +240,7 @@ fn board_path_at_map(
   }
   for node in map.nodes {
     match node {
-      @ast.MapNode::Key(key) =>
+      Key(key) =>
         match (key.key, key.value) {
           (Some(key_path), Some(value)) => {
             if key_path.path.length() == 0 {
@@ -281,8 +281,8 @@ fn board_path_at_map(
 ///|
 fn child_map_from_value(value : @ast.Value) -> @ast.Map? {
   match value {
-    @ast.Value::Map(m) => Some(m)
-    @ast.Value::BlockScalar(_, m) => Some(m)
+    Map(m) => Some(m)
+    BlockScalar(_, m) => Some(m)
     _ => None
   }
 }

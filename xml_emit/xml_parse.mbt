@@ -266,7 +266,7 @@ fn Parser::parse_node(self : Parser) -> XmlNode? {
       if self.starts_with("<![CDATA[") {
         self.consume("<![CDATA[") |> ignore
         let content = self.read_until("]]>").unwrap_or("")
-        return Some(XmlNode::NodeText(content))
+        return Some(NodeText(content))
       }
       if self.starts_with("<!--") || self.starts_with("<!DOCTYPE") {
         self.eat_char() |> ignore // '<'
@@ -280,7 +280,7 @@ fn Parser::parse_node(self : Parser) -> XmlNode? {
       }
       // element
       match self.parse_element() {
-        Some(el) => Some(XmlNode::NodeElement(el))
+        Some(el) => Some(NodeElement(el))
         None => None
       }
     }
@@ -289,7 +289,7 @@ fn Parser::parse_node(self : Parser) -> XmlNode? {
       if t == "" {
         None
       } else {
-        Some(XmlNode::NodeText(t))
+        Some(NodeText(t))
       }
     }
   }
@@ -376,7 +376,7 @@ pub fn parse(xml : String) -> Result[XmlElement, String] {
   }
   while true {
     match p.parse_node() {
-      Some(XmlNode::NodeElement(el)) => return Ok(el)
+      Some(NodeElement(el)) => return Ok(el)
       Some(_) => continue
       None => break
     }

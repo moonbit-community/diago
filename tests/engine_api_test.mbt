@@ -52,12 +52,7 @@ impl @engine_api.LayoutEngine for FakeEngine with engine_name(_self) -> String {
 impl @engine_api.LayoutEngine for FakeEngine with features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
-  [
-    @engine_api.LayoutFeature::NearObject,
-    @engine_api.LayoutFeature::ContainerDimensions,
-    @engine_api.LayoutFeature::TopLeft,
-    @engine_api.LayoutFeature::DescendantEdges,
-  ]
+  [NearObject, ContainerDimensions, TopLeft, DescendantEdges]
 }
 
 ///|
@@ -65,7 +60,7 @@ fn root_input(child_ids : Array[String]) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(
     "root",
     "root",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,
@@ -93,7 +88,7 @@ fn object_input(id : String, box : @graph.Box?) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(
     id,
     id,
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     box,
     None,
@@ -189,8 +184,8 @@ fn edge_input(index : Int, curved : Bool?) -> @graph.EdgeInput {
     "b",
     false,
     true,
-    @graph.None,
-    @graph.Triangle,
+    None,
+    Triangle,
     None,
     None,
     None,
@@ -246,12 +241,7 @@ impl @engine_api.LayoutEngine for RoundtripEngine with engine_name(_self) -> Str
 impl @engine_api.LayoutEngine for RoundtripEngine with features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
-  [
-    @engine_api.LayoutFeature::NearObject,
-    @engine_api.LayoutFeature::ContainerDimensions,
-    @engine_api.LayoutFeature::TopLeft,
-    @engine_api.LayoutFeature::DescendantEdges,
-  ]
+  [NearObject, ContainerDimensions, TopLeft, DescendantEdges]
 }
 
 ///|
@@ -295,12 +285,7 @@ test "layout_with_engine applies to variants" {
   )
   let engine = FakeEngine::new()
   let config = @engine_api.LayoutConfig::new()
-  let laid_out = @engine_api.layout_with_engine(
-    engine,
-    graph,
-    config,
-    @engine_api.Direction::Down,
-  )
+  let laid_out = @engine_api.layout_with_engine(engine, graph, config, Down)
   assert_true(laid_out.find_object("a").unwrap().box is Some(_))
   assert_true(laid_out.layers[0].graph.find_object("b").unwrap().box is Some(_))
   assert_true(
@@ -319,7 +304,7 @@ test "layout result roundtrips via graph" {
     engine,
     graph,
     @engine_api.LayoutConfig::new(),
-    @engine_api.Direction::Down,
+    Down,
   )
   let diagram = @diagram.from_graph(laid_out_graph, None)
   match diagram.find_object("a").unwrap().get_box() {
@@ -359,7 +344,7 @@ test "layout result keeps orthogonalization when curved=false" {
     engine,
     graph,
     @engine_api.LayoutConfig::new(),
-    @engine_api.Direction::Down,
+    Down,
   )
   let diagram = @diagram.from_graph(laid_out_graph, None)
   let e = diagram.get_edges()[0]
@@ -390,7 +375,7 @@ test "engine implementations must not mutate input graph" {
   }
   let engine = @engine_dagre.DagreEngine::new()
   let config = @engine_api.LayoutConfig::new()
-  ignore(engine.layout(graph, config, @engine_api.Direction::Down)) catch {
+  ignore(engine.layout(graph, config, Down)) catch {
     e => fail("engine.layout should not fail: \{e}")
   }
 
@@ -420,7 +405,7 @@ test "dagre rejects object near like the reference feature checks" {
       @engine_dagre.DagreEngine::new(),
       graph,
       @engine_api.LayoutConfig::new(),
-      @engine_api.Direction::Down,
+      Down,
     ),
   ) catch {
     e => {
@@ -449,7 +434,7 @@ test "dagre rejects container dimensions like the reference feature checks" {
       @engine_dagre.DagreEngine::new(),
       graph,
       @engine_api.LayoutConfig::new(),
-      @engine_api.Direction::Down,
+      Down,
     ),
   ) catch {
     e => {
@@ -478,7 +463,7 @@ test "dagre rejects descendant edges like the reference feature checks" {
       @engine_dagre.DagreEngine::new(),
       graph,
       @engine_api.LayoutConfig::new(),
-      @engine_api.Direction::Down,
+      Down,
     ),
   ) catch {
     e => {
@@ -506,7 +491,7 @@ test "elk accepts supported container dimensions and descendant edges" {
     @engine_elk.ElkEngine::new(),
     container_graph,
     @engine_api.LayoutConfig::new(),
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk should support container dimensions: \{e}")
   }
@@ -525,7 +510,7 @@ test "elk accepts supported container dimensions and descendant edges" {
     @engine_elk.ElkEngine::new(),
     descendant_graph,
     @engine_api.LayoutConfig::new(),
-    @engine_api.Direction::Down,
+    Down,
   ) catch {
     e => fail("elk should support descendant edges: \{e}")
   }
@@ -549,7 +534,7 @@ test "elk still rejects unsupported feature-gated inputs" {
       @engine_elk.ElkEngine::new(),
       near_graph,
       @engine_api.LayoutConfig::new(),
-      @engine_api.Direction::Down,
+      Down,
     ),
   ) catch {
     e => {
@@ -575,7 +560,7 @@ test "elk still rejects unsupported feature-gated inputs" {
       @engine_elk.ElkEngine::new(),
       pinned_graph,
       @engine_api.LayoutConfig::new(),
-      @engine_api.Direction::Down,
+      Down,
     ),
   ) catch {
     e => {

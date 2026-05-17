@@ -21,15 +21,7 @@ test "vars config theme-id applies when cli theme absent" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("text-mono"))
 }
 
@@ -44,10 +36,10 @@ test "cli theme overrides vars config theme-id" {
     #|a -> b
   let svg = compile_source(
     source,
-    OutputMode::Svg,
+    Svg,
     Some("Neutral Default"),
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
   ).unwrap()
@@ -66,24 +58,8 @@ test "vars config layout-engine applies when cli layout is not explicit" {
     #|a -> c
     #|b -> d
     #|c -> d
-  let auto_svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
-  let dagre_svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    true,
-    None,
-  ).unwrap()
+  let auto_svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
+  let dagre_svg = compile_source(source, Svg, None, None, Dagre, true, None).unwrap()
   @debug.assert_eq(auto_svg, dagre_svg)
 }
 
@@ -96,26 +72,10 @@ test "cli layout overrides invalid vars config layout-engine" {
     #|  }
     #|}
     #|a -> b
-  let cli_result = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    true,
-    None,
-  )
+  let cli_result = compile_source(source, Svg, None, None, Dagre, true, None)
   assert_true(cli_result is Ok(_))
 
-  let auto_result = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  )
+  let auto_result = compile_source(source, Svg, None, None, Dagre, false, None)
   match auto_result {
     Ok(_) => fail("expected invalid vars.d2-config layout-engine to fail")
     Err(msg) => assert_true(msg.contains("vars.d2-config.layout-engine"))
@@ -150,13 +110,7 @@ test "extract vars config into diagram config" {
     #|  }
     #|}
     #|a -> b
-  let diagram = compile_to_diagram(
-    source,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let diagram = compile_to_diagram(source, None, Dagre, false, None).unwrap()
   match diagram.config {
     None => fail("expected diagram config")
     Some(config) => {
@@ -175,14 +129,8 @@ test "extract vars config into diagram config" {
       @debug.assert_eq(config.no_xml_tag, Some(true))
       @debug.assert_eq(config.salt, Some("custom-salt"))
       @debug.assert_eq(config.omit_version, Some(true))
-      @debug.assert_eq(
-        config.data["owner"],
-        @diagram.ConfigDataValue::Text("platform"),
-      )
-      @debug.assert_eq(
-        config.data["later"],
-        @diagram.ConfigDataValue::StringArray(["1", "5", "2"]),
-      )
+      @debug.assert_eq(config.data["owner"], Text("platform"))
+      @debug.assert_eq(config.data["later"], StringArray(["1", "5", "2"]))
     }
   }
 }
@@ -198,15 +146,7 @@ test "vars config data arrays do not break svg rendering" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("<svg"))
 }
 
@@ -219,15 +159,7 @@ test "vars config no-xml-tag omits XML declaration" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(!svg.contains("<?xml"))
 }
 
@@ -246,15 +178,7 @@ test "theme-overrides applies to theme tokens in style" {
     #|    fill: B1
     #|  }
     #|}
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("fill=\"red\""))
 }
 
@@ -269,16 +193,7 @@ test "invalid theme-overrides key fails config parsing" {
     #|  }
     #|}
     #|a -> b
-  match
-    compile_source(
-      source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected invalid theme-overrides key to fail")
     Err(msg) => assert_true(msg.contains("\"ZZ9\" is not a valid theme code"))
   }
@@ -295,16 +210,7 @@ test "invalid theme-overrides color fails config parsing" {
     #|  }
     #|}
     #|a -> b
-  match
-    compile_source(
-      source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected invalid theme-overrides color to fail")
     Err(msg) =>
       assert_true(
@@ -324,15 +230,7 @@ test "dark-theme-id does not replace base light theme when theme-id is absent" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(!svg.contains("text-mono"))
 }
 
@@ -345,13 +243,7 @@ test "vars config pad is applied to svg config padding" {
     #|  }
     #|}
     #|a -> b
-  let diagram = compile_to_diagram(
-    source,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let diagram = compile_to_diagram(source, None, Dagre, false, None).unwrap()
   let svg_config = resolve_svg_config(None, diagram.config)
   @debug.assert_eq(svg_config.padding, 16.0)
 }
@@ -365,15 +257,7 @@ test "vars config center is applied to svg alignment" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("preserveAspectRatio=\"xMidYMid meet\""))
 }
 
@@ -388,10 +272,10 @@ test "cli center overrides vars config center=false" {
     #|a -> b
   let svg = compile_source(
     source,
-    OutputMode::Svg,
+    Svg,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
     center=Some(true),
@@ -408,15 +292,7 @@ test "vars config sketch enables global svg sketch mode" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("id=\"streaks-"))
   assert_false(svg.contains("sketch-filter"))
 }
@@ -430,21 +306,13 @@ test "cli sketch overrides vars config sketch=false and sketch=true" {
     #|  }
     #|}
     #|a -> b
-  let source_svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let source_svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   let cli_disabled_svg = compile_source(
     source,
-    OutputMode::Svg,
+    Svg,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
     sketch=Some(false),
@@ -453,10 +321,10 @@ test "cli sketch overrides vars config sketch=false and sketch=true" {
     #|a -> b
   let cli_enabled_svg = compile_source(
     plain_source,
-    OutputMode::Svg,
+    Svg,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
     sketch=Some(true),
@@ -477,15 +345,7 @@ test "vars config dark-theme-id emits dark media css" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("@media screen and (prefers-color-scheme:dark)"))
   assert_true(svg.contains("var(--d2-N7)"))
 }
@@ -506,24 +366,18 @@ test "target selection matches the reference board-only vs board-with-children s
   let board_only = compile_to_diagram(
     source,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     Some("layers.core"),
   ).unwrap()
   let board_with_children = compile_to_diagram(
     source,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     Some("layers.core.*"),
   ).unwrap()
-  let root_only = compile_to_diagram(
-    source,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    Some(""),
-  ).unwrap()
+  let root_only = compile_to_diagram(source, None, Dagre, false, Some("")).unwrap()
   @debug.assert_eq(board_only.scenarios.length(), 0)
   @debug.assert_eq(board_with_children.scenarios.length(), 1)
   @debug.assert_eq(root_only.layers.length(), 0)
@@ -538,15 +392,7 @@ test "salt namespaces SVG marker IDs" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(
-    source,
-    OutputMode::Svg,
-    None,
-    None,
-    LayoutEngineChoice::Dagre,
-    false,
-    None,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("id=\"mk-d2-"))
   assert_true(svg.contains("url(#mk-d2-"))
 }
@@ -565,10 +411,10 @@ test "local image assets are bundled even when remote bundling is disabled" {
     #|}
   let svg = compile_source(
     source,
-    OutputMode::Svg,
+    Svg,
     None,
     Some("."),
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
     bundle=false,
@@ -597,10 +443,10 @@ test "svg compile keeps output when local bundling reports an error" {
     #|}
   let compiled = compile_source_with_warnings(
     source,
-    OutputMode::Svg,
+    Svg,
     None,
     Some("."),
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
     bundle=false,
@@ -622,10 +468,10 @@ test "omit-version removes the version attribute" {
     #|a -> b
   let default_svg = compile_source(
     source_default,
-    OutputMode::Svg,
+    Svg,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
   ).unwrap()
@@ -640,10 +486,10 @@ test "omit-version removes the version attribute" {
     #|a -> b
   let omit_svg = compile_source(
     source_omit,
-    OutputMode::Svg,
+    Svg,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
   ).unwrap()
@@ -658,16 +504,7 @@ test "invalid style keyword fails semantic validation" {
     #|    unknown-key: 1
     #|  }
     #|}
-  match
-    compile_source(
-      source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected invalid style keyword to fail")
     Err(msg) => assert_true(msg.contains("invalid style keyword"))
   }
@@ -680,16 +517,7 @@ test "url tooltip with link fails semantic validation" {
     #|  link: https://example.com
     #|  tooltip: https://phishing.example
     #|}
-  match
-    compile_source(
-      source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected link + URL tooltip check to fail")
     Err(msg) => assert_true(msg.contains("Tooltip cannot be set to URL"))
   }
@@ -710,16 +538,7 @@ test "near ancestor and edge map non-reserved are rejected" {
     #|    near: a
     #|  }
     #|}
-  match
-    compile_source(
-      near_source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(near_source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected near ancestor check to fail")
     Err(msg) =>
       assert_true(msg.contains("near keys cannot be set to an ancestor"))
@@ -729,16 +548,7 @@ test "near ancestor and edge map non-reserved are rejected" {
     #|a -> b: hello {
     #|  note: not-allowed
     #|}
-  match
-    compile_source(
-      edge_source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(edge_source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected edge map reserved-key check to fail")
     Err(msg) =>
       assert_true(msg.contains("edge map keys must be reserved keywords"))
@@ -754,16 +564,7 @@ test "dagre rejects top/left fixed positioning like the reference" {
     #|}
     #|b
     #|a -> b
-  match
-    compile_source(
-      source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected dagre fixed-position feature check to fail")
     Err(msg) =>
       assert_true(
@@ -779,16 +580,7 @@ test "top/left must be non-negative integers" {
     #|a: {
     #|  top: abc
     #|}
-  match
-    compile_source(
-      non_integer_top,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(non_integer_top, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected non-integer top to fail")
     Err(msg) => assert_true(msg.contains("non-integer top"))
   }
@@ -797,16 +589,7 @@ test "top/left must be non-negative integers" {
     #|a: {
     #|  left: -2
     #|}
-  match
-    compile_source(
-      negative_left,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(negative_left, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected negative left to fail")
     Err(msg) => assert_true(msg.contains("left must be a non-negative integer"))
   }
@@ -821,16 +604,7 @@ test "top/left compatibility checks for hierarchy sequence and grid" {
     #|    top: 20
     #|  }
     #|}
-  match
-    compile_source(
-      hierarchy_source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(hierarchy_source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected hierarchy compatibility check to fail")
     Err(msg) =>
       assert_true(msg.contains("position keywords cannot be used with shape"))
@@ -841,16 +615,7 @@ test "top/left compatibility checks for hierarchy sequence and grid" {
     #|a: {
     #|  left: 20
     #|}
-  match
-    compile_source(
-      sequence_source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(sequence_source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected sequence compatibility check to fail")
     Err(msg) =>
       assert_true(msg.contains("position keywords cannot be used inside shape"))
@@ -863,16 +628,7 @@ test "top/left compatibility checks for hierarchy sequence and grid" {
     #|    left: 20
     #|  }
     #|}
-  match
-    compile_source(
-      grid_source,
-      OutputMode::Svg,
-      None,
-      None,
-      LayoutEngineChoice::Dagre,
-      false,
-      None,
-    ) {
+  match compile_source(grid_source, Svg, None, None, Dagre, false, None) {
     Ok(_) => fail("expected grid compatibility check to fail")
     Err(msg) =>
       assert_true(msg.contains("position keywords cannot be used with grids"))
@@ -881,13 +637,13 @@ test "top/left compatibility checks for hierarchy sequence and grid" {
 
 ///|
 test "format parser supports supported format names" {
-  guard parse_stdout_format("svg") is Some(OutputMode::Svg) else {
+  guard parse_stdout_format("svg") is Some(Svg) else {
     fail("svg should parse")
   }
-  guard parse_stdout_format("ascii") is Some(OutputMode::Ascii) else {
+  guard parse_stdout_format("ascii") is Some(Ascii) else {
     fail("ascii should parse")
   }
-  guard parse_stdout_format("unicode") is Some(OutputMode::Unicode) else {
+  guard parse_stdout_format("unicode") is Some(Unicode) else {
     fail("unicode should parse")
   }
   guard parse_stdout_format("bad-format") is None else {
@@ -897,15 +653,13 @@ test "format parser supports supported format names" {
 
 ///|
 test "output mode can be inferred from output extension" {
-  guard infer_output_mode_from_path("diagram.svg") is Some(OutputMode::Svg) else {
+  guard infer_output_mode_from_path("diagram.svg") is Some(Svg) else {
     fail("svg extension should map to svg mode")
   }
-  guard infer_output_mode_from_path("diagram.ascii.txt")
-    is Some(OutputMode::Ascii) else {
+  guard infer_output_mode_from_path("diagram.ascii.txt") is Some(Ascii) else {
     fail("ascii text extension should map to ascii mode")
   }
-  guard infer_output_mode_from_path("diagram.unicode.txt")
-    is Some(OutputMode::Unicode) else {
+  guard infer_output_mode_from_path("diagram.unicode.txt") is Some(Unicode) else {
     fail("unicode text extension should map to unicode mode")
   }
   guard infer_output_mode_from_path("diagram") is None else {
@@ -915,19 +669,19 @@ test "output mode can be inferred from output extension" {
 
 ///|
 test "layout parser supports dagre elk railway" {
-  guard parse_layout_engine("dagre") is Some(LayoutEngineChoice::Dagre) else {
+  guard parse_layout_engine("dagre") is Some(Dagre) else {
     fail("dagre should parse")
   }
-  guard parse_layout_engine("elk") is Some(LayoutEngineChoice::Elk) else {
+  guard parse_layout_engine("elk") is Some(Elk) else {
     fail("elk should parse")
   }
-  guard parse_layout_engine("railway") is Some(LayoutEngineChoice::Railway) else {
+  guard parse_layout_engine("railway") is Some(Railway) else {
     fail("railway should parse")
   }
   guard parse_layout_engine("bad-layout") is None else {
     fail("unknown layout should fail")
   }
-  @debug.assert_eq(layout_engine_name(LayoutEngineChoice::Elk), "elk")
+  @debug.assert_eq(layout_engine_name(Elk), "elk")
 }
 
 ///|
@@ -936,19 +690,19 @@ test "ascii and unicode output modes render different text charsets" {
     #|a -> b
   let ascii_output = compile_source(
     source,
-    OutputMode::Ascii,
+    Ascii,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
   ).unwrap()
   let unicode_output = compile_source(
     source,
-    OutputMode::Unicode,
+    Unicode,
     None,
     None,
-    LayoutEngineChoice::Dagre,
+    Dagre,
     false,
     None,
   ).unwrap()

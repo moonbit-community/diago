@@ -2,15 +2,10 @@
 test "reference legend corpus ignores custom entries" {
   let legend = @graph.LegendInput::from_parts(
     Some("Legendary"),
-    @graph.LegendPosition::TopRight,
+    TopRight,
     [
-      @graph.LegendEntryInput::shape(@graph.ShapeType::Rectangle, "Node", None),
-      @graph.LegendEntryInput::connection(
-        @graph.ArrowheadType::None,
-        @graph.ArrowheadType::Triangle,
-        "Edge",
-        None,
-      ),
+      @graph.LegendEntryInput::shape(Rectangle, "Node", None),
+      @graph.LegendEntryInput::connection(None, Triangle, "Edge", None),
       @graph.LegendEntryInput::custom("https://example.com/icon.svg", "Custom"),
     ],
     None,
@@ -26,8 +21,8 @@ test "reference legend corpus ignores custom entries" {
 test "reference legend corpus uses fallback title when empty" {
   let legend = @graph.LegendInput::from_parts(
     Some(""),
-    @graph.LegendPosition::TopRight,
-    [@graph.LegendEntryInput::shape(@graph.ShapeType::Rectangle, "Node", None)],
+    TopRight,
+    [@graph.LegendEntryInput::shape(Rectangle, "Node", None)],
     None,
     None,
     0.0,
@@ -46,7 +41,7 @@ fn test_diagram_for_scope_hash() -> @diagram.Diagram {
       @graph.ObjectInput::from_parts(
         "node",
         "Node",
-        @graph.ShapeType::Rectangle,
+        Rectangle,
         @graph.StyleInput::new(),
         None,
         None,

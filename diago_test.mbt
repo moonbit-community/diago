@@ -35,7 +35,7 @@ test "auto layout honors vars config layout-engine" {
   let auto_svg = compile(source)
   let dagre_svg = compile(
     source,
-    options=CompileOptions::new().with_layout_engine(LayoutEngine::Dagre),
+    options=CompileOptions::new().with_layout_engine(Dagre),
   )
   @debug.assert_eq(auto_svg, dagre_svg)
 }
@@ -52,7 +52,7 @@ test "elk layout can be selected from options and vars config" {
   let auto_svg = compile(source)
   let elk_svg = compile(
     source,
-    options=CompileOptions::new().with_layout_engine(LayoutEngine::Elk),
+    options=CompileOptions::new().with_layout_engine(Elk),
   )
   assert_true(auto_svg.contains("<svg"))
   @debug.assert_eq(auto_svg, elk_svg)
@@ -75,7 +75,7 @@ test "parse supports custom import resolver hook" {
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
   }
-  guard common.composite is Some(@ir.Composite::Map(common_map)) else {
+  guard common.composite is Some(Map(common_map)) else {
     fail("common field has no map")
   }
   assert_true(common_map.has_field("server"))
@@ -113,7 +113,7 @@ test "parse resolves imports from base_path via facade file resolver" {
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
   }
-  guard common.composite is Some(@ir.Composite::Map(common_map)) else {
+  guard common.composite is Some(Map(common_map)) else {
     fail("common field has no map")
   }
   assert_true(common_map.has_field("server"))
@@ -138,7 +138,7 @@ test "parse_file resolves imports relative to input file" {
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
   }
-  guard common.composite is Some(@ir.Composite::Map(common_map)) else {
+  guard common.composite is Some(Map(common_map)) else {
     fail("common field has no map")
   }
   assert_true(common_map.has_field("server"))

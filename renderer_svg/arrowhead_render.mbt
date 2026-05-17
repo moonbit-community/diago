@@ -150,13 +150,13 @@ pub fn render_connection_ascii(
 ///|
 /// Check if an edge line needs marker-start attribute
 pub fn needs_start_marker(arrowhead : ArrowheadType) -> Bool {
-  arrowhead != @graph.None
+  arrowhead != None
 }
 
 ///|
 /// Check if an edge line needs marker-end attribute
 pub fn needs_end_marker(arrowhead : ArrowheadType) -> Bool {
-  arrowhead != @graph.None
+  arrowhead != None
 }
 
 ///|

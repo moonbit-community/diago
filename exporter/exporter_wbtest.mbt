@@ -33,19 +33,15 @@ test "classes block is treated as reserved during object compilation" {
     @ir.Field::new("shape", Some(@ir.Scalar::string("person")), None, []),
   )
   let classes_map = @ir.Map::new()
-  classes_map.add_field(
-    @ir.Field::new("user", None, Some(@ir.Composite::Map(class_def)), []),
-  )
+  classes_map.add_field(@ir.Field::new("user", None, Some(Map(class_def)), []))
   let alice_map = @ir.Map::new()
   let ir = @ir.Map::new()
-  ir.add_field(
-    @ir.Field::new("classes", None, Some(@ir.Composite::Map(classes_map)), []),
-  )
+  ir.add_field(@ir.Field::new("classes", None, Some(Map(classes_map)), []))
   ir.add_field(
     @ir.Field::new(
       "alice",
       Some(@ir.Scalar::string("Alice")),
-      Some(@ir.Composite::Map(alice_map)),
+      Some(Map(alice_map)),
       [],
     ),
   )
@@ -64,16 +60,12 @@ test "classes block is treated as reserved during object compilation" {
 test "board graphs carry folder-only metadata" {
   let layer_body = @ir.Map::new()
   layer_body.add_field(
-    @ir.Field::new("service", None, Some(@ir.Composite::Map(@ir.Map::new())), []),
+    @ir.Field::new("service", None, Some(Map(@ir.Map::new())), []),
   )
   let layers_map = @ir.Map::new()
-  layers_map.add_field(
-    @ir.Field::new("one", None, Some(@ir.Composite::Map(layer_body)), []),
-  )
+  layers_map.add_field(@ir.Field::new("one", None, Some(Map(layer_body)), []))
   let ir = @ir.Map::new()
-  ir.add_field(
-    @ir.Field::new("layers", None, Some(@ir.Composite::Map(layers_map)), []),
-  )
+  ir.add_field(@ir.Field::new("layers", None, Some(Map(layers_map)), []))
 
   let graph = compile("root", ir) catch { e => fail(e.to_string()) }
   assert_true(graph.is_folder_only)
@@ -550,7 +542,7 @@ test "legend config follows the compile semantics and defaults" {
   }
 
   @debug.assert_eq(legend.title, Some("凡例"))
-  @debug.assert_eq(legend.position, @graph.LegendPosition::BottomRight)
+  @debug.assert_eq(legend.position, BottomRight)
   @debug.assert_eq(legend.fill, Some("#ffffff"))
   @debug.assert_eq(legend.stroke, Some("#DEE1EB"))
   @debug.assert_eq(legend.padding, 20.0)
@@ -560,8 +552,8 @@ test "legend config follows the compile semantics and defaults" {
   @debug.assert_eq(legend.entries.length(), 5)
 
   match legend.entries[0] {
-    @graph.ShapeEntry(shape~, label~, style~) => {
-      @debug.assert_eq(shape, @graph.ShapeType::Person)
+    ShapeEntry(shape~, label~, style~) => {
+      @debug.assert_eq(shape, Person)
       @debug.assert_eq(label, "A person who interacts with the system")
       guard style is Some(style_input) else {
         fail("expected user legend style")
@@ -572,8 +564,8 @@ test "legend config follows the compile semantics and defaults" {
   }
 
   match legend.entries[1] {
-    @graph.ShapeEntry(shape~, label~, style~) => {
-      @debug.assert_eq(shape, @graph.ShapeType::Cylinder)
+    ShapeEntry(shape~, label~, style~) => {
+      @debug.assert_eq(shape, Cylinder)
       @debug.assert_eq(label, "Stores application data")
       guard style is Some(style_input) else {
         fail("expected database legend style")
@@ -583,12 +575,12 @@ test "legend config follows the compile semantics and defaults" {
     _ => fail("expected second legend entry to be database shape")
   }
 
-  assert_true(legend.entries[2] is @graph.Separator)
+  assert_true(legend.entries[2] is Separator)
 
   match legend.entries[3] {
-    @graph.ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
-      @debug.assert_eq(src_arrow, @graph.ArrowheadType::None)
-      @debug.assert_eq(dst_arrow, @graph.ArrowheadType::Triangle)
+    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
+      @debug.assert_eq(src_arrow, None)
+      @debug.assert_eq(dst_arrow, Triangle)
       @debug.assert_eq(label, "Reads data")
       guard style is Some(style_input) else {
         fail("expected reads-data legend style")
@@ -599,9 +591,9 @@ test "legend config follows the compile semantics and defaults" {
   }
 
   match legend.entries[4] {
-    @graph.ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
-      @debug.assert_eq(src_arrow, @graph.ArrowheadType::None)
-      @debug.assert_eq(dst_arrow, @graph.ArrowheadType::Triangle)
+    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
+      @debug.assert_eq(src_arrow, None)
+      @debug.assert_eq(dst_arrow, Triangle)
       @debug.assert_eq(label, "Returns results")
       guard style is Some(style_input) else {
         fail("expected returns-results legend style")
@@ -636,7 +628,7 @@ test "legend config keeps zero-opacity edges like the reference compiler" {
     fail("expected trailing legend connection entry")
   }
   match last_entry {
-    @graph.ConnectionEntry(label~, style~, ..) => {
+    ConnectionEntry(label~, style~, ..) => {
       @debug.assert_eq(label, "Hidden")
       guard style is Some(style_input) else {
         fail("expected style on hidden legend edge")
@@ -659,10 +651,10 @@ test "graph objects preserve explicit language and sql constraints" {
       "constraint",
       None,
       Some(
-        @ir.Composite::Array(
+        Array(
           @ir.IRArray::new([
-            @ir.Value::Scalar(@ir.Scalar::string("primary_key")),
-            @ir.Value::Scalar(@ir.Scalar::string("unique")),
+            Scalar(@ir.Scalar::string("primary_key")),
+            Scalar(@ir.Scalar::string("unique")),
           ]),
         ),
       ),
@@ -673,21 +665,17 @@ test "graph objects preserve explicit language and sql constraints" {
   table_body.add_field(
     @ir.Field::new("shape", Some(@ir.Scalar::string("sql_table")), None, []),
   )
-  table_body.add_field(
-    @ir.Field::new("id", None, Some(@ir.Composite::Map(column_body)), []),
-  )
+  table_body.add_field(@ir.Field::new("id", None, Some(Map(column_body)), []))
   let ir = @ir.Map::new()
   ir.add_field(
     @ir.Field::new(
       "snippet",
       Some(@ir.Scalar::string("select 1")),
-      Some(@ir.Composite::Map(code_body)),
+      Some(Map(code_body)),
       [],
     ),
   )
-  ir.add_field(
-    @ir.Field::new("orders", None, Some(@ir.Composite::Map(table_body)), []),
-  )
+  ir.add_field(@ir.Field::new("orders", None, Some(Map(table_body)), []))
 
   let graph = compile("root", ir) catch { e => fail(e.to_string()) }
   guard graph.find_object("snippet") is Some(snippet) else {

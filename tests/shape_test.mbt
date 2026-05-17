@@ -220,7 +220,7 @@ test "block string language aliases normalize like the reference" {
     #|py_node: |py print("x") |
     #|rb_node: |rb puts "x" |
     #|ts_node: |ts const x: number = 1 |
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let js_node = graph.find_object("js_node").unwrap()
   let go_node = graph.find_object("go_node").unwrap()
   let py_node = graph.find_object("py_node").unwrap()
@@ -239,9 +239,9 @@ test "explicit code shape forces plaintext language" {
     #|snippet: |js const x = 1 | {
     #|  shape: code
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let snippet = graph.find_object("snippet").unwrap()
-  assert_true(snippet.shape_type == @graph.ShapeType::Code)
+  assert_true(snippet.shape_type == Code)
   assert_true(snippet.classes.contains("lang:text"))
   assert_false(snippet.classes.contains("lang:javascript"))
 }
@@ -252,9 +252,9 @@ test "label block string applies language and shape defaults" {
     #|snippet: {
     #|  label: |py print("x") |
     #|}
-  let graph = compile_to_graph(source, @engine_api.Direction::Down).unwrap()
+  let graph = compile_to_graph(source, Down).unwrap()
   let snippet = graph.find_object("snippet").unwrap()
-  assert_true(snippet.shape_type == @graph.ShapeType::Code)
+  assert_true(snippet.shape_type == Code)
   assert_true(snippet.classes.contains("lang:python"))
 }
 

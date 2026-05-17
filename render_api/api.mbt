@@ -26,17 +26,17 @@ pub(all) suberror RenderError {
 ///|
 pub impl Show for RenderError with output(self, logger) {
   match self {
-    RenderError::UnsupportedFormat(message) => {
+    UnsupportedFormat(message) => {
       logger.write_string("UnsupportedFormat(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    RenderError::RenderFailed(message) => {
+    RenderFailed(message) => {
       logger.write_string("RenderFailed(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    RenderError::InvalidDiagram(message) => {
+    InvalidDiagram(message) => {
       logger.write_string("InvalidDiagram(")
       logger.write_object(message)
       logger.write_char(')')
@@ -47,17 +47,17 @@ pub impl Show for RenderError with output(self, logger) {
 ///|
 /// Construct an error from outside this package
 pub fn unsupported_format(message : String) -> RenderError {
-  RenderError::UnsupportedFormat(message)
+  UnsupportedFormat(message)
 }
 
 ///|
 pub fn render_failed(message : String) -> RenderError {
-  RenderError::RenderFailed(message)
+  RenderFailed(message)
 }
 
 ///|
 pub fn invalid_diagram(message : String) -> RenderError {
-  RenderError::InvalidDiagram(message)
+  InvalidDiagram(message)
 }
 
 ///|

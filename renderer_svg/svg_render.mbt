@@ -2399,18 +2399,18 @@ fn marker_dimensions(
   }
   let (base_width, base_height, width_multiplier, height_multiplier) = match
     arrowhead {
-    @graph.Triangle => (4.0, 4.0, 3.0, 4.0)
-    @graph.Open => (7.0, 7.0, 3.0, 4.0)
-    @graph.Line => (0.0, 0.0, 5.0, 8.0)
-    @graph.Diamond => (11.0, 9.0, 5.5, 4.5)
-    @graph.Circle => (8.0, 8.0, 5.0, 5.0)
-    @graph.CfOne
-    | @graph.CfMany
-    | @graph.CfOneRequired
-    | @graph.CfManyRequired
-    | @graph.CfOneOptional
-    | @graph.CfManyOptional => (9.0, 9.0, 4.5, 4.5)
-    @graph.None => (0.0, 0.0, 0.0, 0.0)
+    Triangle => (4.0, 4.0, 3.0, 4.0)
+    Open => (7.0, 7.0, 3.0, 4.0)
+    Line => (0.0, 0.0, 5.0, 8.0)
+    Diamond => (11.0, 9.0, 5.5, 4.5)
+    Circle => (8.0, 8.0, 5.0, 5.0)
+    CfOne
+    | CfMany
+    | CfOneRequired
+    | CfManyRequired
+    | CfOneOptional
+    | CfManyOptional => (9.0, 9.0, 4.5, 4.5)
+    None => (0.0, 0.0, 0.0, 0.0)
   }
   (
     base_width + clipped_stroke_width * width_multiplier,
@@ -2460,8 +2460,8 @@ fn marker_body(
     None => if bg_fill_class == "" { "" } else { " \{bg_fill_class}" }
   }
   match arrowhead {
-    @graph.None => ""
-    @graph.Triangle => {
+    None => ""
+    Triangle => {
       let points = if is_target {
         "\{d2_fixed6(0.0)},\{d2_fixed6(0.0)} \{d2_fixed6(width)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(0.0)},\{d2_fixed6(height)}"
       } else {
@@ -2475,7 +2475,7 @@ fn marker_body(
       .self_close()
       .build()
     }
-    @graph.Open => {
+    Open => {
       let inset = stroke_width / 2.0
       let points = if is_target {
         "\{d2_fixed6(inset)},\{d2_fixed6(inset)} \{d2_fixed6(width - inset)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(inset)},\{d2_fixed6(height - inset)}"
@@ -2491,7 +2491,7 @@ fn marker_body(
       .self_close()
       .build()
     }
-    @graph.Line => {
+    Line => {
       let points = if is_target {
         "\{d2_fixed6(stroke_width / 2.0)},\{d2_fixed6(stroke_width / 2.0)} \{d2_fixed6(width - stroke_width / 2.0)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(stroke_width / 2.0)},\{d2_fixed6(height - stroke_width / 2.0)}"
       } else {
@@ -2506,7 +2506,7 @@ fn marker_body(
       .self_close()
       .build()
     }
-    @graph.Diamond => {
+    Diamond => {
       let points = if is_target {
         "\{d2_fixed6(0.0)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(width / 2.0)},\{d2_fixed6(height / 8.0)} \{d2_fixed6(width)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(width / 2.0)},\{d2_fixed6(height * 0.9)}"
       } else {
@@ -2521,7 +2521,7 @@ fn marker_body(
       .self_close()
       .build()
     }
-    @graph.Circle => {
+    Circle => {
       let radius = width / 2.0
       let cx = if is_target {
         radius + stroke_width / 2.0
@@ -2540,18 +2540,18 @@ fn marker_body(
       .self_close()
       .build()
     }
-    @graph.CfOne
-    | @graph.CfMany
-    | @graph.CfOneRequired
-    | @graph.CfManyRequired
-    | @graph.CfOneOptional
-    | @graph.CfManyOptional => {
+    CfOne
+    | CfMany
+    | CfOneRequired
+    | CfManyRequired
+    | CfOneOptional
+    | CfManyOptional => {
       let offset = 3.0 + stroke_width * 1.8
-      let is_required = arrowhead == @graph.CfOneRequired ||
-        arrowhead == @graph.CfManyRequired
-      let is_many = arrowhead == @graph.CfMany ||
-        arrowhead == @graph.CfManyRequired ||
-        arrowhead == @graph.CfManyOptional
+      let is_required = arrowhead == CfOneRequired ||
+        arrowhead == CfManyRequired
+      let is_many = arrowhead == CfMany ||
+        arrowhead == CfManyRequired ||
+        arrowhead == CfManyOptional
 
       let modifier = if is_required {
         @xml_emit.Element::new("path")
@@ -2620,7 +2620,7 @@ fn marker_def(
   }
   let mut marker_width = width_raw
   let marker_height = height_raw
-  let ref_x = if arrowhead == @graph.Diamond {
+  let ref_x = if arrowhead == Diamond {
     if is_target {
       width_raw - 0.6 * stroke_width
     } else {
@@ -2631,7 +2631,7 @@ fn marker_def(
   } else {
     1.5 * stroke_width
   }
-  if arrowhead == @graph.Diamond {
+  if arrowhead == Diamond {
     marker_width = width_raw * 1.1
   }
   let body = marker_body(
@@ -2666,7 +2666,7 @@ fn marker_url_for_edge(
   stroke_width : Double,
   theme : @themes.Theme,
 ) -> String {
-  if arrowhead == @graph.None {
+  if arrowhead == None {
     return ""
   }
   let key = marker_key(arrowhead, is_target, stroke_signature, stroke_width)
@@ -3211,16 +3211,10 @@ fn sort_render_objects(
   // 4) stable by original export order
   let items : Array[RenderObjectItem] = []
   for shape in shapes {
-    items.push(RenderObjectItem::{
-      obj: ShapeObj(shape),
-      original_index: items.length(),
-    })
+    items.push({ obj: ShapeObj(shape), original_index: items.length() })
   }
   for connection in connections {
-    items.push(RenderObjectItem::{
-      obj: EdgeObj(connection),
-      original_index: items.length(),
-    })
+    items.push({ obj: EdgeObj(connection), original_index: items.length() })
   }
   items.sort_by(fn(a, b) {
     let z_a = render_object_z_index(a.obj)
@@ -8191,7 +8185,7 @@ fn arrowhead_adjustment(
 
 ///|
 fn arrowhead_requires_extra_gap(arrowhead : @graph.ArrowheadType) -> Bool {
-  arrowhead != @graph.None
+  arrowhead != None
 }
 
 ///|
@@ -8323,18 +8317,18 @@ fn arrowhead_dimensions(
     stroke_width
   }
   let (base_width, base_height, width_mul, height_mul) = match arrowhead {
-    @graph.Triangle => (4.0, 4.0, 3.0, 4.0)
-    @graph.Open => (7.0, 7.0, 3.0, 4.0)
-    @graph.Line => (0.0, 0.0, 5.0, 8.0)
-    @graph.Diamond => (11.0, 9.0, 5.5, 4.5)
-    @graph.Circle => (8.0, 8.0, 5.0, 5.0)
-    @graph.CfOne
-    | @graph.CfMany
-    | @graph.CfOneRequired
-    | @graph.CfManyRequired
-    | @graph.CfOneOptional
-    | @graph.CfManyOptional => (9.0, 9.0, 4.5, 4.5)
-    @graph.None => (0.0, 0.0, 0.0, 0.0)
+    Triangle => (4.0, 4.0, 3.0, 4.0)
+    Open => (7.0, 7.0, 3.0, 4.0)
+    Line => (0.0, 0.0, 5.0, 8.0)
+    Diamond => (11.0, 9.0, 5.5, 4.5)
+    Circle => (8.0, 8.0, 5.0, 5.0)
+    CfOne
+    | CfMany
+    | CfOneRequired
+    | CfManyRequired
+    | CfOneOptional
+    | CfManyOptional => (9.0, 9.0, 4.5, 4.5)
+    None => (0.0, 0.0, 0.0, 0.0)
   }
   (
     base_width + clipped_stroke * width_mul,

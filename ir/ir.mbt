@@ -375,13 +375,13 @@ pub fn Node::parent(self : Node, root : Map) -> Node? {
 ///|
 pub fn Node::copy(self : Node) -> Node {
   match self {
-    Scalar(s) => Node::Scalar(s.copy())
-    Field(f) => Node::Field(f.copy())
-    Edge(e) => Node::Edge(e.copy())
-    IRArray(a) => Node::IRArray(a.copy())
-    Map(m) => Node::Map(m.copy())
-    Composite(c) => Node::Composite(copy_composite_detached(c))
-    Value(v) => Node::Value(copy_value_detached(v))
+    Scalar(s) => Scalar(s.copy())
+    Field(f) => Field(f.copy())
+    Edge(e) => Edge(e.copy())
+    IRArray(a) => IRArray(a.copy())
+    Map(m) => Map(m.copy())
+    Composite(c) => Composite(copy_composite_detached(c))
+    Value(v) => Value(copy_value_detached(v))
   }
 }
 
@@ -398,15 +398,13 @@ fn default_range() -> @lexer.Range {
 ///|
 fn synthetic_unquoted_string(value : String) -> @ast.StringValue {
   let r = default_range()
-  @ast.StringValue::Unquoted(
-    @ast.UnquotedString::new(r, [@ast.Interpolation::Text(value)], []),
-  )
+  Unquoted(@ast.UnquotedString::new(r, [Text(value)], []))
 }
 
 ///|
 fn is_unquoted_string_value(value : @ast.StringValue) -> Bool {
   match value {
-    @ast.StringValue::Unquoted(_) => true
+    Unquoted(_) => true
     _ => false
   }
 }
@@ -471,31 +469,24 @@ pub fn Scalar::new(value : ScalarValue) -> Scalar {
 
 ///|
 pub fn Scalar::null() -> Scalar {
-  Scalar::at(default_range(), ScalarValue::Null)
+  Scalar::at(default_range(), Null)
 }
 
 ///|
 pub fn Scalar::bool(b : Bool) -> Scalar {
   let s = if b { "true" } else { "false" }
-  Scalar::at(default_range(), ScalarValue::Bool(s))
+  Scalar::at(default_range(), Bool(s))
 }
 
 ///|
 pub fn Scalar::number(n : String) -> Scalar {
-  Scalar::at(default_range(), ScalarValue::Number(n))
+  Scalar::at(default_range(), Number(n))
 }
 
 ///|
 pub fn Scalar::string(s : String) -> Scalar {
   let r = default_range()
-  Scalar::at(
-    r,
-    ScalarValue::String(
-      @ast.StringValue::Unquoted(
-        @ast.UnquotedString::new(r, [@ast.Interpolation::Text(s)], []),
-      ),
-    ),
-  )
+  Scalar::at(r, String(Unquoted(@ast.UnquotedString::new(r, [Text(s)], []))))
 }
 
 ///|
@@ -515,7 +506,7 @@ pub fn Map::from_ast(ast : @ast.Map, source_path? : String? = None) -> Map {
   {
     fields: [],
     edges: [],
-    ast: Some(@ast.Node::Map(ast)),
+    ast: Some(Map(ast)),
     import_ast: None,
     source_path,
     path: None,
@@ -568,7 +559,7 @@ pub fn IRArray::from_ast(
   values : Array[Value],
   source_path? : String? = None,
 ) -> IRArray {
-  { values, ast: Some(@ast.Node::ArrayValue(ast)), source_path, path: None }
+  { values, ast: Some(ArrayValue(ast)), source_path, path: None }
 }
 
 ///|
@@ -892,17 +883,15 @@ fn get_node_from_map(
   index : Int,
 ) -> Node? {
   if index == segments.length() {
-    return Some(Node::Map(m))
+    return Some(Map(m))
   }
   match segments[index] {
-    NodePathSegment::FieldStep(name, unquoted) => {
+    FieldStep(name, unquoted) => {
       let step_syntax = if unquoted {
         synthetic_unquoted_string(name)
       } else {
-        @ast.StringValue::DoubleQuoted(
-          @ast.DoubleQuotedString::new(default_range(), [
-            @ast.Interpolation::Text(name),
-          ]),
+        DoubleQuoted(
+          @ast.DoubleQuotedString::new(default_range(), [Text(name)]),
         )
       }
       match m.get_field_by_name(name, Some(step_syntax)) {
@@ -910,7 +899,7 @@ fn get_node_from_map(
         None => None
       }
     }
-    NodePathSegment::EdgeStep(id) =>
+    EdgeStep(id) =>
       match get_edge_by_id(m, id) {
         Some(edge) => get_node_from_edge(edge, segments, index + 1)
         None => None
@@ -926,20 +915,20 @@ fn get_node_from_field(
   index : Int,
 ) -> Node? {
   if index == segments.length() {
-    return Some(Node::Field(field))
+    return Some(Field(field))
   }
   match segments[index] {
-    NodePathSegment::PrimaryStep =>
+    PrimaryStep =>
       match field.primary {
         Some(scalar) =>
           if index + 1 == segments.length() {
-            Some(Node::Scalar(scalar))
+            Some(Scalar(scalar))
           } else {
             None
           }
         None => None
       }
-    NodePathSegment::CompositeStep =>
+    CompositeStep =>
       match field.composite {
         Some(composite) =>
           get_node_from_composite(composite, segments, index + 1)
@@ -956,20 +945,20 @@ fn get_node_from_edge(
   index : Int,
 ) -> Node? {
   if index == segments.length() {
-    return Some(Node::Edge(edge))
+    return Some(Edge(edge))
   }
   match segments[index] {
-    NodePathSegment::PrimaryStep =>
+    PrimaryStep =>
       match edge.primary {
         Some(scalar) =>
           if index + 1 == segments.length() {
-            Some(Node::Scalar(scalar))
+            Some(Scalar(scalar))
           } else {
             None
           }
         None => None
       }
-    NodePathSegment::CompositeStep =>
+    CompositeStep =>
       match edge.map {
         Some(map) => get_node_from_map(map, segments, index + 1)
         None => None
@@ -985,8 +974,8 @@ fn get_node_from_composite(
   index : Int,
 ) -> Node? {
   match composite {
-    Composite::Array(array) => get_node_from_array(array, segments, index)
-    Composite::Map(map) => get_node_from_map(map, segments, index)
+    Array(array) => get_node_from_array(array, segments, index)
+    Map(map) => get_node_from_map(map, segments, index)
   }
 }
 
@@ -997,10 +986,10 @@ fn get_node_from_array(
   index : Int,
 ) -> Node? {
   if index == segments.length() {
-    return Some(Node::IRArray(array))
+    return Some(IRArray(array))
   }
   match segments[index] {
-    NodePathSegment::ArrayItemStep(item_index) =>
+    ArrayItemStep(item_index) =>
       if item_index < 0 || item_index >= array.values.length() {
         None
       } else {
@@ -1017,14 +1006,14 @@ fn get_node_from_value(
   index : Int,
 ) -> Node? {
   match value {
-    Value::Scalar(scalar) =>
+    Scalar(scalar) =>
       if index == segments.length() {
-        Some(Node::Scalar(scalar))
+        Some(Scalar(scalar))
       } else {
         None
       }
-    Value::Map(map) => get_node_from_map(map, segments, index)
-    Value::Array(array) => get_node_from_array(array, segments, index)
+    Map(map) => get_node_from_map(map, segments, index)
+    Array(array) => get_node_from_array(array, segments, index)
   }
 }
 
@@ -1043,13 +1032,13 @@ fn reindex_map(m : Map, path : NodePath) -> Map {
   let fields : Array[Field] = []
   for field in m.fields {
     let field_path = path.append(
-      NodePathSegment::FieldStep(field.name, field.name_is_unquoted()),
+      FieldStep(field.name, field.name_is_unquoted()),
     )
     fields.push(reindex_field(field, field_path))
   }
   let edges : Array[Edge] = []
   for edge in m.edges {
-    let edge_path = path.append(NodePathSegment::EdgeStep(edge.id.copy()))
+    let edge_path = path.append(EdgeStep(edge.id.copy()))
     edges.push(reindex_edge(edge, edge_path))
   }
   {
@@ -1065,13 +1054,11 @@ fn reindex_map(m : Map, path : NodePath) -> Map {
 ///|
 fn reindex_field(field : Field, path : NodePath) -> Field {
   let primary = match field.primary {
-    Some(scalar) =>
-      Some(reindex_scalar(scalar, path.append(NodePathSegment::PrimaryStep)))
+    Some(scalar) => Some(reindex_scalar(scalar, path.append(PrimaryStep)))
     None => None
   }
   let composite = match field.composite {
-    Some(node) =>
-      Some(reindex_composite(node, path.append(NodePathSegment::CompositeStep)))
+    Some(node) => Some(reindex_composite(node, path.append(CompositeStep)))
     None => None
   }
   {
@@ -1088,13 +1075,11 @@ fn reindex_field(field : Field, path : NodePath) -> Field {
 ///|
 fn reindex_edge(edge : Edge, path : NodePath) -> Edge {
   let primary = match edge.primary {
-    Some(scalar) =>
-      Some(reindex_scalar(scalar, path.append(NodePathSegment::PrimaryStep)))
+    Some(scalar) => Some(reindex_scalar(scalar, path.append(PrimaryStep)))
     None => None
   }
   let map = match edge.map {
-    Some(child) =>
-      Some(reindex_map(child, path.append(NodePathSegment::CompositeStep)))
+    Some(child) => Some(reindex_map(child, path.append(CompositeStep)))
     None => None
   }
   {
@@ -1121,17 +1106,17 @@ fn reindex_scalar(scalar : Scalar, path : NodePath) -> Scalar {
 ///|
 fn reindex_composite(composite : Composite, path : NodePath) -> Composite {
   match composite {
-    Composite::Array(array) => Composite::Array(reindex_array(array, path))
-    Composite::Map(map) => Composite::Map(reindex_map(map, path))
+    Array(array) => Array(reindex_array(array, path))
+    Map(map) => Map(reindex_map(map, path))
   }
 }
 
 ///|
 fn reindex_value(value : Value, path : NodePath) -> Value {
   match value {
-    Value::Scalar(scalar) => Value::Scalar(reindex_scalar(scalar, path))
-    Value::Map(map) => Value::Map(reindex_map(map, path))
-    Value::Array(array) => Value::Array(reindex_array(array, path))
+    Scalar(scalar) => Scalar(reindex_scalar(scalar, path))
+    Map(map) => Map(reindex_map(map, path))
+    Array(array) => Array(reindex_array(array, path))
   }
 }
 
@@ -1139,9 +1124,7 @@ fn reindex_value(value : Value, path : NodePath) -> Value {
 fn reindex_array(array : IRArray, path : NodePath) -> IRArray {
   let values : Array[Value] = []
   for i, value in array.values {
-    values.push(
-      reindex_value(value, path.append(NodePathSegment::ArrayItemStep(i))),
-    )
+    values.push(reindex_value(value, path.append(ArrayItemStep(i))))
   }
   { values, ast: array.ast, source_path: array.source_path, path: Some(path) }
 }
@@ -1160,17 +1143,17 @@ fn copy_scalar_detached(scalar : Scalar) -> Scalar {
 ///|
 fn copy_composite_detached(composite : Composite) -> Composite {
   match composite {
-    Composite::Array(array) => Composite::Array(copy_array_detached(array))
-    Composite::Map(map) => Composite::Map(copy_map_detached(map))
+    Array(array) => Array(copy_array_detached(array))
+    Map(map) => Map(copy_map_detached(map))
   }
 }
 
 ///|
 fn copy_value_detached(value : Value) -> Value {
   match value {
-    Value::Scalar(scalar) => Value::Scalar(copy_scalar_detached(scalar))
-    Value::Map(map) => Value::Map(copy_map_detached(map))
-    Value::Array(array) => Value::Array(copy_array_detached(array))
+    Scalar(scalar) => Scalar(copy_scalar_detached(scalar))
+    Map(map) => Map(copy_map_detached(map))
+    Array(array) => Array(copy_array_detached(array))
   }
 }
 
@@ -1267,8 +1250,7 @@ fn with_import_ast_map(m : Map, import_ast : @ast.Node) -> Map {
 ///|
 fn with_import_ast_field(field : Field, import_ast : @ast.Node) -> Field {
   let composite = match field.composite {
-    Some(Composite::Map(map)) =>
-      Some(Composite::Map(with_import_ast_map(map, import_ast)))
+    Some(Map(map)) => Some(Composite::Map(with_import_ast_map(map, import_ast)))
     Some(other) => Some(other)
     None => None
   }
@@ -1391,15 +1373,15 @@ pub fn Value::as_array(self : Value) -> IRArray? {
 ///|
 pub fn FieldReference::ast(self : FieldReference) -> @ast.Node? {
   match self.syntax {
-    Some(syntax) => Some(@ast.Node::StringValue(syntax))
+    Some(syntax) => Some(StringValue(syntax))
     None =>
       match self.key_path {
-        Some(key_path) => Some(@ast.Node::KeyPath(key_path))
+        Some(key_path) => Some(KeyPath(key_path))
         None =>
           match self.context {
             Some(context) =>
               match context.key {
-                Some(key) => Some(@ast.Node::Key(key))
+                Some(key) => Some(Key(key))
                 None => None
               }
             None => None
@@ -1416,12 +1398,12 @@ pub fn FieldReference::context(self : FieldReference) -> RefContext? {
 ///|
 pub fn EdgeReference::ast(self : EdgeReference) -> @ast.Node? {
   match self.edge {
-    Some(edge) => Some(@ast.Node::Edge(edge))
+    Some(edge) => Some(Edge(edge))
     None =>
       match self.context {
         Some(context) =>
           match context.key {
-            Some(key) => Some(@ast.Node::Key(key))
+            Some(key) => Some(Key(key))
             None => None
           }
         None => None
@@ -1510,7 +1492,7 @@ pub fn Scalar::as_string_value(self : Scalar) -> @ast.StringValue? {
 /// Get block-string language tag if this scalar is a block string
 pub fn Scalar::block_string_tag(self : Scalar) -> String? {
   match self.value {
-    String(@ast.StringValue::Block(bs)) => Some(bs.tag)
+    String(Block(bs)) => Some(bs.tag)
     _ => None
   }
 }
@@ -1609,7 +1591,7 @@ pub fn Scalar::is_string(self : Scalar) -> Bool {
 /// Get the map composite if this field has one
 pub fn Field::map(self : Field) -> Map? {
   match self.composite {
-    Some(Composite::Map(m)) => Some(m)
+    Some(Map(m)) => Some(m)
     _ => None
   }
 }
@@ -1618,7 +1600,7 @@ pub fn Field::map(self : Field) -> Map? {
 /// Get the array composite if this field has one
 pub fn Field::array(self : Field) -> IRArray? {
   match self.composite {
-    Some(Composite::Array(a)) => Some(a)
+    Some(Array(a)) => Some(a)
     _ => None
   }
 }
@@ -1640,7 +1622,7 @@ pub fn Field::last_ref(self : Field) -> Reference? {
   if self.references.is_empty() {
     None
   } else {
-    Some(Reference::FieldRef(self.references[self.references.length() - 1]))
+    Some(FieldRef(self.references[self.references.length() - 1]))
   }
 }
 
@@ -1648,7 +1630,7 @@ pub fn Field::last_ref(self : Field) -> Reference? {
 pub fn Field::last_primary_ref(self : Field) -> Reference? {
   for i = self.references.length() - 1; i >= 0; i = i - 1 {
     if self.references[i].primary {
-      return Some(Reference::FieldRef(self.references[i]))
+      return Some(FieldRef(self.references[i]))
     }
   }
   None
@@ -1680,7 +1662,7 @@ pub fn Field::name_syntax(self : Field) -> @ast.StringValue? {
     Some(syntax) => Some(syntax)
     None =>
       match self.last_ref() {
-        Some(Reference::FieldRef(reference)) => reference.syntax
+        Some(FieldRef(reference)) => reference.syntax
         _ => None
       }
   }
@@ -1729,7 +1711,7 @@ pub fn Edge::last_ref(self : Edge) -> Reference? {
   if self.references.is_empty() {
     None
   } else {
-    Some(Reference::EdgeRef(self.references[self.references.length() - 1]))
+    Some(EdgeRef(self.references[self.references.length() - 1]))
   }
 }
 
@@ -1737,7 +1719,7 @@ pub fn Edge::last_ref(self : Edge) -> Reference? {
 pub fn Edge::last_primary_ref(self : Edge) -> Reference? {
   for i = self.references.length() - 1; i >= 0; i = i - 1 {
     if self.references[i].primary && !self.references[i].due_to_lazy_glob {
-      return Some(Reference::EdgeRef(self.references[i]))
+      return Some(EdgeRef(self.references[i]))
     }
   }
   None

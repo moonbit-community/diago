@@ -77,17 +77,17 @@ pub(all) suberror LayoutError {
 ///|
 pub impl Show for LayoutError with output(self, logger) {
   match self {
-    LayoutError::InvalidGraph(message) => {
+    InvalidGraph(message) => {
       logger.write_string("InvalidGraph(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    LayoutError::CycleDetected(message) => {
+    CycleDetected(message) => {
       logger.write_string("CycleDetected(")
       logger.write_object(message)
       logger.write_char(')')
     }
-    LayoutError::Unsupported(message) => {
+    Unsupported(message) => {
       logger.write_string("Unsupported(")
       logger.write_object(message)
       logger.write_char(')')
@@ -98,17 +98,17 @@ pub impl Show for LayoutError with output(self, logger) {
 ///|
 /// Construct an `engine_api.LayoutError` from outside this package.
 pub fn invalid_graph(message : String) -> LayoutError {
-  LayoutError::InvalidGraph(message)
+  InvalidGraph(message)
 }
 
 ///|
 pub fn cycle_detected(message : String) -> LayoutError {
-  LayoutError::CycleDetected(message)
+  CycleDetected(message)
 }
 
 ///|
 pub fn unsupported(message : String) -> LayoutError {
-  LayoutError::Unsupported(message)
+  Unsupported(message)
 }
 
 ///|
@@ -146,10 +146,10 @@ pub(open) trait LayoutEngine {
 ///|
 fn direction_from_keyword(raw : String) -> Direction? {
   match raw.to_lower() {
-    "down" => Some(Direction::Down)
-    "up" => Some(Direction::Up)
-    "left" => Some(Direction::Left)
-    "right" => Some(Direction::Right)
+    "down" => Some(Down)
+    "up" => Some(Up)
+    "left" => Some(Left)
+    "right" => Some(Right)
     _ => None
   }
 }
@@ -254,13 +254,13 @@ fn is_inside_sequence_diagram(
   parent_id_by_child_id : Map[String, String],
   id : String,
 ) -> Bool {
-  if graph.root.shape_type == @graph.SequenceDiagram {
+  if graph.root.shape_type == SequenceDiagram {
     return true
   }
   let mut current = id
   while true {
     match object_by_id.get(current) {
-      Some(obj) => if obj.shape_type == @graph.SequenceDiagram { return true }
+      Some(obj) => if obj.shape_type == SequenceDiagram { return true }
       None => ()
     }
     match parent_id_by_child_id.get(current) {
@@ -293,7 +293,7 @@ fn check_feature_support(
 
   for obj in graph.objects {
     if (obj.top is Some(_) || obj.left is Some(_)) &&
-      !has_layout_feature(features, LayoutFeature::TopLeft) {
+      !has_layout_feature(features, TopLeft) {
       raise unsupported(
         "Object \"\{obj.abs_id_syntax}\" has attribute \"top\" and/or \"left\" set, but layout engine \"\{engine_name}\" does not support locked positions. See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
       )
@@ -301,7 +301,7 @@ fn check_feature_support(
     if has_explicit_dimensions(obj) &&
       is_container_object(obj) &&
       !is_grid_diagram_object(obj) &&
-      !has_layout_feature(features, LayoutFeature::ContainerDimensions) {
+      !has_layout_feature(features, ContainerDimensions) {
       raise unsupported(
         "Object \"\{obj.abs_id_syntax}\" has attribute \"width\" and/or \"height\" set, but layout engine \"\{engine_name}\" does not support dimensions set on containers. See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
       )
@@ -309,7 +309,7 @@ fn check_feature_support(
     match obj.near {
       Some(near_key) =>
         if graph.find_object(near_key) is Some(_) &&
-          !has_layout_feature(features, LayoutFeature::NearObject) {
+          !has_layout_feature(features, NearObject) {
           raise unsupported(
             "Object \"\{obj.abs_id_syntax}\" has \"near\" set to another object, but layout engine \"\{engine_name}\" only supports constant values for \"near\". See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
           )
@@ -318,7 +318,7 @@ fn check_feature_support(
     }
   }
 
-  if has_layout_feature(features, LayoutFeature::DescendantEdges) {
+  if has_layout_feature(features, DescendantEdges) {
     return
   }
 
@@ -400,7 +400,7 @@ fn clone_graph_with_parts(
 
 ///|
 fn normalize_sequence_root(graph : @graph.GraphInput) -> @graph.GraphInput {
-  if graph.root.shape_type != @graph.SequenceDiagram {
+  if graph.root.shape_type != SequenceDiagram {
     return graph
   }
   let child_ids : Map[String, Bool] = {}
@@ -445,7 +445,7 @@ fn find_sql_column_index(
     Some(p) => p
     None => return None
   }
-  if parent.shape_type != @graph.SqlTable {
+  if parent.shape_type != SqlTable {
     return None
   }
   let mut i = 0
@@ -1047,10 +1047,10 @@ fn grid_child_effective_positions_like_d2(
 ///|
 fn grid_child_has_label_like_d2(obj : @graph.ObjectInput) -> Bool {
   match obj.shape_type {
-    @graph.Text => false
-    @graph.Class => false
-    @graph.SqlTable => false
-    @graph.Code => false
+    Text => false
+    Class => false
+    SqlTable => false
+    Code => false
     _ => obj.label != ""
   }
 }
@@ -1060,8 +1060,8 @@ fn grid_child_has_outside_bottom_label_like_d2(
   obj : @graph.ObjectInput,
 ) -> Bool {
   match obj.shape_type {
-    @graph.Image => true
-    @graph.Person => true
+    Image => true
+    Person => true
     _ => false
   }
 }
@@ -1160,9 +1160,8 @@ fn grid_child_label_dimensions_like_d2(
   }
   let is_bold = style_bool(obj.style.bold, false)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == @graph.Code ||
-    style_is_mono(obj.style.font_family)
-  let dims = if obj.shape_type == @graph.Code {
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else {
     @text_metrics.measure_label(
@@ -1437,9 +1436,8 @@ fn object_label_dimensions_like_d2(
   }
   let is_bold = style_bool(obj.style.bold, false)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == @graph.Code ||
-    style_is_mono(obj.style.font_family)
-  let dims = if obj.shape_type == @graph.Code {
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else {
     @text_metrics.measure_label(
@@ -2517,9 +2515,8 @@ fn estimate_semantic_object_size(
   let font_size = object_label_font_size_like_d2(obj, inside_sequence)
   let is_bold = object_label_bold_like_d2(obj, inside_sequence)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == @graph.Code ||
-    style_is_mono(obj.style.font_family)
-  let label_dims = if obj.shape_type == @graph.Code {
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let label_dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else {
     @text_metrics.measure_label(
@@ -2533,19 +2530,19 @@ fn estimate_semantic_object_size(
   let mut content_width = label_dims.width
   let mut content_height = label_dims.height
 
-  if obj.shape_type == @graph.Code {
+  if obj.shape_type == Code {
     content_width = content_width + font_size.to_double()
     content_height = content_height + font_size.to_double()
     // reference behavior: code shape size is measured text + 0.5em padding each side only.
     return (content_width, content_height)
   } else if with_inner_label_padding &&
     obj.label != "" &&
-    obj.shape_type != @graph.Text {
+    obj.shape_type != Text {
     content_width = content_width + D2_INNER_LABEL_PADDING
     content_height = content_height + D2_INNER_LABEL_PADDING
   }
 
-  if obj.shape_type == @graph.Text {
+  if obj.shape_type == Text {
     if content_width < D2_MIN_SHAPE_SIZE {
       content_width = D2_MIN_SHAPE_SIZE
     }
@@ -2555,7 +2552,7 @@ fn estimate_semantic_object_size(
     return (content_width, content_height)
   }
 
-  if obj.shape_type == @graph.Image {
+  if obj.shape_type == Image {
     return (128.0, 128.0)
   }
 
@@ -2569,10 +2566,10 @@ fn estimate_semantic_object_size(
     padding_y = 0.0
   }
   if obj.icon is Some(_) &&
-    obj.shape_type != @graph.SqlTable &&
-    obj.shape_type != @graph.Class &&
-    obj.shape_type != @graph.Code &&
-    obj.shape_type != @graph.Text {
+    obj.shape_type != SqlTable &&
+    obj.shape_type != Class &&
+    obj.shape_type != Code &&
+    obj.shape_type != Text {
     let label_height = label_dims.height + D2_INNER_LABEL_PADDING
     if !has_explicit_width {
       padding_x = padding_x + label_height
@@ -2592,19 +2589,19 @@ fn estimate_semantic_object_size(
   let mut width = fitted.0
   let mut height = fitted.1
 
-  if obj.shape_type == @graph.Circle || obj.shape_type == @graph.Square {
+  if obj.shape_type == Circle || obj.shape_type == Square {
     let side = if width > height { width } else { height }
     width = side
     height = side
-  } else if obj.shape_type == @graph.Person {
+  } else if obj.shape_type == Person {
     let fit = limit_ar(width, height, D2_PERSON_AR_LIMIT)
     width = fit.0
     height = fit.1
-  } else if obj.shape_type == @graph.Oval {
+  } else if obj.shape_type == Oval {
     let fit = limit_ar(width, height, D2_OVAL_AR_LIMIT)
     width = fit.0
     height = fit.1
-  } else if obj.shape_type == @graph.C4Person {
+  } else if obj.shape_type == C4Person {
     let fit = limit_ar(width, height, D2_C4_PERSON_AR_LIMIT)
     width = fit.0
     height = fit.1
@@ -2665,7 +2662,7 @@ fn object_label_font_size_like_d2(
   inside_sequence : Bool,
 ) -> Int {
   let mut font_size = D2_FONT_SIZE_M
-  if obj.shape_type == @graph.Class || obj.shape_type == @graph.SqlTable {
+  if obj.shape_type == Class || obj.shape_type == SqlTable {
     font_size = D2_FONT_SIZE_L
   }
   if !inside_sequence &&
@@ -2674,7 +2671,7 @@ fn object_label_font_size_like_d2(
       obj.grid_rows is Some(_) ||
       obj.grid_columns is Some(_)
     ) &&
-    obj.shape_type != @graph.Text {
+    obj.shape_type != Text {
     font_size = container_level_label_size_like_d2(
       object_container_level_like_d2(obj),
     )
@@ -2692,7 +2689,7 @@ fn object_label_bold_like_d2(
 ) -> Bool {
   let default_bold = !inside_sequence &&
     obj.child_ids.is_empty() &&
-    obj.shape_type != @graph.Text
+    obj.shape_type != Text
   style_bool(obj.style.bold, default_bold)
 }
 
@@ -2790,29 +2787,27 @@ fn semantic_shape_default_padding(
   shape_type : @graph.ShapeType,
 ) -> (Double, Double) {
   match shape_type {
-    @graph.Circle => {
+    Circle => {
       let p = D2_DEFAULT_PADDING / 2.0.sqrt()
       (p, p)
     }
-    @graph.Diamond => (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING / 2.0)
-    @graph.Hexagon => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING / 2.0)
-    @graph.Cylinder => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
-    @graph.Queue => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING)
-    @graph.StoredData => (D2_DEFAULT_PADDING - 10.0, D2_DEFAULT_PADDING)
-    @graph.Person => (10.0, D2_DEFAULT_PADDING)
-    @graph.C4Person => (10.0, D2_DEFAULT_PADDING)
-    @graph.Page =>
-      (D2_DEFAULT_PADDING, D2_PAGE_CORNER_HEIGHT + D2_DEFAULT_PADDING)
-    @graph.Document =>
+    Diamond => (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING / 2.0)
+    Hexagon => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING / 2.0)
+    Cylinder => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
+    Queue => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING)
+    StoredData => (D2_DEFAULT_PADDING - 10.0, D2_DEFAULT_PADDING)
+    Person => (10.0, D2_DEFAULT_PADDING)
+    C4Person => (10.0, D2_DEFAULT_PADDING)
+    Page => (D2_DEFAULT_PADDING, D2_PAGE_CORNER_HEIGHT + D2_DEFAULT_PADDING)
+    Document =>
       (
         D2_DEFAULT_PADDING,
         D2_DEFAULT_PADDING * D2_DOC_PATH_INNER_BOTTOM / D2_DOC_PATH_HEIGHT,
       )
-    @graph.Package => (D2_DEFAULT_PADDING, 0.8 * D2_DEFAULT_PADDING)
-    @graph.Step =>
-      (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING + D2_STEP_WEDGE_WIDTH)
-    @graph.Callout => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
-    @graph.Cloud => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
+    Package => (D2_DEFAULT_PADDING, 0.8 * D2_DEFAULT_PADDING)
+    Step => (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING + D2_STEP_WEDGE_WIDTH)
+    Callout => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
+    Cloud => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
     _ => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING)
   }
 }
@@ -2826,7 +2821,7 @@ fn semantic_shape_dimensions_to_fit(
   padding_y : Double,
 ) -> (Double, Double) {
   match shape_type {
-    @graph.Circle => {
+    Circle => {
       let length = if width + padding_x > height + padding_y {
         width + padding_x
       } else {
@@ -2835,7 +2830,7 @@ fn semantic_shape_dimensions_to_fit(
       let diameter = (2.0.sqrt() * length).ceil()
       (diameter, diameter)
     }
-    @graph.Oval => {
+    Oval => {
       let theta = @math.atan2(height, width)
       let padded_width = width + padding_x * @math.cos(theta)
       let padded_height = height + padding_y * @math.sin(theta)
@@ -2846,31 +2841,31 @@ fn semantic_shape_dimensions_to_fit(
       total_height = fit.1
       (total_width, total_height)
     }
-    @graph.Diamond =>
+    Diamond =>
       ((2.0 * (width + padding_x)).ceil(), (2.0 * (height + padding_y)).ceil())
-    @graph.Hexagon =>
+    Hexagon =>
       ((1.5 * (width + padding_x)).ceil(), (1.5 * (height + padding_y)).ceil())
-    @graph.Parallelogram =>
+    Parallelogram =>
       (
         (width + padding_x + D2_PARALLELOGRAM_WEDGE_WIDTH * 2.0).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.Cylinder =>
+    Cylinder =>
       (
         (width + padding_x).ceil(),
         (height + padding_y + 3.0 * D2_DEFAULT_ARC_DEPTH).ceil(),
       )
-    @graph.Queue =>
+    Queue =>
       (
         (width + padding_x + 3.0 * D2_DEFAULT_ARC_DEPTH).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.StoredData =>
+    StoredData =>
       (
         (width + padding_x + 2.0 * D2_STORED_DATA_WEDGE_WIDTH).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.Person => {
+    Person => {
       let mut total_width = width + padding_x
       let mut total_height = height + padding_y
       let fit = limit_ar(total_width, total_height, D2_PERSON_AR_LIMIT)
@@ -2878,7 +2873,7 @@ fn semantic_shape_dimensions_to_fit(
       total_height = fit.1
       (total_width.ceil(), total_height.ceil())
     }
-    @graph.C4Person => {
+    C4Person => {
       let content_width = width + padding_x
       let content_height = height + padding_y
       let mut total_width = content_width / 0.9
@@ -2895,7 +2890,7 @@ fn semantic_shape_dimensions_to_fit(
       total_height = fit.1
       (total_width.ceil(), total_height.ceil())
     }
-    @graph.Cloud => {
+    Cloud => {
       let total_width = width + padding_x
       let total_height = height + padding_y
       let aspect_ratio = total_width / total_height
@@ -2916,7 +2911,7 @@ fn semantic_shape_dimensions_to_fit(
         )
       }
     }
-    @graph.Page => {
+    Page => {
       let mut total_width = width + padding_x
       let mut total_height = height + padding_y
       if total_height < 3.0 * D2_PAGE_CORNER_HEIGHT {
@@ -2930,12 +2925,12 @@ fn semantic_shape_dimensions_to_fit(
       }
       (total_width.ceil(), total_height.ceil())
     }
-    @graph.Document =>
+    Document =>
       (
         (width + padding_x).ceil(),
         ((height + padding_y) * D2_DOC_PATH_HEIGHT / D2_DOC_PATH_INNER_BOTTOM).ceil(),
       )
-    @graph.Package => {
+    Package => {
       let inner_height = height + padding_y
       let top_height = inner_height *
         D2_PACKAGE_VERTICAL_SCALAR /
@@ -2948,12 +2943,12 @@ fn semantic_shape_dimensions_to_fit(
         })
       ((width + padding_x).ceil(), total_height.ceil())
     }
-    @graph.Step =>
+    Step =>
       (
         (width + padding_x + 2.0 * D2_STEP_WEDGE_WIDTH).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.Callout => {
+    Callout => {
       let mut total_height = height + padding_y
       if total_height < D2_CALLOUT_DEFAULT_TIP_HEIGHT {
         total_height = total_height * 2.0

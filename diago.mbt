@@ -130,7 +130,7 @@ pub fn CompileOptions::new() -> CompileOptions {
   {
     output_mode: Svg,
     layout_engine: Auto,
-    direction: @engine_api.Down,
+    direction: Down,
     target_spec: None,
     layout_plugin: None,
     route_plugin: None,
@@ -447,19 +447,19 @@ fn to_lib_render_options(options : CompileOptions) -> @lib.RenderOptions {
 ///|
 fn to_lib_layout_engine(layout_engine : LayoutEngine) -> @lib.LayoutEngine {
   match layout_engine {
-    Auto => @lib.Auto
-    Dagre => @lib.Dagre
-    Elk => @lib.Elk
-    Railway => @lib.Railway
+    Auto => Auto
+    Dagre => Dagre
+    Elk => Elk
+    Railway => Railway
   }
 }
 
 ///|
 fn to_lib_output_mode(output_mode : OutputMode) -> @lib.OutputMode {
   match output_mode {
-    Svg => @lib.Svg
-    Ascii => @lib.Ascii
-    Unicode => @lib.Unicode
+    Svg => Svg
+    Ascii => Ascii
+    Unicode => Unicode
   }
 }
 
@@ -468,20 +468,20 @@ fn[T] raise_diago_compiler_error(
   err : @compiler.CompileError,
 ) -> T raise DiagoError {
   match err {
-    @compiler.ParseError(message) => raise ParseError(message)
-    @compiler.IOError(message) => raise IOError(message)
-    @compiler.IrError(message) => raise IrError(message)
-    @compiler.GraphError(message) => raise GraphError(message)
-    @compiler.ConfigError(message) => raise ConfigError(message)
+    ParseError(message) => raise ParseError(message)
+    IOError(message) => raise IOError(message)
+    IrError(message) => raise IrError(message)
+    GraphError(message) => raise GraphError(message)
+    ConfigError(message) => raise ConfigError(message)
   }
 }
 
 ///|
 fn[T] raise_diago_lib_error(err : @lib.LibError) -> T raise DiagoError {
   match err {
-    @lib.LayoutError(message) => raise LayoutError(message)
-    @lib.RenderError(message) => raise RenderError(message)
-    @lib.ConfigError(message) => raise ConfigError(message)
-    @lib.TargetError(message) => raise TargetError(message)
+    LayoutError(message) => raise LayoutError(message)
+    RenderError(message) => raise RenderError(message)
+    ConfigError(message) => raise ConfigError(message)
+    TargetError(message) => raise TargetError(message)
   }
 }

@@ -169,62 +169,62 @@ fn sketch_arrowhead_command(
   let background_fill_js = sketch_js_string(background_fill)
   let width_js = sketch_js_number(stroke_width)
   match arrowhead {
-    @graph.None => ("", None)
-    @graph.Line =>
+    None => ("", None)
+    Line =>
       (
         "node = rc.linearPath([[-10, -4], [0, 0], [-10, 4]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, seed: 3 });",
         None,
       )
-    @graph.Triangle =>
+    Triangle =>
       (
         "node = rc.polygon([[-10, -4], [0, 0], [-10, 4]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", seed: 2 });",
         None,
       )
-    @graph.Open =>
+    Open =>
       (
         "node = rc.polygon([[-10, -4], [0, 0], [-10, 4]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", seed: 2 });",
         None,
       )
-    @graph.Diamond =>
+    Diamond =>
       (
         "node = rc.polygon([[-20, 0], [-10, 5], [0, 0], [-10, -5], [-20, 0]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", seed: 1 });",
         None,
       )
-    @graph.Circle =>
+    Circle =>
       (
         "node = rc.circle(-2, -1, 8, { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", fillWeight: 1, seed: 5 });",
         None,
       )
-    @graph.CfMany =>
+    CfMany =>
       (
         "node = rc.path(\"M0,10 -15,0 M0,-10 -15,0\", { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 4, seed: 8 });",
         None,
       )
-    @graph.CfManyOptional =>
+    CfManyOptional =>
       (
         "node = rc.path(\"M0,10 -15,0 M0,-10 -15,0\", { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 4, seed: 8 });",
         Some(
           "node = rc.circle(-20, 0, 8, { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", fillWeight: 1, seed: 4 });",
         ),
       )
-    @graph.CfManyRequired =>
+    CfManyRequired =>
       (
         "node = rc.path(\"M-15,-10 -15,10 M0,10 -15,0 M0,-10 -15,0\", { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 4, seed: 2 });",
         None,
       )
-    @graph.CfOne =>
+    CfOne =>
       (
         "node = rc.path(\"M-10,-10 -10,10\", { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 4, seed: 3 });",
         None,
       )
-    @graph.CfOneOptional =>
+    CfOneOptional =>
       (
         "node = rc.path(\"M-10,-10 -10,10\", { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 4, seed: 3 });",
         Some(
           "node = rc.circle(-20, 0, 8, { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", fillWeight: 1, seed: 5 });",
         ),
       )
-    @graph.CfOneRequired =>
+    CfOneRequired =>
       (
         "node = rc.path(\"M-15,-10 -15,10 M-10,-10 -10,10\", { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 4, seed: 2 });",
         None,
@@ -929,7 +929,7 @@ fn render_sketch_arrowhead(
   theme : @themes.Theme,
   use_css_theme_vars : Bool,
 ) -> Unit raise @render_api.RenderError {
-  if arrowhead == @graph.None {
+  if arrowhead == None {
     return
   }
   let nodes = session.arrowhead(

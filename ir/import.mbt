@@ -53,15 +53,14 @@ fn compile_map_nodes_with_imports(
 ) -> Unit raise CompileError {
   for node in nodes {
     match node {
-      @ast.MapNode::Comment(_, _) => ()
-      @ast.MapNode::BlockComment(_, _) => ()
-      @ast.MapNode::Substitution(sub) =>
+      Comment(_, _) => ()
+      BlockComment(_, _) => ()
+      Substitution(sub) =>
         ir.add_field(
           Field::new("", Some(substitution_scalar(sub, source_path)), None, []),
         )
-      @ast.MapNode::Import(imp) =>
-        compile_import(ir, imp, resolver, import_stack)
-      @ast.MapNode::Key(key) =>
+      Import(imp) => compile_import(ir, imp, resolver, import_stack)
+      Key(key) =>
         compile_key_with_imports(
           ir, key, scope_ast, resolver, import_stack, source_path,
         )
@@ -82,8 +81,7 @@ fn compile_import(
   if imp.spread {
     // Spread import in map context: only maps are allowed.
     let m2 = select_map_for_spread(import_ir, selector) catch {
-      _ =>
-        raise CompileError::ImportError("cannot spread import non map into map")
+      _ => raise ImportError("cannot spread import non map into map")
     }
     merge_into_map(ir, m2)
     return
@@ -112,11 +110,10 @@ fn compile_import_target(
 ) -> (Map, Array[@ast.StringValue]) raise CompileError {
   let (file_key, selector, display) = split_import_file_and_selector(imp)
   let (content, canonical) = resolve_import_content(resolver, file_key) catch {
-    _ =>
-      raise CompileError::ImportError("could not resolve import '\{display}'")
+    _ => raise ImportError("could not resolve import '\{display}'")
   }
   if contains(import_stack, canonical) {
-    raise CompileError::ImportError(
+    raise ImportError(
       "detected cyclic import chain: \{format_cycle(import_stack, canonical)}",
     )
   }
@@ -124,9 +121,7 @@ fn compile_import_target(
   stack2.push(canonical)
   let (import_ast, errors) = @parser.parse(content)
   if !errors.is_empty() {
-    raise CompileError::ImportError(
-      "parse error in imported file '\{display}': \{errors}",
-    )
+    raise ImportError("parse error in imported file '\{display}': \{errors}")
   }
   let import_ir = Map::from_ast(import_ast, source_path=Some(canonical))
   compile_map_nodes_with_imports(
@@ -137,7 +132,7 @@ fn compile_import_target(
     stack2,
     source_path=Some(canonical),
   )
-  (with_import_ast_map(import_ir, @ast.Node::Import(imp)), selector)
+  (with_import_ast_map(import_ir, Import(imp)), selector)
 }
 
 ///|
@@ -208,12 +203,12 @@ fn resolve_import_content(
     Some(content) => (content, file_key)
     None =>
       if file_key.has_suffix(".d2") {
-        raise CompileError::ImportError("missing import")
+        raise ImportError("missing import")
       } else {
         let k2 = file_key + ".d2"
         match (resolver.0)(k2) {
           Some(content) => (content, k2)
-          None => raise CompileError::ImportError("missing import")
+          None => raise ImportError("missing import")
         }
       }
   }
@@ -242,7 +237,7 @@ fn select_primary_and_composite(
   selector : Array[@ast.StringValue],
 ) -> (Scalar?, Composite?) raise CompileError {
   if selector.length() == 0 {
-    return (None, Some(Composite::Map(root)))
+    return (None, Some(Map(root)))
   }
   let f = select_field(root, selector)
   (f.primary, f.composite)
@@ -258,8 +253,8 @@ fn select_map_for_spread(
   }
   let f = select_field(root, selector)
   match f.composite {
-    Some(Composite::Map(m)) => m
-    _ => raise CompileError::ImportError("not a map")
+    Some(Map(m)) => m
+    _ => raise ImportError("not a map")
   }
 }
 
@@ -276,14 +271,14 @@ fn select_field(
           return f
         } else {
           match f.composite {
-            Some(Composite::Map(m)) => current = m
-            _ => raise CompileError::ImportError("not a map")
+            Some(Map(m)) => current = m
+            _ => raise ImportError("not a map")
           }
         }
-      None => raise CompileError::ImportError("not found")
+      None => raise ImportError("not found")
     }
   }
-  raise CompileError::ImportError("not found")
+  raise ImportError("not found")
 }
 
 ///|
@@ -369,21 +364,20 @@ fn compile_key_with_imports(
       false,
     )
     match field.composite {
-      Some(Composite::Map(m)) => current_map = m
+      Some(Map(m)) => current_map = m
       None => {
         let new_map = Map::new()
         let field = Field::new(
           field.name,
           field.primary,
-          Some(Composite::Map(new_map)),
+          Some(Map(new_map)),
           field.references,
           name_syntax=field.name_syntax(),
         )
         current_map.set_field(field)
         current_map = new_map
       }
-      Some(_) =>
-        raise CompileError::InvalidKey("field already has non-map value")
+      Some(_) => raise InvalidKey("field already has non-map value")
     }
   }
   // Set the final field
@@ -442,7 +436,7 @@ fn compile_value_with_imports(
   source_path : String?,
 ) -> Field raise CompileError {
   match value {
-    @ast.Value::Scalar(s) =>
+    Scalar(s) =>
       Field::new(
         field.name,
         Some(compile_scalar(s, source_path)),
@@ -450,7 +444,7 @@ fn compile_value_with_imports(
         field.references,
         name_syntax=field.name_syntax(),
       )
-    @ast.Value::Map(m) => {
+    Map(m) => {
       let ir_map = Map::from_ast(m, source_path~)
       compile_map_nodes_with_imports(
         ir_map,
@@ -463,24 +457,24 @@ fn compile_value_with_imports(
       Field::new(
         field.name,
         field.primary,
-        Some(Composite::Map(ir_map)),
+        Some(Map(ir_map)),
         field.references,
         name_syntax=field.name_syntax(),
       )
     }
-    @ast.Value::Array(a) => {
+    Array(a) => {
       let ir_array = compile_array_with_imports(
         a, resolver, import_stack, source_path,
       )
       Field::new(
         field.name,
         field.primary,
-        Some(Composite::Array(ir_array)),
+        Some(Array(ir_array)),
         field.references,
         name_syntax=field.name_syntax(),
       )
     }
-    @ast.Value::Import(imp) => {
+    Import(imp) => {
       let (import_ir, selector) = compile_import_target(
         imp, resolver, import_stack,
       )
@@ -495,9 +489,9 @@ fn compile_value_with_imports(
         name_syntax=field.name_syntax(),
       )
     }
-    @ast.Value::BlockScalar(label, m) => {
+    BlockScalar(label, m) => {
       let field = match label {
-        @ast.Value::Scalar(s) =>
+        Scalar(s) =>
           Field::new(
             field.name,
             Some(compile_scalar(s, source_path)),
@@ -519,7 +513,7 @@ fn compile_value_with_imports(
       Field::new(
         field.name,
         field.primary,
-        Some(Composite::Map(ir_map)),
+        Some(Map(ir_map)),
         field.references,
         name_syntax=field.name_syntax(),
       )
@@ -537,11 +531,11 @@ fn compile_array_with_imports(
   let values : Array[Value] = []
   for node in arr.nodes {
     match node {
-      @ast.ArrayNode::Comment(_, _) => ()
-      @ast.ArrayNode::BlockComment(_, _) => ()
-      @ast.ArrayNode::Substitution(sub) =>
-        values.push(Value::Scalar(substitution_scalar(sub, source_path)))
-      @ast.ArrayNode::Import(imp) => {
+      Comment(_, _) => ()
+      BlockComment(_, _) => ()
+      Substitution(sub) =>
+        values.push(Scalar(substitution_scalar(sub, source_path)))
+      Import(imp) => {
         let (import_ir, selector) = compile_import_target(
           imp, resolver, import_stack,
         )
@@ -549,28 +543,25 @@ fn compile_array_with_imports(
           // Only allow spreading arrays into arrays (reference behavior).
           let f = select_field(import_ir, selector)
           match f.composite {
-            Some(Composite::Array(a)) =>
+            Some(Array(a)) =>
               for v in a.values {
                 values.push(v)
               }
-            _ =>
-              raise CompileError::ImportError(
-                "can only spread import array into array",
-              )
+            _ => raise ImportError("can only spread import array into array")
           }
         } else {
           let (primary, composite) = select_primary_and_composite(
             import_ir, selector,
           )
           match (primary, composite) {
-            (Some(p), _) => values.push(Value::Scalar(p))
-            (None, Some(Composite::Map(m))) => values.push(Value::Map(m))
-            (None, Some(Composite::Array(a))) => values.push(Value::Array(a))
+            (Some(p), _) => values.push(Scalar(p))
+            (None, Some(Map(m))) => values.push(Map(m))
+            (None, Some(Array(a))) => values.push(Array(a))
             (None, None) => ()
           }
         }
       }
-      @ast.ArrayNode::Value(v) => {
+      Value(v) => {
         let compiled = compile_ast_value_with_imports(
           v, resolver, import_stack, source_path,
         )
@@ -589,8 +580,8 @@ fn compile_ast_value_with_imports(
   source_path : String?,
 ) -> Value raise CompileError {
   match value {
-    @ast.Value::Scalar(s) => Value::Scalar(compile_scalar(s, source_path))
-    @ast.Value::Map(m) => {
+    Scalar(s) => Scalar(compile_scalar(s, source_path))
+    Map(m) => {
       let ir_map = Map::from_ast(m, source_path~)
       compile_map_nodes_with_imports(
         ir_map,
@@ -600,13 +591,11 @@ fn compile_ast_value_with_imports(
         import_stack,
         source_path~,
       )
-      Value::Map(ir_map)
+      Map(ir_map)
     }
-    @ast.Value::Array(a) =>
-      Value::Array(
-        compile_array_with_imports(a, resolver, import_stack, source_path),
-      )
-    @ast.Value::Import(imp) => {
+    Array(a) =>
+      Array(compile_array_with_imports(a, resolver, import_stack, source_path))
+    Import(imp) => {
       let (import_ir, selector) = compile_import_target(
         imp, resolver, import_stack,
       )
@@ -614,13 +603,13 @@ fn compile_ast_value_with_imports(
         import_ir, selector,
       )
       match (primary, composite) {
-        (Some(p), _) => Value::Scalar(p)
-        (None, Some(Composite::Map(m))) => Value::Map(m)
-        (None, Some(Composite::Array(a))) => Value::Array(a)
-        (None, None) => Value::Scalar(Scalar::null())
+        (Some(p), _) => Scalar(p)
+        (None, Some(Map(m))) => Map(m)
+        (None, Some(Array(a))) => Array(a)
+        (None, None) => Scalar(Scalar::null())
       }
     }
-    @ast.Value::BlockScalar(_, m) => {
+    BlockScalar(_, m) => {
       let ir_map = Map::from_ast(m, source_path~)
       compile_map_nodes_with_imports(
         ir_map,
@@ -630,7 +619,7 @@ fn compile_ast_value_with_imports(
         import_stack,
         source_path~,
       )
-      Value::Map(ir_map)
+      Map(ir_map)
     }
   }
 }
@@ -688,9 +677,8 @@ fn compile_edges_with_imports(
       match (existing, value) {
         (Some(e), Some(v)) =>
           match v {
-            @ast.Value::Scalar(s) =>
-              (Some(compile_scalar(s, source_path)), e.map)
-            @ast.Value::Map(m) => {
+            Scalar(s) => (Some(compile_scalar(s, source_path)), e.map)
+            Map(m) => {
               let ir_map = Map::from_ast(m, source_path~)
               compile_map_nodes_with_imports(
                 ir_map,
@@ -702,9 +690,9 @@ fn compile_edges_with_imports(
               )
               (e.primary, Some(ir_map))
             }
-            @ast.Value::BlockScalar(label, m) => {
+            BlockScalar(label, m) => {
               let updated_primary = match label {
-                @ast.Value::Scalar(s) => Some(compile_scalar(s, source_path))
+                Scalar(s) => Some(compile_scalar(s, source_path))
                 _ => e.primary
               }
               let ir_map = Map::from_ast(m, source_path~)
@@ -723,9 +711,8 @@ fn compile_edges_with_imports(
         (Some(e), None) => (e.primary, e.map)
         (None, Some(v)) =>
           match v {
-            @ast.Value::Scalar(s) =>
-              (Some(compile_scalar(s, source_path)), None)
-            @ast.Value::Map(m) => {
+            Scalar(s) => (Some(compile_scalar(s, source_path)), None)
+            Map(m) => {
               let ir_map = Map::from_ast(m, source_path~)
               compile_map_nodes_with_imports(
                 ir_map,
@@ -737,11 +724,10 @@ fn compile_edges_with_imports(
               )
               (None, Some(ir_map))
             }
-            @ast.Value::BlockScalar(label, m) => {
+            BlockScalar(label, m) => {
               let mut primary : Scalar? = None
               match label {
-                @ast.Value::Scalar(s) =>
-                  primary = Some(compile_scalar(s, source_path))
+                Scalar(s) => primary = Some(compile_scalar(s, source_path))
                 _ => ()
               }
               let ir_map = Map::from_ast(m, source_path~)

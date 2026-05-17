@@ -12,7 +12,7 @@ fn test_object_with_children(
   @graph.ObjectInput::from_parts(
     id,
     id,
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,

@@ -268,7 +268,7 @@ pub impl @engine_api.LayoutEngine for ElkEngine with layout(
   direction,
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
   let graph = canonicalize_layout_graph(graph)
-  if graph.root.shape_type == @graph.SequenceDiagram {
+  if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_diagram(graph, config)
   }
 
@@ -318,10 +318,7 @@ pub impl @engine_api.LayoutEngine for ElkEngine with engine_name(_self) -> Strin
 pub impl @engine_api.LayoutEngine for ElkEngine with features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
-  [
-    @engine_api.LayoutFeature::ContainerDimensions,
-    @engine_api.LayoutFeature::DescendantEdges,
-  ]
+  [ContainerDimensions, DescendantEdges]
 }
 
 ///|
@@ -858,7 +855,7 @@ fn sequence_actor_size(
   let mut h = height
   if w < D2_SEQUENCE_MIN_ACTOR_WIDTH {
     match shape_type {
-      @graph.Person | @graph.Oval | @graph.Square | @graph.Circle =>
+      Person | Oval | Square | Circle =>
         if w > 0.0 {
           h = h * D2_SEQUENCE_MIN_ACTOR_WIDTH / w
         }
@@ -1887,13 +1884,13 @@ fn sequence_object_size(
   object_by_id : Map[String, @graph.ObjectInput],
 ) -> (Double, Double) {
   let estimate_auto_size = () => {
-    if obj.shape_type == @graph.SqlTable {
+    if obj.shape_type == SqlTable {
       let (width, height) = estimate_sql_table_size(obj, object_by_id)
       (
         clamp_positive(width, config.default_width),
         clamp_positive(height, config.default_height),
       )
-    } else if obj.shape_type == @graph.Class {
+    } else if obj.shape_type == Class {
       let (width, height) = estimate_class_size(obj, object_by_id)
       (
         clamp_positive(width, config.default_width),
@@ -1928,9 +1925,8 @@ fn estimate_sequence_object_size(
   }
   let is_bold = style_bool(obj.style.bold, false)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == @graph.Code ||
-    style_is_mono(obj.style.font_family)
-  let label_dims = if obj.shape_type == @graph.Code {
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let label_dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else {
     @text_metrics.measure_label(
@@ -1944,16 +1940,16 @@ fn estimate_sequence_object_size(
   let mut content_width = label_dims.width
   let mut content_height = label_dims.height
 
-  if obj.shape_type == @graph.Code {
+  if obj.shape_type == Code {
     content_width = content_width + font_size.to_double()
     content_height = content_height + font_size.to_double()
     return (content_width, content_height)
-  } else if obj.label != "" && obj.shape_type != @graph.Text {
+  } else if obj.label != "" && obj.shape_type != Text {
     content_width = content_width + D2_INNER_LABEL_PADDING
     content_height = content_height + D2_INNER_LABEL_PADDING
   }
 
-  if obj.shape_type == @graph.Text {
+  if obj.shape_type == Text {
     if content_width < D2_MIN_SHAPE_SIZE {
       content_width = D2_MIN_SHAPE_SIZE
     }
@@ -1963,7 +1959,7 @@ fn estimate_sequence_object_size(
     return (content_width, content_height)
   }
 
-  if obj.shape_type == @graph.Image {
+  if obj.shape_type == Image {
     return (128.0, 128.0)
   }
 
@@ -1971,10 +1967,10 @@ fn estimate_sequence_object_size(
   let mut padding_x = base_padding.0
   let mut padding_y = base_padding.1
   if obj.icon is Some(_) &&
-    obj.shape_type != @graph.SqlTable &&
-    obj.shape_type != @graph.Class &&
-    obj.shape_type != @graph.Code &&
-    obj.shape_type != @graph.Text {
+    obj.shape_type != SqlTable &&
+    obj.shape_type != Class &&
+    obj.shape_type != Code &&
+    obj.shape_type != Text {
     let label_height = label_dims.height + D2_INNER_LABEL_PADDING
     padding_x = padding_x + label_height
     padding_y = padding_y + label_height
@@ -1990,19 +1986,19 @@ fn estimate_sequence_object_size(
   let mut width = fitted.0
   let mut height = fitted.1
 
-  if obj.shape_type == @graph.Circle || obj.shape_type == @graph.Square {
+  if obj.shape_type == Circle || obj.shape_type == Square {
     let side = if width > height { width } else { height }
     width = side
     height = side
-  } else if obj.shape_type == @graph.Person {
+  } else if obj.shape_type == Person {
     let fit = limit_aspect_ratio(width, height, D2_PERSON_AR_LIMIT)
     width = fit.0
     height = fit.1
-  } else if obj.shape_type == @graph.Oval {
+  } else if obj.shape_type == Oval {
     let fit = limit_aspect_ratio(width, height, D2_OVAL_AR_LIMIT)
     width = fit.0
     height = fit.1
-  } else if obj.shape_type == @graph.C4Person {
+  } else if obj.shape_type == C4Person {
     let fit = limit_aspect_ratio(width, height, D2_C4_PERSON_AR_LIMIT)
     width = fit.0
     height = fit.1
@@ -2328,7 +2324,7 @@ fn build_elk_graph(
       node_json["layoutOptions"] = Json::object(make_leaf_layout_options())
     }
 
-    if obj.shape_type == @graph.SqlTable {
+    if obj.shape_type == SqlTable {
       let layout_options = json_object_field(node_json, "layoutOptions")
       layout_options["elk.portConstraints"] = Json::string("FIXED_POS")
       node_json["layoutOptions"] = Json::object(layout_options)
@@ -3523,7 +3519,7 @@ fn apply_multi_edge_min_size_like_d2(
     let max_degree = if incoming > outgoing { incoming } else { outgoing }
     let required_size = max_degree.to_double() * D2_PORT_SPACING
     match direction {
-      @engine_api.Right | @engine_api.Left =>
+      Right | Left =>
         if !has_explicit_object_height(obj) && adjusted_height < required_size {
           adjusted_height = required_size
         }
@@ -3543,7 +3539,7 @@ fn apply_label_icon_height_boost_like_d2(
   width : Double,
   height : Double,
 ) -> (Double, Double) {
-  if obj.label != "" && obj.icon is Some(_) && obj.shape_type != @graph.Image {
+  if obj.label != "" && obj.icon is Some(_) && obj.shape_type != Image {
     (width, height + label_height(obj, config) + D2_LABEL_PADDING)
   } else {
     (width, height)
@@ -3580,7 +3576,7 @@ fn is_sql_or_class_member_node(
     Some(v) => v
     None => return false
   }
-  parent.shape_type == @graph.SqlTable || parent.shape_type == @graph.Class
+  parent.shape_type == SqlTable || parent.shape_type == Class
 }
 
 ///|
@@ -3632,7 +3628,7 @@ fn build_sql_table_ports(
 ///|
 fn sql_table_port_sides(direction : @engine_api.Direction) -> (String, String) {
   match direction {
-    @engine_api.Left => ("WEST", "EAST")
+    Left => ("WEST", "EAST")
     _ => ("EAST", "WEST")
   }
 }
@@ -3683,7 +3679,7 @@ fn edge_endpoint_with_sql_port(
     Some(v) => v
     None => return resolved_id
   }
-  if endpoint_obj.shape_type != @graph.SqlTable {
+  if endpoint_obj.shape_type != SqlTable {
     return resolved_id
   }
   match column_index {
@@ -3731,7 +3727,7 @@ fn edge_endpoint_with_sql_port(
 ///|
 fn sql_root_port_sides(direction : @engine_api.Direction) -> (String, String) {
   match direction {
-    @engine_api.Up => ("NORTH", "SOUTH")
+    Up => ("NORTH", "SOUTH")
     _ => ("SOUTH", "NORTH")
   }
 }
@@ -4132,13 +4128,13 @@ fn trace_route_endpoints_like_d2(
 
 ///|
 fn is_rectangular_shape_like_d2(shape_type : @graph.ShapeType) -> Bool {
-  shape_type == @graph.Rectangle ||
-  shape_type == @graph.Square ||
-  shape_type == @graph.SqlTable ||
-  shape_type == @graph.Class ||
-  shape_type == @graph.Text ||
-  shape_type == @graph.Code ||
-  shape_type == @graph.Image
+  shape_type == Rectangle ||
+  shape_type == Square ||
+  shape_type == SqlTable ||
+  shape_type == Class ||
+  shape_type == Text ||
+  shape_type == Code ||
+  shape_type == Image
 }
 
 ///|
@@ -4146,7 +4142,7 @@ fn modifier_element_adjustments(obj : @graph.ObjectInput) -> (Double, Double) {
   if style_bool(obj.style.three_d, false) {
     (
       D2_THREE_DEE_OFFSET,
-      if obj.shape_type == @graph.Hexagon {
+      if obj.shape_type == Hexagon {
         D2_THREE_DEE_OFFSET / 2.0
       } else {
         D2_THREE_DEE_OFFSET
@@ -4193,7 +4189,7 @@ fn outside_label_box(
   obj : @graph.ObjectInput,
   box : @graph.Box,
 ) -> (@graph.Box, DefaultLabelPosition)? {
-  if obj.shape_type == @graph.SqlTable || obj.shape_type == @graph.Class {
+  if obj.shape_type == SqlTable || obj.shape_type == Class {
     return None
   }
   if obj.label == "" {
@@ -4377,10 +4373,10 @@ fn layout_node_spacing(
   let raw = match
     (direction, config.horizontal_spacing, config.vertical_spacing) {
     // Align default ELK spacing with the reference default (70) while preserving explicit config overrides.
-    (@engine_api.Down | @engine_api.Up, _, v) if approx_eq(v, 100.0) => 70.0
-    (@engine_api.Right | @engine_api.Left, h, _) if approx_eq(h, 60.0) => 70.0
-    (@engine_api.Down | @engine_api.Up, _, v) => v
-    (@engine_api.Right | @engine_api.Left, h, _) => h
+    (Down | Up, _, v) if approx_eq(v, 100.0) => 70.0
+    (Right | Left, h, _) if approx_eq(h, 60.0) => 70.0
+    (Down | Up, _, v) => v
+    (Right | Left, h, _) => h
   }
   positive_int(raw, 70)
 }
@@ -4404,8 +4400,8 @@ fn node_size_minimum(
   let min_w = width.ceil().to_int()
   let min_h = height.ceil().to_int()
   match direction {
-    @engine_api.Down | @engine_api.Up => "(\{min_h}, \{min_w})"
-    @engine_api.Right | @engine_api.Left => "(\{min_w}, \{min_h})"
+    Down | Up => "(\{min_h}, \{min_w})"
+    Right | Left => "(\{min_w}, \{min_h})"
   }
 }
 
@@ -4424,8 +4420,8 @@ fn self_loop_spacing_for_parent(
     child_set[child_id] = true
   }
   let prefer_width = match direction {
-    @engine_api.Down | @engine_api.Up => true
-    @engine_api.Right | @engine_api.Left => false
+    Down | Up => true
+    Right | Left => false
   }
   let mut max_label = 0
   for edge in graph.edges {
@@ -4474,10 +4470,10 @@ fn positive_int(value : Double, fallback : Int) -> Int {
 ///|
 fn elk_direction(direction : @engine_api.Direction) -> String {
   match direction {
-    @engine_api.Down => "DOWN"
-    @engine_api.Right => "RIGHT"
-    @engine_api.Up => "UP"
-    @engine_api.Left => "LEFT"
+    Down => "DOWN"
+    Right => "RIGHT"
+    Up => "UP"
+    Left => "LEFT"
   }
 }
 
@@ -4528,7 +4524,7 @@ fn collapse_sql_or_class_endpoint_id(
       Some(v) => v
       None => break
     }
-    if parent.shape_type != @graph.SqlTable && parent.shape_type != @graph.Class {
+    if parent.shape_type != SqlTable && parent.shape_type != Class {
       break
     }
     current = parent_id
@@ -4800,7 +4796,7 @@ fn fallback_route_from_boxes(
 
   let route : Array[@graph.Point] = []
   match direction {
-    @engine_api.Down | @engine_api.Up =>
+    Down | Up =>
       if approx_eq(src_center.x, dst_center.x) {
         route.push(src_center)
         route.push(dst_center)
@@ -4811,7 +4807,7 @@ fn fallback_route_from_boxes(
         route.push(@graph.Point::new(dst_center.x, mid_y))
         route.push(dst_center)
       }
-    @engine_api.Right | @engine_api.Left =>
+    Right | Left =>
       if approx_eq(src_center.y, dst_center.y) {
         route.push(src_center)
         route.push(dst_center)
@@ -4855,13 +4851,13 @@ fn clip_route_endpoints(
 
   let src_shape_type = match object_by_id.get(src_id) {
     Some(obj) => obj.shape_type
-    None => @graph.Rectangle
+    None => Rectangle
   }
   clipped[0] = shape_border_point_towards(src_shape_type, src_box, clipped[1])
   let last_index = clipped.length() - 1
   let dst_shape_type = match object_by_id.get(dst_id) {
     Some(obj) => obj.shape_type
-    None => @graph.Rectangle
+    None => Rectangle
   }
   clipped[last_index] = shape_border_point_towards(
     dst_shape_type,
@@ -5135,7 +5131,7 @@ fn delete_endpoint_s_shape_like_d2(
 
   let endpoint_shape_type = match endpoint_obj {
     Some(obj) => obj.shape_type
-    None => @graph.Rectangle
+    None => Rectangle
   }
   let replacement = trace_shape_border_like_d2(
     endpoint_shape_type, endpoint_box, probe, end,
@@ -5397,7 +5393,7 @@ fn trace_to_shape_border(
   if is_rectangular_shape_like_d2(shape_type) {
     return rect_border_point
   }
-  if shape_type == @graph.Cylinder {
+  if shape_type == Cylinder {
     return trace_cylinder_border(box, rect_border_point, prev_point)
   }
   let extended_end = extended_trace_segment_end(
@@ -5618,7 +5614,7 @@ fn shape_border_intersections(
   segment_end : @graph.Point,
 ) -> Array[@graph.Point] {
   match shape_type {
-    @graph.Hexagon => {
+    Hexagon => {
       let points = [
         d2_perimeter_point(box.x + box.width * 0.25, box.y),
         d2_perimeter_point(box.x, box.y + box.height * D2_HEXAGON_HALF_Y_FACTOR),
@@ -5632,7 +5628,7 @@ fn shape_border_intersections(
       ]
       polygon_intersections(points, segment_start, segment_end)
     }
-    @graph.Diamond => {
+    Diamond => {
       let points = [
         d2_perimeter_point(box.x + box.width / 2.0, box.y),
         d2_perimeter_point(box.x + box.width, box.y + box.height / 2.0),
@@ -5641,7 +5637,7 @@ fn shape_border_intersections(
       ]
       polygon_intersections(points, segment_start, segment_end)
     }
-    @graph.Callout => {
+    Callout => {
       let tip_w = if box.width < 60.0 { box.width / 2.0 } else { 30.0 }
       let tip_h = if box.height < 90.0 { box.height / 2.0 } else { 45.0 }
       let main_h = box.height - tip_h
@@ -5657,7 +5653,7 @@ fn shape_border_intersections(
       ]
       polygon_intersections(points, segment_start, segment_end)
     }
-    @graph.Package => {
+    Package => {
       let (top_width, top_height) = package_top_dimensions(box)
       let points = [
         d2_perimeter_point(box.x, box.y),
@@ -5669,7 +5665,7 @@ fn shape_border_intersections(
       ]
       polygon_intersections(points, segment_start, segment_end)
     }
-    @graph.Parallelogram => {
+    Parallelogram => {
       let wedge = if box.width <= D2_PARALLELOGRAM_WEDGE_WIDTH {
         box.width / 2.0
       } else {
@@ -5683,7 +5679,7 @@ fn shape_border_intersections(
       ]
       polygon_intersections(points, segment_start, segment_end)
     }
-    @graph.Step => {
+    Step => {
       let wedge = if box.width <= D2_STEP_WEDGE_WIDTH {
         box.width / 2.0
       } else {
@@ -5699,7 +5695,7 @@ fn shape_border_intersections(
       ]
       polygon_intersections(points, segment_start, segment_end)
     }
-    @graph.Document => {
+    Document => {
       let out : Array[@graph.Point] = []
       let x0 = box.x
       let y0 = box.y
@@ -5765,7 +5761,7 @@ fn shape_border_intersections(
       }
       out
     }
-    @graph.Page => {
+    Page => {
       let out : Array[@graph.Point] = []
       let x0 = box.x
       let y0 = box.y
@@ -5872,7 +5868,7 @@ fn shape_border_intersections(
       }
       out
     }
-    @graph.Queue => {
+    Queue => {
       let out : Array[@graph.Point] = []
       let arc = if box.width < D2_DEFAULT_ARC_DEPTH * 2.0 {
         box.width / 2.0
@@ -5957,7 +5953,7 @@ fn shape_border_intersections(
       }
       out
     }
-    @graph.StoredData => {
+    StoredData => {
       let out : Array[@graph.Point] = []
       let wedge = if box.width < D2_STORED_DATA_WEDGE_WIDTH * 2.0 {
         box.width / 2.0
@@ -6042,7 +6038,7 @@ fn shape_border_intersections(
       }
       out
     }
-    @graph.Cloud => {
+    Cloud => {
       let out : Array[@graph.Point] = []
       let sx = box.width / 834.0
       let sy = box.height / 523.0
@@ -6238,7 +6234,7 @@ fn shape_border_intersections(
       }
       out
     }
-    @graph.Circle | @graph.Oval =>
+    Circle | Oval =>
       segment_ellipse_intersections(
         segment_start,
         segment_end,
@@ -6616,13 +6612,13 @@ fn object_size(
   object_by_id : Map[String, @graph.ObjectInput],
 ) -> (Double, Double) {
   let estimate_auto_size = () => {
-    if obj.shape_type == @graph.SqlTable {
+    if obj.shape_type == SqlTable {
       let (width, height) = estimate_sql_table_size(obj, object_by_id)
       (
         clamp_positive(width, config.default_width),
         clamp_positive(height, config.default_height),
       )
-    } else if obj.shape_type == @graph.Class {
+    } else if obj.shape_type == Class {
       let (width, height) = estimate_class_size(obj, object_by_id)
       (
         clamp_positive(width, config.default_width),
@@ -6673,17 +6669,17 @@ fn estimate_object_size(
   let mut content_width = label_width
   let mut content_height = label_height
 
-  if obj.shape_type == @graph.Code {
+  if obj.shape_type == Code {
     content_width = content_width + font_size.to_double()
     content_height = content_height + font_size.to_double()
     // reference behavior: code shape size is measured text + 0.5em padding each side only.
     return (content_width, content_height)
-  } else if obj.label != "" && obj.shape_type != @graph.Text {
+  } else if obj.label != "" && obj.shape_type != Text {
     content_width = content_width + D2_INNER_LABEL_PADDING
     content_height = content_height + D2_INNER_LABEL_PADDING
   }
 
-  if obj.shape_type == @graph.Text {
+  if obj.shape_type == Text {
     if content_width < D2_MIN_SHAPE_SIZE {
       content_width = D2_MIN_SHAPE_SIZE
     }
@@ -6693,7 +6689,7 @@ fn estimate_object_size(
     return (content_width, content_height)
   }
 
-  if obj.shape_type == @graph.Image {
+  if obj.shape_type == Image {
     return (128.0, 128.0)
   }
 
@@ -6701,10 +6697,10 @@ fn estimate_object_size(
   let mut padding_x = base_padding.0
   let mut padding_y = base_padding.1
   if obj.icon is Some(_) &&
-    obj.shape_type != @graph.SqlTable &&
-    obj.shape_type != @graph.Class &&
-    obj.shape_type != @graph.Code &&
-    obj.shape_type != @graph.Text {
+    obj.shape_type != SqlTable &&
+    obj.shape_type != Class &&
+    obj.shape_type != Code &&
+    obj.shape_type != Text {
     let label_height_with_padding = label_height + D2_INNER_LABEL_PADDING
     padding_x = padding_x + label_height_with_padding
     padding_y = padding_y + label_height_with_padding
@@ -6720,19 +6716,19 @@ fn estimate_object_size(
   let mut width = fitted.0
   let mut height = fitted.1
 
-  if obj.shape_type == @graph.Circle || obj.shape_type == @graph.Square {
+  if obj.shape_type == Circle || obj.shape_type == Square {
     let side = if width > height { width } else { height }
     width = side
     height = side
-  } else if obj.shape_type == @graph.Person {
+  } else if obj.shape_type == Person {
     let fit = limit_aspect_ratio(width, height, D2_PERSON_AR_LIMIT)
     width = fit.0
     height = fit.1
-  } else if obj.shape_type == @graph.Oval {
+  } else if obj.shape_type == Oval {
     let fit = limit_aspect_ratio(width, height, D2_OVAL_AR_LIMIT)
     width = fit.0
     height = fit.1
-  } else if obj.shape_type == @graph.C4Person {
+  } else if obj.shape_type == C4Person {
     let fit = limit_aspect_ratio(width, height, D2_C4_PERSON_AR_LIMIT)
     width = fit.0
     height = fit.1
@@ -6856,7 +6852,7 @@ fn estimate_class_size(
       let header_height_min = if 2.0 * row_height >
         header_dims.height + D2_LABEL_PADDING * 2.0 {
         2.0 * row_height
-      } else if obj.shape_type == @graph.Class {
+      } else if obj.shape_type == Class {
         header_dims.height + D2_LABEL_PADDING * 2.0
       } else {
         D2_LABEL_PADDING * 2.0
@@ -6885,29 +6881,27 @@ fn estimate_class_size(
 ///|
 fn shape_default_padding(shape_type : @graph.ShapeType) -> (Double, Double) {
   match shape_type {
-    @graph.Circle => {
+    Circle => {
       let p = D2_DEFAULT_PADDING / 2.0.sqrt()
       (p, p)
     }
-    @graph.Diamond => (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING / 2.0)
-    @graph.Hexagon => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING / 2.0)
-    @graph.Cylinder => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
-    @graph.Queue => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING)
-    @graph.StoredData => (D2_DEFAULT_PADDING - 10.0, D2_DEFAULT_PADDING)
-    @graph.Person => (10.0, D2_DEFAULT_PADDING)
-    @graph.C4Person => (10.0, D2_DEFAULT_PADDING)
-    @graph.Page =>
-      (D2_DEFAULT_PADDING, D2_PAGE_CORNER_HEIGHT + D2_DEFAULT_PADDING)
-    @graph.Document =>
+    Diamond => (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING / 2.0)
+    Hexagon => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING / 2.0)
+    Cylinder => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
+    Queue => (D2_DEFAULT_PADDING / 2.0, D2_DEFAULT_PADDING)
+    StoredData => (D2_DEFAULT_PADDING - 10.0, D2_DEFAULT_PADDING)
+    Person => (10.0, D2_DEFAULT_PADDING)
+    C4Person => (10.0, D2_DEFAULT_PADDING)
+    Page => (D2_DEFAULT_PADDING, D2_PAGE_CORNER_HEIGHT + D2_DEFAULT_PADDING)
+    Document =>
       (
         D2_DEFAULT_PADDING,
         D2_DEFAULT_PADDING * D2_DOC_PATH_INNER_BOTTOM / D2_DOC_PATH_HEIGHT,
       )
-    @graph.Package => (D2_DEFAULT_PADDING, 0.8 * D2_DEFAULT_PADDING)
-    @graph.Step =>
-      (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING + D2_STEP_WEDGE_WIDTH)
-    @graph.Callout => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
-    @graph.Cloud => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
+    Package => (D2_DEFAULT_PADDING, 0.8 * D2_DEFAULT_PADDING)
+    Step => (D2_DEFAULT_PADDING / 4.0, D2_DEFAULT_PADDING + D2_STEP_WEDGE_WIDTH)
+    Callout => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
+    Cloud => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING / 2.0)
     _ => (D2_DEFAULT_PADDING, D2_DEFAULT_PADDING)
   }
 }
@@ -6921,7 +6915,7 @@ fn shape_dimensions_to_fit(
   padding_y : Double,
 ) -> (Double, Double) {
   match shape_type {
-    @graph.Circle => {
+    Circle => {
       let length = if width + padding_x > height + padding_y {
         width + padding_x
       } else {
@@ -6930,7 +6924,7 @@ fn shape_dimensions_to_fit(
       let diameter = (2.0.sqrt() * length).ceil()
       (diameter, diameter)
     }
-    @graph.Oval => {
+    Oval => {
       let theta = @math.atan2(height, width)
       let padded_width = width + padding_x * @math.cos(theta)
       let padded_height = height + padding_y * @math.sin(theta)
@@ -6941,31 +6935,31 @@ fn shape_dimensions_to_fit(
       total_height = fit.1
       (total_width, total_height)
     }
-    @graph.Diamond =>
+    Diamond =>
       ((2.0 * (width + padding_x)).ceil(), (2.0 * (height + padding_y)).ceil())
-    @graph.Hexagon =>
+    Hexagon =>
       ((1.5 * (width + padding_x)).ceil(), (1.5 * (height + padding_y)).ceil())
-    @graph.Parallelogram =>
+    Parallelogram =>
       (
         (width + padding_x + D2_PARALLELOGRAM_WEDGE_WIDTH * 2.0).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.Cylinder =>
+    Cylinder =>
       (
         (width + padding_x).ceil(),
         (height + padding_y + 3.0 * D2_DEFAULT_ARC_DEPTH).ceil(),
       )
-    @graph.Queue =>
+    Queue =>
       (
         (width + padding_x + 3.0 * D2_DEFAULT_ARC_DEPTH).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.StoredData =>
+    StoredData =>
       (
         (width + padding_x + 2.0 * D2_STORED_DATA_WEDGE_WIDTH).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.Person => {
+    Person => {
       let mut total_width = width + padding_x
       let mut total_height = height + padding_y
       let fit = limit_aspect_ratio(
@@ -6977,7 +6971,7 @@ fn shape_dimensions_to_fit(
       total_height = fit.1
       (total_width.ceil(), total_height.ceil())
     }
-    @graph.C4Person => {
+    C4Person => {
       let content_width = width + padding_x
       let content_height = height + padding_y
       let mut total_width = content_width / 0.9
@@ -6998,7 +6992,7 @@ fn shape_dimensions_to_fit(
       total_height = fit.1
       (total_width.ceil(), total_height.ceil())
     }
-    @graph.Cloud => {
+    Cloud => {
       let total_width = width + padding_x
       let total_height = height + padding_y
       let aspect_ratio = total_width / total_height
@@ -7019,7 +7013,7 @@ fn shape_dimensions_to_fit(
         )
       }
     }
-    @graph.Page => {
+    Page => {
       let mut total_width = width + padding_x
       let mut total_height = height + padding_y
       if total_height < 3.0 * D2_PAGE_CORNER_HEIGHT {
@@ -7033,12 +7027,12 @@ fn shape_dimensions_to_fit(
       }
       (total_width.ceil(), total_height.ceil())
     }
-    @graph.Document =>
+    Document =>
       (
         (width + padding_x).ceil(),
         ((height + padding_y) * D2_DOC_PATH_HEIGHT / D2_DOC_PATH_INNER_BOTTOM).ceil(),
       )
-    @graph.Package => {
+    Package => {
       let inner_height = height + padding_y
       let top_height = inner_height *
         D2_PACKAGE_VERTICAL_SCALAR /
@@ -7051,12 +7045,12 @@ fn shape_dimensions_to_fit(
         })
       ((width + padding_x).ceil(), total_height.ceil())
     }
-    @graph.Step =>
+    Step =>
       (
         (width + padding_x + 2.0 * D2_STEP_WEDGE_WIDTH).ceil(),
         (height + padding_y).ceil(),
       )
-    @graph.Callout => {
+    Callout => {
       let mut total_height = height + padding_y
       if total_height < D2_CALLOUT_DEFAULT_TIP_HEIGHT {
         total_height = total_height * 2.0
@@ -7101,7 +7095,7 @@ fn truncate_float32(v : Double) -> Double {
 
 ///|
 fn has_outside_bottom_label(shape_type : @graph.ShapeType) -> Bool {
-  shape_type == @graph.Person || shape_type == @graph.Image
+  shape_type == Person || shape_type == Image
 }
 
 ///|
@@ -7148,8 +7142,7 @@ fn object_layout_spacing(
     }
     let is_bold = style_bool(obj.style.bold, false)
     let is_italic = style_bool(obj.style.italic, false)
-    let is_mono = obj.shape_type == @graph.Code ||
-      style_is_mono(obj.style.font_family)
+    let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
     let (measured_width, measured_height) = measure_object_label_dims(
       obj, font_size, is_mono, is_bold, is_italic,
     )
@@ -7175,9 +7168,9 @@ fn object_layout_spacing(
   if obj.icon is Some(_) {
     let icon_size = D2_MAX_ICON_SIZE + D2_LABEL_PADDING
     let icon_pos = if !obj.child_ids.is_empty() ||
-      obj.shape_type == @graph.Class ||
-      obj.shape_type == @graph.SqlTable ||
-      obj.shape_type == @graph.Code {
+      obj.shape_type == Class ||
+      obj.shape_type == SqlTable ||
+      obj.shape_type == Code {
       if !obj.child_ids.is_empty() {
         InsideTop
       } else {
@@ -7200,7 +7193,7 @@ fn object_layout_spacing(
   if style_bool(obj.style.three_d, false) {
     margin_right = margin_right + D2_THREE_DEE_OFFSET
     margin_top = margin_top +
-      (if obj.shape_type == @graph.Hexagon {
+      (if obj.shape_type == Hexagon {
         D2_THREE_DEE_OFFSET / 2.0
       } else {
         D2_THREE_DEE_OFFSET
@@ -7234,7 +7227,7 @@ fn object_default_label_box(
   if obj.label == "" {
     return None
   }
-  if obj.shape_type == @graph.SqlTable || obj.shape_type == @graph.Class {
+  if obj.shape_type == SqlTable || obj.shape_type == Class {
     return None
   }
   let (label_width, label_height) = match object_label_dimensions(obj) {
@@ -7280,13 +7273,13 @@ fn shape_inner_box_for_label(
   let mut width = box.width
   let mut height = box.height
   match obj.shape_type {
-    @graph.Hexagon => {
+    Hexagon => {
       x = x + width / 6.0
       y = y + height / 6.0
       width = width / 1.5
       height = height / 1.5
     }
-    @graph.Cloud => {
+    Cloud => {
       let aspect = if label_height > 0.0 {
         label_width / label_height
       } else {
@@ -7309,7 +7302,7 @@ fn shape_inner_box_for_label(
         height = height * CLOUD_SQUARE_INNER_HEIGHT
       }
     }
-    @graph.Cylinder => {
+    Cylinder => {
       let mut arc = D2_DEFAULT_ARC_DEPTH
       if height < arc * 2.0 {
         arc = height / 2.0
@@ -7317,7 +7310,7 @@ fn shape_inner_box_for_label(
       y = y + 2.0 * arc
       height = height - 3.0 * arc
     }
-    @graph.Queue => {
+    Queue => {
       let mut arc = D2_DEFAULT_ARC_DEPTH
       if width < arc * 2.0 {
         arc = width / 2.0
@@ -7325,13 +7318,12 @@ fn shape_inner_box_for_label(
       x = x + arc
       width = width - 3.0 * arc
     }
-    @graph.StoredData => {
+    StoredData => {
       x = x + D2_STORED_DATA_WEDGE_WIDTH
       width = width - 2.0 * D2_STORED_DATA_WEDGE_WIDTH
     }
-    @graph.Document =>
-      height = height * D2_DOC_PATH_INNER_BOTTOM / D2_DOC_PATH_HEIGHT
-    @graph.Package => {
+    Document => height = height * D2_DOC_PATH_INNER_BOTTOM / D2_DOC_PATH_HEIGHT
+    Package => {
       let top_h = if D2_PACKAGE_TOP_MAX_HEIGHT <
         height * D2_PACKAGE_VERTICAL_SCALAR {
         D2_PACKAGE_TOP_MAX_HEIGHT
@@ -7341,16 +7333,16 @@ fn shape_inner_box_for_label(
       y = y + top_h
       height = height - top_h
     }
-    @graph.Callout => {
+    Callout => {
       let tip_h = if height < 90.0 { height / 2.0 } else { 45.0 }
       height = height - tip_h
     }
-    @graph.Person => {
+    Person => {
       let shoulder = 20.2 / 68.3 * width
       x = x + shoulder
       width = width - shoulder * 2.0
     }
-    @graph.C4Person => {
+    C4Person => {
       let head_radius = width * D2_C4_HEAD_RADIUS_FACTOR
       let body_top = head_radius + head_radius * D2_C4_BODY_TOP_FACTOR
       let h_padding = width * 0.05
@@ -7387,8 +7379,7 @@ fn object_label_dimensions(obj : @graph.ObjectInput) -> (Double, Double)? {
   }
   let is_bold = style_bool(obj.style.bold, false)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == @graph.Code ||
-    style_is_mono(obj.style.font_family)
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
   let (measured_width, measured_height) = measure_object_label_dims(
     obj, font_size, is_mono, is_bold, is_italic,
   )
@@ -7581,7 +7572,7 @@ fn measure_object_label_dims(
   is_bold : Bool,
   is_italic : Bool,
 ) -> (Double, Double) {
-  if obj.shape_type == @graph.Code {
+  if obj.shape_type == Code {
     let dims = @text_metrics.measure_label_code(
       obj.label,
       font_size,

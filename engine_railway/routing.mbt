@@ -573,12 +573,12 @@ fn allocate_interval_tracks(intervals : Array[EdgeInterval]) -> Map[Int, Int] {
   let mut next_track = 0
   for it in ordered {
     // Release tracks whose interval ended before this one begins.
-    while active.peek() is Some(@cmp.Reverse(u)) && u.end <= it.start {
+    while active.peek() is Some(Reverse(u)) && u.end <= it.start {
       ignore(active.pop())
-      free.push(@cmp.Reverse(u.track))
+      free.push(Reverse(u.track))
     }
     let track = match free.pop() {
-      Some(@cmp.Reverse(t)) => t
+      Some(Reverse(t)) => t
       None => {
         let t = next_track
         next_track = next_track + 1
@@ -586,7 +586,7 @@ fn allocate_interval_tracks(intervals : Array[EdgeInterval]) -> Map[Int, Int] {
       }
     }
     track_by_edge[it.edge_index] = track
-    active.push(@cmp.Reverse({ end: it.end, track }))
+    active.push(Reverse({ end: it.end, track }))
   }
   track_by_edge
 }
@@ -664,12 +664,12 @@ fn allocate_span_lanes(spans : Array[EdgeSpan]) -> (Map[Int, Int], Int) {
   let free : @priority_queue.PriorityQueue[@cmp.Reverse[Int]] = @priority_queue.new()
   let mut next_lane = 0
   for it in ordered {
-    while active.peek() is Some(@cmp.Reverse(u)) && u.end <= it.start {
+    while active.peek() is Some(Reverse(u)) && u.end <= it.start {
       ignore(active.pop())
-      free.push(@cmp.Reverse(u.lane))
+      free.push(Reverse(u.lane))
     }
     let lane = match free.pop() {
-      Some(@cmp.Reverse(t)) => t
+      Some(Reverse(t)) => t
       None => {
         let t = next_lane
         next_lane = next_lane + 1
@@ -677,7 +677,7 @@ fn allocate_span_lanes(spans : Array[EdgeSpan]) -> (Map[Int, Int], Int) {
       }
     }
     lane_by_edge[it.edge_index] = lane
-    active.push(@cmp.Reverse({ end: it.end, lane }))
+    active.push(Reverse({ end: it.end, lane }))
   }
   (lane_by_edge, next_lane)
 }
