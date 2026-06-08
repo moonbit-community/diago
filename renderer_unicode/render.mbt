@@ -28,7 +28,7 @@ pub fn UnicodeRenderer::new() -> UnicodeRenderer {
 
 ///|
 /// Implement the Renderer trait for UnicodeRenderer
-pub impl @render_api.Renderer for UnicodeRenderer with render(
+pub impl @render_api.Renderer for UnicodeRenderer with fn render(
   _self,
   diagram : @diagram.Diagram,
 ) -> String raise @render_api.RenderError {
@@ -36,7 +36,7 @@ pub impl @render_api.Renderer for UnicodeRenderer with render(
 }
 
 ///|
-pub impl @render_api.Renderer for UnicodeRenderer with format_name(_self) -> String {
+pub impl @render_api.Renderer for UnicodeRenderer with fn format_name(_self) -> String {
   "unicode"
 }
 

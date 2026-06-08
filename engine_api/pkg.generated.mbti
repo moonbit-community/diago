@@ -56,8 +56,8 @@ pub(all) enum LayoutFeature {
 
 // Traits
 pub(open) trait LayoutEngine {
-  layout(Self, @graph.GraphInput, LayoutConfig, Direction) -> @graph.LayoutPatch raise LayoutError
-  engine_name(Self) -> String
-  features(Self) -> Array[LayoutFeature]
+  fn layout(Self, @graph.GraphInput, LayoutConfig, Direction) -> @graph.LayoutPatch raise LayoutError
+  fn engine_name(Self) -> String
+  fn features(Self) -> Array[LayoutFeature]
 }
 

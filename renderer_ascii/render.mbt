@@ -28,7 +28,7 @@ pub fn AsciiRenderer::new() -> AsciiRenderer {
 
 ///|
 /// Implement the Renderer trait for AsciiRenderer
-pub impl @render_api.Renderer for AsciiRenderer with render(
+pub impl @render_api.Renderer for AsciiRenderer with fn render(
   _self,
   diagram : @diagram.Diagram,
 ) -> String raise @render_api.RenderError {
@@ -36,7 +36,7 @@ pub impl @render_api.Renderer for AsciiRenderer with render(
 }
 
 ///|
-pub impl @render_api.Renderer for AsciiRenderer with format_name(_self) -> String {
+pub impl @render_api.Renderer for AsciiRenderer with fn format_name(_self) -> String {
   "ascii"
 }
 

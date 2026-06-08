@@ -48,7 +48,7 @@ pub(all) enum ArrowheadType {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for ArrowheadType with output(self, logger) {
+pub impl Show for ArrowheadType with fn output(self, logger) {
   logger.write_string(self.to_arrowhead_string())
 }
 

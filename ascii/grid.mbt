@@ -417,6 +417,6 @@ fn row_has_content(row : Array[Char]) -> Bool {
 }
 
 ///|
-pub impl Show for Grid with output(self, logger) {
+pub impl Show for Grid with fn output(self, logger) {
   logger.write_string(self.to_string())
 }

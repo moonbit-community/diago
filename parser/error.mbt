@@ -26,7 +26,7 @@ pub struct ParseErrors {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for ParseError with output(self, logger) {
+pub impl Show for ParseError with fn output(self, logger) {
   logger.write_string(self.range.start.line.to_string())
   logger.write_char(':')
   logger.write_string(self.range.start.column.to_string())
@@ -35,7 +35,7 @@ pub impl Show for ParseError with output(self, logger) {
 }
 
 ///|
-pub impl Show for ParseErrors with output(self, logger) {
+pub impl Show for ParseErrors with fn output(self, logger) {
   logger.write_string(self.to_string())
 }
 

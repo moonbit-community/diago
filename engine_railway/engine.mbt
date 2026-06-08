@@ -27,7 +27,7 @@ pub fn RailwayEngine::new() -> RailwayEngine {
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for RailwayEngine with layout(
+pub impl @engine_api.LayoutEngine for RailwayEngine with fn layout(
   _self,
   graph,
   config,
@@ -37,12 +37,12 @@ pub impl @engine_api.LayoutEngine for RailwayEngine with layout(
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for RailwayEngine with engine_name(_self) -> String {
+pub impl @engine_api.LayoutEngine for RailwayEngine with fn engine_name(_self) -> String {
   "railway"
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for RailwayEngine with features(_self) -> Array[
+pub impl @engine_api.LayoutEngine for RailwayEngine with fn features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
   [ContainerDimensions, DescendantEdges]

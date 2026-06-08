@@ -263,7 +263,7 @@ pub fn Svg::to_string(self : Svg) -> String {
 }
 
 ///|
-pub impl Show for Svg with output(self, logger) {
+pub impl Show for Svg with fn output(self, logger) {
   logger.write_string(self.to_string())
 }
 

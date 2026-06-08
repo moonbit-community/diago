@@ -36,7 +36,7 @@ pub struct MeasuredText {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for TextDimensions with output(self, logger) {
+pub impl Show for TextDimensions with fn output(self, logger) {
   logger.write_string("{width: ")
   logger.write_object(self.width)
   logger.write_string(", height: ")
@@ -45,7 +45,7 @@ pub impl Show for TextDimensions with output(self, logger) {
 }
 
 ///|
-pub impl Show for MeasuredText with output(self, logger) {
+pub impl Show for MeasuredText with fn output(self, logger) {
   logger.write_string("{dimensions: ")
   logger.write_object(self.dimensions)
   logger.write_string(", line_count: ")

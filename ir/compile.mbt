@@ -31,7 +31,7 @@ pub(all) suberror CompileError {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for CompileError with output(self, logger) {
+pub impl Show for CompileError with fn output(self, logger) {
   match self {
     InvalidKey(message) => {
       logger.write_string("InvalidKey(")

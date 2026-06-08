@@ -26,7 +26,7 @@ fn FakeEngine::new() -> FakeEngine {
 }
 
 ///|
-impl @engine_api.LayoutEngine for FakeEngine with layout(
+impl @engine_api.LayoutEngine for FakeEngine with fn layout(
   _self,
   graph,
   _config,
@@ -44,12 +44,12 @@ impl @engine_api.LayoutEngine for FakeEngine with layout(
 }
 
 ///|
-impl @engine_api.LayoutEngine for FakeEngine with engine_name(_self) -> String {
+impl @engine_api.LayoutEngine for FakeEngine with fn engine_name(_self) -> String {
   "fake"
 }
 
 ///|
-impl @engine_api.LayoutEngine for FakeEngine with features(_self) -> Array[
+impl @engine_api.LayoutEngine for FakeEngine with fn features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
   [NearObject, ContainerDimensions, TopLeft, DescendantEdges]
@@ -216,7 +216,7 @@ fn RoundtripEngine::new() -> RoundtripEngine {
 }
 
 ///|
-impl @engine_api.LayoutEngine for RoundtripEngine with layout(
+impl @engine_api.LayoutEngine for RoundtripEngine with fn layout(
   _self,
   _graph,
   _config,
@@ -233,12 +233,12 @@ impl @engine_api.LayoutEngine for RoundtripEngine with layout(
 }
 
 ///|
-impl @engine_api.LayoutEngine for RoundtripEngine with engine_name(_self) -> String {
+impl @engine_api.LayoutEngine for RoundtripEngine with fn engine_name(_self) -> String {
   "roundtrip"
 }
 
 ///|
-impl @engine_api.LayoutEngine for RoundtripEngine with features(_self) -> Array[
+impl @engine_api.LayoutEngine for RoundtripEngine with fn features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
   [NearObject, ContainerDimensions, TopLeft, DescendantEdges]

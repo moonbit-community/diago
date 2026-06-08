@@ -219,12 +219,15 @@ test "compile_diagram reports invalid target syntax" {
     #|    a -> b
     #|  }
     #|}
-  let result = try? compile_diagram(
-    source,
-    options=CompileOptions::new().with_target_spec(Some("layers.\"core")),
-  )
-  match result {
-    Err(TargetError(message)) => assert_true(message.contains("Invalid target"))
+  try
+    compile_diagram(
+      source,
+      options=CompileOptions::new().with_target_spec(Some("layers.\"core")),
+    )
+  catch {
+    TargetError(message) => assert_true(message.contains("Invalid target"))
+    _ => fail("expected invalid target error")
+  } noraise {
     _ => fail("expected invalid target error")
   }
 }
@@ -236,13 +239,16 @@ test "compile supports custom layout plugin hook" {
   let layout_plugin = LayoutPlugin::new(fn(_graph, _config, _direction) {
     Err("layout-plugin-failed")
   })
-  let result = try? compile(
-    source,
-    options=CompileOptions::new().with_layout_plugin(Some(layout_plugin)),
-  )
-  match result {
-    Err(LayoutError(msg)) =>
+  try
+    compile(
+      source,
+      options=CompileOptions::new().with_layout_plugin(Some(layout_plugin)),
+    )
+  catch {
+    LayoutError(msg) =>
       assert_true(msg.contains("Layout plugin error: layout-plugin-failed"))
+    _ => fail("expected LayoutError from custom layout plugin")
+  } noraise {
     _ => fail("expected LayoutError from custom layout plugin")
   }
 }
@@ -252,13 +258,16 @@ test "compile supports custom route plugin hook" {
   let source =
     #|a -> b
   let route_plugin = RoutePlugin::new(fn(_graph) { Err("route-plugin-failed") })
-  let result = try? compile(
-    source,
-    options=CompileOptions::new().with_route_plugin(Some(route_plugin)),
-  )
-  match result {
-    Err(LayoutError(msg)) =>
+  try
+    compile(
+      source,
+      options=CompileOptions::new().with_route_plugin(Some(route_plugin)),
+    )
+  catch {
+    LayoutError(msg) =>
       assert_true(msg.contains("Route plugin error: route-plugin-failed"))
+    _ => fail("expected LayoutError from custom route plugin")
+  } noraise {
     _ => fail("expected LayoutError from custom route plugin")
   }
 }
@@ -274,10 +283,11 @@ test "vars config invalid theme-overrides key raises ConfigError" {
     #|  }
     #|}
     #|a -> b
-  let result = try? compile(source)
-  match result {
-    Err(ConfigError(msg)) =>
+  try compile(source) catch {
+    ConfigError(msg) =>
       assert_true(msg.contains("\"ZZ9\" is not a valid theme code"))
+    _ => fail("expected ConfigError for invalid theme override key")
+  } noraise {
     _ => fail("expected ConfigError for invalid theme override key")
   }
 }
@@ -293,14 +303,15 @@ test "vars config invalid theme-overrides color raises ConfigError" {
     #|  }
     #|}
     #|a -> b
-  let result = try? compile(source)
-  match result {
-    Err(ConfigError(msg)) =>
+  try compile(source) catch {
+    ConfigError(msg) =>
       assert_true(
         msg.contains(
           "expected \"B1\" to be a valid named color (\"orange\") or a hex code (\"#f0ff3a\")",
         ),
       )
+    _ => fail("expected ConfigError for invalid theme override color")
+  } noraise {
     _ => fail("expected ConfigError for invalid theme override color")
   }
 }

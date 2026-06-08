@@ -47,7 +47,7 @@ pub(all) enum Direction {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for Direction with output(self, logger) {
+pub impl Show for Direction with fn output(self, logger) {
   let text = match self {
     Down => "Down"
     Right => "Right"
@@ -75,7 +75,7 @@ pub(all) suberror LayoutError {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for LayoutError with output(self, logger) {
+pub impl Show for LayoutError with fn output(self, logger) {
   match self {
     InvalidGraph(message) => {
       logger.write_string("InvalidGraph(")
@@ -138,9 +138,9 @@ pub fn LayoutConfig::with_spacing(
 /// Engines must not mutate their input graph. They return a patch that can be
 /// applied by the caller.
 pub(open) trait LayoutEngine {
-  layout(Self, @graph.GraphInput, LayoutConfig, Direction) -> @graph.LayoutPatch raise LayoutError
-  engine_name(Self) -> String
-  features(Self) -> Array[LayoutFeature]
+  fn layout(Self, @graph.GraphInput, LayoutConfig, Direction) -> @graph.LayoutPatch raise LayoutError
+  fn engine_name(Self) -> String
+  fn features(Self) -> Array[LayoutFeature]
 }
 
 ///|

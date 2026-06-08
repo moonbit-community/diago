@@ -24,7 +24,7 @@ pub(all) suberror RenderError {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for RenderError with output(self, logger) {
+pub impl Show for RenderError with fn output(self, logger) {
   match self {
     UnsupportedFormat(message) => {
       logger.write_string("UnsupportedFormat(")
@@ -109,8 +109,8 @@ pub(open) trait Renderer {
   ///
   /// For custom configuration, use the renderer's config-specific
   /// render function (e.g., `render_svg(diagram, svg_config)`).
-  render(Self, @diagram.Diagram) -> String raise RenderError
+  fn render(Self, @diagram.Diagram) -> String raise RenderError
 
   /// Get the name of this renderer format.
-  format_name(Self) -> String
+  fn format_name(Self) -> String
 }

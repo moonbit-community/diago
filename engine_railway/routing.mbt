@@ -528,7 +528,7 @@ priv struct TrackUsage {
 } derive(Eq)
 
 ///|
-impl Compare for TrackUsage with compare(a, b) {
+impl Compare for TrackUsage with fn compare(a, b) {
   let c = a.end.compare(b.end)
   if c != 0 {
     c
@@ -637,7 +637,7 @@ priv struct LaneUsage {
 } derive(Eq)
 
 ///|
-impl Compare for LaneUsage with compare(a, b) {
+impl Compare for LaneUsage with fn compare(a, b) {
   let c = a.end.compare(b.end)
   if c != 0 {
     c

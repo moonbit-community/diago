@@ -29,7 +29,7 @@ pub struct Point {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for Box with output(self, logger) {
+pub impl Show for Box with fn output(self, logger) {
   logger.write_string("{x: ")
   logger.write_object(self.x)
   logger.write_string(", y: ")
@@ -42,7 +42,7 @@ pub impl Show for Box with output(self, logger) {
 }
 
 ///|
-pub impl Show for Point with output(self, logger) {
+pub impl Show for Point with fn output(self, logger) {
   logger.write_string("{x: ")
   logger.write_object(self.x)
   logger.write_string(", y: ")

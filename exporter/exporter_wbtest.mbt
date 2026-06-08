@@ -19,10 +19,10 @@ fn compile_source_graph(source : String) -> Result[@graph.GraphInput, String] {
     return Err("Parse errors: \{errors}")
   }
   let ir = @ir.compile(ast) catch { e => return Err("IR error: \{e}") }
-  let result = try? compile("root", ir)
-  match result {
-    Ok(graph) => Ok(graph)
-    Err(err) => Err(err.to_string())
+  try compile("root", ir) catch {
+    err => Err(err.to_string())
+  } noraise {
+    graph => Ok(graph)
   }
 }
 
