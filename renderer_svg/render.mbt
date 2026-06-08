@@ -28,7 +28,7 @@ pub fn SvgRenderer::new() -> SvgRenderer {
 
 ///|
 /// Implement the Renderer trait for SvgRenderer
-pub impl @render_api.Renderer for SvgRenderer with render(
+pub impl @render_api.Renderer for SvgRenderer with fn render(
   _self,
   diagram : @diagram.Diagram,
 ) -> String raise @render_api.RenderError {
@@ -36,7 +36,7 @@ pub impl @render_api.Renderer for SvgRenderer with render(
 }
 
 ///|
-pub impl @render_api.Renderer for SvgRenderer with format_name(_self) -> String {
+pub impl @render_api.Renderer for SvgRenderer with fn format_name(_self) -> String {
   "svg"
 }
 

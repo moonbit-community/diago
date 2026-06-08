@@ -1,5 +1,5 @@
 import {
-  "moonbit-community/cmark/cmark" @cmark,
+  "moonbit-community/cmark/cmark",
   "moonbitlang/core/math",
   "moonbitlang/core/debug",
 }

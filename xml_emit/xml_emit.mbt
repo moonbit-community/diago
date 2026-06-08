@@ -234,7 +234,7 @@ pub fn Element::close_tag(self : Element) -> String {
 }
 
 ///|
-pub impl Show for Element with output(self, logger) {
+pub impl Show for Element with fn output(self, logger) {
   logger.write_string(self.build())
 }
 

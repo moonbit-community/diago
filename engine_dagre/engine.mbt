@@ -475,7 +475,7 @@ const CLOUD_SQUARE_INNER_WIDTH : Double = 0.663
 const CLOUD_SQUARE_INNER_HEIGHT : Double = 0.663
 
 ///|
-pub impl @engine_api.LayoutEngine for DagreEngine with layout(
+pub impl @engine_api.LayoutEngine for DagreEngine with fn layout(
   _self,
   graph,
   config,
@@ -525,12 +525,12 @@ pub impl @engine_api.LayoutEngine for DagreEngine with layout(
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for DagreEngine with engine_name(_self) -> String {
+pub impl @engine_api.LayoutEngine for DagreEngine with fn engine_name(_self) -> String {
   "dagre"
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for DagreEngine with features(_self) -> Array[
+pub impl @engine_api.LayoutEngine for DagreEngine with fn features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
   []

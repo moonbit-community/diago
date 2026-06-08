@@ -820,7 +820,7 @@ pub(all) suberror GraphCompileError {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for GraphCompileError with output(self, logger) {
+pub impl Show for GraphCompileError with fn output(self, logger) {
   match self {
     InvalidShape(message) => {
       logger.write_string("InvalidShape(")

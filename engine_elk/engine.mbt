@@ -261,7 +261,7 @@ priv enum DefaultLabelPosition {
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for ElkEngine with layout(
+pub impl @engine_api.LayoutEngine for ElkEngine with fn layout(
   _self,
   graph,
   config,
@@ -310,12 +310,12 @@ pub impl @engine_api.LayoutEngine for ElkEngine with layout(
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for ElkEngine with engine_name(_self) -> String {
+pub impl @engine_api.LayoutEngine for ElkEngine with fn engine_name(_self) -> String {
   "elk"
 }
 
 ///|
-pub impl @engine_api.LayoutEngine for ElkEngine with features(_self) -> Array[
+pub impl @engine_api.LayoutEngine for ElkEngine with fn features(_self) -> Array[
   @engine_api.LayoutFeature,
 ] {
   [ContainerDimensions, DescendantEdges]

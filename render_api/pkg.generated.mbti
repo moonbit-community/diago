@@ -37,7 +37,7 @@ pub fn RenderConfig::with_padding(Double) -> Self
 
 // Traits
 pub(open) trait Renderer {
-  render(Self, @diagram.Diagram) -> String raise RenderError
-  format_name(Self) -> String
+  fn render(Self, @diagram.Diagram) -> String raise RenderError
+  fn format_name(Self) -> String
 }
 
