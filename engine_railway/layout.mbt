@@ -22,8 +22,22 @@ fn layout_graph(
   if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_with_engine_metrics(graph, config)
   }
-  let patch = @graph.LayoutPatch::new()
-  copy_passthrough_layout_data(patch, graph)
+  let placement = run_placement_stage(graph, config, direction)
+  let hierarchy = run_hierarchy_layout_stage(
+    graph, placement, config, direction,
+  )
+  let routing_problem = build_routing_problem(
+    placement, hierarchy, config, direction,
+  )
+  run_routing_stage(graph, routing_problem).patch
+}
+
+///|
+fn run_placement_stage(
+  graph : @graph.GraphInput,
+  config : @engine_api.LayoutConfig,
+  direction : @engine_api.Direction,
+) -> RailwayPlacementResult raise @engine_api.LayoutError {
   let (layout_input, object_by_id, parent_id_by_child_id) = build_railway_layout_input(
     graph,
   )
@@ -43,6 +57,28 @@ fn layout_graph(
     id_to_idx,
     node_layout.rank_by_id,
   )
+  {
+    layout_input,
+    object_by_id,
+    parent_id_by_child_id,
+    self_loop,
+    id_to_idx,
+    boxes,
+    rank_by_id: node_layout.rank_by_id,
+    depths,
+    level_heights,
+  }
+}
+
+///|
+fn run_hierarchy_layout_stage(
+  graph : @graph.GraphInput,
+  placement : RailwayPlacementResult,
+  config : @engine_api.LayoutConfig,
+  direction : @engine_api.Direction,
+) -> RailwayHierarchyLayout {
+  let patch = @graph.LayoutPatch::new()
+  copy_passthrough_layout_data(patch, graph)
   let container_padding = @cmp.maximum(
     RAILWAY_CONTAINER_PADDING,
     config.edge_padding,
@@ -55,105 +91,114 @@ fn layout_graph(
     }
   }
   stabilize_container_layout_railway(
-    boxes,
+    placement.boxes,
     graph,
-    object_by_id,
-    parent_id_by_child_id,
-    node_layout.rank_by_id,
+    placement.object_by_id,
+    placement.parent_id_by_child_id,
+    placement.rank_by_id,
     direction,
     config,
     container_padding,
     has_layout_container,
   )
-  let (src_ports, dst_ports) = assign_ports(
-    layout_input, id_to_idx, depths, self_loop, direction, config, boxes,
-  )
-  let rail_tracks = assign_rail_tracks(
-    layout_input, id_to_idx, depths, self_loop, direction, src_ports, dst_ports,
-  )
-  let lane_plan = plan_gap_lanes(
-    layout_input, id_to_idx, depths, self_loop, direction, config, src_ports, dst_ports,
-  )
-  for obj in layout_input.objects {
-    match boxes.get(obj.id) {
+  for obj in placement.layout_input.objects {
+    match placement.boxes.get(obj.id) {
       Some(b) => patch.nodes[obj.id] = b
       None => ()
     }
   }
   fit_container_boxes_railway(
-    patch, graph, object_by_id, parent_id_by_child_id, config,
-  )
-  sync_boxes_from_patch_railway(boxes, patch)
-  route_edges_railway(
-    patch,
-    layout_input,
-    self_loop,
-    id_to_idx,
-    depths,
-    rail_tracks,
-    lane_plan.shift_by_edge,
-    src_ports,
-    dst_ports,
-    boxes,
-    object_by_id,
-    parent_id_by_child_id,
-    direction,
-    config,
-    level_heights,
-    [],
-  )
-  recompute_container_label_boxes_railway(patch, graph)
-  let reserved_label_boxes = collect_reserved_container_label_boxes_railway(
-    patch, graph,
-  )
-  route_edges_railway(
-    patch,
-    layout_input,
-    self_loop,
-    id_to_idx,
-    depths,
-    rail_tracks,
-    lane_plan.shift_by_edge,
-    src_ports,
-    dst_ports,
-    boxes,
-    object_by_id,
-    parent_id_by_child_id,
-    direction,
-    config,
-    level_heights,
-    reserved_label_boxes,
-  )
-  recompute_container_label_boxes_railway(patch, graph)
-  let final_reserved_label_boxes = collect_reserved_container_label_boxes_railway(
-    patch, graph,
-  )
-  route_edges_railway(
-    patch,
-    layout_input,
-    self_loop,
-    id_to_idx,
-    depths,
-    rail_tracks,
-    lane_plan.shift_by_edge,
-    src_ports,
-    dst_ports,
-    boxes,
-    object_by_id,
-    parent_id_by_child_id,
-    direction,
-    config,
-    level_heights,
-    final_reserved_label_boxes,
-  )
-  recompute_edge_label_boxes(
     patch,
     graph,
+    placement.object_by_id,
+    placement.parent_id_by_child_id,
+    config,
+  )
+  sync_boxes_from_patch_railway(placement.boxes, patch)
+  { patch, boxes: placement.boxes }
+}
+
+///|
+fn build_routing_problem(
+  placement : RailwayPlacementResult,
+  hierarchy : RailwayHierarchyLayout,
+  config : @engine_api.LayoutConfig,
+  direction : @engine_api.Direction,
+) -> RailwayRoutingProblem raise @engine_api.LayoutError {
+  let (src_ports, dst_ports) = assign_ports(
+    placement.layout_input,
+    placement.id_to_idx,
+    placement.depths,
+    placement.self_loop,
     direction,
     config,
-    lane_plan.lane_by_edge,
+    hierarchy.boxes,
   )
-  patch
+  let rail_tracks = assign_rail_tracks(
+    placement.layout_input,
+    placement.id_to_idx,
+    placement.depths,
+    placement.self_loop,
+    direction,
+    src_ports,
+    dst_ports,
+  )
+  let lane_plan = plan_gap_lanes(
+    placement.layout_input,
+    placement.id_to_idx,
+    placement.depths,
+    placement.self_loop,
+    direction,
+    config,
+    src_ports,
+    dst_ports,
+  )
+  {
+    patch: hierarchy.patch,
+    layout_input: placement.layout_input,
+    object_by_id: placement.object_by_id,
+    parent_id_by_child_id: placement.parent_id_by_child_id,
+    self_loop: placement.self_loop,
+    id_to_idx: placement.id_to_idx,
+    depths: placement.depths,
+    rail_tracks,
+    shift_by_edge: lane_plan.shift_by_edge,
+    lane_by_edge: lane_plan.lane_by_edge,
+    src_ports,
+    dst_ports,
+    boxes: hierarchy.boxes,
+    direction,
+    config,
+    level_heights: placement.level_heights,
+  }
+}
+
+///|
+fn run_routing_stage(
+  graph : @graph.GraphInput,
+  problem : RailwayRoutingProblem,
+) -> RailwayRoutingResult raise @engine_api.LayoutError {
+  route_edges_railway(problem, [])
+  recompute_container_label_boxes_railway(problem.patch, graph)
+  let reserved_label_boxes = collect_reserved_container_label_boxes_railway(
+    problem.patch,
+    graph,
+  )
+  route_edges_railway(problem, reserved_label_boxes)
+  recompute_container_label_boxes_railway(problem.patch, graph)
+  let final_reserved_label_boxes = collect_reserved_container_label_boxes_railway(
+    problem.patch,
+    graph,
+  )
+  route_edges_railway(problem, final_reserved_label_boxes)
+  recompute_edge_label_boxes(
+    problem.patch,
+    graph,
+    problem.direction,
+    problem.config,
+    problem.lane_by_edge,
+  )
+  { patch: problem.patch }
 }
 
 ///|
@@ -281,23 +326,24 @@ fn levels_from_rank_only_railway(
 
 ///|
 fn route_edges_railway(
-  patch : @graph.LayoutPatch,
-  layout_input : @graph.GraphInput,
-  self_loop : @hashset.HashSet[Int],
-  id_to_idx : Map[String, Int],
-  depths : Array[Int],
-  rail_tracks : Map[Int, Int],
-  shift_by_edge : Map[Int, Double],
-  src_ports : Map[Int, @graph.Point],
-  dst_ports : Map[Int, @graph.Point],
-  boxes : Map[String, @graph.Box],
-  object_by_id : Map[String, @graph.ObjectInput],
-  parent_id_by_child_id : Map[String, String],
-  direction : @engine_api.Direction,
-  config : @engine_api.LayoutConfig,
-  level_heights : Array[Double],
+  problem : RailwayRoutingProblem,
   reserved_label_boxes : Array[@graph.Box],
 ) -> Unit raise @engine_api.LayoutError {
+  let patch = problem.patch
+  let layout_input = problem.layout_input
+  let self_loop = problem.self_loop
+  let id_to_idx = problem.id_to_idx
+  let depths = problem.depths
+  let rail_tracks = problem.rail_tracks
+  let shift_by_edge = problem.shift_by_edge
+  let src_ports = problem.src_ports
+  let dst_ports = problem.dst_ports
+  let boxes = problem.boxes
+  let object_by_id = problem.object_by_id
+  let parent_id_by_child_id = problem.parent_id_by_child_id
+  let direction = problem.direction
+  let config = problem.config
+  let level_heights = problem.level_heights
   let gap_rail_reservations = Ref(Map([]))
   let channel_reservations = Ref([])
   let ordered_edges = layout_input.edges.copy()

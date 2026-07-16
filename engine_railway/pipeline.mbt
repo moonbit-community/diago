@@ -39,6 +39,50 @@ priv struct RailwayNodeLayout {
 }
 
 ///|
+priv struct RailwayPlacementResult {
+  layout_input : @graph.GraphInput
+  object_by_id : Map[String, @graph.ObjectInput]
+  parent_id_by_child_id : Map[String, String]
+  self_loop : @hashset.HashSet[Int]
+  id_to_idx : Map[String, Int]
+  boxes : Map[String, @graph.Box]
+  rank_by_id : Map[String, Int]
+  depths : Array[Int]
+  level_heights : Array[Double]
+}
+
+///|
+priv struct RailwayHierarchyLayout {
+  patch : @graph.LayoutPatch
+  boxes : Map[String, @graph.Box]
+}
+
+///|
+priv struct RailwayRoutingProblem {
+  patch : @graph.LayoutPatch
+  layout_input : @graph.GraphInput
+  object_by_id : Map[String, @graph.ObjectInput]
+  parent_id_by_child_id : Map[String, String]
+  self_loop : @hashset.HashSet[Int]
+  id_to_idx : Map[String, Int]
+  depths : Array[Int]
+  rail_tracks : Map[Int, Int]
+  shift_by_edge : Map[Int, Double]
+  lane_by_edge : Map[Int, Int]
+  src_ports : Map[Int, @graph.Point]
+  dst_ports : Map[Int, @graph.Point]
+  boxes : Map[String, @graph.Box]
+  direction : @engine_api.Direction
+  config : @engine_api.LayoutConfig
+  level_heights : Array[Double]
+}
+
+///|
+priv struct RailwayRoutingResult {
+  patch : @graph.LayoutPatch
+}
+
+///|
 fn rank_array_for_layout(
   graph : @graph.GraphInput,
   id_to_idx : Map[String, Int],

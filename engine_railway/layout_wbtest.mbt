@@ -2323,3 +2323,25 @@ test "railway sequence layout keeps participants aligned and messages horizontal
     l1.y + l1.height <= l0.y)
   assert_true(!overlap, msg="adjacent sequence labels should not overlap")
 }
+
+///|
+test "railway stages expose placement hierarchy and routing results" {
+  let graph = @graph.GraphInput::new("staged-layout")
+  graph.objects.push(@graph.ObjectInput::new("a"))
+  graph.objects.push(@graph.ObjectInput::new("b"))
+  graph.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
+  let config = @engine_api.LayoutConfig::new()
+
+  let placement = run_placement_stage(graph, config, Down)
+  assert_true(placement.boxes.contains("a"))
+  assert_true(placement.boxes.contains("b"))
+  assert_true(placement.depths.length() == 2)
+
+  let hierarchy = run_hierarchy_layout_stage(graph, placement, config, Down)
+  assert_true(hierarchy.patch.nodes.contains("a"))
+  assert_true(hierarchy.patch.nodes.contains("b"))
+
+  let problem = build_routing_problem(placement, hierarchy, config, Down)
+  let result = run_routing_stage(graph, problem)
+  assert_true(result.patch.edges.get(0).unwrap_or([]).length() >= 2)
+}
