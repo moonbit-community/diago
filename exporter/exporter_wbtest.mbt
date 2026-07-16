@@ -136,6 +136,166 @@ test "scenario overlays preserve base objects and apply overrides" {
 }
 
 ///|
+test "indexed edge properties update the selected edge" {
+  let source =
+    #|a -> b: first
+    #|a -> b: second
+    #|(a -> b)[1].style.opacity: 0.4
+  let graph = match compile_source_graph(source) {
+    Ok(graph) => graph
+    Err(message) => fail(message)
+  }
+  @debug.assert_eq(graph.edges.length(), 2)
+  @debug.assert_eq(graph.edges[0].label, "first")
+  @debug.assert_eq(graph.edges[0].style.opacity, None)
+  @debug.assert_eq(graph.edges[1].label, "second")
+  @debug.assert_eq(
+    graph.edges[1].style.opacity,
+    Some(@graph.StyleValue::from_string("0.4")),
+  )
+}
+
+///|
+test "scenario indexed edge properties update inherited edges" {
+  let source =
+    #|a -> b: first
+    #|a -> b: second
+    #|scenarios: {
+    #|  focus: {
+    #|    (a -> b)[1].style.opacity: 0.1
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  let scenario = graph.scenarios[0].graph
+  @debug.assert_eq(scenario.edges.length(), 2)
+  @debug.assert_eq(scenario.edges[0].label, "first")
+  @debug.assert_eq(scenario.edges[0].style.opacity, None)
+  @debug.assert_eq(scenario.edges[1].label, "second")
+  @debug.assert_eq(
+    scenario.edges[1].style.opacity,
+    Some(@graph.StyleValue::from_string("0.1")),
+  )
+}
+
+///|
+test "scenario edge declarations append after inherited parallel edges" {
+  let source =
+    #|a -> b: base
+    #|scenarios: {
+    #|  expanded: {
+    #|    a -> b: added
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  let scenario = graph.scenarios[0].graph
+  @debug.assert_eq(scenario.edges.length(), 2)
+  @debug.assert_eq(scenario.edges[0].label, "base")
+  @debug.assert_eq(scenario.edges[1].label, "added")
+}
+
+///|
+test "scenario indexed updates retain inherited indexes after new declarations" {
+  let source =
+    #|a -> b: base
+    #|scenarios: {
+    #|  expanded: {
+    #|    a -> b: added
+    #|    (a -> b)[0].style.opacity: 0.2
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  let scenario = graph.scenarios[0].graph
+  @debug.assert_eq(scenario.edges.length(), 2)
+  @debug.assert_eq(scenario.edges[0].label, "base")
+  @debug.assert_eq(
+    scenario.edges[0].style.opacity,
+    Some(@graph.StyleValue::from_string("0.2")),
+  )
+  @debug.assert_eq(scenario.edges[1].label, "added")
+  @debug.assert_eq(scenario.edges[1].style.opacity, None)
+}
+
+///|
+test "scenario edge index globs update all inherited parallel edges" {
+  let source =
+    #|a -> b: first
+    #|a -> b: second
+    #|scenarios: {
+    #|  focus: {
+    #|    (a -> b)[*].style.opacity: 0.3
+    #|    (missing -> edge)[*].style.opacity: 0.1
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  let scenario = graph.scenarios[0].graph
+  @debug.assert_eq(scenario.edges.length(), 2)
+  for edge in scenario.edges {
+    @debug.assert_eq(
+      edge.style.opacity,
+      Some(@graph.StyleValue::from_string("0.3")),
+    )
+  }
+}
+
+///|
+test "indexed edge map forms merge without changing other edges" {
+  let source =
+    #|a -> b: forward
+    #|a <-> b: bidirectional
+    #|(a -> b)[0].style: {
+    #|  opacity: 0.4
+    #|}
+    #|(a -> b)[0]: {
+    #|  style.stroke: red
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(graph.edges.length(), 2)
+  @debug.assert_eq(graph.edges[0].label, "forward")
+  @debug.assert_eq(
+    graph.edges[0].style.opacity,
+    Some(@graph.StyleValue::from_string("0.4")),
+  )
+  @debug.assert_eq(
+    graph.edges[0].style.stroke,
+    Some(@graph.StyleValue::from_string("red")),
+  )
+  @debug.assert_eq(graph.edges[1].label, "bidirectional")
+  @debug.assert_eq(graph.edges[1].style.opacity, None)
+  @debug.assert_eq(
+    graph.edges[1].style.stroke,
+    Some(@graph.StyleValue::from_string("B1")),
+  )
+}
+
+///|
+test "steps inherit the previous step before applying indexed edge properties" {
+  let source =
+    #|a -> b: base
+    #|steps: {
+    #|  1: {
+    #|    (a -> b)[0].style.opacity: 0.2
+    #|  }
+    #|  2: {
+    #|    (a -> b)[0].style.stroke: red
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(graph.steps.length(), 2)
+  @debug.assert_eq(
+    graph.steps[0].graph.edges[0].style.opacity,
+    Some(@graph.StyleValue::from_string("0.2")),
+  )
+  @debug.assert_eq(
+    graph.steps[1].graph.edges[0].style.opacity,
+    Some(@graph.StyleValue::from_string("0.2")),
+  )
+  @debug.assert_eq(
+    graph.steps[1].graph.edges[0].style.stroke,
+    Some(@graph.StyleValue::from_string("red")),
+  )
+}
+
+///|
 test "board primary labels override explicit labels and base labels are not inherited" {
   let source =
     #|label: hi

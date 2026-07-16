@@ -56,6 +56,24 @@ test "compile nested keys" {
 }
 
 ///|
+test "repeated map declarations merge their fields" {
+  let source =
+    #|x: {
+    #|  a
+    #|}
+    #|x: {
+    #|  b
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("x") is Some(x) else { fail("expected x") }
+  guard x.map() is Some(x_map) else { fail("expected x map") }
+  assert_true(x_map.has_field("a"))
+  assert_true(x_map.has_field("b"))
+}
+
+///|
 test "field references retain AST context" {
   let (ast, _) = @parser.parse("a.b.c: value")
   let expected_key = match ast.nodes[0] {
@@ -359,6 +377,41 @@ test "edge id with index" {
 }
 
 ///|
+test "indexed edge update rejects a missing edge" {
+  let source =
+    #|(a -> b)[0].style.opacity: 0.4
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  try compile(ast) catch {
+    InvalidKey(message) =>
+      @debug.assert_eq(message, "indexed edge does not exist")
+    err => fail("unexpected error: \{err}")
+  } noraise {
+    _ => fail("expected indexed edge compilation to fail")
+  }
+}
+
+///|
+test "scenario indexed edge update rejects an out of range index" {
+  let source =
+    #|a -> b
+    #|scenarios: {
+    #|  broken: {
+    #|    (a -> b)[1].style.opacity: 0.4
+    #|  }
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  try compile(ast) catch {
+    InvalidKey(message) =>
+      @debug.assert_eq(message, "indexed edge does not exist")
+    err => fail("unexpected error: \{err}")
+  } noraise {
+    _ => fail("expected scenario indexed edge compilation to fail")
+  }
+}
+
+///|
 test "scalar operations" {
   let s1 = Scalar::null()
   assert_true(s1.is_null())
@@ -518,6 +571,48 @@ test "compile with imports - basic" {
   }
   assert_true(common_map.has_field("server"))
   assert_true(common_map.has_field("database"))
+}
+
+///|
+test "compile with imports materializes indexed scenario edge updates" {
+  let source =
+    #|a -> b
+    #|scenarios: {
+    #|  focus: @focus
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let resolver = ImportResolver::new(fn(path) {
+    if path == "focus" || path == "focus.d2" {
+      Some("(a -> b)[0].style.opacity: 0.6")
+    } else {
+      None
+    }
+  })
+  let ir = compile_with_imports(ast, resolver)
+  guard ir.get_field("scenarios") is Some(scenarios) else {
+    fail("expected scenarios")
+  }
+  guard scenarios.map() is Some(scenarios_map) else {
+    fail("expected scenarios map")
+  }
+  guard scenarios_map.get_field("focus") is Some(focus) else {
+    fail("expected focus scenario")
+  }
+  guard focus.map() is Some(focus_map) else { fail("expected focus map") }
+  @debug.assert_eq(focus_map.edges.length(), 1)
+  guard focus_map.edges[0].map is Some(edge_map) else {
+    fail("expected edge map")
+  }
+  guard edge_map.get_field("style") is Some(style) else {
+    fail("expected edge style")
+  }
+  guard style.map() is Some(style_map) else { fail("expected style map") }
+  guard style_map.get_field("opacity") is Some(opacity) else {
+    fail("expected opacity")
+  }
+  guard opacity.primary is Some(value) else { fail("expected opacity value") }
+  @debug.assert_eq(value.to_string(), "0.6")
 }
 
 ///|

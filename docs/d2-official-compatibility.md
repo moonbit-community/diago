@@ -18,24 +18,22 @@ element.
 
 | Engine | Passed | Expected failures | Unexpected failures |
 | --- | ---: | ---: | ---: |
-| Dagre | 185 | 2 | 0 |
-| ELK | 185 | 2 | 0 |
-| Railway | 185 | 2 | 0 |
-| Total executions | 555 | 6 | 0 |
+| Dagre | 186 | 1 | 0 |
+| ELK | 186 | 1 | 0 |
+| Railway | 186 | 1 | 0 |
+| Total | 558 | 3 | 0 |
 
-All three engines fail on exactly the same two inputs with the same
-diagnostics. The failures occur during parsing or graph compilation, before
-layout engine dispatch. There are no additional engine-specific failures in
-this corpus.
+All three engines fail on exactly the same input with the same diagnostic.
+The failure occurs during parsing, before layout engine dispatch. There are no
+additional engine-specific failures in this corpus.
 
 ## Failure classification
 
-The two failing inputs belong to two concrete compatibility categories.
+The remaining failing input belongs to one compatibility category.
 
 | Category | Files | Stage | Root cause |
 | --- | ---: | --- | --- |
 | Grid coordinate keys | 1 | Parser | Commas terminate normal key paths, so D2 grid coordinates such as `0,0` are not yet recognized as grid cell identifiers. |
-| Indexed edge override | 1 | Graph compilation | Scenario updates such as `(a -> b)[0].style.opacity` are parsed as edge updates but rejected by the graph semantic layer. |
 
 ## Resolved bracket-list compatibility
 
@@ -68,20 +66,29 @@ official renderer.
 This makes the official `static/d2/icons-1.d2` and `static/d2/links.d2`
 fixtures pass through Dagre, ELK, and Railway.
 
+## Resolved indexed edge override compatibility
+
+Indexed edge references now resolve by semantic edge identity: scope,
+endpoints, arrow directions, and the declaration index within that edge group.
+Property suffixes such as `.style.opacity`, whole property maps, and edge map
+updates recursively merge into the selected edge without creating duplicates.
+
+Scenarios inherit their parent board before applying indexed updates. Steps
+inherit the previous step in source order, while layers remain isolated.
+Out-of-range numeric indexes report `indexed edge does not exist`.
+
+This makes the official `static/bespoke-d2/animated.d2` fixture pass through
+Dagre, ELK, and Railway.
+
 ### Remaining failure fixtures
 
 - `static/d2/grid-connections.d2`: grid coordinate keys;
-- `static/bespoke-d2/animated.d2`: indexed edge style updates inside a
-  scenario.
-
-The indexed edge override currently produces the graph diagnostic
-`Semantic(edge map keys must be reserved keywords)`.
 
 ## Follow-up issues
 
 - [#18: Support D2 bracket-list syntax](https://github.com/moonbit-community/diago/issues/18) (resolved)
 - [#19: Support icon and link properties on D2 edges](https://github.com/moonbit-community/diago/issues/19) (resolved)
-- [#20: Support indexed edge overrides in scenarios](https://github.com/moonbit-community/diago/issues/20)
+- [#20: Support indexed edge overrides in scenarios](https://github.com/moonbit-community/diago/issues/20) (resolved)
 - [#21: Support D2 grid coordinate keys](https://github.com/moonbit-community/diago/issues/21)
 
 ## Regression policy

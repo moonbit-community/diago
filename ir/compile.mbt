@@ -80,6 +80,7 @@ fn ResolvedPath::new(
 pub fn compile(ast : @ast.Map) -> Map raise CompileError {
   let ir = Map::from_ast(ast)
   compile_map_nodes(ir, ast, ast.nodes)
+  resolve_boards(ir)
   // Resolve variable substitutions
   ir.resolve_substitutions()
   ir.reindex_paths()
@@ -666,7 +667,7 @@ fn compile_edges(
 
     fn find_exact_edge(ir : Map, id : EdgeID) -> Edge? {
       for e in ir.edges {
-        if e.id == id {
+        if e.id.matches(id) {
           return Some(e)
         }
       }
@@ -677,49 +678,25 @@ fn compile_edges(
       existing : Edge?,
       value : @ast.Value?,
     ) -> (Scalar?, Map?) raise CompileError {
-      match (existing, value) {
-        (Some(e), Some(v)) =>
-          match v {
-            Scalar(s) => (Some(compile_scalar(s, source_path)), e.map)
-            Map(m) => {
-              let ir_map = Map::from_ast(m, source_path~)
-              compile_map_nodes(ir_map, m, m.nodes, source_path~)
-              (e.primary, Some(ir_map))
-            }
-            BlockScalar(label, m) => {
-              let updated_primary = match label {
-                Scalar(s) => Some(compile_scalar(s, source_path))
-                _ => e.primary
-              }
-              let ir_map = Map::from_ast(m, source_path~)
-              compile_map_nodes(ir_map, m, m.nodes, source_path~)
-              (updated_primary, Some(ir_map))
-            }
-            _ => (e.primary, e.map)
+      let (patch_primary, patch_map) = match value {
+        Some(Scalar(s)) => (Some(compile_scalar(s, source_path)), None)
+        Some(Map(m)) => {
+          let ir_map = Map::from_ast(m, source_path~)
+          compile_map_nodes(ir_map, m, m.nodes, source_path~)
+          (None, Some(ir_map))
+        }
+        Some(BlockScalar(label, m)) => {
+          let primary = match label {
+            Scalar(s) => Some(compile_scalar(s, source_path))
+            _ => None
           }
-        (Some(e), None) => (e.primary, e.map)
-        (None, Some(v)) =>
-          match v {
-            Scalar(s) => (Some(compile_scalar(s, source_path)), None)
-            Map(m) => {
-              let ir_map = Map::from_ast(m, source_path~)
-              compile_map_nodes(ir_map, m, m.nodes, source_path~)
-              (None, Some(ir_map))
-            }
-            BlockScalar(label, m) => {
-              let mut primary : Scalar? = None
-              match label {
-                Scalar(s) => primary = Some(compile_scalar(s, source_path))
-                _ => ()
-              }
-              let ir_map = Map::from_ast(m, source_path~)
-              compile_map_nodes(ir_map, m, m.nodes, source_path~)
-              (primary, Some(ir_map))
-            }
-            _ => (None, None)
-          }
-        (None, None) => (None, None)
+          let ir_map = Map::from_ast(m, source_path~)
+          compile_map_nodes(ir_map, m, m.nodes, source_path~)
+          (primary, Some(ir_map))
+        }
+        _ => (None, None)
       }
+      apply_edge_value(existing, key.edge_key, patch_primary, patch_map)
     }
 
     for src_path in src_paths {
@@ -979,7 +956,10 @@ fn compile_value(
         name_syntax=field.name_syntax(),
       )
     Map(m) => {
-      let ir_map = Map::from_ast(m, source_path~)
+      let ir_map = match field.composite {
+        Some(Map(existing)) => existing
+        _ => Map::from_ast(m, source_path~)
+      }
       compile_map_nodes(ir_map, m, m.nodes, source_path~)
       Field::new(
         field.name,
@@ -1014,7 +994,10 @@ fn compile_value(
           )
         _ => field
       }
-      let ir_map = Map::from_ast(m, source_path~)
+      let ir_map = match field.composite {
+        Some(Map(existing)) => existing
+        _ => Map::from_ast(m, source_path~)
+      }
       compile_map_nodes(ir_map, m, m.nodes, source_path~)
       Field::new(
         field.name,
