@@ -16,25 +16,6 @@
 const CLI_VERSION : String = "0.2.5"
 
 ///|
-async fn run_cli(raw_args : Array[String], env : Map[String, String]) -> Unit {
-  let request = match parse_cli_request(raw_args, env) {
-    Ok(req) => req
-    Err(err) => {
-      println(err)
-      @sys.exit(1)
-      return
-    }
-  }
-  match execute_cli_request(request) {
-    Ok(_) => ()
-    Err(err) => {
-      println("Error: \{err}")
-      @sys.exit(1)
-    }
-  }
-}
-
-///|
 async fn execute_cli_request(request : CliRequest) -> Result[Unit, String] {
   match request.command {
     Render =>

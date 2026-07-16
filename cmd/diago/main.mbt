@@ -120,7 +120,22 @@ fn parse_dump_input_engine(name : String) -> DumpInputEngine? {
 
 ///|
 async fn main {
-  run_cli(@sys.get_cli_args(), @sys.get_env_vars())
+  let request = match
+    parse_cli_request(@sys.get_cli_args(), @sys.get_env_vars()) {
+    Ok(req) => req
+    Err(err) => {
+      println(err)
+      @sys.exit(1)
+      return
+    }
+  }
+  match execute_cli_request(request) {
+    Ok(_) => ()
+    Err(err) => {
+      println("Error: \{err}")
+      @sys.exit(1)
+    }
+  }
 }
 
 ///|
