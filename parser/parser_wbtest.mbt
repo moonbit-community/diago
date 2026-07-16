@@ -61,6 +61,13 @@ test "parse_key_path parses quoted board paths" {
 }
 
 ///|
+test "parse_key_path preserves commas in unquoted segments" {
+  let result = parse_key_path("0,0.style.fill")
+  guard result is Ok(key_path) else { fail("expected key path") }
+  @debug.assert_eq(key_path.to_strings(), ["0,0", "style", "fill"])
+}
+
+///|
 test "parse_key_path rejects trailing tokens" {
   let result = parse_key_path("layers.cat:")
   guard result is Err(errors) else { fail("expected parse error") }
@@ -244,6 +251,71 @@ test "parse array" {
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.value is Some(Array(arr)) else { fail("expected array value") }
   @debug.assert_eq(arr.nodes.length(), 3)
+}
+
+///|
+test "parse unquoted keys containing commas" {
+  let source =
+    #|foo,bar: value
+    #|0,2.class: empty
+  let (ast, errors) = parse(source)
+  assert_true(errors.is_empty())
+  @debug.assert_eq(ast.nodes.length(), 2)
+  guard ast.nodes[0] is Key(first) else { fail("expected first key") }
+  guard first.key is Some(first_path) else { fail("expected first key path") }
+  @debug.assert_eq(first_path.to_strings(), ["foo,bar"])
+  guard ast.nodes[1] is Key(second) else { fail("expected second key") }
+  guard second.key is Some(second_path) else {
+    fail("expected second key path")
+  }
+  @debug.assert_eq(second_path.to_strings(), ["0,2", "class"])
+}
+
+///|
+test "parse edge endpoints containing commas" {
+  let (ast, errors) = parse("0,0 -> 2,0 -> 2,1")
+  assert_true(errors.is_empty())
+  guard ast.nodes[0] is Key(key) else { fail("expected edge key") }
+  @debug.assert_eq(key.edges.length(), 2)
+  @debug.assert_eq(key.edges[0].src.to_strings(), ["0,0"])
+  @debug.assert_eq(key.edges[0].dst.to_strings(), ["2,0"])
+  @debug.assert_eq(key.edges[1].src.to_strings(), ["2,0"])
+  @debug.assert_eq(key.edges[1].dst.to_strings(), ["2,1"])
+}
+
+///|
+test "comma separators apply only to direct array elements" {
+  let source =
+    #|imports: [@first, @second]
+    #|nested-map: [{ label: hello, world }, tail]
+  let (ast, errors) = parse(source)
+  assert_true(errors.is_empty())
+  guard ast.nodes[0] is Key(imports) else { fail("expected imports key") }
+  guard imports.value is Some(Array(import_array)) else {
+    fail("expected import array")
+  }
+  @debug.assert_eq(import_array.nodes.length(), 2)
+  guard import_array.nodes[0] is Import(first_import) else {
+    fail("expected first import")
+  }
+  @debug.assert_eq(first_import.path[0].content(), "first")
+  guard import_array.nodes[1] is Import(second_import) else {
+    fail("expected second import")
+  }
+  @debug.assert_eq(second_import.path[0].content(), "second")
+  guard ast.nodes[1] is Key(nested) else { fail("expected nested-map key") }
+  guard nested.value is Some(Array(nested_array)) else {
+    fail("expected nested array")
+  }
+  @debug.assert_eq(nested_array.nodes.length(), 2)
+  guard nested_array.nodes[0] is Value(Map(inner_map)) else {
+    fail("expected nested map")
+  }
+  guard inner_map.nodes[0] is Key(label) else { fail("expected label key") }
+  guard label.value is Some(Scalar(String(label_value))) else {
+    fail("expected label value")
+  }
+  @debug.assert_eq(label_value.content(), "hello, world")
 }
 
 ///|

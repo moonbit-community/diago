@@ -628,6 +628,23 @@ test "grid nested simple edges fixture compiles edge classes on grid descendants
 }
 
 ///|
+test "comma-bearing grid cell IDs survive graph export" {
+  let source =
+    #|grid-rows: 1
+    #|grid-columns: 3
+    #|0,0 -> 0,1 -> 0,2
+  let graph = compile_source_graph(source).unwrap()
+  assert_true(graph.find_object("0,0") is Some(_))
+  assert_true(graph.find_object("0,1") is Some(_))
+  assert_true(graph.find_object("0,2") is Some(_))
+  @debug.assert_eq(graph.edges.length(), 2)
+  @debug.assert_eq(graph.edges[0].src_id, "0,0")
+  @debug.assert_eq(graph.edges[0].dst_id, "0,1")
+  @debug.assert_eq(graph.edges[1].src_id, "0,1")
+  @debug.assert_eq(graph.edges[1].dst_id, "0,2")
+}
+
+///|
 test "label icon and tooltip near fields follow position semantics" {
   let source =
     #|hey: {

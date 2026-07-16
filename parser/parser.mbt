@@ -22,9 +22,14 @@ struct Parser {
   mut pos : Int
   mut depth : Int
   mut in_edge_group : Bool
-  mut in_array : Bool
   errors : ParseErrors
 } derive(Debug)
+
+///|
+priv enum CommaMode {
+  CommaIsText
+  CommaIsSeparator
+}
 
 ///|
 /// Parse a diago source string into an AST
@@ -83,7 +88,6 @@ pub fn Parser::new(source : String, tokens : Array[@lexer.Token]) -> Parser {
     pos: 0,
     depth: 0,
     in_edge_group: false,
-    in_array: false,
     errors: ParseErrors::new(),
   }
 }
@@ -231,7 +235,7 @@ fn Parser::parse_map_node(self : Parser) -> @ast.MapNode? {
       let dots = self.advance() // consume ...
       match self.peek() {
         At =>
-          match self.parse_import(true) {
+          match self.parse_import(true, CommaIsText) {
             Some(imp) => Some(Import(imp))
             None => None
           }
@@ -385,7 +389,7 @@ fn Parser::parse_key(self : Parser) -> @ast.Key? {
     Colon => {
       let _ = self.advance()
       self.skip_whitespace_not_newline()
-      match self.parse_value() {
+      match self.parse_value(CommaIsText) {
         Some(val) => value = Some(val)
         None => self.error("missing value after colon")
       }
@@ -441,7 +445,7 @@ fn can_start_edge_token(token : @lexer.Token) -> Bool {
 fn Parser::parse_key_path(self : Parser) -> @ast.KeyPath? {
   let start = self.current().range.start
   let path : Array[@ast.StringValue] = []
-  match self.parse_string_for_key() {
+  match self.parse_string_for_key(CommaIsText) {
     Some(s) => {
       if is_unquoted_string_value(s) && s.content().has_prefix("@") {
         self.error(
@@ -456,7 +460,7 @@ fn Parser::parse_key_path(self : Parser) -> @ast.KeyPath? {
     match self.peek() {
       Dot => {
         let _ = self.advance()
-        match self.parse_string_for_key() {
+        match self.parse_string_for_key(CommaIsText) {
           Some(s) => {
             if is_unquoted_string_value(s) && s.content().has_prefix("@") {
               self.error(
@@ -484,7 +488,10 @@ fn Parser::parse_key_path(self : Parser) -> @ast.KeyPath? {
 }
 
 ///|
-fn Parser::parse_string_for_key(self : Parser) -> @ast.StringValue? {
+fn Parser::parse_string_for_key(
+  self : Parser,
+  comma_mode : CommaMode,
+) -> @ast.StringValue? {
   match self.peek() {
     StringLit(style, content) => {
       let token = self.advance()
@@ -501,7 +508,7 @@ fn Parser::parse_string_for_key(self : Parser) -> @ast.StringValue? {
     _ => ()
   }
 
-  if self.is_key_segment_delimiter() {
+  if self.is_key_segment_delimiter(comma_mode) {
     return None
   }
 
@@ -533,7 +540,7 @@ fn Parser::parse_string_for_key(self : Parser) -> @ast.StringValue? {
         _ => ()
       }
     }
-    if self.is_key_segment_delimiter() {
+    if self.is_key_segment_delimiter(comma_mode) {
       break
     }
     let token = self.advance()
@@ -564,11 +571,14 @@ fn Parser::parse_string_for_key(self : Parser) -> @ast.StringValue? {
 }
 
 ///|
-fn Parser::is_key_segment_delimiter(self : Parser) -> Bool {
+fn Parser::is_key_segment_delimiter(
+  self : Parser,
+  comma_mode : CommaMode,
+) -> Bool {
   match self.peek() {
+    Comma => comma_mode is CommaIsSeparator
     Newline
     | Semicolon
-    | Comma
     | Colon
     | Dot
     | LeftBrace
@@ -859,7 +869,7 @@ fn Parser::parse_edge_group(
     Colon => {
       let _ = self.advance()
       self.skip_whitespace_not_newline()
-      match self.parse_value() {
+      match self.parse_value(CommaIsText) {
         Some(val) => value = Some(val)
         None => ()
       }
@@ -913,7 +923,7 @@ fn Parser::parse_edge_index(self : Parser) -> @ast.EdgeIndex? {
 }
 
 ///|
-fn Parser::parse_value(self : Parser) -> @ast.Value? {
+fn Parser::parse_value(self : Parser, comma_mode : CommaMode) -> @ast.Value? {
   match self.peek() {
     LeftBrace =>
       match self.parse_block() {
@@ -926,12 +936,12 @@ fn Parser::parse_value(self : Parser) -> @ast.Value? {
         None => None
       }
     At =>
-      match self.parse_import(false) {
+      match self.parse_import(false, comma_mode) {
         Some(imp) => Some(Import(imp))
         None => None
       }
     _ =>
-      match self.parse_scalar() {
+      match self.parse_scalar(comma_mode) {
         Some(s) => Some(Scalar(s))
         None => None
       }
@@ -955,8 +965,6 @@ fn Parser::parse_block(self : Parser) -> @ast.Map? {
 fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
   let start = self.current().range.start
   let _ = self.advance() // consume [
-  let prev_in_array = self.in_array
-  self.in_array = true
   let nodes : Array[@ast.ArrayNode] = []
   self.skip_trivia()
   while !self.is_at_end() {
@@ -976,7 +984,7 @@ fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
         nodes.push(BlockComment(token.range, content))
       }
       At =>
-        match self.parse_import(false) {
+        match self.parse_import(false, CommaIsSeparator) {
           Some(imp) => nodes.push(Import(imp))
           None => break
         }
@@ -989,7 +997,7 @@ fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
         let dots = self.advance()
         match self.peek() {
           At =>
-            match self.parse_import(true) {
+            match self.parse_import(true, CommaIsSeparator) {
               Some(imp) => nodes.push(Import(imp))
               None => break
             }
@@ -1014,7 +1022,7 @@ fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
         }
       }
       _ =>
-        match self.parse_value() {
+        match self.parse_value(CommaIsSeparator) {
           Some(v) => nodes.push(Value(v))
           None => {
             self.error("expected value in array")
@@ -1031,12 +1039,11 @@ fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
     _ => self.error("expected ] to close array")
   }
   let end = self.current().range.end
-  self.in_array = prev_in_array
   Some(@ast.ArrayValue::new(@lexer.Range::new(start, end), nodes))
 }
 
 ///|
-fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
+fn Parser::parse_scalar(self : Parser, comma_mode : CommaMode) -> @ast.Scalar? {
   match self.peek() {
     Ident(name) =>
       if name == "null" {
@@ -1049,7 +1056,7 @@ fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
         let token = self.advance()
         Some(Boolean(token.range, false))
       } else {
-        self.parse_unquoted_scalar_run()
+        self.parse_unquoted_scalar_run(comma_mode)
       }
     Number(n) => {
       let standalone_number = if self.pos + 1 >= self.tokens.length() {
@@ -1065,7 +1072,7 @@ fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
           | Comment(_)
           | BlockComment(_)
           | Eof => true
-          Comma => self.in_array
+          Comma => comma_mode is CommaIsSeparator
           _ => false
         }
       }
@@ -1073,7 +1080,7 @@ fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
         let token = self.advance()
         Some(Number(token.range, n))
       } else {
-        self.parse_unquoted_scalar_run()
+        self.parse_unquoted_scalar_run(comma_mode)
       }
     }
     StringLit(style, content) => {
@@ -1146,7 +1153,7 @@ fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
               None => break
             }
           Comma =>
-            if self.in_array {
+            if comma_mode is CommaIsSeparator {
               break
             } else {
               let token = self.advance()
@@ -1177,12 +1184,15 @@ fn Parser::parse_scalar(self : Parser) -> @ast.Scalar? {
         Some(bs) => Some(String(Block(bs)))
         None => None
       }
-    _ => self.parse_unquoted_scalar_run()
+    _ => self.parse_unquoted_scalar_run(comma_mode)
   }
 }
 
 ///|
-fn Parser::parse_unquoted_scalar_run(self : Parser) -> @ast.Scalar? {
+fn Parser::parse_unquoted_scalar_run(
+  self : Parser,
+  comma_mode : CommaMode,
+) -> @ast.Scalar? {
   match self.peek() {
     DotDotDot =>
       if self.pos + 1 < self.tokens.length() {
@@ -1243,7 +1253,7 @@ fn Parser::parse_unquoted_scalar_run(self : Parser) -> @ast.Scalar? {
           None => break
         }
       Comma =>
-        if self.in_array {
+        if comma_mode is CommaIsSeparator {
           break
         } else {
           let token = self.advance()
@@ -1778,7 +1788,7 @@ fn Parser::parse_substitution(self : Parser) -> @ast.Substitution? {
   }
   let path : Array[@ast.StringValue] = []
   let first_segment = if is_brace {
-    self.parse_string_for_key()
+    self.parse_string_for_key(CommaIsText)
   } else {
     self.parse_substitution_segment()
   }
@@ -1798,7 +1808,7 @@ fn Parser::parse_substitution(self : Parser) -> @ast.Substitution? {
         Dot => {
           let dot = self.advance()
           end = dot.range.end
-          match self.parse_string_for_key() {
+          match self.parse_string_for_key(CommaIsText) {
             Some(s) => {
               end = s.range().end
               path.push(s)
@@ -1841,7 +1851,7 @@ fn Parser::parse_substitution_segment(self : Parser) -> @ast.StringValue? {
     _ => ()
   }
 
-  if self.is_key_segment_delimiter() {
+  if self.is_key_segment_delimiter(CommaIsText) {
     return None
   }
   let token = self.advance()
@@ -1863,13 +1873,17 @@ fn Parser::parse_substitution_segment(self : Parser) -> @ast.StringValue? {
 }
 
 ///|
-fn Parser::parse_import(self : Parser, spread : Bool) -> @ast.Import? {
+fn Parser::parse_import(
+  self : Parser,
+  spread : Bool,
+  comma_mode : CommaMode,
+) -> @ast.Import? {
   let start = self.current().range.start
   let at = self.advance() // consume @
   let mut end = at.range.end
   let (pre, first_segment_trim) = self.parse_import_pre()
   let path : Array[@ast.StringValue] = []
-  match self.parse_string_for_key() {
+  match self.parse_string_for_key(comma_mode) {
     Some(raw_first) => {
       let first = if first_segment_trim > 0 {
         trim_import_first_segment(raw_first, first_segment_trim)
@@ -1889,7 +1903,7 @@ fn Parser::parse_import(self : Parser, spread : Bool) -> @ast.Import? {
       Dot => {
         let dot = self.advance()
         end = dot.range.end
-        match self.parse_string_for_key() {
+        match self.parse_string_for_key(comma_mode) {
           Some(s) => {
             end = s.range().end
             path.push(s)

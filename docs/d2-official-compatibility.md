@@ -18,22 +18,17 @@ element.
 
 | Engine | Passed | Expected failures | Unexpected failures |
 | --- | ---: | ---: | ---: |
-| Dagre | 186 | 1 | 0 |
-| ELK | 186 | 1 | 0 |
-| Railway | 186 | 1 | 0 |
-| Total | 558 | 3 | 0 |
+| Dagre | 187 | 0 | 0 |
+| ELK | 187 | 0 | 0 |
+| Railway | 187 | 0 | 0 |
+| Total | 561 | 0 | 0 |
 
-All three engines fail on exactly the same input with the same diagnostic.
-The failure occurs during parsing, before layout engine dispatch. There are no
-additional engine-specific failures in this corpus.
+All 187 fixtures pass through all three engines. There are no remaining known
+compatibility failures in this corpus.
 
 ## Failure classification
 
-The remaining failing input belongs to one compatibility category.
-
-| Category | Files | Stage | Root cause |
-| --- | ---: | --- | --- |
-| Grid coordinate keys | 1 | Parser | Commas terminate normal key paths, so D2 grid coordinates such as `0,0` are not yet recognized as grid cell identifiers. |
+There are no remaining failure categories.
 
 ## Resolved bracket-list compatibility
 
@@ -80,16 +75,26 @@ Out-of-range numeric indexes report `indexed edge does not exist`.
 This makes the official `static/bespoke-d2/animated.d2` fixture pass through
 Dagre, ELK, and Railway.
 
-### Remaining failure fixtures
+## Resolved comma-bearing key compatibility
 
-- `static/d2/grid-connections.d2`: grid coordinate keys;
+D2 treats commas as ordinary text in unquoted keys, including object IDs,
+property paths, and edge endpoints such as `0,0 -> 2,0`. Diago now preserves
+that behavior generally instead of recognizing only numeric grid coordinates.
+
+Comma-separated arrays remain supported as a Diago extension. The parser
+passes an explicit comma mode only while reading a direct array element, so the
+separator behavior does not leak into nested maps, nested arrays, imports, or
+substitutions.
+
+This makes the official `static/d2/grid-connections.d2` fixture pass through
+Dagre, ELK, and Railway.
 
 ## Follow-up issues
 
 - [#18: Support D2 bracket-list syntax](https://github.com/moonbit-community/diago/issues/18) (resolved)
 - [#19: Support icon and link properties on D2 edges](https://github.com/moonbit-community/diago/issues/19) (resolved)
 - [#20: Support indexed edge overrides in scenarios](https://github.com/moonbit-community/diago/issues/20) (resolved)
-- [#21: Support D2 grid coordinate keys](https://github.com/moonbit-community/diago/issues/21)
+- [#21: Support D2 grid coordinate keys](https://github.com/moonbit-community/diago/issues/21) (resolved)
 
 ## Regression policy
 
