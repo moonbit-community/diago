@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Milky2018/diago/layout_core"
+
+import {
+  "Milky2018/diago/graph",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compile(@graph.GraphInput) -> LayoutProblem raise LayoutProblemError
+
+// Errors
+pub(all) suberror LayoutProblemError {
+  DuplicateObjectId(String)
+  DuplicateEdgeIndex(Int)
+  MissingChild(parent_id~ : String, child_id~ : String)
+  MissingEdgeEndpoint(edge_index~ : Int, endpoint_id~ : String)
+  UnknownPatchNode(String)
+  UnknownPatchEdge(Int)
+} derive(Eq, @debug.Debug)
+pub fn LayoutProblemError::message(Self) -> String
+
+// Types and methods
+pub struct LayoutProblem {
+  // private fields
+}
+pub fn LayoutProblem::graph(Self) -> @graph.GraphInput
+pub fn LayoutProblem::validate_patch(Self, @graph.LayoutPatch) -> Unit raise LayoutProblemError
+
+// Type aliases
+
+// Traits
+

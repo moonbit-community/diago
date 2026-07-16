@@ -13,41 +13,6 @@
 // limitations under the License.
 
 ///|
-fn canonicalize_layout_object(obj : @graph.ObjectInput) -> @graph.ObjectInput {
-  @graph.ObjectInput::from_parts(
-    obj.lookup_id(),
-    obj.label,
-    obj.shape_type,
-    obj.style,
-    obj.box,
-    obj.label_box,
-    obj.child_ids,
-    obj.z_index,
-    obj.icon,
-    obj.tooltip,
-    obj.link,
-    obj.classes,
-    obj.grid_rows,
-    obj.grid_columns,
-    obj.grid_gap,
-    obj.horizontal_gap,
-    obj.vertical_gap,
-    obj.grid_column_span,
-    obj.grid_row_span,
-    obj.near,
-    obj.top,
-    obj.left,
-    direction=obj.direction,
-    language=obj.language,
-    sql_constraints=obj.sql_constraints,
-    id_val=obj.id_val,
-    id_syntax=obj.id_syntax,
-    abs_id_syntax=obj.abs_id_syntax,
-    references=obj.references,
-  )
-}
-
-///|
 fn build_railway_layout_input(
   graph : @graph.GraphInput,
 ) -> (@graph.GraphInput, Map[String, @graph.ObjectInput], Map[String, String]) {
@@ -63,7 +28,7 @@ fn build_railway_layout_input(
       continue
     }
     layout_node_ids[obj.lookup_id()] = true
-    layout_objects.push(canonicalize_layout_object(obj))
+    layout_objects.push(obj)
   }
   let layout_edges : Array[@graph.EdgeInput] = []
   for edge in graph.edges {
@@ -74,7 +39,7 @@ fn build_railway_layout_input(
       match object_by_id.get(src_id) {
         Some(obj) => {
           layout_node_ids[src_id] = true
-          layout_objects.push(canonicalize_layout_object(obj))
+          layout_objects.push(obj)
         }
         None => ()
       }
@@ -83,7 +48,7 @@ fn build_railway_layout_input(
       match object_by_id.get(dst_id) {
         Some(obj) => {
           layout_node_ids[dst_id] = true
-          layout_objects.push(canonicalize_layout_object(obj))
+          layout_objects.push(obj)
         }
         None => ()
       }
@@ -95,7 +60,7 @@ fn build_railway_layout_input(
   }
   let layout_input = @graph.GraphInput::from_parts(
     graph.name,
-    canonicalize_layout_object(graph.root),
+    graph.root,
     layout_objects,
     layout_edges,
     graph.sequence_fragments,

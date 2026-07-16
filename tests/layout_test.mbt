@@ -168,6 +168,39 @@ test "quoted syntax identities survive dagre elk and railway layout" {
 }
 
 ///|
+test "railway sequence layout preserves syntax-distinct participants" {
+  let source =
+    #|shape: sequence_diagram
+    #|"a.b": Quoted participant
+    #|a: {
+    #|  b: Nested participant
+    #|}
+    #|"a.b" -> a.b: message
+  let graph_input = compile_graph_no_layout(source).unwrap()
+  let railway = @engine_api.layout_with_engine(
+    @engine_railway.RailwayEngine::new(),
+    graph_input,
+    @engine_api.LayoutConfig::new(),
+    Down,
+  ) catch {
+    error => fail("railway layout error: \{error}")
+  }
+  guard railway.find_object("\"a.b\"") is Some(quoted) else {
+    fail("expected quoted participant after railway layout")
+  }
+  guard railway.find_object("a.b") is Some(nested) else {
+    fail("expected nested participant after railway layout")
+  }
+  assert_true(quoted.box is Some(_), msg="quoted participant box")
+  assert_true(nested.box is Some(_), msg="nested participant box")
+  assert_true(railway.edges.length() == 1, msg="sequence edge count")
+  assert_true(
+    railway.edges[0].route.length() >= 2,
+    msg="sequence edge should have a route",
+  )
+}
+
+///|
 test "reference nested_layout_bug root grid keeps nested container as a grid cell" {
   let source =
     #|grid-rows: 1

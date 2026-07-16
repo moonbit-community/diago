@@ -601,7 +601,7 @@ priv struct EdgeSpan {
 }
 
 ///|
-pub struct RailwayLanePlan {
+priv struct RailwayLanePlan {
   lane_by_edge : Map[Int, Int]
   shift_by_edge : Map[Int, Double]
 }

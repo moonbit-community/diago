@@ -56,6 +56,40 @@ impl @engine_api.LayoutEngine for FakeEngine with fn features(_self) -> Array[
 }
 
 ///|
+struct InvalidPatchEngine {
+  _marker : Unit
+}
+
+///|
+fn InvalidPatchEngine::new() -> InvalidPatchEngine {
+  { _marker: () }
+}
+
+///|
+impl @engine_api.LayoutEngine for InvalidPatchEngine with fn layout(
+  _self,
+  _graph,
+  _config,
+  _direction,
+) -> @graph.LayoutPatch raise @engine_api.LayoutError {
+  let patch = @graph.LayoutPatch::new()
+  patch.nodes["missing"] = @graph.Box::new(0.0, 0.0, 10.0, 10.0)
+  patch
+}
+
+///|
+impl @engine_api.LayoutEngine for InvalidPatchEngine with fn engine_name(_self) -> String {
+  "invalid-patch"
+}
+
+///|
+impl @engine_api.LayoutEngine for InvalidPatchEngine with fn features(_self) -> Array[
+  @engine_api.LayoutFeature,
+] {
+  [NearObject, ContainerDimensions, TopLeft, DescendantEdges]
+}
+
+///|
 fn root_input(child_ids : Array[String]) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(
     "root",
@@ -203,6 +237,36 @@ fn edge_input(index : Int, curved : Bool?) -> @graph.EdgeInput {
     None,
     None,
   )
+}
+
+///|
+test "layout engine patches cannot introduce unknown identities" {
+  let graph = graph_input(
+    "invalid-patch",
+    ["a"],
+    [object_input("a", None)],
+    [],
+    [],
+    [],
+    [],
+  )
+  try
+    @engine_api.layout_with_engine(
+      InvalidPatchEngine::new(),
+      graph,
+      @engine_api.LayoutConfig::new(),
+      Down,
+    )
+  catch {
+    InvalidGraph(message) =>
+      assert_true(
+        message.contains("unknown object identity"),
+        msg="unexpected error: \{message}",
+      )
+    error => fail("unexpected layout error: \{error}")
+  } noraise {
+    _ => fail("expected invalid patch to fail")
+  }
 }
 
 ///|

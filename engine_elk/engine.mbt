@@ -267,7 +267,6 @@ pub impl @engine_api.LayoutEngine for ElkEngine with fn layout(
   config,
   direction,
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
-  let graph = canonicalize_layout_graph(graph)
   if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_diagram(graph, config)
   }
@@ -2144,103 +2143,6 @@ fn ensure_moon_elk_json_bootstrap_linked() -> Unit {
 }
 
 ///|
-fn canonicalize_layout_object(obj : @graph.ObjectInput) -> @graph.ObjectInput {
-  @graph.ObjectInput::from_parts(
-    obj.lookup_id(),
-    obj.label,
-    obj.shape_type,
-    obj.style,
-    obj.box,
-    obj.label_box,
-    obj.child_ids,
-    obj.z_index,
-    obj.icon,
-    obj.tooltip,
-    obj.link,
-    obj.classes,
-    obj.grid_rows,
-    obj.grid_columns,
-    obj.grid_gap,
-    obj.horizontal_gap,
-    obj.vertical_gap,
-    obj.grid_column_span,
-    obj.grid_row_span,
-    obj.near,
-    obj.top,
-    obj.left,
-    direction=obj.direction,
-    language=obj.language,
-    sql_constraints=obj.sql_constraints,
-    id_val=obj.id_val,
-    id_syntax=obj.id_syntax,
-    abs_id_syntax=obj.abs_id_syntax,
-    references=obj.references,
-  )
-}
-
-///|
-fn canonicalize_layout_edge(edge : @graph.EdgeInput) -> @graph.EdgeInput {
-  let src_id = edge.lookup_src_id()
-  let dst_id = edge.lookup_dst_id()
-  @graph.EdgeInput::from_parts(
-    edge.index,
-    src_id,
-    dst_id,
-    edge.src_arrow,
-    edge.dst_arrow,
-    edge.src_arrowhead,
-    edge.dst_arrowhead,
-    edge.src_arrowhead_label,
-    edge.dst_arrowhead_label,
-    edge.src_arrowhead_label_color,
-    edge.dst_arrowhead_label_color,
-    edge.src_anchor,
-    edge.dst_anchor,
-    edge.label,
-    edge.style,
-    edge.route,
-    edge.bend_points,
-    edge.is_curve,
-    edge.z_index,
-    edge.reference_count,
-    edge.label_box,
-    edge.src_column_index,
-    edge.dst_column_index,
-    src_id_syntax=src_id,
-    dst_id_syntax=dst_id,
-    references=edge.references,
-  )
-}
-
-///|
-fn canonicalize_layout_graph(graph : @graph.GraphInput) -> @graph.GraphInput {
-  let objects : Array[@graph.ObjectInput] = []
-  for obj in graph.objects {
-    objects.push(canonicalize_layout_object(obj))
-  }
-  let edges : Array[@graph.EdgeInput] = []
-  for edge in graph.edges {
-    edges.push(canonicalize_layout_edge(edge))
-  }
-  @graph.GraphInput::from_parts(
-    graph.name,
-    canonicalize_layout_object(graph.root),
-    objects,
-    edges,
-    graph.sequence_fragments,
-    graph.activation_boxes,
-    graph.sequence_notes,
-    graph.sequence_fragments_layout,
-    graph.layers,
-    graph.scenarios,
-    graph.steps,
-    graph.legend,
-    is_folder_only=graph.is_folder_only,
-    data=graph.data,
-  )
-}
-
-///|
 fn build_elk_graph(
   graph : @graph.GraphInput,
   config : @engine_api.LayoutConfig,
@@ -2252,7 +2154,6 @@ fn build_elk_graph(
   Map[String, (Double, Double)],
   Map[String, LayoutSpacing],
 ) {
-  let graph = canonicalize_layout_graph(graph)
   let (object_by_id, parent_id_by_child_id) = build_object_maps(graph)
   let excluded_node_ids = build_excluded_layout_node_ids(
     graph, parent_id_by_child_id, object_by_id,

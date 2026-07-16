@@ -155,20 +155,37 @@ fn layout_sequence_diagram_railway(
 
 ///|
 fn sequence_participant_ids_railway(graph : @graph.GraphInput) -> Array[String] {
-  if !graph.root.child_ids.is_empty() {
-    let ids : Array[String] = []
-    let exists : Map[String, Bool] = Map([])
-    for obj in graph.objects {
-      exists[obj.id] = true
+  let endpoint_ids : Map[String, Bool] = Map([])
+  for edge in graph.edges {
+    endpoint_ids[edge.src_id] = true
+    endpoint_ids[edge.dst_id] = true
+  }
+  let ids : Array[String] = []
+  let added : Map[String, Bool] = Map([])
+  // Message endpoints are the authoritative participant identities. Iterating
+  // objects preserves declaration order even when participants are nested.
+  for obj in graph.objects {
+    if endpoint_ids.contains(obj.id) && !added.contains(obj.id) {
+      ids.push(obj.id)
+      added[obj.id] = true
     }
-    for id in graph.root.child_ids {
-      if exists.contains(id) {
-        ids.push(id)
-      }
+  }
+  // Preserve explicitly declared top-level participants without messages.
+  for child_id in graph.root.child_ids {
+    if added.contains(child_id) {
+      continue
     }
-    if !ids.is_empty() {
-      return ids
+    match graph.find_object(child_id) {
+      Some(obj) =>
+        if obj.child_ids.is_empty() {
+          ids.push(obj.id)
+          added[obj.id] = true
+        }
+      None => ()
     }
+  }
+  if !ids.is_empty() {
+    return ids
   }
   let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
@@ -176,7 +193,6 @@ fn sequence_participant_ids_railway(graph : @graph.GraphInput) -> Array[String] 
       child_ids[child_id] = true
     }
   }
-  let ids : Array[String] = []
   for obj in graph.objects {
     if !child_ids.contains(obj.id) {
       ids.push(obj.id)

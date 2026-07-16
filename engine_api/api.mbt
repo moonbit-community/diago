@@ -135,8 +135,9 @@ pub fn LayoutConfig::with_spacing(
 ///|
 /// Layout engine interface.
 ///
-/// Engines must not mutate their input graph. They return a patch that can be
-/// applied by the caller.
+/// Engines receive a graph whose object and edge lookup fields use canonical
+/// absolute source syntax. They must not mutate the input graph and return a
+/// patch whose keys belong to that graph.
 pub(open) trait LayoutEngine {
   fn layout(Self, @graph.GraphInput, LayoutConfig, Direction) -> @graph.LayoutPatch raise LayoutError
   fn engine_name(Self) -> String
@@ -537,9 +538,35 @@ fn assign_sql_column_indices(graph : @graph.GraphInput) -> @graph.GraphInput {
 }
 
 ///|
-fn prepare_graph_for_layout(graph : @graph.GraphInput) -> @graph.GraphInput {
-  let graph = normalize_sequence_root(graph)
-  assign_sql_column_indices(graph)
+fn prepare_graph_for_layout(
+  graph : @graph.GraphInput,
+) -> @graph.GraphInput raise LayoutError {
+  let prepared = assign_sql_column_indices(normalize_sequence_root(graph))
+  ignore(compile_layout_problem(prepared))
+  prepared
+}
+
+///|
+fn compile_layout_problem(
+  graph : @graph.GraphInput,
+) -> @layout_core.LayoutProblem raise LayoutError {
+  @layout_core.compile(graph) catch {
+    error => raise invalid_graph(error.message())
+  }
+}
+
+///|
+fn validate_layout_patch(
+  problem : @layout_core.LayoutProblem,
+  patch : @graph.LayoutPatch,
+  engine_name : String,
+) -> Unit raise LayoutError {
+  problem.validate_patch(patch) catch {
+    error =>
+      raise invalid_graph(
+        "layout engine \"\{engine_name}\" produced an invalid patch: \{error.message()}",
+      )
+  }
 }
 
 ///|
@@ -3188,7 +3215,10 @@ pub fn[Engine : LayoutEngine] layout_with_engine(
   let laid_out_core = if engine_graph.objects.is_empty() {
     engine_graph
   } else {
-    let patch = engine.layout(engine_graph, config, effective_direction)
+    let problem = compile_layout_problem(engine_graph)
+    let canonical_graph = problem.graph()
+    let patch = engine.layout(canonical_graph, config, effective_direction)
+    validate_layout_patch(problem, patch, engine.engine_name())
     @graph.apply_layout(engine_graph, patch)
   }
   let semantic_restored = restore_layout_semantics(
