@@ -68,12 +68,12 @@ fn run_placement_stage(
   )
   {
     layout_input,
-    object_by_id,
-    parent_id_by_child_id,
+    object_by_id: canonical_object_map(object_by_id),
+    parent_id_by_child_id: canonical_parent_map(parent_id_by_child_id),
     self_loop,
-    id_to_idx,
-    boxes,
-    rank_by_id: node_layout.rank_by_id,
+    id_to_idx: canonical_object_map(id_to_idx),
+    boxes: canonical_object_map(boxes),
+    rank_by_id: canonical_object_map(node_layout.rank_by_id),
     depths,
     level_heights,
   }
@@ -88,6 +88,10 @@ fn run_hierarchy_layout_stage(
 ) -> RailwayHierarchyLayout {
   let patch = @graph.LayoutPatch::new()
   copy_passthrough_layout_data(patch, graph)
+  let boxes = raw_object_map(placement.boxes)
+  let object_by_id = raw_object_map(placement.object_by_id)
+  let parent_id_by_child_id = raw_parent_map(placement.parent_id_by_child_id)
+  let rank_by_id = raw_object_map(placement.rank_by_id)
   let container_padding = @cmp.maximum(
     RAILWAY_CONTAINER_PADDING,
     config.edge_padding,
@@ -100,31 +104,20 @@ fn run_hierarchy_layout_stage(
     }
   }
   layout_hierarchy_railway(
-    placement.boxes,
-    graph,
-    placement.object_by_id,
-    placement.parent_id_by_child_id,
-    placement.rank_by_id,
-    direction,
-    config,
-    container_padding,
-    has_layout_container,
+    boxes, graph, object_by_id, parent_id_by_child_id, rank_by_id, direction, config,
+    container_padding, has_layout_container,
   )
   for obj in placement.layout_input.objects {
-    match placement.boxes.get(obj.id) {
+    match boxes.get(obj.id) {
       Some(b) => patch.nodes[obj.id] = b
       None => ()
     }
   }
   fit_container_boxes_railway(
-    patch,
-    graph,
-    placement.object_by_id,
-    placement.parent_id_by_child_id,
-    config,
+    patch, graph, object_by_id, parent_id_by_child_id, config,
   )
-  sync_boxes_from_patch_railway(placement.boxes, patch)
-  { patch, boxes: placement.boxes }
+  sync_boxes_from_patch_railway(boxes, patch)
+  { patch, boxes: canonical_object_map(boxes) }
 }
 
 ///|
@@ -134,18 +127,20 @@ fn build_routing_problem(
   config : @engine_api.LayoutConfig,
   direction : @engine_api.Direction,
 ) -> RailwayRoutingProblem raise @engine_api.LayoutError {
+  let id_to_idx = raw_object_map(placement.id_to_idx)
+  let boxes = raw_object_map(hierarchy.boxes)
   let (src_ports, dst_ports) = assign_ports(
     placement.layout_input,
-    placement.id_to_idx,
+    id_to_idx,
     placement.depths,
     placement.self_loop,
     direction,
     config,
-    hierarchy.boxes,
+    boxes,
   )
   let rail_tracks = assign_rail_tracks(
     placement.layout_input,
-    placement.id_to_idx,
+    id_to_idx,
     placement.depths,
     placement.self_loop,
     direction,
@@ -154,7 +149,7 @@ fn build_routing_problem(
   )
   let lane_plan = plan_gap_lanes(
     placement.layout_input,
-    placement.id_to_idx,
+    id_to_idx,
     placement.depths,
     placement.self_loop,
     direction,
@@ -386,15 +381,15 @@ fn route_edges_railway(
   let patch = problem.patch
   let layout_input = problem.layout_input
   let self_loop = problem.self_loop
-  let id_to_idx = problem.id_to_idx
+  let id_to_idx = raw_object_map(problem.id_to_idx)
   let depths = problem.depths
   let rail_tracks = problem.rail_tracks
   let shift_by_edge = problem.shift_by_edge
   let src_ports = problem.src_ports
   let dst_ports = problem.dst_ports
-  let boxes = problem.boxes
-  let object_by_id = problem.object_by_id
-  let parent_id_by_child_id = problem.parent_id_by_child_id
+  let boxes = raw_object_map(problem.boxes)
+  let object_by_id = raw_object_map(problem.object_by_id)
+  let parent_id_by_child_id = raw_parent_map(problem.parent_id_by_child_id)
   let direction = problem.direction
   let config = problem.config
   let level_heights = problem.level_heights

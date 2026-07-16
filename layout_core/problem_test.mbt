@@ -136,3 +136,17 @@ test "layout problem validates patch identities" {
     _ => fail("expected unknown patch identity to fail")
   }
 }
+
+///|
+test "layout object ids preserve canonical source syntax as map keys" {
+  let quoted = @layout_core.ObjectId::new("\"a.b\"")
+  let nested = @layout_core.ObjectId::new("a.b")
+  let values : Map[@layout_core.ObjectId, String] = Map([])
+  values[quoted] = "quoted"
+  values[nested] = "nested"
+  @debug.assert_eq(values.length(), 2)
+  @debug.assert_eq(values.get(quoted), Some("quoted"))
+  @debug.assert_eq(values.get(nested), Some("nested"))
+  @debug.assert_eq(quoted.value(), "\"a.b\"")
+  @debug.assert_eq(nested.value(), "a.b")
+}

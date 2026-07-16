@@ -27,6 +27,12 @@ pub struct LayoutProblem {
 pub fn LayoutProblem::graph(Self) -> @graph.GraphInput
 pub fn LayoutProblem::validate_patch(Self, @graph.LayoutPatch) -> Unit raise LayoutProblemError
 
+pub struct ObjectId {
+  // private fields
+} derive(Compare, Eq, Hash, @debug.Debug)
+pub fn ObjectId::new(String) -> Self
+pub fn ObjectId::value(Self) -> String
+
 // Type aliases
 
 // Traits

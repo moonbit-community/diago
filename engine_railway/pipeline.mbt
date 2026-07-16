@@ -41,12 +41,12 @@ priv struct RailwayNodeLayout {
 ///|
 priv struct RailwayPlacementResult {
   layout_input : @graph.GraphInput
-  object_by_id : Map[String, @graph.ObjectInput]
-  parent_id_by_child_id : Map[String, String]
+  object_by_id : Map[@layout_core.ObjectId, @graph.ObjectInput]
+  parent_id_by_child_id : Map[@layout_core.ObjectId, @layout_core.ObjectId]
   self_loop : @hashset.HashSet[Int]
-  id_to_idx : Map[String, Int]
-  boxes : Map[String, @graph.Box]
-  rank_by_id : Map[String, Int]
+  id_to_idx : Map[@layout_core.ObjectId, Int]
+  boxes : Map[@layout_core.ObjectId, @graph.Box]
+  rank_by_id : Map[@layout_core.ObjectId, Int]
   depths : Array[Int]
   level_heights : Array[Double]
 }
@@ -54,24 +54,24 @@ priv struct RailwayPlacementResult {
 ///|
 priv struct RailwayHierarchyLayout {
   patch : @graph.LayoutPatch
-  boxes : Map[String, @graph.Box]
+  boxes : Map[@layout_core.ObjectId, @graph.Box]
 }
 
 ///|
 priv struct RailwayRoutingProblem {
   patch : @graph.LayoutPatch
   layout_input : @graph.GraphInput
-  object_by_id : Map[String, @graph.ObjectInput]
-  parent_id_by_child_id : Map[String, String]
+  object_by_id : Map[@layout_core.ObjectId, @graph.ObjectInput]
+  parent_id_by_child_id : Map[@layout_core.ObjectId, @layout_core.ObjectId]
   self_loop : @hashset.HashSet[Int]
-  id_to_idx : Map[String, Int]
+  id_to_idx : Map[@layout_core.ObjectId, Int]
   depths : Array[Int]
   rail_tracks : Map[Int, Int]
   shift_by_edge : Map[Int, Double]
   lane_by_edge : Map[Int, Int]
   src_ports : Map[Int, @graph.Point]
   dst_ports : Map[Int, @graph.Point]
-  boxes : Map[String, @graph.Box]
+  boxes : Map[@layout_core.ObjectId, @graph.Box]
   direction : @engine_api.Direction
   config : @engine_api.LayoutConfig
   level_heights : Array[Double]
@@ -82,6 +82,50 @@ priv struct RailwayRoutingResult {
   patch : @graph.LayoutPatch
   routing_passes : Int
   title_collision_score : Int
+}
+
+///|
+fn[V] canonical_object_map(
+  values : Map[String, V],
+) -> Map[@layout_core.ObjectId, V] {
+  let canonical : Map[@layout_core.ObjectId, V] = Map([])
+  for id, value in values {
+    canonical[@layout_core.ObjectId::new(id)] = value
+  }
+  canonical
+}
+
+///|
+fn[V] raw_object_map(values : Map[@layout_core.ObjectId, V]) -> Map[String, V] {
+  let raw : Map[String, V] = Map([])
+  for id, value in values {
+    raw[id.value()] = value
+  }
+  raw
+}
+
+///|
+fn canonical_parent_map(
+  values : Map[String, String],
+) -> Map[@layout_core.ObjectId, @layout_core.ObjectId] {
+  let canonical : Map[@layout_core.ObjectId, @layout_core.ObjectId] = Map([])
+  for child_id, parent_id in values {
+    canonical[@layout_core.ObjectId::new(child_id)] = @layout_core.ObjectId::new(
+      parent_id,
+    )
+  }
+  canonical
+}
+
+///|
+fn raw_parent_map(
+  values : Map[@layout_core.ObjectId, @layout_core.ObjectId],
+) -> Map[String, String] {
+  let raw : Map[String, String] = Map([])
+  for child_id, parent_id in values {
+    raw[child_id.value()] = parent_id.value()
+  }
+  raw
 }
 
 ///|

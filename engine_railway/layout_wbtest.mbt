@@ -2333,8 +2333,8 @@ test "railway stages expose placement hierarchy and routing results" {
   let config = @engine_api.LayoutConfig::new()
 
   let placement = run_placement_stage(graph, config, Down)
-  assert_true(placement.boxes.contains("a"))
-  assert_true(placement.boxes.contains("b"))
+  assert_true(placement.boxes.contains(@layout_core.ObjectId::new("a")))
+  assert_true(placement.boxes.contains(@layout_core.ObjectId::new("b")))
   assert_true(placement.depths.length() == 2)
 
   let hierarchy = run_hierarchy_layout_stage(graph, placement, config, Down)
