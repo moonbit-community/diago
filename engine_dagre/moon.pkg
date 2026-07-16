@@ -1,6 +1,7 @@
 import {
   "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
+  "Milky2018/diago/layout_sequence",
   "Milky2018/diago/text_metrics",
   "moonbit-community/moon_dagre",
   "moonbitlang/core/math",

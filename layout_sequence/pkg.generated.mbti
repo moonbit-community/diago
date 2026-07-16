@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Milky2018/diago/layout_sequence"
+
+import {
+  "Milky2018/diago/graph",
+}
+
+// Values
+pub fn layout(@graph.GraphInput, (@graph.ObjectInput) -> (Double, Double)) -> @graph.LayoutPatch
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
