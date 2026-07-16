@@ -13,3 +13,14 @@ test "string_to_bytes encodes utf8 output" {
     "你好 -> y",
   )
 }
+
+///|
+test "wasm facade renders svg ascii and unicode" {
+  string_to_bytes("a -> b", input_buffer)
+  assert_eq(render_svg(), 0)
+  assert_true(bytes_to_string(output_buffer).contains("<svg"))
+  assert_eq(render_ascii(), 0)
+  assert_true(bytes_to_string(output_buffer).contains("a"))
+  assert_eq(render_unicode(), 0)
+  assert_true(bytes_to_string(output_buffer).contains("a"))
+}

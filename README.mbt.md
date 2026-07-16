@@ -7,6 +7,8 @@ It supports a D2-compatible text format and renders diagrams through multiple la
 
 This repository contains:
 
+- A backend-independent library facade (`Milky2018/diago`) for parsing, layout, and rendering
+- A native filesystem adapter (`Milky2018/diago/fs`) for file loading and relative imports
 - A CLI (`cmd/diago`) with explicit subcommands (`render`, `fmt`, `validate`, `layout`, `themes`, `version`)
 - A WASM-based playground (`web/`) deployed via GitHub Pages
 - Multiple layout engines: `dagre`, `elk`, and `railway`
@@ -23,6 +25,32 @@ moon build
 ```bash
 moon run cmd/diago -- render diagram.txt
 ```
+
+## Library API
+
+The root package is supported on all MoonBit targets. It accepts source text and never reads the local filesystem implicitly:
+
+```moonbit nocheck
+///|
+let svg = @diago.compile("a -> b")
+
+///|
+let ascii = @diago.compile(
+  "a -> b",
+  options=@diago.CompileOptions::new().with_output_mode(Ascii),
+)
+```
+
+Imports are explicit and backend-independent through `ParseOptions::with_import_resolver`.
+
+Native applications can opt into local file access through the filesystem adapter:
+
+```moonbit nocheck
+///|
+let svg = @diago_fs.compile_file("diagram.d2")
+```
+
+`compile_file` and `parse_file` resolve imports relative to the input file while preserving a custom resolver supplied by the caller.
 
 ## CLI
 
@@ -98,8 +126,11 @@ Source → Lexer → Parser → AST → IR → Graph → Layout (dagre/elk/railw
 ## Tests
 
 ```bash
-moon test        # Run all tests
-moon test -v     # Verbose output
+moon check --target all --deny-warn
+moon test --target all
+moon build cmd/diago --target native --release
+moon build cmd/wasm --target wasm --release
+node scripts/wasm_smoke.mjs _build/wasm/release/build/cmd/wasm/wasm.wasm
 ```
 
 ## License

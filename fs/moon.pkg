@@ -1,0 +1,8 @@
+import {
+  "Milky2018/diago",
+  "Milky2018/diago/ir",
+  "moonbitlang/x/fs" @system_fs,
+  "moonbitlang/x/path" @system_path,
+}
+
+supported_targets = "+native"

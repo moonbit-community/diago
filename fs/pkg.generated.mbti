@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Milky2018/diago/fs"
+
+import {
+  "Milky2018/diago",
+  "Milky2018/diago/ir",
+}
+
+// Values
+pub fn compile_file(String, options? : @diago.CompileOptions) -> String raise @diago.DiagoError
+
+pub fn import_resolver(base_path? : String?) -> @ir.ImportResolver
+
+pub fn parse_file(String, options? : @diago.ParseOptions) -> @ir.Map raise @diago.DiagoError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

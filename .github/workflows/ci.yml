@@ -27,13 +27,16 @@ jobs:
         run: moon fmt --check
 
       - name: Type check
-        run: moon check --deny-warn
+        run: moon check --target all --deny-warn
 
       - name: Run tests
         run: moon test --target all
 
       - name: Build native
-        run: moon build
+        run: moon build cmd/diago --target native --release
 
       - name: Build WASM
-        run: moon build --target wasm
+        run: moon build cmd/wasm --target wasm --release
+
+      - name: Smoke test WASM
+        run: node scripts/wasm_smoke.mjs _build/wasm/release/build/cmd/wasm/wasm.wasm

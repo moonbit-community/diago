@@ -70,7 +70,7 @@ pub fn render_svg() -> Int {
 ///|
 pub fn render_svg_with_engine(engine : Int) -> Int {
   let source = bytes_to_string(input_buffer)
-  let result = compile_diago_svg(source, None, engine)
+  let result = compile_source(source, Svg, engine)
   match result {
     Ok(svg) => {
       string_to_bytes(svg, output_buffer)
@@ -92,11 +92,7 @@ pub fn render_ascii() -> Int {
 ///|
 pub fn render_ascii_with_engine(engine : Int) -> Int {
   let source = bytes_to_string(input_buffer)
-  let result = compile_diago_text(
-    source,
-    @renderer_ascii.AsciiConfig::new(),
-    engine,
-  )
+  let result = compile_source(source, Ascii, engine)
   match result {
     Ok(ascii) => {
       string_to_bytes(ascii, output_buffer)
@@ -118,10 +114,7 @@ pub fn render_unicode() -> Int {
 ///|
 pub fn render_unicode_with_engine(engine : Int) -> Int {
   let source = bytes_to_string(input_buffer)
-  let result = match compile_to_diagram(source, engine) {
-    Ok(diagram) => Ok(@renderer_unicode.render(diagram))
-    Err(e) => Err(e)
-  }
+  let result = compile_source(source, Unicode, engine)
   match result {
     Ok(text) => {
       string_to_bytes(text, output_buffer)
@@ -151,73 +144,24 @@ fn string_to_bytes(s : String, out : Array[Byte]) -> Unit {
 }
 
 ///|
-/// Compile diago source to SVG
-fn compile_diago_svg(
+/// Compile diago source through the backend-independent facade.
+fn compile_source(
   source : String,
-  theme_name : String?,
+  output_mode : @diago.OutputMode,
   engine : Int,
 ) -> Result[String, String] {
-  let diagram = match compile_to_diagram(source, engine) {
-    Ok(diagram) => diagram
-    Err(err) => return Err(err)
-  }
-  let render_options = @lib.RenderOptions::new()
-    .with_output_mode(Svg)
-    .with_theme_name(theme_name)
-  match @lib.render(diagram, options=render_options) {
-    Ok(svg) => Ok(svg)
-    Err(err) => Err(lib_error_message(err))
-  }
-}
-
-///|
-/// Compile diago source to text art (ASCII or Unicode)
-fn compile_diago_text(
-  source : String,
-  config : @renderer_ascii.AsciiConfig,
-  engine : Int,
-) -> Result[String, String] {
-  ignore(config)
-  match compile_to_diagram(source, engine) {
-    Ok(diagram) =>
-      match
-        @lib.render(
-          diagram,
-          options=@lib.RenderOptions::new().with_output_mode(Ascii),
-        ) {
-        Ok(text) => Ok(text)
-        Err(err) => Err(lib_error_message(err))
-      }
-    Err(err) => Err(err)
-  }
-}
-
-///|
-/// Compile diago source to a render-ready diagram
-fn compile_to_diagram(
-  source : String,
-  engine : Int,
-) -> Result[@diagram.Diagram, String] {
-  let compiled = match @compiler.compile_graph("diagram", source) {
-    Ok(compiled) => compiled
-    Err(err) => return Err(compiler_error_message(err))
-  }
-  let diagram_options = @lib.DiagramOptions::new()
+  let options = @diago.CompileOptions::new()
+    .with_output_mode(output_mode)
     .with_layout_engine(resolve_layout_engine(engine))
-    .with_direction(Down)
-  match
-    @lib.compile_diagram(
-      compiled.graph_input(),
-      compiled.source_config(),
-      options=diagram_options,
-    ) {
-    Ok(diagram) => Ok(diagram)
-    Err(err) => Err(lib_error_message(err))
+  try @diago.compile(source, options~) catch {
+    err => Err(diago_error_message(err))
+  } noraise {
+    output => Ok(output)
   }
 }
 
 ///|
-fn resolve_layout_engine(engine : Int) -> @lib.LayoutEngine {
+fn resolve_layout_engine(engine : Int) -> @diago.LayoutEngine {
   if engine == 1 {
     Elk
   } else if engine == 2 {
@@ -228,22 +172,15 @@ fn resolve_layout_engine(engine : Int) -> @lib.LayoutEngine {
 }
 
 ///|
-fn compiler_error_message(err : @compiler.CompileError) -> String {
+fn diago_error_message(err : @diago.DiagoError) -> String {
   match err {
     ParseError(message) => message
     IOError(message) => message
     IrError(message) => message
     GraphError(message) => message
     ConfigError(message) => message
-  }
-}
-
-///|
-fn lib_error_message(err : @lib.LibError) -> String {
-  match err {
     LayoutError(message) => message
     RenderError(message) => message
-    ConfigError(message) => message
     TargetError(message) => message
   }
 }

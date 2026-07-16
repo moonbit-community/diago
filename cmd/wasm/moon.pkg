@@ -1,13 +1,13 @@
 import {
-  "Milky2018/diago/compiler",
-  "Milky2018/diago/lib",
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/renderer_ascii",
-  "Milky2018/diago/renderer_unicode",
+  "Milky2018/diago",
   "moonbitlang/core/encoding/utf8",
-  "moonbitlang/core/debug",
 }
+
+import {
+  "moonbitlang/core/debug",
+} for "wbtest"
+
+supported_targets = "wasm"
 
 options(
   link: {

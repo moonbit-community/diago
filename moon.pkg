@@ -7,7 +7,7 @@ import {
   "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
   "Milky2018/diago/lib",
-  "moonbitlang/x/fs",
-  "moonbitlang/x/path",
   "moonbitlang/core/debug",
 }
+
+supported_targets = "all"

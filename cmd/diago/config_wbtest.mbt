@@ -13,6 +13,24 @@
 // limitations under the License.
 
 ///|
+fn compile_diagram_for_test(
+  source : String,
+  base_path : String?,
+  layout_engine : LayoutEngineChoice,
+  layout_explicit : Bool,
+  target_spec : String?,
+) -> Result[@diagram.Diagram, String] {
+  let options = base_compile_options(
+    base_path, layout_engine, layout_explicit, target_spec,
+  )
+  try @diago_core.compile_diagram(source, options~) catch {
+    err => Err(diago_error_message(err))
+  } noraise {
+    diagram => Ok(diagram)
+  }
+}
+
+///|
 test "vars config theme-id applies when cli theme absent" {
   let source =
     #|vars: {
@@ -110,7 +128,8 @@ test "extract vars config into diagram config" {
     #|  }
     #|}
     #|a -> b
-  let diagram = compile_to_diagram(source, None, Dagre, false, None).unwrap()
+  let options = base_compile_options(None, Dagre, false, None)
+  let diagram = @diago_core.compile_diagram(source, options~)
   match diagram.config {
     None => fail("expected diagram config")
     Some(config) => {
@@ -243,9 +262,9 @@ test "vars config pad is applied to svg config padding" {
     #|  }
     #|}
     #|a -> b
-  let diagram = compile_to_diagram(source, None, Dagre, false, None).unwrap()
-  let svg_config = resolve_svg_config(None, diagram.config)
-  @debug.assert_eq(svg_config.padding, 16.0)
+  let diagram = compile_diagram_for_test(source, None, Dagre, false, None).unwrap()
+  guard diagram.config is Some(config) else { fail("expected source config") }
+  @debug.assert_eq(config.pad, Some(16.0))
 }
 
 ///|
@@ -363,21 +382,21 @@ test "target selection matches the reference board-only vs board-with-children s
     #|    }
     #|  }
     #|}
-  let board_only = compile_to_diagram(
+  let board_only = compile_diagram_for_test(
     source,
     None,
     Dagre,
     false,
     Some("layers.core"),
   ).unwrap()
-  let board_with_children = compile_to_diagram(
+  let board_with_children = compile_diagram_for_test(
     source,
     None,
     Dagre,
     false,
     Some("layers.core.*"),
   ).unwrap()
-  let root_only = compile_to_diagram(source, None, Dagre, false, Some("")).unwrap()
+  let root_only = compile_diagram_for_test(source, None, Dagre, false, Some("")).unwrap()
   @debug.assert_eq(board_only.scenarios.length(), 0)
   @debug.assert_eq(board_with_children.scenarios.length(), 1)
   @debug.assert_eq(root_only.layers.length(), 0)

@@ -32,29 +32,20 @@ pub(all) enum LayoutEngine {
 
 ///|
 pub struct ParseOptions {
-  base_path : String?
   import_resolver : @ir.ImportResolver?
 }
 
 ///|
 pub fn ParseOptions::new() -> ParseOptions {
-  { base_path: None, import_resolver: None }
-}
-
-///|
-pub fn ParseOptions::with_base_path(
-  self : ParseOptions,
-  base_path : String?,
-) -> ParseOptions {
-  { ..self, base_path, }
+  { import_resolver: None }
 }
 
 ///|
 pub fn ParseOptions::with_import_resolver(
-  self : ParseOptions,
+  _self : ParseOptions,
   import_resolver : @ir.ImportResolver?,
 ) -> ParseOptions {
-  { ..self, import_resolver, }
+  { import_resolver, }
 }
 
 ///|
@@ -117,6 +108,8 @@ pub struct CompileOptions {
   theme_name : String?
   dark_theme_id : Int?
   sketch : Bool?
+  pad : Double?
+  center : Bool?
   theme_overrides : @diagram.ThemeOverrides?
   dark_theme_overrides : @diagram.ThemeOverrides?
   scale : Double?
@@ -138,6 +131,8 @@ pub fn CompileOptions::new() -> CompileOptions {
     theme_name: None,
     dark_theme_id: None,
     sketch: None,
+    pad: None,
+    center: None,
     theme_overrides: None,
     dark_theme_overrides: None,
     scale: None,
@@ -228,6 +223,22 @@ pub fn CompileOptions::with_sketch(
 }
 
 ///|
+pub fn CompileOptions::with_pad(
+  self : CompileOptions,
+  pad : Double?,
+) -> CompileOptions {
+  { ..self, pad, }
+}
+
+///|
+pub fn CompileOptions::with_center(
+  self : CompileOptions,
+  center : Bool?,
+) -> CompileOptions {
+  { ..self, center, }
+}
+
+///|
 pub fn CompileOptions::with_theme_overrides(
   self : CompileOptions,
   theme_overrides : @diagram.ThemeOverrides?,
@@ -293,28 +304,7 @@ pub fn parse(
   options? : ParseOptions = ParseOptions::new(),
 ) -> @ir.Map raise DiagoError {
   match
-    @compiler.compile_ir(
-      source,
-      options=to_compiler_parse_options(resolve_parse_options(options)),
-    ) {
-    Ok(ir_map) => ir_map
-    Err(err) => raise_diago_compiler_error(err)
-  }
-}
-
-///|
-pub fn parse_file(
-  file_path : String,
-  options? : ParseOptions = ParseOptions::new(),
-) -> @ir.Map raise DiagoError {
-  let source = read_source_file(file_path)
-  match
-    @compiler.compile_ir(
-      source,
-      options=to_compiler_parse_options(
-        resolve_parse_options_for_file(file_path, options),
-      ),
-    ) {
+    @compiler.compile_ir(source, options=to_compiler_parse_options(options)) {
     Ok(ir_map) => ir_map
     Err(err) => raise_diago_compiler_error(err)
   }
@@ -329,9 +319,7 @@ pub fn compile_diagram(
     @compiler.compile_graph(
       "diagram",
       source,
-      options=to_compiler_parse_options(
-        resolve_parse_options(options.parse_options),
-      ),
+      options=to_compiler_parse_options(options.parse_options),
     ) {
     Ok(compiled) => compiled
     Err(err) => raise_diago_compiler_error(err)
@@ -353,38 +341,6 @@ pub fn compile(
   options? : CompileOptions = CompileOptions::new(),
 ) -> String raise DiagoError {
   let diagram = compile_diagram(source, options~)
-  match @lib.render(diagram, options=to_lib_render_options(options)) {
-    Ok(rendered) => rendered
-    Err(err) => raise_diago_lib_error(err)
-  }
-}
-
-///|
-pub fn compile_file(
-  file_path : String,
-  options? : CompileOptions = CompileOptions::new(),
-) -> String raise DiagoError {
-  let source = read_source_file(file_path)
-  let compiled = match
-    @compiler.compile_graph(
-      "diagram",
-      source,
-      options=to_compiler_parse_options(
-        resolve_parse_options_for_file(file_path, options.parse_options),
-      ),
-    ) {
-    Ok(compiled) => compiled
-    Err(err) => raise_diago_compiler_error(err)
-  }
-  let diagram = match
-    @lib.compile_diagram(
-      compiled.graph_input(),
-      compiled.source_config(),
-      options=to_lib_diagram_options(options),
-    ) {
-    Ok(diagram) => diagram
-    Err(err) => raise_diago_lib_error(err)
-  }
   match @lib.render(diagram, options=to_lib_render_options(options)) {
     Ok(rendered) => rendered
     Err(err) => raise_diago_lib_error(err)
@@ -436,6 +392,8 @@ fn to_lib_render_options(options : CompileOptions) -> @lib.RenderOptions {
   .with_theme_name(options.theme_name)
   .with_dark_theme_id(options.dark_theme_id)
   .with_sketch(options.sketch)
+  .with_pad(options.pad)
+  .with_center(options.center)
   .with_theme_overrides(options.theme_overrides)
   .with_dark_theme_overrides(options.dark_theme_overrides)
   .with_scale(options.scale)
