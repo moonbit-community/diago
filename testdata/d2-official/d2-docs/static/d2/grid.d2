@@ -1,0 +1,69 @@
+grid-rows: 5
+style.fill: black
+
+classes: {
+  white square: {
+    label: ""
+    width: 120
+    style: {
+      fill: white
+      stroke: cornflowerblue
+      stroke-width: 10
+    }
+  }
+  block: {
+    style: {
+      text-transform: uppercase
+      font-color: white
+      fill: darkcyan
+      stroke: black
+    }
+  }
+}
+
+flow1.class: white square
+flow2.class: white square
+flow3.class: white square
+flow4.class: white square
+flow5.class: white square
+flow6.class: white square
+flow7.class: white square
+flow8.class: white square
+flow9.class: white square
+
+dagger engine: {
+  width: 800
+  class: block
+  style: {
+    fill: beige
+    stroke: darkcyan
+    font-color: blue
+    stroke-width: 8
+  }
+}
+
+any docker compatible runtime: {
+  width: 800
+  class: block
+  style: {
+    fill: lightcyan
+    stroke: darkcyan
+    font-color: black
+    stroke-width: 8
+  }
+  icon: https://icons.terrastruct.com/dev%2Fdocker.svg
+}
+
+any ci: {
+  class: block
+  style: {
+    fill: gold
+    stroke: maroon
+    font-color: maroon
+    stroke-width: 8
+  }
+}
+windows.class: block
+linux.class: block
+macos.class: block
+kubernetes.class: block
