@@ -14,7 +14,7 @@ import {
   "gmlewis/zlib@0.21.3",
   "dowdiness/js_engine@0.1.0",
   "Milky2018/moon_elk@0.1.14",
-  "moonbit-community/moon_dagre@0.2.5",
+  "moonbit-community/moon_dagre@0.2.6",
 }
 
 readme = "README.mbt.md"
