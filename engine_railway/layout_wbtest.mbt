@@ -2345,3 +2345,52 @@ test "railway stages expose placement hierarchy and routing results" {
   let result = run_routing_stage(graph, problem)
   assert_true(result.patch.edges.get(0).unwrap_or([]).length() >= 2)
 }
+
+///|
+test "railway hierarchy layout is deterministic" {
+  let container = @graph.ObjectInput::from_parts(
+    "group",
+    "Group",
+    Rectangle,
+    @graph.StyleInput::new(),
+    None,
+    None,
+    ["group.a", "group.b"],
+    0,
+    None,
+    None,
+    None,
+    [],
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+  )
+  let graph = @graph.GraphInput::new("deterministic-hierarchy")
+  graph.objects.append([
+    container,
+    @graph.ObjectInput::new("group.a"),
+    @graph.ObjectInput::new("group.b"),
+    @graph.ObjectInput::new("outside"),
+  ])
+  graph.edges.append([
+    @graph.EdgeInput::new(0, "group.a", "outside", false, true),
+    @graph.EdgeInput::new(1, "outside", "group.b", false, true),
+  ])
+  let config = @engine_api.LayoutConfig::new()
+
+  let first = layout_graph(graph, config, Down)
+  let second = layout_graph(graph, config, Down)
+  for id in ["group", "group.a", "group.b", "outside"] {
+    assert_true(first.nodes.get(id) == second.nodes.get(id))
+  }
+  for edge_index in [0, 1] {
+    assert_true(first.edges.get(edge_index) == second.edges.get(edge_index))
+  }
+}

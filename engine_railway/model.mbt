@@ -1127,70 +1127,72 @@ fn spread_sibling_boxes_railway(
   }
   parent_ids.sort_by(fn(a, b) {
     if a == root_key && b != root_key {
-      -1
-    } else if a != root_key && b == root_key {
       1
+    } else if a != root_key && b == root_key {
+      -1
     } else {
-      a.compare(b)
+      let da = object_depth_in_hierarchy(a, parent_id_by_child_id)
+      let db = object_depth_in_hierarchy(b, parent_id_by_child_id)
+      if da > db {
+        -1
+      } else if da < db {
+        1
+      } else {
+        a.compare(b)
+      }
     }
   })
-  for _ in 0..<8 {
-    let mut changed = false
-    for parent_id in parent_ids {
-      let parent_children = match children_by_parent.get(parent_id) {
-        Some(v) => v
-        None => continue
-      }
-      let root_only_containers = parent_id == root_key
-      let sibling_ids : Array[String] = []
-      for child_id in parent_children {
-        if !node_boxes.contains(child_id) {
-          continue
-        }
-        match object_by_id.get(child_id) {
-          Some(obj) =>
-            if obj.shape_type != Class &&
-              obj.shape_type != SqlTable &&
-              (!root_only_containers || is_layout_container_candidate(obj)) {
-              sibling_ids.push(child_id)
-            }
-          None => if !root_only_containers { sibling_ids.push(child_id) }
-        }
-      }
-      if sibling_ids.length() <= 1 {
+  for parent_id in parent_ids {
+    let parent_children = match children_by_parent.get(parent_id) {
+      Some(v) => v
+      None => continue
+    }
+    let root_only_containers = parent_id == root_key
+    let sibling_ids : Array[String] = []
+    for child_id in parent_children {
+      if !node_boxes.contains(child_id) {
         continue
       }
-      let parent_is_container = if parent_id == root_key {
-        false
-      } else {
-        match object_by_id.get(parent_id) {
-          Some(parent_obj) => is_layout_container_candidate(parent_obj)
-          None => false
-        }
-      }
-      let mut has_container_sibling = false
-      for sibling_id in sibling_ids {
-        match object_by_id.get(sibling_id) {
-          Some(sibling_obj) =>
-            if is_layout_container_candidate(sibling_obj) {
-              has_container_sibling = true
-              break
-            }
-          None => ()
-        }
-      }
-      if !parent_is_container && !has_container_sibling {
-        continue
-      }
-      if spread_sibling_subtrees_once_railway(
-          sibling_ids, node_boxes, object_by_id, direction, gap,
-        ) {
-        changed = true
+      match object_by_id.get(child_id) {
+        Some(obj) =>
+          if obj.shape_type != Class &&
+            obj.shape_type != SqlTable &&
+            (!root_only_containers || is_layout_container_candidate(obj)) {
+            sibling_ids.push(child_id)
+          }
+        None => if !root_only_containers { sibling_ids.push(child_id) }
       }
     }
-    if !changed {
-      break
+    if sibling_ids.length() <= 1 {
+      continue
     }
+    let parent_is_container = if parent_id == root_key {
+      false
+    } else {
+      match object_by_id.get(parent_id) {
+        Some(parent_obj) => is_layout_container_candidate(parent_obj)
+        None => false
+      }
+    }
+    let mut has_container_sibling = false
+    for sibling_id in sibling_ids {
+      match object_by_id.get(sibling_id) {
+        Some(sibling_obj) =>
+          if is_layout_container_candidate(sibling_obj) {
+            has_container_sibling = true
+            break
+          }
+        None => ()
+      }
+    }
+    if !parent_is_container && !has_container_sibling {
+      continue
+    }
+    ignore(
+      spread_sibling_subtrees_once_railway(
+        sibling_ids, node_boxes, object_by_id, direction, gap,
+      ),
+    )
   }
 }
 
