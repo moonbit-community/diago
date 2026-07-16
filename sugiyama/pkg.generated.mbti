@@ -2,7 +2,9 @@
 package "Milky2018/diago/sugiyama"
 
 import {
+  "Milky2018/diago/engine_api",
   "Milky2018/diago/graph",
+  "Milky2018/diago/layout_core",
 }
 
 // Values
@@ -52,6 +54,8 @@ pub fn minimize_crossings(@graph.GraphInput, LayerAssignment, CycleBreakResult) 
 
 pub fn minimize_crossings_with_virtual(@graph.GraphInput, LayerAssignment, CycleBreakResult, Map[String, Bool]) -> CrossingResult
 
+pub fn place(@layout_core.LayoutProblem, (@graph.ObjectInput) -> (Double, Double), @engine_api.Direction, Double, Double) -> PlacementResult
+
 // Errors
 
 // Types and methods
@@ -78,6 +82,14 @@ pub(all) struct LayerAssignment {
   layers : Map[String, Int]
   layer_count : Int
   nodes_by_layer : Array[Array[String]]
+}
+
+pub(all) struct PlacementResult {
+  boxes : Map[@layout_core.ObjectId, @graph.Box]
+  rank_by_id : Map[@layout_core.ObjectId, Int]
+  level_heights : Array[Double]
+  virtual_node_count : Int
+  reversed_edge_count : Int
 }
 
 pub(all) struct VirtualNodeResult {

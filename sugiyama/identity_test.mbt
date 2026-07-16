@@ -84,4 +84,7 @@ test "sugiyama preserves syntax-distinct canonical identities" {
   assert_true(
     layers.layers.get("\"a.b\"").unwrap() < layers.layers.get("a.b").unwrap(),
   )
+  let placement = place(problem, fn(_obj) { (100.0, 60.0) }, Down, 60.0, 40.0)
+  assert_true(placement.boxes.contains(@layout_core.ObjectId::new("\"a.b\"")))
+  assert_true(placement.boxes.contains(@layout_core.ObjectId::new("a.b")))
 }
