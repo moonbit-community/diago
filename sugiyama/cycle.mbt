@@ -47,18 +47,15 @@ pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
   // Build adjacency list: node_id -> [(edge_index, target_id)]
   let adj : Map[String, Array[(Int, String)]] = Map([])
   for edge in graph.edges {
-    let src = edge.get_src_id()
-    let dst = edge.get_dst_id()
+    let src = edge.lookup_src_id()
+    let dst = edge.lookup_dst_id()
     match adj.get(src) {
       Some(neighbors) => neighbors.push((edge.index, dst))
       None => adj[src] = [(edge.index, dst)]
     }
   }
   // Collect all node IDs
-  let nodes : Array[String] = []
-  for obj in graph.objects {
-    collect_node_ids(graph, obj, nodes)
-  }
+  let nodes = canonical_node_ids(graph)
   // DFS state
   let state : Map[String, NodeState] = Map([])
   for node in nodes {
@@ -74,19 +71,6 @@ pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
     }
   }
   { reversed_edges: reversed, had_cycles: reversed.length() > 0 }
-}
-
-///|
-/// Collect all node IDs from object tree
-fn collect_node_ids(
-  graph : @graph.GraphInput,
-  obj : @graph.ObjectInput,
-  nodes : Array[String],
-) -> Unit {
-  nodes.push(obj.id)
-  for child in graph.children_of(obj) {
-    collect_node_ids(graph, child, nodes)
-  }
 }
 
 ///|
@@ -141,9 +125,9 @@ pub fn get_effective_src(
   result : CycleBreakResult,
 ) -> String {
   if is_edge_reversed(result, edge.index) {
-    edge.get_dst_id()
+    edge.lookup_dst_id()
   } else {
-    edge.get_src_id()
+    edge.lookup_src_id()
   }
 }
 
@@ -154,8 +138,8 @@ pub fn get_effective_dst(
   result : CycleBreakResult,
 ) -> String {
   if is_edge_reversed(result, edge.index) {
-    edge.get_src_id()
+    edge.lookup_src_id()
   } else {
-    edge.get_dst_id()
+    edge.lookup_dst_id()
   }
 }

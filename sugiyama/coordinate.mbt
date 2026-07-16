@@ -695,14 +695,14 @@ pub fn fit_container_padding(
     if children.length() > 0 {
       let child_ids : Array[String] = []
       for child in children {
-        child_ids.push(child.id)
+        child_ids.push(child.lookup_id())
       }
-      children_map[obj.id] = child_ids
+      children_map[obj.lookup_id()] = child_ids
     }
   }
   // Process each container
   for obj in graph.objects {
-    match children_map.get(obj.id) {
+    match children_map.get(obj.lookup_id()) {
       Some(children) => {
         if children.length() == 0 {
           continue
@@ -712,8 +712,8 @@ pub fn fit_container_padding(
           children, coords,
         )
         // Get container position
-        let container_x = coords.x_coords.get(obj.id).unwrap_or(0.0)
-        let container_y = coords.y_coords.get(obj.id).unwrap_or(0.0)
+        let container_x = coords.x_coords.get(obj.lookup_id()).unwrap_or(0.0)
+        let container_y = coords.y_coords.get(obj.lookup_id()).unwrap_or(0.0)
         // Adjust children to ensure padding from container edges
         let required_min_x = container_x + padding
         let required_min_y = container_y + padding

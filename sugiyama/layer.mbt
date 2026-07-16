@@ -41,11 +41,7 @@ pub fn assign_layers(
   // Build adjacency using effective edge directions (after cycle breaking)
   let adj : Map[String, Array[String]] = Map([])
   let pred : Map[String, Array[String]] = Map([])
-  let all_nodes : Array[String] = []
-  // Collect all nodes
-  for obj in graph.objects {
-    collect_all_nodes(graph, obj, all_nodes)
-  }
+  let all_nodes = canonical_node_ids(graph)
   // Initialize adjacency lists
   for node in all_nodes {
     adj[node] = []
@@ -69,19 +65,6 @@ pub fn assign_layers(
   // Optimize with network simplex (minimize total edge span)
   let layers = network_simplex(all_nodes, adj, pred, initial_layers)
   build_layer_result(all_nodes, layers)
-}
-
-///|
-/// Collect all node IDs from object tree
-fn collect_all_nodes(
-  graph : @graph.GraphInput,
-  obj : @graph.ObjectInput,
-  nodes : Array[String],
-) -> Unit {
-  nodes.push(obj.id)
-  for child in graph.children_of(obj) {
-    collect_all_nodes(graph, child, nodes)
-  }
 }
 
 ///|

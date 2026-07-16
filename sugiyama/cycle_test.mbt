@@ -97,8 +97,8 @@ test "get_effective_src/dst respects reversal" {
       // Reversed edge should swap src/dst
       let eff_src = get_effective_src(edge, result)
       let eff_dst = get_effective_dst(edge, result)
-      inspect(eff_src == edge.get_dst_id(), content="true")
-      inspect(eff_dst == edge.get_src_id(), content="true")
+      inspect(eff_src == edge.lookup_dst_id(), content="true")
+      inspect(eff_dst == edge.lookup_src_id(), content="true")
       found_reversed = true
       break
     }

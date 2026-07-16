@@ -49,8 +49,8 @@ pub fn compute_container_ranks(
     // Find min/max ranks of children (recursively)
     let (min_rank, max_rank) = find_child_rank_range(graph, obj, node_ranks)
     if min_rank <= max_rank {
-      starting[obj.id] = min_rank
-      ending[obj.id] = max_rank
+      starting[obj.lookup_id()] = min_rank
+      ending[obj.lookup_id()] = max_rank
     }
   }
   { starting_rank: starting, ending_rank: ending }
@@ -67,7 +67,7 @@ fn find_child_rank_range(
   let mut max_rank = -1
   for child in graph.children_of(container) {
     // Check child's direct rank
-    match node_ranks.get(child.id) {
+    match node_ranks.get(child.lookup_id()) {
       Some(rank) => {
         if rank < min_rank {
           min_rank = rank
@@ -124,7 +124,7 @@ fn collect_containers_by_depth(
   // Calculate depth for each container
   for obj in graph.objects {
     if graph.children_of(obj).length() > 0 {
-      depths[obj.id] = calculate_container_depth(graph, obj)
+      depths[obj.lookup_id()] = calculate_container_depth(graph, obj)
       result.push(obj)
     }
   }
@@ -160,10 +160,10 @@ fn sort_containers_by_depth(
   let n = containers.length()
   for i = 1; i < n; i = i + 1 {
     let key = containers[i]
-    let key_depth = depths.get(key.id).unwrap_or(0)
+    let key_depth = depths.get(key.lookup_id()).unwrap_or(0)
     let mut j = i - 1
     while j >= 0 {
-      let j_depth = depths.get(containers[j].id).unwrap_or(0)
+      let j_depth = depths.get(containers[j].lookup_id()).unwrap_or(0)
       if j_depth < key_depth {
         containers[j + 1] = containers[j]
         j = j - 1
@@ -189,8 +189,8 @@ fn expand_single_container(
     return
   }
   // Get container bounds
-  let container_x = coords.x_coords.get(container.id).unwrap_or(0.0)
-  let container_y = coords.y_coords.get(container.id).unwrap_or(0.0)
+  let container_x = coords.x_coords.get(container.lookup_id()).unwrap_or(0.0)
+  let container_y = coords.y_coords.get(container.lookup_id()).unwrap_or(0.0)
   // Compute bounding box of children
   let (min_x, min_y, max_x, max_y) = compute_child_bounds(
     graph, container, coords, padding,
@@ -224,8 +224,8 @@ fn compute_child_bounds(
   let mut max_x = -1.0e10
   let mut max_y = -1.0e10
   for child in graph.children_of(container) {
-    let x = coords.x_coords.get(child.id).unwrap_or(0.0)
-    let y = coords.y_coords.get(child.id).unwrap_or(0.0)
+    let x = coords.x_coords.get(child.lookup_id()).unwrap_or(0.0)
+    let y = coords.y_coords.get(child.lookup_id()).unwrap_or(0.0)
     let width = match child.get_box() {
       Some(b) => b.width
       None => 100.0
@@ -277,8 +277,9 @@ fn shift_container_children_x(
   shift : Double,
 ) -> Unit {
   for child in graph.children_of(container) {
-    let old_x = coords.x_coords.get(child.id).unwrap_or(0.0)
-    coords.x_coords[child.id] = old_x + shift
+    let child_id = child.lookup_id()
+    let old_x = coords.x_coords.get(child_id).unwrap_or(0.0)
+    coords.x_coords[child_id] = old_x + shift
     // Recursively shift nested children
     if graph.children_of(child).length() > 0 {
       shift_container_children_x(graph, child, coords, shift)
@@ -295,8 +296,9 @@ fn shift_container_children_y(
   shift : Double,
 ) -> Unit {
   for child in graph.children_of(container) {
-    let old_y = coords.y_coords.get(child.id).unwrap_or(0.0)
-    coords.y_coords[child.id] = old_y + shift
+    let child_id = child.lookup_id()
+    let old_y = coords.y_coords.get(child_id).unwrap_or(0.0)
+    coords.y_coords[child_id] = old_y + shift
     // Recursively shift nested children
     if graph.children_of(child).length() > 0 {
       shift_container_children_y(graph, child, coords, shift)
