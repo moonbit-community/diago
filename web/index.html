@@ -374,6 +374,8 @@ server -> database: queries"></textarea>
   </div>
 
   <script type="module">
+    import { instantiateDiagoWasm } from './diago-wasm.js';
+
     // Example cache
     const exampleCache = {};
 
@@ -397,7 +399,7 @@ server -> database: queries"></textarea>
     }
 
     // State
-    let wasmModule = null;
+    let wasmRenderer = null;
     let currentView = 'svg';
     let renderTimeout = null;
     let lastSvgOutput = null;
@@ -457,11 +459,6 @@ server -> database: queries"></textarea>
     function getSelectedEngine() {
       return selectedEngine;
     }
-    function getEngineId() {
-      if (selectedEngine === 'elk') return 1;
-      if (selectedEngine === 'railway') return 2;
-      return 0; // dagre
-    }
     // Restore last engine preference
     const savedEngine = localStorage.getItem(ENGINE_STORAGE_KEY);
     if (savedEngine === 'dagre' || savedEngine === 'elk' || savedEngine === 'railway') {
@@ -520,7 +517,7 @@ server -> database: queries"></textarea>
     });
 
     function updateExportButtons() {
-      const enabled = !!(wasmModule && lastRenderOk && currentView === 'svg' && lastSvgOutput);
+      const enabled = !!(wasmRenderer && lastRenderOk && currentView === 'svg' && lastSvgOutput);
       downloadPngBtn.disabled = !enabled;
       downloadPdfBtn.disabled = !enabled;
       const showSvgControls = currentView === 'svg' && lastRenderOk;
@@ -1064,21 +1061,7 @@ server -> database: queries"></textarea>
         statusEl.textContent = 'Loading renderer...';
         statusEl.className = 'status loading';
 
-        const response = await fetch('./wasm.wasm');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch WASM: ${response.status}`);
-        }
-
-        const wasmBytes = await response.arrayBuffer();
-        const result = await WebAssembly.instantiate(wasmBytes, {
-          spectest: {
-            print_char: (c) => console.log(String.fromCharCode(c)),
-            print_i32: (i) => console.log(i),
-            print_f64: (f) => console.log(f),
-          }
-        });
-
-        wasmModule = result.instance.exports;
+        wasmRenderer = await instantiateDiagoWasm('./wasm.wasm');
         statusEl.textContent = 'Ready';
         statusEl.className = 'status ready';
         render();
@@ -1100,48 +1083,23 @@ server -> database: queries"></textarea>
       `;
     }
 
-    function formatRenderErrorMessage(raw) {
-      const text = String(raw ?? '').trim();
+    function formatRenderErrorMessage(result) {
+      const text = result.text.trim();
       if (text.length === 0) {
         return 'Failed to render diagram.';
       }
-      if (text.startsWith('Error: Parse errors:')) {
+      if (result.error.name === 'parse') {
         return 'Syntax error in diagram source.';
       }
       if (
-        text.startsWith('Error: IR error:') ||
-        text.startsWith('Error: Graph error:') ||
-        text.startsWith('Error: Layout error:')
+        result.error.name === 'ir' ||
+        result.error.name === 'graph' ||
+        result.error.name === 'config' ||
+        result.error.name === 'layout'
       ) {
         return 'Failed to layout diagram. Please check syntax and connections.';
       }
-      if (text.startsWith('Error: ')) {
-        return text.slice('Error: '.length);
-      }
       return text;
-    }
-
-    function setInput(str) {
-      // Encode string as UTF-8 bytes
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(str);
-      const len = bytes.length;
-      wasmModule.set_input(len);
-      for (let i = 0; i < len; i++) {
-        wasmModule.write_input_byte(i, bytes[i]);
-      }
-    }
-
-    function getOutput() {
-      const len = wasmModule.get_output_len();
-      // Read bytes into a Uint8Array for proper UTF-8 decoding
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = wasmModule.read_output_byte(i);
-      }
-      // Use TextDecoder to properly handle multi-byte UTF-8 characters
-      const decoder = new TextDecoder('utf-8');
-      return decoder.decode(bytes);
     }
 
     function render() {
@@ -1160,38 +1118,24 @@ server -> database: queries"></textarea>
         return;
       }
 
-      if (!wasmModule) {
+      if (!wasmRenderer) {
         showPlaceholder();
         return;
       }
 
       try {
-        setInput(source);
-        const engineId = getEngineId();
-
-        let status;
-        if (currentView === 'ascii') {
-          status = typeof wasmModule.render_ascii_with_engine === 'function'
-            ? wasmModule.render_ascii_with_engine(engineId)
-            : wasmModule.render_ascii();
-        } else if (currentView === 'unicode') {
-          status = typeof wasmModule.render_unicode_with_engine === 'function'
-            ? wasmModule.render_unicode_with_engine(engineId)
-            : wasmModule.render_unicode();
-        } else {
-          status = typeof wasmModule.render_svg_with_engine === 'function'
-            ? wasmModule.render_svg_with_engine(engineId)
-            : wasmModule.render_svg();
-        }
-
-        const output = getOutput();
-
-        if (status !== 0) {
-          errorBanner.textContent = formatRenderErrorMessage(output);
+        const result = wasmRenderer.render({
+          source,
+          output: currentView,
+          layout: getSelectedEngine(),
+        });
+        if (!result.ok) {
+          errorBanner.textContent = formatRenderErrorMessage(result);
           errorBanner.style.display = 'block';
           updateExportButtons();
           return;
         }
+        const output = result.text;
 
         // Clear previous content first to avoid flash of old content with new styles
         preview.innerHTML = '';
@@ -1245,7 +1189,7 @@ server -> database: queries"></textarea>
         exampleSelect.value = '';
         lastUrlSyncedSource = scriptFromUrl;
         scheduleScriptUrlSync();
-        if (wasmModule) {
+        if (wasmRenderer) {
           render();
         }
       });

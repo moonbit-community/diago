@@ -2,27 +2,19 @@
 package "Milky2018/diago/cmd/wasm"
 
 // Values
-pub fn get_input_ptr() -> Int
+pub fn abi_version() -> Int
 
-pub fn get_output_len() -> Int
+pub fn render(Int) -> Int
 
-pub fn read_output_byte(Int) -> Int
+pub fn result_error_kind() -> Int
 
-pub fn render_ascii() -> Int
+pub fn result_len() -> Int
 
-pub fn render_ascii_with_engine(Int) -> Int
+pub fn result_required_len() -> Int
 
-pub fn render_svg() -> Int
+pub fn transfer_capacity() -> Int
 
-pub fn render_svg_with_engine(Int) -> Int
-
-pub fn render_unicode() -> Int
-
-pub fn render_unicode_with_engine(Int) -> Int
-
-pub fn set_input(Int) -> Int
-
-pub fn write_input_byte(Int, Int) -> Unit
+pub fn transfer_ptr() -> Int
 
 // Errors
 

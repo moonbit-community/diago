@@ -1,6 +1,9 @@
 import {
   "Milky2018/diago",
+  "Milky2018/diago/diagram",
+  "Milky2018/diago/engine_api",
   "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/json",
 }
 
 import {
@@ -13,17 +16,16 @@ options(
   link: {
     "wasm": {
       "exports": [
-        "set_input:set_input",
-        "write_input_byte:write_input_byte",
-        "get_output_len:get_output_len",
-        "read_output_byte:read_output_byte",
-        "render_svg:render_svg",
-        "render_svg_with_engine:render_svg_with_engine",
-        "render_ascii:render_ascii",
-        "render_ascii_with_engine:render_ascii_with_engine",
-        "render_unicode:render_unicode",
-        "render_unicode_with_engine:render_unicode_with_engine",
+        "abi_version:abi_version",
+        "transfer_ptr:transfer_ptr",
+        "transfer_capacity:transfer_capacity",
+        "render:render",
+        "result_len:result_len",
+        "result_error_kind:result_error_kind",
+        "result_required_len:result_required_len",
       ],
+      "export-memory-name": "memory",
+      "heap-start-address": 16777216,
     },
   },
 )
