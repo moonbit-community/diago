@@ -52,7 +52,7 @@ fn build_railway_layout_input(
   graph : @graph.GraphInput,
 ) -> (@graph.GraphInput, Map[String, @graph.ObjectInput], Map[String, String]) {
   let (object_by_id, parent_id_by_child_id) = build_object_maps_railway(graph)
-  let layout_node_ids : Map[String, Bool] = {}
+  let layout_node_ids : Map[String, Bool] = Map([])
   let layout_objects : Array[@graph.ObjectInput] = []
   for obj in graph.objects {
     if is_inner_member_of_sql_or_class(
@@ -141,12 +141,12 @@ fn is_inner_member_of_sql_or_class(
 fn build_object_maps_railway(
   graph : @graph.GraphInput,
 ) -> (Map[String, @graph.ObjectInput], Map[String, String]) {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.lookup_id()] = graph.root
   for obj in graph.objects {
     object_by_id[obj.lookup_id()] = obj
   }
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     parent_id_by_child_id[child_id] = graph.root.lookup_id()
   }
@@ -400,7 +400,7 @@ fn get_longest_edge_chain_head_id(
   parent_id_by_child_id : Map[String, String],
 ) -> String {
   let children : Array[String] = []
-  let child_set : Map[String, Bool] = {}
+  let child_set : Map[String, Bool] = Map([])
   for child_id in container.child_ids {
     if object_by_id.contains(child_id) {
       children.push(child_id)
@@ -410,8 +410,8 @@ fn get_longest_edge_chain_head_id(
   if children.is_empty() {
     return container.id
   }
-  let rank : Map[String, Int] = {}
-  let chain_length : Map[String, Int] = {}
+  let rank : Map[String, Int] = Map([])
+  let chain_length : Map[String, Int] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -428,7 +428,7 @@ fn get_longest_edge_chain_head_id(
     rank[child_id] = 1
     chain_length[child_id] = 1
     let queue : Array[String] = [child_id]
-    let visited : Map[String, Bool] = {}
+    let visited : Map[String, Bool] = Map([])
     let mut i = 0
     while i < queue.length() {
       let curr = queue[i]
@@ -490,7 +490,7 @@ fn get_longest_edge_chain_tail_id(
   parent_id_by_child_id : Map[String, String],
 ) -> String {
   let children : Array[String] = []
-  let child_set : Map[String, Bool] = {}
+  let child_set : Map[String, Bool] = Map([])
   for child_id in container.child_ids {
     if object_by_id.contains(child_id) {
       children.push(child_id)
@@ -500,7 +500,7 @@ fn get_longest_edge_chain_tail_id(
   if children.is_empty() {
     return container.id
   }
-  let rank : Map[String, Int] = {}
+  let rank : Map[String, Int] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -516,7 +516,7 @@ fn get_longest_edge_chain_tail_id(
     }
     rank[child_id] = 1
     let queue : Array[String] = [child_id]
-    let visited : Map[String, Bool] = {}
+    let visited : Map[String, Bool] = Map([])
     let mut i = 0
     while i < queue.length() {
       let curr = queue[i]
@@ -1139,7 +1139,7 @@ fn spread_sibling_boxes_railway(
   config : @engine_api.LayoutConfig,
 ) -> Unit {
   let root_key = "__railway_root__"
-  let children_by_parent : Map[String, Array[String]] = {}
+  let children_by_parent : Map[String, Array[String]] = Map([])
   for obj in graph.objects {
     let parent_id = parent_id_by_child_id.get_or_default(obj.id, root_key)
     match children_by_parent.get(parent_id) {

@@ -40,17 +40,17 @@ priv struct ImageTagBundleResult {
 let max_bundle_image_size : Int = 1 << 25
 
 ///|
-let persistent_bundle_cache : Map[String, String] = {}
+let persistent_bundle_cache : Map[String, String] = Map([])
 
 ///|
 // Whitebox tests use these maps to mirror the mockable reference HTTP transport.
-let test_remote_fetch_ok_overrides : Map[String, (Bytes, String)] = {}
+let test_remote_fetch_ok_overrides : Map[String, (Bytes, String)] = Map([])
 
 ///|
-let test_remote_fetch_error_overrides : Map[String, String] = {}
+let test_remote_fetch_error_overrides : Map[String, String] = Map([])
 
 ///|
-let test_remote_fetch_count : Map[String, Int] = {}
+let test_remote_fetch_count : Map[String, Int] = Map([])
 
 ///|
 fn bundle_local_svg_images(

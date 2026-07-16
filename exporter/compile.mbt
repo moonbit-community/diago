@@ -639,7 +639,7 @@ fn compare_reference_ranges(a : @lexer.Range, b : @lexer.Range) -> Int {
 
 ///|
 fn sort_object_array_by_references(objects : Array[Object]) -> Unit {
-  let original_index_by_id : Map[String, Int] = {}
+  let original_index_by_id : Map[String, Int] = Map([])
   for i, obj in objects {
     original_index_by_id[obj.abs_id_syntax] = i
   }
@@ -659,7 +659,7 @@ fn sort_object_array_by_references(objects : Array[Object]) -> Unit {
 
 ///|
 fn sort_edge_array_by_references(edges : Array[Edge]) -> Unit {
-  let original_index_by_edge : Map[Int, Int] = {}
+  let original_index_by_edge : Map[Int, Int] = Map([])
   for i, edge in edges {
     original_index_by_edge[edge.index] = i
   }
@@ -710,7 +710,7 @@ fn graph_to_input(graph : Graph) -> @graph.GraphInput {
   for obj in graph.objects {
     objects.push(object_to_input(obj))
   }
-  let nested_child_ids : Map[String, Bool] = {}
+  let nested_child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child in obj.children {
       nested_child_ids[child.abs_id_syntax] = true
@@ -868,7 +868,7 @@ pub fn compile(
 ///|
 /// Extract class definitions from the IR
 fn extract_classes(ir : @ir.Map) -> Map[String, @ir.Map] {
-  let classes : Map[String, @ir.Map] = {}
+  let classes : Map[String, @ir.Map] = Map([])
   match ir.get_field("classes") {
     Some(f) =>
       match f.composite {
@@ -2939,7 +2939,7 @@ fn validate_semantics(graph : Graph) -> Unit raise GraphCompileError {
 
 ///|
 fn validate_near_rules(graph : Graph) -> Unit raise GraphCompileError {
-  let object_by_abs_id_syntax : Map[String, Object] = {}
+  let object_by_abs_id_syntax : Map[String, Object] = Map([])
   for obj in graph.objects {
     object_by_abs_id_syntax[obj.abs_id_syntax] = obj
   }
@@ -3008,7 +3008,7 @@ fn validate_near_rules(graph : Graph) -> Unit raise GraphCompileError {
 
 ///|
 fn validate_edge_rules(graph : Graph) -> Unit raise GraphCompileError {
-  let object_by_abs_id_syntax : Map[String, Object] = {}
+  let object_by_abs_id_syntax : Map[String, Object] = Map([])
   for obj in graph.objects {
     object_by_abs_id_syntax[obj.abs_id_syntax] = obj
   }
@@ -3078,7 +3078,7 @@ fn validate_edge_rules(graph : Graph) -> Unit raise GraphCompileError {
 
 ///|
 fn validate_position_rules(graph : Graph) -> Unit raise GraphCompileError {
-  let object_by_id : Map[String, Object] = {}
+  let object_by_id : Map[String, Object] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -3678,8 +3678,8 @@ fn collect_legend_entries_into(
 ///|
 #warnings("-unused_value")
 fn auto_generate_legend_entries(graph : Graph) -> Array[LegendEntry] {
-  let shapes : Map[String, Bool] = {}
-  let conns : Map[String, (ArrowheadType, ArrowheadType)] = {}
+  let shapes : Map[String, Bool] = Map([])
+  let conns : Map[String, (ArrowheadType, ArrowheadType)] = Map([])
   collect_legend_entries_into(graph, shapes, conns)
   for layer in graph.layers {
     collect_legend_entries_into(layer.graph, shapes, conns)
@@ -3714,7 +3714,7 @@ fn auto_generate_legend_entries(graph : Graph) -> Array[LegendEntry] {
     ("triangle", "triangle"),
     ("none", "none"),
   ]
-  let used : Map[String, Bool] = {}
+  let used : Map[String, Bool] = Map([])
   for pair in common {
     let src_s = pair.0
     let dst_s = pair.1
@@ -3893,7 +3893,7 @@ fn normalize_sql_table_edge_endpoints_recursive(graph : Graph) -> Unit {
 
 ///|
 fn normalize_sql_table_edge_endpoints(graph : Graph) -> Unit {
-  let object_by_id : Map[String, Object] = {}
+  let object_by_id : Map[String, Object] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -4000,7 +4000,7 @@ fn apply_sequence_defaults(graph : Graph) -> Unit {
   if graph.root.shape_type != SequenceDiagram {
     return
   }
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child in obj.children {
       child_ids[child.id] = true
@@ -4147,7 +4147,7 @@ fn d2_default_edge_stroke(edge : Edge) -> String {
 
 ///|
 fn apply_d2_text_defaults(graph : Graph) -> Unit {
-  let object_by_abs_id_syntax : Map[String, Object] = {}
+  let object_by_abs_id_syntax : Map[String, Object] = Map([])
   for obj in graph.objects {
     object_by_abs_id_syntax[obj.abs_id_syntax] = obj
   }

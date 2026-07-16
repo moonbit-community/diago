@@ -84,8 +84,8 @@ pub fn count_crossings_fenwick(
     return 0.0
   }
   // Build position maps
-  let north_pos : Map[String, Int] = {}
-  let south_pos : Map[String, Int] = {}
+  let north_pos : Map[String, Int] = Map([])
+  let south_pos : Map[String, Int] = Map([])
   for i, node in north_layer {
     north_pos[node] = i
   }

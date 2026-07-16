@@ -46,10 +46,10 @@ pub fn assign_coordinates(
 ) -> CoordinateResult {
   let layers = crossing_result.ordered_layers
   if layers.length() == 0 {
-    return { x_coords: {}, y_coords: {} }
+    return { x_coords: Map([]), y_coords: Map([]) }
   }
   // Build position index for each node within its layer
-  let pos : Map[String, Int] = {}
+  let pos : Map[String, Int] = Map([])
   for layer in layers {
     for i, node in layer {
       pos[node] = i
@@ -73,7 +73,7 @@ pub fn assign_coordinates(
     layers, pos, lower_neighbors, node_widths, horizontal_sep, false, false,
   )
   // Average the 4 alignments
-  let x_coords : Map[String, Double] = {}
+  let x_coords : Map[String, Double] = Map([])
   for layer in layers {
     for node in layer {
       let v1 = x1.get(node).unwrap_or(0.0)
@@ -92,7 +92,7 @@ pub fn assign_coordinates(
     graph, layers, vertical_sep, cycle_result,
   )
   // Assign y coordinates based on layer with dynamic spacing
-  let y_coords : Map[String, Double] = {}
+  let y_coords : Map[String, Double] = Map([])
   let mut y = 0.0
   for i, layer in layers {
     // Find max height in this layer
@@ -144,7 +144,7 @@ fn compute_dynamic_rank_spacing(
     return []
   }
   // Build layer index for each node
-  let layer_idx : Map[String, Int] = {}
+  let layer_idx : Map[String, Int] = Map([])
   for i, layer in layers {
     for node in layer {
       layer_idx[node] = i
@@ -195,10 +195,10 @@ fn build_neighbors(
   layers : Array[Array[String]],
   cycle_result : CycleBreakResult,
 ) -> (Map[String, Array[String]], Map[String, Array[String]]) {
-  let upper : Map[String, Array[String]] = {}
-  let lower : Map[String, Array[String]] = {}
+  let upper : Map[String, Array[String]] = Map([])
+  let lower : Map[String, Array[String]] = Map([])
   // Build layer index for each node
-  let layer_idx : Map[String, Int] = {}
+  let layer_idx : Map[String, Int] = Map([])
   for i, layer in layers {
     for node in layer {
       layer_idx[node] = i
@@ -240,8 +240,8 @@ fn align_and_compact(
   left_to_right : Bool,
 ) -> Map[String, Double] {
   // Step 1: Vertical alignment - find root and align for each node
-  let root : Map[String, String] = {}
-  let align : Map[String, String] = {}
+  let root : Map[String, String] = Map([])
+  let align : Map[String, String] = Map([])
   // Initialize: each node is its own root and aligned to itself
   for layer in layers {
     for node in layer {
@@ -294,9 +294,9 @@ fn align_and_compact(
     }
   }
   // Step 2: Horizontal compaction
-  let x : Map[String, Double] = {}
-  let sink : Map[String, String] = {}
-  let shift : Map[String, Double] = {}
+  let x : Map[String, Double] = Map([])
+  let sink : Map[String, String] = Map([])
+  let shift : Map[String, Double] = Map([])
   // Initialize
   for layer in layers {
     for node in layer {
@@ -525,8 +525,8 @@ pub fn assign_coordinates_simple(
   vertical_sep : Double,
   padding : Double,
 ) -> CoordinateResult {
-  let x_coords : Map[String, Double] = {}
-  let y_coords : Map[String, Double] = {}
+  let x_coords : Map[String, Double] = Map([])
+  let y_coords : Map[String, Double] = Map([])
   let mut y = padding
   for layer in crossing_result.ordered_layers {
     let mut x = padding
@@ -689,7 +689,7 @@ pub fn fit_container_padding(
   is_horizontal : Bool,
 ) -> Unit {
   // Build parent-child relationships
-  let children_map : Map[String, Array[String]] = {}
+  let children_map : Map[String, Array[String]] = Map([])
   for obj in graph.objects {
     let children = graph.children_of(obj)
     if children.length() > 0 {
@@ -801,14 +801,14 @@ fn center_parents_over_children(
   cycle_result : CycleBreakResult,
 ) -> Unit {
   // Build layer index for each node
-  let layer_idx : Map[String, Int] = {}
+  let layer_idx : Map[String, Int] = Map([])
   for i, layer in layers {
     for node in layer {
       layer_idx[node] = i
     }
   }
   // Build children map: parent -> [children in next layer]
-  let children_map : Map[String, Array[String]] = {}
+  let children_map : Map[String, Array[String]] = Map([])
   for edge in graph.edges {
     let src = get_effective_src(edge, cycle_result)
     let dst = get_effective_dst(edge, cycle_result)

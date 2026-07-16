@@ -70,12 +70,12 @@ pub struct LayoutPatch {
 ///|
 pub fn LayoutPatch::new() -> LayoutPatch {
   {
-    nodes: {},
-    node_labels: {},
-    edges: {},
-    edge_bend_points: {},
-    edge_curves: {},
-    edge_labels: {},
+    nodes: Map([]),
+    node_labels: Map([]),
+    edges: Map([]),
+    edge_bend_points: Map([]),
+    edge_curves: Map([]),
+    edge_labels: Map([]),
     activation_boxes: [],
     sequence_notes: [],
     sequence_fragments: [],

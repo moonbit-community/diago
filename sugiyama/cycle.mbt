@@ -45,7 +45,7 @@ pub(all) struct CycleBreakResult {
 /// are back-edges that create cycles.
 pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
   // Build adjacency list: node_id -> [(edge_index, target_id)]
-  let adj : Map[String, Array[(Int, String)]] = {}
+  let adj : Map[String, Array[(Int, String)]] = Map([])
   for edge in graph.edges {
     let src = edge.get_src_id()
     let dst = edge.get_dst_id()
@@ -60,7 +60,7 @@ pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
     collect_node_ids(graph, obj, nodes)
   }
   // DFS state
-  let state : Map[String, NodeState] = {}
+  let state : Map[String, NodeState] = Map([])
   for node in nodes {
     state[node] = White
   }

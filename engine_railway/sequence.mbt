@@ -25,7 +25,7 @@ fn layout_sequence_diagram_railway(
     return patch
   }
 
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -57,7 +57,7 @@ fn layout_sequence_diagram_railway(
     }
   }
 
-  let participant_index_by_id : Map[String, Int] = {}
+  let participant_index_by_id : Map[String, Int] = Map([])
   for i, id in participant_ids {
     participant_index_by_id[id] = i
   }
@@ -157,7 +157,7 @@ fn layout_sequence_diagram_railway(
 fn sequence_participant_ids_railway(graph : @graph.GraphInput) -> Array[String] {
   if !graph.root.child_ids.is_empty() {
     let ids : Array[String] = []
-    let exists : Map[String, Bool] = {}
+    let exists : Map[String, Bool] = Map([])
     for obj in graph.objects {
       exists[obj.id] = true
     }
@@ -170,7 +170,7 @@ fn sequence_participant_ids_railway(graph : @graph.GraphInput) -> Array[String] 
       return ids
     }
   }
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child_id in obj.child_ids {
       child_ids[child_id] = true

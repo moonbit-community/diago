@@ -368,7 +368,7 @@ fn shift_point_until_empty(
 
 ///|
 fn calculate_turn_directions(routes : Array[RoutePoint]) -> Map[String, String] {
-  let turns : Map[String, String] = {}
+  let turns : Map[String, String] = Map([])
   if routes.length() < 3 {
     return turns
   }

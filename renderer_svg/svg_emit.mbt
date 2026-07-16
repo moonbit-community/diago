@@ -335,7 +335,7 @@ fn d2_subset_font_data_url(
 
 ///|
 fn d2_unique_chars(text : String) -> String {
-  let seen : Map[Char, Bool] = {}
+  let seen : Map[Char, Bool] = Map([])
   let out = StringBuilder::new()
   for ch in text.to_array() {
     if !seen.contains(ch) {
@@ -1732,7 +1732,7 @@ fn d2_edge_repeat_key(edge : Connection) -> String {
 
 ///|
 fn d2_connection_repeat_indices(connections : Array[Connection]) -> Array[Int] {
-  let key_counts : Map[String, Int] = {}
+  let key_counts : Map[String, Int] = Map([])
   let indices : Array[Int] = []
   for edge in connections {
     let key = d2_edge_repeat_key(edge)

@@ -54,7 +54,7 @@ pub fn GraphInput::new(name : String) -> GraphInput {
     steps: [],
     legend: None,
     is_folder_only: false,
-    data: {},
+    data: Map([]),
   }
 }
 
@@ -73,7 +73,7 @@ pub fn GraphInput::from_parts(
   steps : Array[StepInput],
   legend : LegendInput?,
   is_folder_only? : Bool = false,
-  data? : Map[String, GraphDataValue] = {},
+  data? : Map[String, GraphDataValue] = Map([]),
 ) -> GraphInput {
   {
     name,
@@ -1035,7 +1035,7 @@ pub fn GraphInput::from_model(graph : GraphModel) -> GraphInput {
   for step in graph.steps {
     steps.push(StepInput::new(step.name, GraphInput::from_model(step.graph)))
   }
-  let data : Map[String, GraphDataValue] = {}
+  let data : Map[String, GraphDataValue] = Map([])
   for key, value in graph.data {
     data[key] = copy_graph_data_value(value)
   }

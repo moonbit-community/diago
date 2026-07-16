@@ -40,12 +40,12 @@ priv struct NestedSequenceContext {
 fn empty_nested_sequence_context() -> NestedSequenceContext {
   {
     container_order: [],
-    graphs_by_container_id: {},
+    graphs_by_container_id: Map([]),
     constant_near_order: [],
-    constant_near_graphs_by_container_id: {},
-    descendant_container_by_id: {},
-    internal_edge_container_by_index: {},
-    external_edge_indices: {},
+    constant_near_graphs_by_container_id: Map([]),
+    descendant_container_by_id: Map([]),
+    internal_edge_container_by_index: Map([]),
+    external_edge_indices: Map([]),
   }
 }
 
@@ -175,9 +175,9 @@ fn restore_nested_sequence_layouts(
     laid_out_graph, context,
   )
 
-  let container_ids : Map[String, Bool] = {}
-  let shifted_nested_object_by_id : Map[String, @graph.ObjectInput] = {}
-  let shifted_nested_edge_by_index : Map[Int, @graph.EdgeInput] = {}
+  let container_ids : Map[String, Bool] = Map([])
+  let shifted_nested_object_by_id : Map[String, @graph.ObjectInput] = Map([])
+  let shifted_nested_edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
   let shifted_activation_boxes : Array[(String, @graph.Box)] = []
   let shifted_sequence_notes : Array[(String, String, @graph.Box)] = []
   let shifted_sequence_fragments : Array[@graph.SequenceFragmentLayout] = []
@@ -215,7 +215,7 @@ fn restore_nested_sequence_layouts(
   }
 
   let objects : Array[@graph.ObjectInput] = []
-  let final_object_by_id : Map[String, @graph.ObjectInput] = {}
+  let final_object_by_id : Map[String, @graph.ObjectInput] = Map([])
   final_object_by_id[original_graph.root.abs_id_syntax] = clone_object_with_parts(
     laid_out_graph.root,
     laid_out_graph.root.box,
@@ -249,7 +249,7 @@ fn restore_nested_sequence_layouts(
     objects.push(final_obj)
   }
 
-  let laid_out_edge_by_index : Map[Int, @graph.EdgeInput] = {}
+  let laid_out_edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
   for edge in laid_out_graph.edges {
     laid_out_edge_by_index[edge.index] = edge
   }
@@ -414,7 +414,7 @@ fn extract_constant_near_graph_like_d2(
   let subtree_ids = collect_descendant_ids(object_by_id, [container_id])
   let parent_id_by_child_id = build_parent_id_by_child_abs_id_syntax(graph)
   let parent_id = parent_id_by_child_id.get(container_id)
-  let subtree_semantic_ids : Map[String, Bool] = {}
+  let subtree_semantic_ids : Map[String, Bool] = Map([])
   let nested_objects : Array[@graph.ObjectInput] = []
   for obj in graph.objects {
     if subtree_ids.contains(obj.abs_id_syntax) {
@@ -424,7 +424,7 @@ fn extract_constant_near_graph_like_d2(
   }
   let nested_edges : Array[@graph.EdgeInput] = []
   let outer_edges : Array[@graph.EdgeInput] = []
-  let external_edge_indices : Map[Int, Bool] = {}
+  let external_edge_indices : Map[Int, Bool] = Map([])
   for edge in graph.edges {
     let src_nested = subtree_ids.contains(edge.src_id_syntax)
     let dst_nested = subtree_ids.contains(edge.dst_id_syntax)
@@ -655,7 +655,7 @@ fn extract_nested_sequence_graph(
       )
   }
   let descendant_ids = collect_descendant_ids(object_by_id, container.child_ids)
-  let descendant_semantic_ids : Map[String, Bool] = {}
+  let descendant_semantic_ids : Map[String, Bool] = Map([])
   let nested_root = clone_nested_sequence_root(container)
   let nested_objects : Array[@graph.ObjectInput] = []
   let outer_objects : Array[@graph.ObjectInput] = []
@@ -672,8 +672,8 @@ fn extract_nested_sequence_graph(
 
   let nested_edges : Array[@graph.EdgeInput] = []
   let outer_edges : Array[@graph.EdgeInput] = []
-  let internal_edge_indices : Map[Int, Bool] = {}
-  let external_edge_indices : Map[Int, Bool] = {}
+  let internal_edge_indices : Map[Int, Bool] = Map([])
+  let external_edge_indices : Map[Int, Bool] = Map([])
   for edge in graph.edges {
     let src_nested = descendant_ids.contains(edge.src_id_syntax)
     let dst_nested = descendant_ids.contains(edge.dst_id_syntax)
@@ -739,7 +739,7 @@ fn extract_nested_sequence_graph(
     [],
     None,
     is_folder_only=false,
-    data={},
+    data=Map([]),
   )
   (
     outer_graph, nested_graph, descendant_ids, internal_edge_indices, external_edge_indices,
@@ -751,7 +751,7 @@ fn collect_descendant_ids(
   object_by_id : Map[String, @graph.ObjectInput],
   child_ids : Array[String],
 ) -> Map[String, Bool] {
-  let descendant_ids : Map[String, Bool] = {}
+  let descendant_ids : Map[String, Bool] = Map([])
   let queue : Array[String] = []
   for child_id in child_ids {
     if object_by_id.contains(child_id) {
@@ -793,7 +793,7 @@ fn extract_nested_include_self_graph_like_d2(
       )
   }
   let subtree_ids = collect_descendant_ids(object_by_id, [container_id])
-  let subtree_semantic_ids : Map[String, Bool] = {}
+  let subtree_semantic_ids : Map[String, Bool] = Map([])
   let objects : Array[@graph.ObjectInput] = []
   for obj in graph.objects {
     if subtree_ids.contains(obj.abs_id_syntax) {
@@ -861,7 +861,7 @@ fn extract_nested_include_self_graph_like_d2(
     [],
     None,
     is_folder_only=false,
-    data={},
+    data=Map([]),
   )
 }
 
@@ -946,7 +946,7 @@ fn finalize_grid_cell_container_like_d2(
     subtree_object_by_id,
     container.child_ids,
   )
-  let descendant_semantic_ids : Map[String, Bool] = {}
+  let descendant_semantic_ids : Map[String, Bool] = Map([])
   for descendant_id, _ in descendant_ids {
     match subtree_object_by_id.get(descendant_id) {
       Some(obj) => descendant_semantic_ids[obj.id] = true
@@ -1315,7 +1315,7 @@ fn apply_constant_near_graphs_like_d2(
   }
 
   let mut placed_graph = graph
-  let placed_near_ids : Map[String, Bool] = {}
+  let placed_near_ids : Map[String, Bool] = Map([])
   for key_set in [0, 1, 2] {
     let current_set_ids : Array[String] = []
     for container_id in context.constant_near_order {

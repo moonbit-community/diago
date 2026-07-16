@@ -425,7 +425,7 @@ pub fn GraphModel::new(name : String) -> GraphModel {
     steps: [],
     legend: None,
     is_folder_only: false,
-    data: {},
+    data: Map([]),
   }
 }
 

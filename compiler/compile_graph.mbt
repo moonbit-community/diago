@@ -149,7 +149,7 @@ let css_named_colors : Array[String] = [
 fn compile_config_data_map(
   data_map : @ir.Map,
 ) -> Map[String, @diagram.ConfigDataValue] {
-  let data : Map[String, @diagram.ConfigDataValue] = {}
+  let data : Map[String, @diagram.ConfigDataValue] = Map([])
   for field in data_map.fields {
     if field.primary is Some(value) {
       data[field.name] = Text(value.to_string())
@@ -172,7 +172,7 @@ fn compile_config_data_map(
 fn graph_data_from_source_config(
   config : @diagram.Config?,
 ) -> Map[String, @graph.GraphDataValue] {
-  let data : Map[String, @graph.GraphDataValue] = {}
+  let data : Map[String, @graph.GraphDataValue] = Map([])
   match config {
     Some(config) =>
       for key, value in config.data {
@@ -224,7 +224,7 @@ fn extract_source_config(
   let mut no_xml_tag : Bool? = None
   let mut salt : String? = None
   let mut omit_version : Bool? = None
-  let data : Map[String, @diagram.ConfigDataValue] = {}
+  let data : Map[String, @diagram.ConfigDataValue] = Map([])
   if config_map.get_field("sketch") is Some(field) {
     if field.primary is Some(value) {
       sketch = value.as_bool()

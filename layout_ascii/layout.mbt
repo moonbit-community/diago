@@ -709,7 +709,7 @@ fn plan_legend(legend : LegendInput, x : Int, y : Int) -> LegendPlan {
 /// Compute an ASCII layout plan from a laid-out diagram.
 pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
   // Determine root objects (not children of another object).
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in diagram.shapes {
     for child_id in obj.child_ids {
       child_ids[child_id] = true
@@ -722,7 +722,7 @@ pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
     }
   }
   sort_shapes_by_y(roots)
-  let sizes : Map[String, (Int, Int)] = {}
+  let sizes : Map[String, (Int, Int)] = Map([])
   for obj in diagram.shapes {
     compute_object_size(obj, diagram.shapes, config, sizes) |> ignore
   }

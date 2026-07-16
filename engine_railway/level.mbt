@@ -81,15 +81,15 @@ fn order_layer_by_barycenter(
   if layer.length() <= 1 || fixed_layer.length() == 0 {
     return
   }
-  let fixed_pos : Map[String, Int] = {}
+  let fixed_pos : Map[String, Int] = Map([])
   for i, node in fixed_layer {
     fixed_pos[node] = i
   }
-  let original_pos : Map[String, Int] = {}
+  let original_pos : Map[String, Int] = Map([])
   for i, node in layer {
     original_pos[node] = i
   }
-  let barycenters : Map[String, Double] = {}
+  let barycenters : Map[String, Double] = Map([])
   for node in layer {
     let connected_positions : Array[Int] = []
     match neighbors.get(node) {
@@ -150,7 +150,7 @@ fn crossing_count(
   if layer.length() <= 1 || fixed_layer.length() <= 1 {
     return 0
   }
-  let fixed_pos : Map[String, Int] = {}
+  let fixed_pos : Map[String, Int] = Map([])
   for i, node in fixed_layer {
     fixed_pos[node] = i
   }
@@ -245,8 +245,8 @@ fn make_levels(
   for i in 0..<n {
     nodes_by_level[depths[i]].push(ids[i])
   }
-  let incoming : Map[String, Array[String]] = {}
-  let outgoing : Map[String, Array[String]] = {}
+  let incoming : Map[String, Array[String]] = Map([])
+  let outgoing : Map[String, Array[String]] = Map([])
   for e in graph.edges {
     if self_loop.contains(e.index) {
       continue

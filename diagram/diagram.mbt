@@ -60,7 +60,7 @@ pub fn Config::new() -> Config {
     no_xml_tag: None,
     salt: None,
     omit_version: None,
-    data: {},
+    data: Map([]),
   }
 }
 
@@ -439,7 +439,7 @@ pub fn Diagram::with_render_hash_config(
         None,
         None,
         None,
-        {},
+        Map([]),
       )
   }
   let layers : Array[Diagram] = []
@@ -479,7 +479,7 @@ pub fn Diagram::get_nested_corpus(self : Diagram) -> String {
 pub fn Diagram::get_corpus(self : Diagram) -> String {
   let corpus = StringBuilder::new()
   let mut appendix_count = 0
-  let suppressed_shape_ids : Map[String, Bool] = {}
+  let suppressed_shape_ids : Map[String, Bool] = Map([])
   for shape in self.shapes {
     if shape.shape_type == Class || shape.shape_type == SqlTable {
       for child_id in shape.child_ids {
@@ -945,7 +945,7 @@ fn legend_corpus(legend : @graph.LegendInput) -> String {
 
 ///|
 fn object_children(parent : Shape, all_shapes : Array[Shape]) -> Array[Shape] {
-  let by_id : Map[String, Shape] = {}
+  let by_id : Map[String, Shape] = Map([])
   for shape in all_shapes {
     by_id[shape.id] = shape
   }
@@ -1237,7 +1237,7 @@ fn connection_from_edge(
 fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
   if !graph.root.child_ids.is_empty() {
     let ids : Array[String] = []
-    let exists : Map[String, Bool] = {}
+    let exists : Map[String, Bool] = Map([])
     for obj in graph.objects {
       exists[obj.abs_id_syntax] = true
     }
@@ -1250,7 +1250,7 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
       return ids
     }
   }
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child_id in obj.child_ids {
       child_ids[child_id] = true
@@ -1269,7 +1269,7 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
 fn sequence_parent_id_by_child_id(
   graph : @graph.GraphInput,
 ) -> Map[String, String] {
-  let out : Map[String, String] = {}
+  let out : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     out[child_id] = graph.root.abs_id_syntax
   }
@@ -1287,7 +1287,7 @@ fn sequence_participant_alias_by_abs_id(
   participant_ids : Array[String],
   object_by_abs_id : Map[String, @graph.ObjectInput],
 ) -> Map[String, String] {
-  let participant_by_local_id : Map[String, String] = {}
+  let participant_by_local_id : Map[String, String] = Map([])
   for participant_id in participant_ids {
     match object_by_abs_id.get(participant_id) {
       Some(obj) => {
@@ -1297,7 +1297,7 @@ fn sequence_participant_alias_by_abs_id(
       None => participant_by_local_id[participant_id] = participant_id
     }
   }
-  let out : Map[String, String] = {}
+  let out : Map[String, String] = Map([])
   for participant_id in participant_ids {
     out[participant_id] = participant_id
   }
@@ -1435,7 +1435,7 @@ fn append_sequence_lifeline_connections(
     return
   }
 
-  let shape_by_id : Map[String, Shape] = {}
+  let shape_by_id : Map[String, Shape] = Map([])
   for shape in shapes {
     shape_by_id[shape.id] = shape
   }
@@ -1555,12 +1555,12 @@ pub fn from_graph(graph : @graph.GraphInput, config : Config?) -> Diagram {
   }
   let connections : Array[Connection] = []
   if graph.root.shape_type == SequenceDiagram {
-    let object_by_abs_id : Map[String, @graph.ObjectInput] = {}
+    let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
     for obj in graph.objects {
       object_by_abs_id[obj.abs_id_syntax] = obj
     }
     let participant_ids = sequence_participant_ids(graph)
-    let participant_exists : Map[String, Bool] = {}
+    let participant_exists : Map[String, Bool] = Map([])
     for participant_id in participant_ids {
       participant_exists[participant_id] = true
     }

@@ -98,7 +98,7 @@ fn cleanup_file(path : String) -> Unit {
 
 ///|
 test "render default output path is input.svg" {
-  let req = parse_render(["diago", "render", "demo.d2"], {})
+  let req = parse_render(["diago", "render", "demo.d2"], Map([]))
   @debug.assert_eq(req.input_path, Some("demo.d2"))
   @debug.assert_eq(req.output_path, Some("demo.svg"))
   @debug.assert_eq(req.output_mode, Svg)
@@ -106,7 +106,7 @@ test "render default output path is input.svg" {
 
 ///|
 test "render stdin only with --stdin" {
-  let req = parse_render(["diago", "render", "--stdin"], {})
+  let req = parse_render(["diago", "render", "--stdin"], Map([]))
   assert_true(req.from_stdin)
   @debug.assert_eq(req.input_path, None)
   @debug.assert_eq(req.output_path, None)
@@ -114,19 +114,19 @@ test "render stdin only with --stdin" {
 
 ///|
 test "render rejects positional input with --stdin" {
-  let err = parse_err(["diago", "render", "--stdin", "demo.d2"], {})
+  let err = parse_err(["diago", "render", "--stdin", "demo.d2"], Map([]))
   assert_true(err.contains("cannot be used with --stdin"))
 }
 
 ///|
 test "render rejects dash input shorthand" {
-  let err = parse_err(["diago", "render", "-"], {})
+  let err = parse_err(["diago", "render", "-"], Map([]))
   assert_true(err.contains("Use --stdin instead"))
 }
 
 ///|
 test "validate rejects dash input shorthand" {
-  let err = parse_err(["diago", "validate", "-"], {})
+  let err = parse_err(["diago", "validate", "-"], Map([]))
   assert_true(err.contains("Use --stdin instead"))
 }
 
@@ -134,7 +134,7 @@ test "validate rejects dash input shorthand" {
 test "render rejects duplicate output path sources" {
   let err = parse_err(
     ["diago", "render", "demo.d2", "a.svg", "--output", "b.svg"],
-    {},
+    Map([]),
   )
   assert_true(err.contains("positionally and with --output"))
 }
@@ -143,14 +143,14 @@ test "render rejects duplicate output path sources" {
 test "render format/output extension mismatch fails" {
   let err = parse_err(
     ["diago", "render", "demo.d2", "--format", "ascii", "--output", "out.svg"],
-    {},
+    Map([]),
   )
   assert_true(err.contains("extension conflicts with --format"))
 }
 
 ///|
 test "render watch cannot be combined with stdin" {
-  let err = parse_err(["diago", "render", "--stdin", "--watch"], {})
+  let err = parse_err(["diago", "render", "--stdin", "--watch"], Map([]))
   assert_true(err.contains("--watch cannot be used with --stdin"))
 }
 
@@ -176,7 +176,7 @@ test "precedence: env overrides defaults for layout" {
 test "render parses compatibility pad and center svg options" {
   let req = parse_render(
     ["diago", "render", "demo.d2", "--pad", "24", "--center"],
-    {},
+    Map([]),
   )
   @debug.assert_eq(req.pad, Some(24.0))
   @debug.assert_eq(req.center, Some(true))
@@ -184,7 +184,7 @@ test "render parses compatibility pad and center svg options" {
 
 ///|
 test "render parses compatibility sketch flag" {
-  let req = parse_render(["diago", "render", "demo.d2", "--sketch"], {})
+  let req = parse_render(["diago", "render", "demo.d2", "--sketch"], Map([]))
   @debug.assert_eq(req.sketch, Some(true))
 }
 
@@ -195,7 +195,7 @@ test "render parses typed theme override flags" {
       "diago", "render", "demo.d2", "--theme-overrides", "B1:red,N1=white", "--dark-theme-overrides",
       "AA4:#f0ff3a",
     ],
-    {},
+    Map([]),
   )
   @debug.assert_eq(req.theme_overrides.unwrap().get("B1"), Some("red"))
   @debug.assert_eq(req.theme_overrides.unwrap().get("N1"), Some("white"))
@@ -214,31 +214,31 @@ test "only DIAGO_ env prefix is recognized" {
 
 ///|
 test "legacy watch command returns migration hint" {
-  let err = parse_err(["diago", "watch", "demo.d2"], {})
+  let err = parse_err(["diago", "watch", "demo.d2"], Map([]))
   assert_true(err.contains("render --watch"))
 }
 
 ///|
 test "legacy dump-input command returns migration hint" {
-  let err = parse_err(["diago", "dump-input"], {})
+  let err = parse_err(["diago", "dump-input"], Map([]))
   assert_true(err.contains("no longer a public CLI command"))
 }
 
 ///|
 test "legacy ascii flags return migration hint" {
-  let err = parse_err(["diago", "render", "--ascii", "demo.d2"], {})
+  let err = parse_err(["diago", "render", "--ascii", "demo.d2"], Map([]))
   assert_true(err.contains("render --format ascii|unicode"))
 }
 
 ///|
 test "legacy global version flag returns migration hint" {
-  let err = parse_err(["diago", "--version"], {})
+  let err = parse_err(["diago", "--version"], Map([]))
   assert_true(err.contains("Use: diago version"))
 }
 
 ///|
 test "legacy direct entry returns migration hint" {
-  let err = parse_err(["diago", "demo.d2"], {})
+  let err = parse_err(["diago", "demo.d2"], Map([]))
   assert_true(err.contains("Use: diago render"))
 }
 

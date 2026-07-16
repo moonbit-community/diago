@@ -21,8 +21,9 @@ import {
   "moonbitlang/core/debug",
 }
 
+pkgtype(kind: "executable")
+
 options(
-  "is-main": true,
   targets: {
     "exec_js.mbt": [ "js" ],
     "exec_native.mbt": [ "native", "llvm" ],

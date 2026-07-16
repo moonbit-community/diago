@@ -304,14 +304,14 @@ test "railway assign_ports keeps fanout ports ordered by destination axis" {
   let e1 = @graph.EdgeInput::new(1, "s", "b", false, true)
   let e2 = @graph.EdgeInput::new(2, "s", "c", false, true)
   g.edges.append([e0, e1, e2])
-  let id_to_idx : Map[String, Int] = {}
+  let id_to_idx : Map[String, Int] = Map([])
   id_to_idx["s"] = 0
   id_to_idx["a"] = 1
   id_to_idx["b"] = 2
   id_to_idx["c"] = 3
   let depths = [0, 1, 1, 1]
   let self_loop : @hashset.HashSet[Int] = HashSet([])
-  let boxes : Map[String, @graph.Box] = {}
+  let boxes : Map[String, @graph.Box] = Map([])
   boxes["s"] = @graph.Box::new(0.0, 0.0, 180.0, 80.0)
   boxes["a"] = @graph.Box::new(0.0, 220.0, 120.0, 70.0)
   boxes["b"] = @graph.Box::new(260.0, 220.0, 120.0, 70.0)
@@ -343,8 +343,8 @@ test "railway long edge anchor prefers central channel when clear" {
     Down,
     0,
     @engine_api.LayoutConfig::new(),
-    {},
-    {},
+    Map([]),
+    Map([]),
     "src",
     "dst",
     [],
@@ -362,13 +362,13 @@ test "railway downward destination ports keep left bias" {
   let e0 = @graph.EdgeInput::new(0, "a", "t", false, true)
   let e1 = @graph.EdgeInput::new(1, "b", "t", false, true)
   g.edges.append([e0, e1])
-  let id_to_idx : Map[String, Int] = {}
+  let id_to_idx : Map[String, Int] = Map([])
   id_to_idx["a"] = 0
   id_to_idx["b"] = 1
   id_to_idx["t"] = 2
   let depths = [0, 0, 1]
   let self_loop : @hashset.HashSet[Int] = HashSet([])
-  let boxes : Map[String, @graph.Box] = {}
+  let boxes : Map[String, @graph.Box] = Map([])
   boxes["a"] = @graph.Box::new(0.0, 0.0, 120.0, 70.0)
   boxes["b"] = @graph.Box::new(260.0, 0.0, 120.0, 70.0)
   boxes["t"] = @graph.Box::new(80.0, 220.0, 220.0, 80.0)
@@ -849,8 +849,8 @@ test "railway levels reduce simple bipartite crossing" {
   let depths = compute_depths(n, g, id_to_idx, plan, self_loop, reversed)
   let levels = make_levels(g, depths)
   assert_true(levels.length() == 2)
-  let upper_pos : Map[String, Int] = {}
-  let lower_pos : Map[String, Int] = {}
+  let upper_pos : Map[String, Int] = Map([])
+  let lower_pos : Map[String, Int] = Map([])
   for i, id in levels[0] {
     upper_pos[id] = i
   }
@@ -1825,7 +1825,7 @@ test "railway spreads overlapping siblings in same container" {
   let g = @graph.GraphInput::new("testgraph")
   g.objects.append([container, left, right])
   let (object_by_id, parent_id_by_child_id) = build_object_maps_railway(g)
-  let boxes : Map[String, @graph.Box] = {}
+  let boxes : Map[String, @graph.Box] = Map([])
   boxes["left"] = @graph.Box::new(100.0, 200.0, 120.0, 60.0)
   boxes["right"] = @graph.Box::new(150.0, 200.0, 100.0, 60.0)
   spread_sibling_boxes_railway(
@@ -1901,7 +1901,7 @@ test "railway spreads overlapping top-level container subtrees" {
   ])
 
   let (object_by_id, parent_id_by_child_id) = build_object_maps_railway(g)
-  let boxes : Map[String, @graph.Box] = {}
+  let boxes : Map[String, @graph.Box] = Map([])
   boxes["left_a"] = @graph.Box::new(40.0, 80.0, 153.0, 60.0)
   boxes["left_b"] = @graph.Box::new(242.0, 80.0, 153.0, 60.0)
   boxes["right_a"] = @graph.Box::new(478.0, 80.0, 153.0, 60.0)
@@ -2007,7 +2007,7 @@ test "railway spreads against non-adjacent overlapping sibling subtree" {
   g.objects.append([aws, vpc, subnet, cdn, s3, server, database])
 
   let (object_by_id, parent_id_by_child_id) = build_object_maps_railway(g)
-  let boxes : Map[String, @graph.Box] = {}
+  let boxes : Map[String, @graph.Box] = Map([])
   boxes["aws.vpc"] = @graph.Box::new(0.0, 120.0, 320.0, 260.0)
   boxes["aws.vpc.subnet"] = @graph.Box::new(30.0, 180.0, 240.0, 140.0)
   boxes["aws.vpc.subnet.server"] = @graph.Box::new(60.0, 220.0, 120.0, 60.0)

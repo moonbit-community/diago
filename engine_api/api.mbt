@@ -186,7 +186,7 @@ fn has_layout_feature(
 fn build_object_by_abs_id_syntax(
   graph : @graph.GraphInput,
 ) -> Map[String, @graph.ObjectInput] {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_id[obj.abs_id_syntax] = obj
@@ -198,7 +198,7 @@ fn build_object_by_abs_id_syntax(
 fn build_parent_id_by_child_abs_id_syntax(
   graph : @graph.GraphInput,
 ) -> Map[String, String] {
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     parent_id_by_child_id[child_id] = graph.root.abs_id_syntax
   }
@@ -403,7 +403,7 @@ fn normalize_sequence_root(graph : @graph.GraphInput) -> @graph.GraphInput {
   if graph.root.shape_type != SequenceDiagram {
     return graph
   }
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child_id in obj.child_ids {
       child_ids[child_id] = true
@@ -460,12 +460,12 @@ fn find_sql_column_index(
 
 ///|
 fn assign_sql_column_indices(graph : @graph.GraphInput) -> @graph.GraphInput {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_id[obj.abs_id_syntax] = obj
   }
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     parent_id_by_child_id[child_id] = graph.root.abs_id_syntax
   }
@@ -671,10 +671,10 @@ fn prepare_layout_semantics(
 ) -> (@graph.GraphInput, GridSemanticContext) {
   let groups = collect_grid_semantic_groups(graph)
   if groups.is_empty() {
-    return (graph, { groups, child_ids: {} })
+    return (graph, { groups, child_ids: Map([]) })
   }
   let pre_sized = apply_grid_semantic_parent_boxes(graph, groups, config)
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for _, ids in groups {
     for id in ids {
       child_ids[id] = true
@@ -701,17 +701,17 @@ fn restore_layout_semantics(
 fn collect_grid_semantic_groups(
   graph : @graph.GraphInput,
 ) -> Map[String, Array[String]] {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_id[obj.abs_id_syntax] = obj
   }
-  let incident_ids : Map[String, Bool] = {}
+  let incident_ids : Map[String, Bool] = Map([])
   for edge in graph.edges {
     incident_ids[edge.src_id_syntax] = true
     incident_ids[edge.dst_id_syntax] = true
   }
-  let groups : Map[String, Array[String]] = {}
+  let groups : Map[String, Array[String]] = Map([])
   let parents : Array[@graph.ObjectInput] = [graph.root]
   for obj in graph.objects {
     parents.push(obj)
@@ -744,14 +744,14 @@ fn apply_grid_semantic_parent_boxes(
   groups : Map[String, Array[String]],
   config : LayoutConfig,
 ) -> @graph.GraphInput {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_id[obj.abs_id_syntax] = obj
   }
   let parent_id_by_child_id = build_parent_id_by_child_abs_id_syntax(graph)
 
-  let parent_box_by_id : Map[String, @graph.Box] = {}
+  let parent_box_by_id : Map[String, @graph.Box] = Map([])
   for parent_id, child_ids in groups {
     if parent_id == graph.root.abs_id_syntax {
       continue
@@ -760,7 +760,7 @@ fn apply_grid_semantic_parent_boxes(
       Some(v) => v
       None => continue
     }
-    let child_size_by_id : Map[String, (Double, Double)] = {}
+    let child_size_by_id : Map[String, (Double, Double)] = Map([])
     for child_id in child_ids {
       match object_by_id.get(child_id) {
         Some(child) => {
@@ -825,7 +825,7 @@ fn detach_grid_children(
   graph : @graph.GraphInput,
   groups : Map[String, Array[String]],
 ) -> @graph.GraphInput {
-  let group_child_ids : Map[String, Bool] = {}
+  let group_child_ids : Map[String, Bool] = Map([])
   for _, child_ids in groups {
     for child_id in child_ids {
       group_child_ids[child_id] = true
@@ -838,7 +838,7 @@ fn detach_grid_children(
     }
     let child_ids = match groups.get(obj.abs_id_syntax) {
       Some(filtered) => {
-        let removed : Map[String, Bool] = {}
+        let removed : Map[String, Bool] = Map([])
         for id in filtered {
           removed[id] = true
         }
@@ -856,7 +856,7 @@ fn detach_grid_children(
   }
   let root_child_ids = match groups.get(graph.root.abs_id_syntax) {
     Some(filtered) => {
-      let removed : Map[String, Bool] = {}
+      let removed : Map[String, Bool] = Map([])
       for id in filtered {
         removed[id] = true
       }
@@ -906,7 +906,7 @@ fn estimate_grid_container_layout_like_d2(
       let padding = grid_semantic_padding_like_d2(
         parent, content_width, content_height, hgap, vgap,
       )
-      let child_boxes : Map[String, @graph.Box] = {}
+      let child_boxes : Map[String, @graph.Box] = Map([])
       for child_id, box in content_child_boxes {
         child_boxes[child_id] = @graph.Box::new(
           box.x + padding.left,
@@ -1668,7 +1668,7 @@ fn root_grid_best_layout(
   let mut ok_threshold = D2_GRID_STARTING_THRESHOLD
   let mut attempt = 0
   while attempt < threshold_attempts || !has_best {
-    let starting_cache : Map[Int, Bool] = {}
+    let starting_cache : Map[Int, Bool] = Map([])
     let mut count = 0
     let mut skip_count = 0
     for division in combinations {
@@ -2087,7 +2087,7 @@ pub fn estimate_root_grid_child_boxes(
     total_height = max_y
   }
 
-  let child_boxes : Map[String, @graph.Box] = {}
+  let child_boxes : Map[String, @graph.Box] = Map([])
   for i, id in child_ids {
     child_boxes[id] = @graph.Box::new(
       final_x[i],
@@ -2108,23 +2108,23 @@ fn restore_grid_semantics(
   context : GridSemanticContext,
   config : LayoutConfig,
 ) -> @graph.GraphInput {
-  let original_by_id : Map[String, @graph.ObjectInput] = {}
+  let original_by_id : Map[String, @graph.ObjectInput] = Map([])
   original_by_id[original_graph.root.abs_id_syntax] = original_graph.root
   for obj in original_graph.objects {
     original_by_id[obj.abs_id_syntax] = obj
   }
-  let laid_out_by_id : Map[String, @graph.ObjectInput] = {}
+  let laid_out_by_id : Map[String, @graph.ObjectInput] = Map([])
   laid_out_by_id[laid_out_graph.root.abs_id_syntax] = laid_out_graph.root
   for obj in laid_out_graph.objects {
     laid_out_by_id[obj.abs_id_syntax] = obj
   }
 
-  let override_boxes : Map[String, @graph.Box] = {}
+  let override_boxes : Map[String, @graph.Box] = Map([])
   for parent_id, child_ids in context.groups {
     if parent_id == original_graph.root.abs_id_syntax {
       let parent = original_graph.root
-      let child_metrics_by_id : Map[String, GridChildLayoutMetrics] = {}
-      let child_size_by_id : Map[String, (Double, Double)] = {}
+      let child_metrics_by_id : Map[String, GridChildLayoutMetrics] = Map([])
+      let child_size_by_id : Map[String, (Double, Double)] = Map([])
       for child_id in child_ids {
         let child = match laid_out_by_id.get(child_id) {
           Some(v) => v
@@ -2217,8 +2217,8 @@ fn restore_grid_semantics(
       Some(v) => v
       None => continue
     }
-    let child_metrics_by_id : Map[String, GridChildLayoutMetrics] = {}
-    let child_size_by_id : Map[String, (Double, Double)] = {}
+    let child_metrics_by_id : Map[String, GridChildLayoutMetrics] = Map([])
+    let child_size_by_id : Map[String, (Double, Double)] = Map([])
     for child_id in child_ids {
       let child = match laid_out_by_id.get(child_id) {
         Some(v) => v
@@ -3024,24 +3024,24 @@ priv struct GraphOrderContext {
 
 ///|
 fn save_graph_order_like_d2(graph : @graph.GraphInput) -> GraphOrderContext {
-  let object_order : Map[String, Int] = {}
+  let object_order : Map[String, Int] = Map([])
   for i, obj in graph.objects {
     object_order[obj.abs_id_syntax] = i
   }
 
-  let edge_order : Map[Int, Int] = {}
+  let edge_order : Map[Int, Int] = Map([])
   for i, edge in graph.edges {
     edge_order[edge.index] = i
   }
 
-  let child_order_by_parent : Map[String, Map[String, Int]] = {}
-  let root_child_order : Map[String, Int] = {}
+  let child_order_by_parent : Map[String, Map[String, Int]] = Map([])
+  let root_child_order : Map[String, Int] = Map([])
   for i, child_id in graph.root.child_ids {
     root_child_order[child_id] = i
   }
   child_order_by_parent[graph.root.abs_id_syntax] = root_child_order
   for obj in graph.objects {
-    let child_order : Map[String, Int] = {}
+    let child_order : Map[String, Int] = Map([])
     for i, child_id in obj.child_ids {
       child_order[child_id] = i
     }
@@ -3060,7 +3060,7 @@ fn restore_child_order_like_d2(
   match context.child_order_by_parent.get(parent_id) {
     Some(order) => {
       let out = child_ids.copy()
-      let current_order : Map[String, Int] = {}
+      let current_order : Map[String, Int] = Map([])
       for i, child_id in out {
         current_order[child_id] = i
       }
@@ -3091,7 +3091,7 @@ fn restore_graph_order_like_d2(
   let context = save_graph_order_like_d2(graph)
 
   let objects = laid_out_graph.objects.copy()
-  let current_object_order : Map[String, Int] = {}
+  let current_object_order : Map[String, Int] = Map([])
   for i, obj in objects {
     current_object_order[obj.abs_id_syntax] = i
   }
@@ -3124,7 +3124,7 @@ fn restore_graph_order_like_d2(
   }
 
   let edges = laid_out_graph.edges.copy()
-  let current_edge_order : Map[Int, Int] = {}
+  let current_edge_order : Map[Int, Int] = Map([])
   for i, edge in edges {
     current_edge_order[edge.index] = i
   }

@@ -1355,7 +1355,7 @@ const ARROWHEAD_PADDING : Double = 2.0
 const MIN_ARROWHEAD_STROKE_WIDTH : Double = 2.0
 
 ///|
-const DIAGO_VERSION : String = "0.2.0"
+const DIAGO_VERSION : String = "0.2.5"
 
 ///|
 const MULTIPLE_OFFSET : Double = 10.0
@@ -2231,7 +2231,7 @@ pub fn render_svg(
       base_height,
     ),
   )
-  let edge_marker_ids : Map[String, String] = {}
+  let edge_marker_ids : Map[String, String] = Map([])
   let appendix_items : Array[String] = []
   // Background
   render_root_background(svg, root_canvas, light_theme, use_css_theme_vars)
@@ -2243,7 +2243,7 @@ pub fn render_svg(
   let connection_repeat_indices = d2_connection_repeat_indices(
     graph.connections,
   )
-  let repeat_index_by_edge_index : Map[Int, Int] = {}
+  let repeat_index_by_edge_index : Map[Int, Int] = Map([])
   for i, edge in graph.connections {
     repeat_index_by_edge_index[edge.index] = connection_repeat_indices[i]
   }

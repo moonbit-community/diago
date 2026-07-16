@@ -113,7 +113,7 @@ fn dagre_graph_to_json(graph : @moon_dagre.Graph) -> Json {
 fn dagre_attrs_to_json(attrs : @moon_dagre.Attrs) -> Json {
   let keys = attrs.keys()
   keys.sort_by(fn(a, b) { a.compare(b) })
-  let out : Map[String, Json] = {}
+  let out : Map[String, Json] = Map([])
   for key in keys {
     match attrs.get(key) {
       Some(attr) => out[key] = dagre_attr_to_json(attr)
@@ -544,12 +544,12 @@ fn layout_sequence_diagram(
   let patch = @graph.LayoutPatch::new()
   copy_passthrough_layout_data(patch, graph)
 
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  let object_by_abs_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_abs_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_abs_id[obj.abs_id_syntax] = obj
@@ -563,8 +563,8 @@ fn layout_sequence_diagram(
     graph, participant_ids, object_by_abs_id,
   )
 
-  let participant_rank_by_id : Map[String, Int] = {}
-  let participant_exists : Map[String, Bool] = {}
+  let participant_rank_by_id : Map[String, Int] = Map([])
+  let participant_exists : Map[String, Bool] = Map([])
   let raw_widths : Array[Double] = []
   let widths : Array[Double] = []
   let heights : Array[Double] = []
@@ -597,7 +597,7 @@ fn layout_sequence_diagram(
   let (sequence_notes_for_layout, _, note_line_by_id_for_layout) = sequence_collect_notes_and_spans_like_d2(
     graph, participant_exists, parent_id_by_child_id, participant_alias_by_abs_id,
   )
-  let note_height_by_id_for_layout : Map[String, Double] = {}
+  let note_height_by_id_for_layout : Map[String, Double] = Map([])
   for note in sequence_notes_for_layout {
     let (_, height) = object_size(note, config, object_by_id)
     note_height_by_id_for_layout[note.abs_id_syntax] = height
@@ -894,7 +894,7 @@ fn layout_sequence_diagram(
 fn sequence_parent_id_by_child_id(
   graph : @graph.GraphInput,
 ) -> Map[String, String] {
-  let out : Map[String, String] = {}
+  let out : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     out[child_id] = graph.root.abs_id_syntax
   }
@@ -958,7 +958,7 @@ fn sequence_participant_alias_by_abs_id(
   participant_ids : Array[String],
   object_by_abs_id : Map[String, @graph.ObjectInput],
 ) -> Map[String, String] {
-  let participant_by_local_id : Map[String, String] = {}
+  let participant_by_local_id : Map[String, String] = Map([])
   for participant_id in participant_ids {
     match object_by_abs_id.get(participant_id) {
       Some(obj) => {
@@ -968,7 +968,7 @@ fn sequence_participant_alias_by_abs_id(
       None => participant_by_local_id[participant_id] = participant_id
     }
   }
-  let out : Map[String, String] = {}
+  let out : Map[String, String] = Map([])
   for participant_id in participant_ids {
     out[participant_id] = participant_id
   }
@@ -1006,7 +1006,7 @@ fn sequence_max_note_width_by_participant_id_like_d2(
   object_by_id : Map[String, @graph.ObjectInput],
   config : @engine_api.LayoutConfig,
 ) -> Map[String, Double] {
-  let out : Map[String, Double] = {}
+  let out : Map[String, Double] = Map([])
   for obj in graph.objects {
     if !sequence_is_note_like_d2(obj, graph) {
       continue
@@ -1104,7 +1104,7 @@ fn sequence_center_x_for_object(
   participant_alias_by_abs_id : Map[String, String],
 ) -> Double? {
   let mut current = id
-  let visited : Map[String, Bool] = {}
+  let visited : Map[String, Bool] = Map([])
   while !visited.contains(current) {
     visited[current] = true
     match patch.nodes.get(current) {
@@ -1138,7 +1138,7 @@ fn sequence_top_participant_id(
     return id
   }
   let mut current = id
-  let visited : Map[String, Bool] = {}
+  let visited : Map[String, Bool] = Map([])
   while !visited.contains(current) {
     visited[current] = true
     match participant_alias_by_abs_id.get(current) {
@@ -1233,7 +1233,7 @@ fn sequence_collect_notes_and_spans_like_d2(
 ) -> (Array[@graph.ObjectInput], Array[@graph.ObjectInput], Map[String, Int]) {
   let notes : Array[@graph.ObjectInput] = []
   let spans : Array[@graph.ObjectInput] = []
-  let note_line_by_id : Map[String, Int] = {}
+  let note_line_by_id : Map[String, Int] = Map([])
   for obj in graph.objects {
     if participant_exists.contains(obj.abs_id_syntax) ||
       participant_alias_by_abs_id.contains(obj.abs_id_syntax) ||
@@ -1354,8 +1354,8 @@ fn sequence_place_spans_like_d2(
   _max_actor_height : Double,
   _y_step : Double,
 ) -> Unit {
-  let first_message_by_id : Map[String, @graph.EdgeInput] = {}
-  let last_message_by_id : Map[String, @graph.EdgeInput] = {}
+  let first_message_by_id : Map[String, @graph.EdgeInput] = Map([])
+  let last_message_by_id : Map[String, @graph.EdgeInput] = Map([])
   for edge in ordered_edges {
     if !first_message_by_id.contains(edge.src_id_syntax) {
       first_message_by_id[edge.src_id_syntax] = edge
@@ -1491,7 +1491,7 @@ fn sequence_place_groups_like_d2(
   if groups.is_empty() {
     return
   }
-  let group_ids : Map[String, Bool] = {}
+  let group_ids : Map[String, Bool] = Map([])
   for group in groups {
     group_ids[group.abs_id_syntax] = true
   }
@@ -1750,7 +1750,7 @@ fn sequence_group_objects_like_d2(
   parent_id_by_child_id : Map[String, String],
 ) -> Array[@graph.ObjectInput] {
   let groups : Array[@graph.ObjectInput] = []
-  let participant_ids : Map[String, Bool] = {}
+  let participant_ids : Map[String, Bool] = Map([])
   for participant_id in sequence_participant_ids(graph) {
     participant_ids[participant_id] = true
   }
@@ -2040,7 +2040,7 @@ fn sequence_edge_earliest_line_like_d2(edge : @graph.EdgeInput) -> Int {
 
 ///|
 fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
-  let object_by_abs_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_abs_id[obj.abs_id_syntax] = obj
   }
@@ -2085,7 +2085,7 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
       return ids
     }
   }
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child_id in obj.child_ids {
       child_ids[child_id] = true
@@ -2196,20 +2196,20 @@ fn build_dagre_graph(
   let dagre_graph = @moon_dagre.new_graph(multigraph=true, compound=true)
   dagre_graph.set_graph(make_dagre_graph_attrs(config, graph, direction))
 
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for parent in graph.objects {
     for child_id in parent.child_ids {
       parent_id_by_child_id[child_id] = parent.id
     }
   }
 
-  let node_ids : Map[String, Bool] = {}
-  let node_size_by_id : Map[String, (Double, Double)] = {}
-  let dagre_node_id_by_object_id : Map[String, String] = {}
+  let node_ids : Map[String, Bool] = Map([])
+  let node_size_by_id : Map[String, (Double, Double)] = Map([])
+  let dagre_node_id_by_object_id : Map[String, String] = Map([])
   let mut dagre_order = 0
   for obj in graph.objects {
     if collapse_sql_or_class_endpoint_id(
@@ -2250,8 +2250,8 @@ fn build_dagre_graph(
     }
   }
 
-  let layout_endpoints_by_edge_index : Map[Int, (String, String)] = {}
-  let parallel_edge_count_by_pair : Map[String, Int] = {}
+  let layout_endpoints_by_edge_index : Map[Int, (String, String)] = Map([])
+  let parallel_edge_count_by_pair : Map[String, Int] = Map([])
   for edge in graph.edges {
     let resolved_endpoints = resolve_edge_layout_endpoints(
       graph, edge, object_by_id, parent_id_by_child_id,
@@ -2272,7 +2272,7 @@ fn build_dagre_graph(
       1
   }
 
-  let edge_layout_by_key : Map[String, EdgeLayoutInfo] = {}
+  let edge_layout_by_key : Map[String, EdgeLayoutInfo] = Map([])
   for edge in graph.edges {
     let (layout_src_id, layout_dst_id) = match
       layout_endpoints_by_edge_index.get(edge.index) {
@@ -2534,7 +2534,7 @@ fn get_longest_edge_chain_head_id(
   parent_id_by_child_id : Map[String, String],
 ) -> String {
   let children : Array[String] = []
-  let child_set : Map[String, Bool] = {}
+  let child_set : Map[String, Bool] = Map([])
   for child_id in container.child_ids {
     if object_by_id.contains(child_id) {
       children.push(child_id)
@@ -2545,8 +2545,8 @@ fn get_longest_edge_chain_head_id(
     return container.id
   }
 
-  let rank : Map[String, Int] = {}
-  let chain_length : Map[String, Int] = {}
+  let rank : Map[String, Int] = Map([])
+  let chain_length : Map[String, Int] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -2563,7 +2563,7 @@ fn get_longest_edge_chain_head_id(
     rank[child_id] = 1
     chain_length[child_id] = 1
     let queue : Array[String] = [child_id]
-    let visited : Map[String, Bool] = {}
+    let visited : Map[String, Bool] = Map([])
     let mut i = 0
     while i < queue.length() {
       let curr = queue[i]
@@ -2626,7 +2626,7 @@ fn get_longest_edge_chain_tail_id(
   parent_id_by_child_id : Map[String, String],
 ) -> String {
   let children : Array[String] = []
-  let child_set : Map[String, Bool] = {}
+  let child_set : Map[String, Bool] = Map([])
   for child_id in container.child_ids {
     if object_by_id.contains(child_id) {
       children.push(child_id)
@@ -2637,7 +2637,7 @@ fn get_longest_edge_chain_tail_id(
     return container.id
   }
 
-  let rank : Map[String, Int] = {}
+  let rank : Map[String, Int] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -2653,7 +2653,7 @@ fn get_longest_edge_chain_tail_id(
     }
     rank[child_id] = 1
     let queue : Array[String] = [child_id]
-    let visited : Map[String, Bool] = {}
+    let visited : Map[String, Bool] = Map([])
     let mut i = 0
     while i < queue.length() {
       let curr = queue[i]
@@ -2731,7 +2731,7 @@ fn apply_constant_near_positions(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
 ) -> Unit {
-  let near_key_by_id : Map[String, String] = {}
+  let near_key_by_id : Map[String, String] = Map([])
   for obj in graph.objects {
     if @graph.syntax_path_depth(obj.id) != 1 {
       continue
@@ -2750,7 +2750,7 @@ fn apply_constant_near_positions(
     return
   }
 
-  let placed_near : Map[String, Bool] = {}
+  let placed_near : Map[String, Bool] = Map([])
   for key_set in [0, 1, 2] {
     let current_set_ids : Array[String] = []
     for obj in graph.objects {
@@ -2808,11 +2808,11 @@ fn apply_root_grid_positions_like_d2(
     return
   }
 
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for child_id in root_child_ids {
     parent_id_by_child_id[child_id] = graph.root.id
   }
@@ -2822,7 +2822,7 @@ fn apply_root_grid_positions_like_d2(
     }
   }
 
-  let child_size_by_id : Map[String, (Double, Double)] = {}
+  let child_size_by_id : Map[String, (Double, Double)] = Map([])
   for child_id in root_child_ids {
     guard object_by_id.contains(child_id) else { return }
     match patch.nodes.get(child_id) {
@@ -2928,11 +2928,11 @@ fn reroute_root_grid_cross_edges(
   graph : @graph.GraphInput,
   parent_id_by_child_id : Map[String, String],
 ) -> Unit {
-  let root_child_ids : Map[String, Bool] = {}
+  let root_child_ids : Map[String, Bool] = Map([])
   for child_id in graph.root.child_ids {
     root_child_ids[child_id] = true
   }
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -3079,11 +3079,11 @@ fn reroute_constant_near_cross_edges(
   graph : @graph.GraphInput,
   near_key_by_id : Map[String, String],
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for parent in graph.objects {
     for child_id in parent.child_ids {
       parent_id_by_child_id[child_id] = parent.id
@@ -4198,7 +4198,7 @@ fn fill_patch_edges(
   edge_layout_by_key : Map[String, EdgeLayoutInfo],
   direction : @engine_api.Direction,
 ) -> Unit {
-  let routes_by_pair : Map[String, Array[(Int, Array[@graph.Point])]] = {}
+  let routes_by_pair : Map[String, Array[(Int, Array[@graph.Point])]] = Map([])
   for edge_obj in dagre_graph.edges() {
     let key = dagre_edge_key(edge_obj.v, edge_obj.w, edge_obj.name)
     match edge_layout_by_key.get(key) {
@@ -4245,7 +4245,7 @@ fn orient_edge_routes_to_semantic_direction(
   graph : @graph.GraphInput,
   parent_id_by_child_id : Map[String, String],
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -4559,7 +4559,7 @@ fn get_layout_ranks(
   Map[String, Int],
   Map[String, Int],
 ) {
-  let aligned : Map[Int, Array[String]] = {}
+  let aligned : Map[Int, Array[String]] = Map([])
   for obj in graph.objects {
     if is_layout_container_candidate(obj) {
       continue
@@ -4586,7 +4586,7 @@ fn get_layout_ranks(
   }
   let sorted_levels = sort_ints_asc(levels)
   let ranks : Array[Array[String]] = []
-  let object_ranks : Map[String, Int] = {}
+  let object_ranks : Map[String, Int] = Map([])
   for i, level in sorted_levels {
     let members = aligned.get_or_default(level, [])
     for id in members {
@@ -4595,8 +4595,8 @@ fn get_layout_ranks(
     ranks.push(members)
   }
 
-  let starting_parent_ranks : Map[String, Int] = {}
-  let ending_parent_ranks : Map[String, Int] = {}
+  let starting_parent_ranks : Map[String, Int] = Map([])
+  let ending_parent_ranks : Map[String, Int] = Map([])
   for obj in graph.objects {
     if is_layout_container_candidate(obj) {
       continue
@@ -4843,7 +4843,7 @@ fn adjust_rank_spacing(
   rank_sep : Double,
   is_horizontal : Bool,
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -4856,8 +4856,8 @@ fn adjust_rank_spacing(
 
   let mut rank = ranks.length() - 1
   while rank >= 0 {
-    let starting_parent_set : Map[String, Bool] = {}
-    let ending_parent_set : Map[String, Bool] = {}
+    let starting_parent_set : Map[String, Bool] = Map([])
+    let ending_parent_set : Map[String, Bool] = Map([])
     for obj_id in ranks[rank] {
       match parent_id_by_child_id.get(obj_id) {
         Some(parent_id) => {
@@ -4872,7 +4872,7 @@ fn adjust_rank_spacing(
       }
     }
 
-    let starting_ancestor_positions : Map[String, Double] = {}
+    let starting_ancestor_positions : Map[String, Double] = Map([])
     let starting_parents : Array[String] = []
     for parent_id, _ in starting_parent_set {
       starting_parents.push(parent_id)
@@ -4880,7 +4880,7 @@ fn adjust_rank_spacing(
     let mut pending_start = starting_parents
     while !pending_start.is_empty() {
       let next : Array[String] = []
-      let next_seen : Map[String, Bool] = {}
+      let next_seen : Map[String, Bool] = Map([])
       for parent_id in pending_start {
         guard object_by_id.get(parent_id) is Some(parent_obj) &&
           patch.nodes.get(parent_id) is Some(parent_box) else {
@@ -4946,7 +4946,7 @@ fn adjust_rank_spacing(
       pending_start = next
     }
 
-    let ending_ancestor_positions : Map[String, Double] = {}
+    let ending_ancestor_positions : Map[String, Double] = Map([])
     let ending_parents : Array[String] = []
     for parent_id, _ in ending_parent_set {
       ending_parents.push(parent_id)
@@ -4954,7 +4954,7 @@ fn adjust_rank_spacing(
     let mut pending_end = ending_parents
     while !pending_end.is_empty() {
       let next : Array[String] = []
-      let next_seen : Map[String, Bool] = {}
+      let next_seen : Map[String, Bool] = Map([])
       for parent_id in pending_end {
         guard object_by_id.get(parent_id) is Some(parent_obj) &&
           patch.nodes.get(parent_id) is Some(parent_box) else {
@@ -5151,7 +5151,7 @@ fn is_descendant_of(
 fn build_children_by_parent_id(
   parent_id_by_child_id : Map[String, String],
 ) -> Map[String, Array[String]] {
-  let children_by_parent_id : Map[String, Array[String]] = {}
+  let children_by_parent_id : Map[String, Array[String]] = Map([])
   for child_id, parent_id in parent_id_by_child_id {
     let children = children_by_parent_id.get_or_default(parent_id, [])
     children.push(child_id)
@@ -5166,7 +5166,7 @@ fn build_edge_semantic_endpoints(
   object_by_id : Map[String, @graph.ObjectInput],
   parent_id_by_child_id : Map[String, String],
 ) -> Map[Int, (String, String)] {
-  let endpoints : Map[Int, (String, String)] = {}
+  let endpoints : Map[Int, (String, String)] = Map([])
   for edge in graph.edges {
     let src_id = collapse_sql_or_class_endpoint_id(
       edge.src_id,
@@ -5197,11 +5197,11 @@ fn shift_reachable_down_layout(
   edge_semantic_endpoints : Map[Int, (String, String)],
 ) -> Map[String, Bool] {
   let q : Array[String] = [obj_id]
-  let needs_move : Map[String, Bool] = {}
-  let seen : Map[String, Bool] = {}
-  let shifted : Map[String, Bool] = {}
-  let shifted_edges : Map[Int, Bool] = {}
-  let grown : Map[String, Bool] = {}
+  let needs_move : Map[String, Bool] = Map([])
+  let seen : Map[String, Bool] = Map([])
+  let shifted : Map[String, Bool] = Map([])
+  let shifted_edges : Map[Int, Bool] = Map([])
+  let grown : Map[String, Bool] = Map([])
   let threshold = 100.0
 
   let queue_obj = (id : String) => if !seen.contains(id) { q.push(id) }
@@ -5519,7 +5519,7 @@ fn shift_reachable_down_layout(
   for id, _ in grown {
     moved_ids.push(id)
   }
-  let increased_margins : Map[String, Bool] = {}
+  let increased_margins : Map[String, Bool] = Map([])
   for moved_id in moved_ids {
     guard patch.nodes.get(moved_id) is Some(moved_box) else { continue }
     let mut counts = true
@@ -5566,17 +5566,17 @@ fn adjust_cross_rank_spacing(
   is_horizontal : Bool,
 ) -> Unit {
   let children_by_parent_id = build_children_by_parent_id(parent_id_by_child_id)
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
   let edge_semantic_endpoints = build_edge_semantic_endpoints(
     graph, object_by_id, parent_id_by_child_id,
   )
-  let prev_margin_top : Map[String, Double] = {}
-  let prev_margin_bottom : Map[String, Double] = {}
-  let prev_margin_left : Map[String, Double] = {}
-  let prev_margin_right : Map[String, Double] = {}
+  let prev_margin_top : Map[String, Double] = Map([])
+  let prev_margin_bottom : Map[String, Double] = Map([])
+  let prev_margin_left : Map[String, Double] = Map([])
+  let prev_margin_right : Map[String, Double] = Map([])
 
   for obj in graph.objects {
     if is_grid_diagram_object(obj) {
@@ -5781,7 +5781,7 @@ fn fit_container_boxes(
   graph : @graph.GraphInput,
   parent_id_by_child_id : Map[String, String],
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
@@ -7310,11 +7310,11 @@ fn trace_routes_to_object_boundaries(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for parent in graph.objects {
     for child_id in parent.child_ids {
       parent_id_by_child_id[child_id] = parent.id

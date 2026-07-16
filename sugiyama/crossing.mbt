@@ -42,7 +42,7 @@ pub fn minimize_crossings(
   )
   // Build original order map: node -> definition order
   // This preserves user's intended order for nodes without edge constraints
-  let original_order : Map[String, Int] = {}
+  let original_order : Map[String, Int] = Map([])
   let mut order_idx = 0
   for layer in layer_result.nodes_by_layer {
     for node in layer {
@@ -76,8 +76,8 @@ fn build_layer_adjacency(
   layer_result : LayerAssignment,
   cycle_result : CycleBreakResult,
 ) -> (Map[String, Array[String]], Map[String, Array[String]]) {
-  let upper : Map[String, Array[String]] = {}
-  let lower : Map[String, Array[String]] = {}
+  let upper : Map[String, Array[String]] = Map([])
+  let lower : Map[String, Array[String]] = Map([])
   // Initialize empty neighbor lists for all nodes
   for layer in layer_result.nodes_by_layer {
     for node in layer {
@@ -157,7 +157,7 @@ fn reorder_by_barycenter(
   original_order : Map[String, Int],
 ) -> Unit {
   // Build position map for adjacent layer
-  let positions : Map[String, Int] = {}
+  let positions : Map[String, Int] = Map([])
   for i, node in adjacent_layer {
     positions[node] = i
   }
@@ -257,8 +257,8 @@ pub fn count_crossings(
   edges : Array[(String, String)],
 ) -> Int {
   // Build position maps
-  let upper_pos : Map[String, Int] = {}
-  let lower_pos : Map[String, Int] = {}
+  let upper_pos : Map[String, Int] = Map([])
+  let lower_pos : Map[String, Int] = Map([])
   for i, node in upper_layer {
     upper_pos[node] = i
   }
@@ -313,7 +313,7 @@ pub fn minimize_crossings_with_virtual(
     graph, layer_result, cycle_result, _virtual_nodes,
   )
   // Build original order map
-  let original_order : Map[String, Int] = {}
+  let original_order : Map[String, Int] = Map([])
   let mut order_idx = 0
   for layer in layer_result.nodes_by_layer {
     for node in layer {
@@ -346,8 +346,8 @@ fn build_layer_adjacency_with_virtual(
   cycle_result : CycleBreakResult,
   _virtual_nodes : Map[String, Bool],
 ) -> (Map[String, Array[String]], Map[String, Array[String]]) {
-  let upper : Map[String, Array[String]] = {}
-  let lower : Map[String, Array[String]] = {}
+  let upper : Map[String, Array[String]] = Map([])
+  let lower : Map[String, Array[String]] = Map([])
   // Initialize empty neighbor lists for all nodes (including virtual)
   for layer in layer_result.nodes_by_layer {
     for node in layer {

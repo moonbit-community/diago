@@ -33,14 +33,14 @@ pub fn compute_container_ranks(
   layers : Array[Array[String]],
 ) -> ContainerRanks {
   // Build rank map for all nodes
-  let node_ranks : Map[String, Int] = {}
+  let node_ranks : Map[String, Int] = Map([])
   for i, layer in layers {
     for node in layer {
       node_ranks[node] = i
     }
   }
-  let starting : Map[String, Int] = {}
-  let ending : Map[String, Int] = {}
+  let starting : Map[String, Int] = Map([])
+  let ending : Map[String, Int] = Map([])
   // Process each container object
   for obj in graph.objects {
     if graph.children_of(obj).length() == 0 {
@@ -120,7 +120,7 @@ fn collect_containers_by_depth(
   graph : @graph.GraphInput,
 ) -> Array[@graph.ObjectInput] {
   let result : Array[@graph.ObjectInput] = []
-  let depths : Map[String, Int] = {}
+  let depths : Map[String, Int] = Map([])
   // Calculate depth for each container
   for obj in graph.objects {
     if graph.children_of(obj).length() > 0 {

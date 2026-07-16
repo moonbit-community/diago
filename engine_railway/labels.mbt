@@ -17,7 +17,7 @@ fn object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
 ) -> (Double, Double) {
-  object_size_with_objects(obj, config, {})
+  object_size_with_objects(obj, config, Map([]))
 }
 
 ///|
@@ -509,7 +509,7 @@ fn recompute_edge_label_boxes(
   config : @engine_api.LayoutConfig,
   lane_by_edge : Map[Int, Int],
 ) -> Unit {
-  let label_boxes : Map[Int, @graph.Box] = {}
+  let label_boxes : Map[Int, @graph.Box] = Map([])
   for edge in graph.edges {
     let route = match patch.edges.get(edge.index) {
       Some(v) => v
@@ -558,7 +558,7 @@ fn resolve_edge_label_collisions(
     Right | Left => false
   }
   let bucket_size = @cmp.maximum(16.0, config.edge_padding)
-  let grouped : Map[Int, Array[LabelInterval]] = {}
+  let grouped : Map[Int, Array[LabelInterval]] = Map([])
   for entry in label_boxes {
     let edge_index = entry.0
     let box = entry.1
@@ -607,7 +607,7 @@ fn resolve_edge_label_collisions(
       }
     })
     let lane_ends : Array[Double] = []
-    let lane_by_edge : Map[Int, Int] = {}
+    let lane_by_edge : Map[Int, Int] = Map([])
     let mut max_major_span = 0.0
     for item in ordered {
       if item.major_span > max_major_span {
@@ -662,7 +662,7 @@ fn resolve_edge_label_obstacles(
   if label_boxes.is_empty() {
     return
   }
-  let edge_by_index : Map[Int, @graph.EdgeInput] = {}
+  let edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
   for edge in graph.edges {
     edge_by_index[edge.index] = edge
   }
@@ -671,7 +671,7 @@ fn resolve_edge_label_obstacles(
     order.push(entry.0)
   }
   order.sort()
-  let route_by_edge : Map[Int, Array[@graph.Point]] = {}
+  let route_by_edge : Map[Int, Array[@graph.Point]] = Map([])
   for entry in patch.edges {
     route_by_edge[entry.0] = entry.1
   }
@@ -1214,7 +1214,7 @@ fn recompute_container_label_boxes_railway(
   graph : @graph.GraphInput,
 ) -> Unit {
   let bounds = patch_label_bounds_railway(patch)
-  let placed_labels : Map[String, @graph.Box] = {}
+  let placed_labels : Map[String, @graph.Box] = Map([])
   for obj in graph.objects {
     if !is_layout_container_candidate(obj) ||
       is_grid_container_candidate(obj) ||

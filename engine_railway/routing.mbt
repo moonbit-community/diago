@@ -56,10 +56,10 @@ fn assign_ports(
   config : @engine_api.LayoutConfig,
   boxes : Map[String, @graph.Box],
 ) -> (Map[Int, @graph.Point], Map[Int, @graph.Point]) raise @engine_api.LayoutError {
-  let src_groups : Map[String, Array[PortItem]] = {}
-  let src_meta : Map[String, (String, @engine_api.Direction)] = {}
-  let dst_groups : Map[String, Array[PortItem]] = {}
-  let dst_meta : Map[String, (String, @engine_api.Direction)] = {}
+  let src_groups : Map[String, Array[PortItem]] = Map([])
+  let src_meta : Map[String, (String, @engine_api.Direction)] = Map([])
+  let dst_groups : Map[String, Array[PortItem]] = Map([])
+  let dst_meta : Map[String, (String, @engine_api.Direction)] = Map([])
   for e in graph.edges {
     if self_loop.contains(e.index) {
       continue
@@ -107,8 +107,8 @@ fn assign_ports(
       None => dst_groups[dst_key] = [dst_item]
     }
   }
-  let src_ports : Map[Int, @graph.Point] = {}
-  let dst_ports : Map[Int, @graph.Point] = {}
+  let src_ports : Map[Int, @graph.Point] = Map([])
+  let dst_ports : Map[Int, @graph.Point] = Map([])
   fn axis_min_max(
     box : @graph.Box,
     flow : @engine_api.Direction,
@@ -399,8 +399,8 @@ fn apply_reciprocal_port_offsets(
   src_ports : Map[Int, @graph.Point],
   dst_ports : Map[Int, @graph.Point],
 ) -> Unit raise @engine_api.LayoutError {
-  let entries_by_pair : Map[String, Array[ReciprocalPortEntry]] = {}
-  let edge_by_index : Map[Int, @graph.EdgeInput] = {}
+  let entries_by_pair : Map[String, Array[ReciprocalPortEntry]] = Map([])
+  let edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
   for edge in graph.edges {
     edge_by_index[edge.index] = edge
     if self_loop.contains(edge.index) || edge.src_id == edge.dst_id {
@@ -555,7 +555,7 @@ fn major_axis_spacing(
 
 ///|
 fn allocate_interval_tracks(intervals : Array[EdgeInterval]) -> Map[Int, Int] {
-  let track_by_edge : Map[Int, Int] = {}
+  let track_by_edge : Map[Int, Int] = Map([])
   if intervals.length() == 0 {
     return track_by_edge
   }
@@ -648,7 +648,7 @@ impl Compare for LaneUsage with fn compare(a, b) {
 
 ///|
 fn allocate_span_lanes(spans : Array[EdgeSpan]) -> (Map[Int, Int], Int) {
-  let lane_by_edge : Map[Int, Int] = {}
+  let lane_by_edge : Map[Int, Int] = Map([])
   if spans.length() == 0 {
     return (lane_by_edge, 0)
   }
@@ -842,7 +842,7 @@ fn evaluate_lane_order(
   order : Array[Int],
 ) -> LaneOrderScore {
   let rank_by_lane = lane_rank_by_lane(order, lane_count)
-  let route_by_edge : Map[Int, Array[@graph.Point]] = {}
+  let route_by_edge : Map[Int, Array[@graph.Point]] = Map([])
   let mut displacement = 0
   for edge in edges {
     let base_lane = base_lane_by_edge.get(edge.edge_index).unwrap_or(0)
@@ -997,7 +997,7 @@ fn plan_gap_lanes(
   src_ports : Map[Int, @graph.Point],
   dst_ports : Map[Int, @graph.Point],
 ) -> RailwayLanePlan raise @engine_api.LayoutError {
-  let bundles_by_gap : Map[Int, Array[GapLaneEdge]] = {}
+  let bundles_by_gap : Map[Int, Array[GapLaneEdge]] = Map([])
   for e in graph.edges {
     if self_loop.contains(e.index) {
       continue
@@ -1052,8 +1052,8 @@ fn plan_gap_lanes(
     }
   }
 
-  let lane_by_edge : Map[Int, Int] = {}
-  let shift_by_edge : Map[Int, Double] = {}
+  let lane_by_edge : Map[Int, Int] = Map([])
+  let shift_by_edge : Map[Int, Double] = Map([])
 
   for entry in bundles_by_gap {
     let edges = entry.1
@@ -1156,7 +1156,7 @@ fn assign_rail_tracks(
       }
     }
   }
-  let tracks : Map[Int, Int] = {}
+  let tracks : Map[Int, Int] = Map([])
   for entry in allocate_interval_tracks(back_edges) {
     tracks[entry.0] = entry.1
   }

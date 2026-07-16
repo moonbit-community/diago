@@ -308,7 +308,7 @@ fn Parser::parse_element(self : Parser) -> XmlElement? {
     Some(n) => n
     None => return None
   }
-  let attrs : Map[String, String] = {}
+  let attrs : Map[String, String] = Map([])
   let children : Array[XmlNode] = []
 
   // Attributes

@@ -366,7 +366,7 @@ fn calculate_extended_bounds(
 fn collect_inline_child_shape_parent_ids(
   shapes : Array[@diagram.Shape],
 ) -> Map[String, String] {
-  let ids : Map[String, String] = {}
+  let ids : Map[String, String] = Map([])
   for shape in shapes {
     if shape.shape_type == SqlTable || shape.shape_type == Class {
       for child_id in shape.child_ids {
@@ -381,7 +381,7 @@ fn collect_inline_child_shape_parent_ids(
 fn collect_inline_child_shape_ids_from_parent_ids(
   inline_child_shape_parent_ids : Map[String, String],
 ) -> Map[String, Bool] {
-  let ids : Map[String, Bool] = {}
+  let ids : Map[String, Bool] = Map([])
   for child_id, _ in inline_child_shape_parent_ids {
     ids[child_id] = true
   }

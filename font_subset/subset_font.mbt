@@ -91,10 +91,10 @@ fn new_utf8_font(reader : FileReader) -> Utf8FontFile {
   {
     file_reader: reader,
     last_rune: 0,
-    table_descriptions: {},
-    out_tables_data: {},
+    table_descriptions: Map([]),
+    out_tables_data: Map([]),
     symbol_position: [],
-    char_symbol_dictionary: {},
+    char_symbol_dictionary: Map([]),
     ascent: 0,
     descent: 0,
     bbox: { x_min: 0, y_min: 0, x_max: 0, y_max: 0 },
@@ -106,8 +106,8 @@ fn new_utf8_font(reader : FileReader) -> Utf8FontFile {
     underline_thickness: 0.0,
     char_widths: [],
     default_width: 0.0,
-    symbol_data: {},
-    code_symbol_dictionary: {},
+    symbol_data: Map([]),
+    code_symbol_dictionary: Map([]),
   }
 }
 
@@ -212,7 +212,7 @@ fn is_plausible_sfnt(data : Array[Byte]) -> Bool {
     return false
   }
 
-  let tags : Map[String, Bool] = {}
+  let tags : Map[String, Bool] = Map([])
   for i in 0..<num_tables {
     let rec = 12 + i * 16
     let tag = bytes4_to_string(data[rec:rec + 4].to_owned())
@@ -433,7 +433,7 @@ fn Utf8FontFile::generate_table_descriptions(self : Utf8FontFile) -> Unit {
   ignore(self.read_uint16())
   ignore(self.read_uint16())
   ignore(self.read_uint16())
-  self.table_descriptions = {}
+  self.table_descriptions = Map([])
   for _ in 0..<tables_count {
     let name = self.read_table_name()
     let checksum_hi = self.read_uint16()
@@ -646,8 +646,8 @@ fn Utf8FontFile::generate_cmap(self : Utf8FontFile) -> Map[Int, Array[Int]]? {
     return None
   }
 
-  let symbol_char_dictionary : Map[Int, Array[Int]] = {}
-  let char_symbol_dictionary : Map[Int, Int] = {}
+  let symbol_char_dictionary : Map[Int, Array[Int]] = Map([])
+  let char_symbol_dictionary : Map[Int, Int] = Map([])
   self.generate_sccs_dictionaries(
     rune_cmap_position, symbol_char_dictionary, char_symbol_dictionary,
   )
@@ -722,7 +722,7 @@ fn Utf8FontFile::parse_symbols(
   used_runes : Map[Int, Int],
 ) -> (Map[Int, Int], Map[Int, Int], Map[Int, Int], Array[Int]) {
   let symbol_collection : Map[Int, Int] = { 0: 0 }
-  let char_symbol_pair_collection : Map[Int, Int] = {}
+  let char_symbol_pair_collection : Map[Int, Int] = Map([])
   for _, ch in used_runes {
     match self.char_symbol_dictionary.get(ch) {
       Some(symbol) => {
@@ -735,7 +735,7 @@ fn Utf8FontFile::parse_symbols(
   }
 
   let begin = self.table_descriptions.get("glyf").unwrap().position
-  let symbol_array : Map[Int, Int] = {}
+  let symbol_array : Map[Int, Int] = Map([])
   let symbol_collection_keys = key_sort_int_map_int(symbol_collection)
 
   let mut symbol_counter = 0
@@ -749,7 +749,7 @@ fn Utf8FontFile::parse_symbols(
   let char_symbol_pair_collection_keys = key_sort_int_map_int(
     char_symbol_pair_collection,
   )
-  let rune_symbol_pair_collection : Map[Int, Int] = {}
+  let rune_symbol_pair_collection : Map[Int, Int] = Map([])
   for runa in char_symbol_pair_collection_keys {
     rune_symbol_pair_collection[runa] = symbol_array[char_symbol_pair_collection[runa]]
   }
@@ -780,7 +780,7 @@ fn Utf8FontFile::generate_cmap_table(
     cid_symbol_pair_collection,
   )
   let mut cid_id = 0
-  let cid_array : Map[Int, Array[Int]] = {}
+  let cid_array : Map[Int, Array[Int]] = Map([])
   let mut prev_cid = -2
   let mut prev_symbol = -1
 
@@ -1021,9 +1021,9 @@ fn Utf8FontFile::generate_cut_font(
 ) -> Array[Byte]? {
   self.file_reader.reader_position = 0
   self.symbol_position = []
-  self.char_symbol_dictionary = {}
-  self.table_descriptions = {}
-  self.out_tables_data = {}
+  self.char_symbol_dictionary = Map([])
+  self.table_descriptions = Map([])
+  self.out_tables_data = Map([])
   self.ascent = 0
   self.descent = 0
   self.skip(4)
@@ -1080,7 +1080,7 @@ fn Utf8FontFile::generate_cut_font(
     }
   }
 
-  let cid_no_zero : Map[Int, Int] = {}
+  let cid_no_zero : Map[Int, Int] = Map([])
   for k, v in cid_symbol_pair_collection {
     if k != 0 {
       cid_no_zero[k] = v
@@ -1100,7 +1100,7 @@ fn Utf8FontFile::generate_cut_font(
   let glyf_data : Array[Byte] = []
   let mut pos = 0
   let hmtx_data : Array[Byte] = []
-  self.symbol_data = {}
+  self.symbol_data = Map([])
 
   for original_symbol_idx in symbol_collection_keys {
     let hm = self.get_metrics(old_metrics, original_symbol_idx)
@@ -1124,7 +1124,7 @@ fn Utf8FontFile::generate_cut_font(
         up = unpack_uint16(data[pos_in_symbol + 2:pos_in_symbol + 4].to_owned())
         let symbol_idx = up
 
-        let x0 = self.symbol_data.get_or_default(original_symbol_idx, {})
+        let x0 = self.symbol_data.get_or_default(original_symbol_idx, Map([]))
         let arr = x0.get_or_default("compSymbols", [])
         arr.push(symbol_idx)
         x0["compSymbols"] = arr
@@ -1524,7 +1524,7 @@ pub fn utf8_cut_font(in_buf : Bytes, cutset : String) -> Bytes? {
   if !is_plausible_sfnt(input) {
     return None
   }
-  let runes : Map[Int, Int] = {}
+  let runes : Map[Int, Int] = Map([])
   let cps = decode_utf8_codepoints(cutset)
   for i, cp in cps {
     runes[i] = cp

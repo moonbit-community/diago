@@ -140,7 +140,7 @@ fn test_config(theme_id : Int) -> Config {
     None,
     None,
     None,
-    {},
+    Map([]),
   )
 }
 
@@ -314,7 +314,7 @@ test "diagram bytes encode typed theme overrides like the target config json" {
         None,
         None,
         None,
-        {},
+        Map([]),
       ),
     ),
   )

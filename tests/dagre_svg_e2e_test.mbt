@@ -210,7 +210,7 @@ fn collect_shape_style_tokens(
 
 ///|
 fn visual_style_signature(attrs : String) -> String {
-  let style_map : Map[String, String] = {}
+  let style_map : Map[String, String] = Map([])
   match parse_attr_string(attrs, "style") {
     Some(style_raw) => merge_inline_style(style_map, style_raw)
     None => ()
@@ -451,7 +451,7 @@ fn semantic_snapshot_mismatch_summary(a : String, b : String) -> String {
 
 ///|
 fn snapshot_line_counts(snapshot : String) -> Map[String, Int] {
-  let counts : Map[String, Int] = {}
+  let counts : Map[String, Int] = Map([])
   for line in snapshot.split("\n").collect() {
     let key = line.to_owned()
     if key.length() == 0 {
@@ -848,7 +848,7 @@ fn reference_parity_metrics(
 
 ///|
 fn extract_text_positions(svg : String) -> Map[String, Array[(Double, Double)]] {
-  let positions : Map[String, Array[(Double, Double)]] = {}
+  let positions : Map[String, Array[(Double, Double)]] = Map([])
   let parts = svg.split("<text").collect()
   if parts.length() < 2 {
     return positions
@@ -1092,7 +1092,7 @@ fn slice_string(s : String, start : Int, end_exclusive : Int) -> String {
 
 ///|
 fn extract_text_counts(svg : String) -> Map[String, Int] {
-  let counts : Map[String, Int] = {}
+  let counts : Map[String, Int] = Map([])
   let parts = svg.split("<text").collect()
   if parts.length() < 2 {
     return counts

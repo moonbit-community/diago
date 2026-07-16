@@ -288,9 +288,9 @@ pub impl @engine_api.LayoutEngine for ElkEngine with fn layout(
     e => raise @engine_api.unsupported("elk layout failed: \{e}")
   }
 
-  let node_box_by_id : Map[String, @graph.Box] = {}
+  let node_box_by_id : Map[String, @graph.Box] = Map([])
   collect_node_boxes(laid_out_json, 0.0, 0.0, node_box_by_id)
-  let routes_by_edge_id : Map[String, Array[@graph.Point]] = {}
+  let routes_by_edge_id : Map[String, Array[@graph.Point]] = Map([])
   collect_edge_routes(
     laid_out_json, 0.0, 0.0, node_box_by_id, routes_by_edge_id,
   )
@@ -329,12 +329,12 @@ fn layout_sequence_diagram(
   let patch = @graph.LayoutPatch::new()
   copy_passthrough_layout_data(patch, graph)
 
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  let object_by_abs_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_abs_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_abs_id[obj.abs_id_syntax] = obj
@@ -348,8 +348,8 @@ fn layout_sequence_diagram(
     graph, participant_ids, object_by_abs_id,
   )
 
-  let participant_rank_by_id : Map[String, Int] = {}
-  let participant_exists : Map[String, Bool] = {}
+  let participant_rank_by_id : Map[String, Int] = Map([])
+  let participant_exists : Map[String, Bool] = Map([])
 
   let raw_widths : Array[Double] = []
   let widths : Array[Double] = []
@@ -383,7 +383,7 @@ fn layout_sequence_diagram(
   let (sequence_notes_for_layout, _, note_line_by_id_for_layout) = sequence_collect_notes_and_spans_like_d2(
     graph, participant_exists, parent_id_by_child_id, participant_alias_by_abs_id,
   )
-  let note_height_by_id_for_layout : Map[String, Double] = {}
+  let note_height_by_id_for_layout : Map[String, Double] = Map([])
   for note in sequence_notes_for_layout {
     let (_, height) = sequence_object_size(note, config, object_by_id)
     note_height_by_id_for_layout[note.abs_id_syntax] = height
@@ -711,7 +711,7 @@ fn recompute_edge_label_boxes(
 fn sequence_parent_id_by_child_id(
   graph : @graph.GraphInput,
 ) -> Map[String, String] {
-  let out : Map[String, String] = {}
+  let out : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     out[child_id] = graph.root.abs_id_syntax
   }
@@ -775,7 +775,7 @@ fn sequence_participant_alias_by_abs_id(
   participant_ids : Array[String],
   object_by_abs_id : Map[String, @graph.ObjectInput],
 ) -> Map[String, String] {
-  let participant_by_local_id : Map[String, String] = {}
+  let participant_by_local_id : Map[String, String] = Map([])
   for participant_id in participant_ids {
     match object_by_abs_id.get(participant_id) {
       Some(obj) => {
@@ -785,7 +785,7 @@ fn sequence_participant_alias_by_abs_id(
       None => participant_by_local_id[participant_id] = participant_id
     }
   }
-  let out : Map[String, String] = {}
+  let out : Map[String, String] = Map([])
   for participant_id in participant_ids {
     out[participant_id] = participant_id
   }
@@ -823,7 +823,7 @@ fn sequence_max_note_width_by_participant_id_like_d2(
   object_by_id : Map[String, @graph.ObjectInput],
   config : @engine_api.LayoutConfig,
 ) -> Map[String, Double] {
-  let out : Map[String, Double] = {}
+  let out : Map[String, Double] = Map([])
   for obj in graph.objects {
     if !sequence_is_note_like_d2(obj, graph) {
       continue
@@ -925,7 +925,7 @@ fn sequence_center_x_for_object(
   participant_alias_by_abs_id : Map[String, String],
 ) -> Double? {
   let mut current = id
-  let visited : Map[String, Bool] = {}
+  let visited : Map[String, Bool] = Map([])
   while !visited.contains(current) {
     visited[current] = true
     match patch.nodes.get(current) {
@@ -959,7 +959,7 @@ fn sequence_top_participant_id(
     return id
   }
   let mut current = id
-  let visited : Map[String, Bool] = {}
+  let visited : Map[String, Bool] = Map([])
   while !visited.contains(current) {
     visited[current] = true
     match participant_alias_by_abs_id.get(current) {
@@ -1053,7 +1053,7 @@ fn sequence_collect_notes_and_spans_like_d2(
 ) -> (Array[@graph.ObjectInput], Array[@graph.ObjectInput], Map[String, Int]) {
   let notes : Array[@graph.ObjectInput] = []
   let spans : Array[@graph.ObjectInput] = []
-  let note_line_by_id : Map[String, Int] = {}
+  let note_line_by_id : Map[String, Int] = Map([])
   for obj in graph.objects {
     if participant_exists.contains(obj.abs_id_syntax) ||
       participant_alias_by_abs_id.contains(obj.abs_id_syntax) ||
@@ -1174,8 +1174,8 @@ fn sequence_place_spans_like_d2(
   parent_id_by_child_id : Map[String, String],
   participant_alias_by_abs_id : Map[String, String],
 ) -> Unit {
-  let first_message_by_id : Map[String, @graph.EdgeInput] = {}
-  let last_message_by_id : Map[String, @graph.EdgeInput] = {}
+  let first_message_by_id : Map[String, @graph.EdgeInput] = Map([])
+  let last_message_by_id : Map[String, @graph.EdgeInput] = Map([])
   for edge in ordered_edges {
     if !first_message_by_id.contains(edge.src_id_syntax) {
       first_message_by_id[edge.src_id_syntax] = edge
@@ -1311,7 +1311,7 @@ fn sequence_place_groups_like_d2(
   if groups.is_empty() {
     return
   }
-  let group_ids : Map[String, Bool] = {}
+  let group_ids : Map[String, Bool] = Map([])
   for group in groups {
     group_ids[group.abs_id_syntax] = true
   }
@@ -1570,7 +1570,7 @@ fn sequence_group_objects_like_d2(
   parent_id_by_child_id : Map[String, String],
 ) -> Array[@graph.ObjectInput] {
   let groups : Array[@graph.ObjectInput] = []
-  let participant_ids : Map[String, Bool] = {}
+  let participant_ids : Map[String, Bool] = Map([])
   for participant_id in sequence_participant_ids(graph) {
     participant_ids[participant_id] = true
   }
@@ -2012,7 +2012,7 @@ fn estimate_sequence_object_size(
 
 ///|
 fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
-  let object_by_abs_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
   for obj in graph.objects {
     object_by_abs_id[obj.abs_id_syntax] = obj
   }
@@ -2057,7 +2057,7 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
       return ids
     }
   }
-  let child_ids : Map[String, Bool] = {}
+  let child_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     for child_id in obj.child_ids {
       child_ids[child_id] = true
@@ -2258,10 +2258,10 @@ fn build_elk_graph(
     graph, parent_id_by_child_id, object_by_id,
   )
 
-  let node_json_by_id : Map[String, Map[String, Json]] = {}
-  let node_ids : Map[String, Bool] = {}
-  let node_size_by_id : Map[String, (Double, Double)] = {}
-  let node_margin_by_id : Map[String, LayoutSpacing] = {}
+  let node_json_by_id : Map[String, Map[String, Json]] = Map([])
+  let node_ids : Map[String, Bool] = Map([])
+  let node_size_by_id : Map[String, (Double, Double)] = Map([])
+  let node_margin_by_id : Map[String, LayoutSpacing] = Map([])
   let endpoint_degree_counts = build_endpoint_degree_counts(
     graph, excluded_node_ids,
   )
@@ -2336,7 +2336,7 @@ fn build_elk_graph(
     node_ids[obj.id] = true
   }
 
-  let attached_to_parent : Map[String, Bool] = {}
+  let attached_to_parent : Map[String, Bool] = Map([])
   for obj in graph.objects {
     if excluded_node_ids.contains(obj.id) {
       continue
@@ -2365,7 +2365,7 @@ fn build_elk_graph(
   }
 
   let root_children : Array[Json] = []
-  let attached_to_root : Map[String, Bool] = {}
+  let attached_to_root : Map[String, Bool] = Map([])
   for child_id in graph.root.child_ids {
     if excluded_node_ids.contains(child_id) {
       continue
@@ -2391,14 +2391,14 @@ fn build_elk_graph(
     }
   }
 
-  let edge_id_by_index : Map[Int, String] = {}
-  let edge_endpoints_by_index : Map[Int, (String, String)] = {}
+  let edge_id_by_index : Map[Int, String] = Map([])
+  let edge_endpoints_by_index : Map[Int, (String, String)] = Map([])
   let edges_json : Array[Json] = []
   let edge_repeat_indices = d2_edge_repeat_indices(graph.edges)
   let (default_sql_src_side, default_sql_dst_side) = sql_root_port_sides(
     direction,
   )
-  let sql_root_port_ids_by_group : Map[String, Array[String]] = {}
+  let sql_root_port_ids_by_group : Map[String, Array[String]] = Map([])
 
   for i, edge in graph.edges {
     let src_id = match
@@ -2509,7 +2509,7 @@ fn apply_margin_adjustments_like_d2(
   node_box_by_id : Map[String, @graph.Box],
   node_margin_by_id : Map[String, LayoutSpacing],
 ) -> Unit {
-  let child_ids_by_id : Map[String, Array[String]] = {}
+  let child_ids_by_id : Map[String, Array[String]] = Map([])
   for obj in graph.objects {
     child_ids_by_id[obj.id] = obj.child_ids
   }
@@ -2705,13 +2705,13 @@ fn shift_descendant_boxes(
 fn build_object_maps(
   graph : @graph.GraphInput,
 ) -> (Map[String, @graph.ObjectInput], Map[String, String]) {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
 
-  let parent_id_by_child_id : Map[String, String] = {}
+  let parent_id_by_child_id : Map[String, String] = Map([])
   for child_id in graph.root.child_ids {
     parent_id_by_child_id[child_id] = graph.root.id
   }
@@ -2730,7 +2730,7 @@ fn build_excluded_layout_node_ids(
   parent_id_by_child_id : Map[String, String],
   object_by_id : Map[String, @graph.ObjectInput],
 ) -> Map[String, Bool] {
-  let excluded : Map[String, Bool] = {}
+  let excluded : Map[String, Bool] = Map([])
   let constant_near_root_ids : Array[String] = []
   for obj in graph.objects {
     if @graph.syntax_path_depth(obj.id) != 1 {
@@ -2766,7 +2766,7 @@ fn apply_constant_near_positions(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
 ) -> Unit {
-  let near_key_by_id : Map[String, String] = {}
+  let near_key_by_id : Map[String, String] = Map([])
   for obj in graph.objects {
     if @graph.syntax_path_depth(obj.id) != 1 {
       continue
@@ -2785,7 +2785,7 @@ fn apply_constant_near_positions(
     return
   }
 
-  let placed_near : Map[String, Bool] = {}
+  let placed_near : Map[String, Bool] = Map([])
   for key_set in [0, 1, 2] {
     let current_set_ids : Array[String] = []
     for obj in graph.objects {
@@ -2844,7 +2844,7 @@ fn apply_root_grid_positions_like_d2(
   }
 
   let (object_by_id, parent_id_by_child_id) = build_object_maps(graph)
-  let child_size_by_id : Map[String, (Double, Double)] = {}
+  let child_size_by_id : Map[String, (Double, Double)] = Map([])
   for child_id in root_child_ids {
     guard object_by_id.contains(child_id) else { return }
     match patch.nodes.get(child_id) {
@@ -2953,11 +2953,11 @@ fn reroute_root_grid_cross_edges(
   object_by_id : Map[String, @graph.ObjectInput],
   parent_id_by_child_id : Map[String, String],
 ) -> Unit {
-  let root_child_ids : Map[String, Bool] = {}
+  let root_child_ids : Map[String, Bool] = Map([])
   for child_id in graph.root.child_ids {
     root_child_ids[child_id] = true
   }
-  let node_ids : Map[String, Bool] = {}
+  let node_ids : Map[String, Bool] = Map([])
   for id, _ in patch.nodes {
     node_ids[id] = true
   }
@@ -3114,7 +3114,7 @@ fn reroute_constant_near_cross_edges(
   graph : @graph.GraphInput,
   near_key_by_id : Map[String, String],
 ) -> Unit {
-  let node_ids : Map[String, Bool] = {}
+  let node_ids : Map[String, Bool] = Map([])
   for id, _ in patch.nodes {
     node_ids[id] = true
   }
@@ -3185,12 +3185,12 @@ fn build_patch_edge_endpoints_by_index(
   graph : @graph.GraphInput,
   patch : @graph.LayoutPatch,
 ) -> Map[Int, (String, String)] {
-  let node_ids : Map[String, Bool] = {}
+  let node_ids : Map[String, Bool] = Map([])
   for id, _ in patch.nodes {
     node_ids[id] = true
   }
   let (object_by_id, parent_id_by_child_id) = build_object_maps(graph)
-  let edge_endpoints_by_index : Map[Int, (String, String)] = {}
+  let edge_endpoints_by_index : Map[Int, (String, String)] = Map([])
   for edge in graph.edges {
     let src_id = match
       resolve_edge_endpoint_id(
@@ -3481,7 +3481,7 @@ fn build_endpoint_degree_counts(
   graph : @graph.GraphInput,
   excluded_node_ids : Map[String, Bool],
 ) -> Map[String, (Int, Int)] {
-  let counts : Map[String, (Int, Int)] = {}
+  let counts : Map[String, (Int, Int)] = Map([])
   for edge in graph.edges {
     let src_id = edge.src_id
     let dst_id = edge.dst_id
@@ -3752,7 +3752,7 @@ fn assign_sql_root_port_x_positions(
   node_json_by_id : Map[String, Map[String, Json]],
   sql_root_port_ids_by_group : Map[String, Array[String]],
 ) -> Unit {
-  let port_x_by_id : Map[String, Double] = {}
+  let port_x_by_id : Map[String, Double] = Map([])
   for group_key, port_ids in sql_root_port_ids_by_group {
     if port_ids.is_empty() {
       continue
@@ -3810,7 +3810,7 @@ fn fill_patch_nodes(
   node_size_by_id : Map[String, (Double, Double)],
   config : @engine_api.LayoutConfig,
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
@@ -3844,13 +3844,13 @@ fn fill_patch_edges(
   routes_by_edge_id : Map[String, Array[@graph.Point]],
   direction : @engine_api.Direction,
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
 
-  let routes_by_index : Map[Int, Array[@graph.Point]] = {}
+  let routes_by_index : Map[Int, Array[@graph.Point]] = Map([])
 
   for edge in graph.edges {
     let mut route : Array[@graph.Point] = []
@@ -3933,7 +3933,7 @@ fn trace_route_endpoints_like_d2(
   edge_endpoints_by_index : Map[Int, (String, String)],
   node_box_by_id : Map[String, @graph.Box],
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
@@ -4415,7 +4415,7 @@ fn self_loop_spacing_for_parent(
   if child_ids.is_empty() {
     return base
   }
-  let child_set : Map[String, Bool] = {}
+  let child_set : Map[String, Bool] = Map([])
   for child_id in child_ids {
     child_set[child_id] = true
   }
@@ -4722,7 +4722,7 @@ fn json_object_field(
 ) -> Map[String, Json] {
   match obj.get(key) {
     Some(Object(value)) => value
-    _ => {}
+    _ => Map([])
   }
 }
 
@@ -4883,7 +4883,7 @@ fn delete_bends_like_d2(
   graph : @graph.GraphInput,
   node_box_by_id : Map[String, @graph.Box],
 ) -> Unit {
-  let object_by_id : Map[String, @graph.ObjectInput] = {}
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
@@ -4902,7 +4902,7 @@ fn delete_bends_like_d2(
     }
   }
 
-  let point_counts : Map[String, Int] = {}
+  let point_counts : Map[String, Int] = Map([])
   for edge in graph.edges {
     let route = match routes_by_index.get(edge.index) {
       Some(points) => points
@@ -7735,7 +7735,7 @@ fn elk_edge_id(edge : @graph.EdgeInput, repeat_index : Int) -> String {
 
 ///|
 fn d2_edge_repeat_indices(edges : Array[@graph.EdgeInput]) -> Array[Int] {
-  let counts : Map[String, Int] = {}
+  let counts : Map[String, Int] = Map([])
   let out : Array[Int] = []
   for edge in edges {
     let key = d2_edge_repeat_key(edge)

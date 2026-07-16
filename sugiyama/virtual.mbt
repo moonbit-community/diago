@@ -39,10 +39,10 @@ pub fn insert_virtual_nodes(
   layer_result : LayerAssignment,
   cycle_result : CycleBreakResult,
 ) -> VirtualNodeResult {
-  let edge_virtual_nodes : Map[Int, Array[String]] = {}
-  let virtual_nodes : Map[String, Bool] = {}
+  let edge_virtual_nodes : Map[Int, Array[String]] = Map([])
+  let virtual_nodes : Map[String, Bool] = Map([])
   // Copy the existing layer structures
-  let layers : Map[String, Int] = {}
+  let layers : Map[String, Int] = Map([])
   for entry in layer_result.layers {
     layers[entry.0] = entry.1
   }

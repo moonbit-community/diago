@@ -27,8 +27,8 @@ test "assign_coordinates simple chain" {
   let layer_result = assign_layers(graph, cycle_result)
   let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
   // Collect node dimensions
-  let widths : Map[String, Double] = {}
-  let heights : Map[String, Double] = {}
+  let widths : Map[String, Double] = Map([])
+  let heights : Map[String, Double] = Map([])
   widths["a"] = 100.0
   widths["b"] = 100.0
   widths["c"] = 100.0
@@ -62,8 +62,8 @@ test "assign_coordinates diamond" {
   let cycle_result = break_cycles(graph)
   let layer_result = assign_layers(graph, cycle_result)
   let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
-  let widths : Map[String, Double] = {}
-  let heights : Map[String, Double] = {}
+  let widths : Map[String, Double] = Map([])
+  let heights : Map[String, Double] = Map([])
   for node in ["a", "b", "c", "d"] {
     widths[node] = 100.0
     heights[node] = 60.0
@@ -91,8 +91,8 @@ test "assign_coordinates_simple" {
   let cycle_result = break_cycles(graph)
   let layer_result = assign_layers(graph, cycle_result)
   let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
-  let widths : Map[String, Double] = {}
-  let heights : Map[String, Double] = {}
+  let widths : Map[String, Double] = Map([])
+  let heights : Map[String, Double] = Map([])
   widths["a"] = 100.0
   widths["b"] = 100.0
   widths["c"] = 100.0

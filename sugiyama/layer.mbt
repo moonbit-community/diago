@@ -39,8 +39,8 @@ pub fn assign_layers(
   cycle_result : CycleBreakResult,
 ) -> LayerAssignment {
   // Build adjacency using effective edge directions (after cycle breaking)
-  let adj : Map[String, Array[String]] = {}
-  let pred : Map[String, Array[String]] = {}
+  let adj : Map[String, Array[String]] = Map([])
+  let pred : Map[String, Array[String]] = Map([])
   let all_nodes : Array[String] = []
   // Collect all nodes
   for obj in graph.objects {
@@ -92,8 +92,8 @@ fn longest_path_layering(
   adj : Map[String, Array[String]],
   pred : Map[String, Array[String]],
 ) -> Map[String, Int] {
-  let layers : Map[String, Int] = {}
-  let in_degree : Map[String, Int] = {}
+  let layers : Map[String, Int] = Map([])
+  let in_degree : Map[String, Int] = Map([])
   // Compute in-degrees
   for node in nodes {
     let preds = match pred.get(node) {
@@ -171,7 +171,7 @@ fn network_simplex(
   // 5. Pivot until optimal
 
   // Copy initial layers
-  let layers : Map[String, Int] = {}
+  let layers : Map[String, Int] = Map([])
   for node in nodes {
     match initial_layers.get(node) {
       Some(l) => layers[node] = l
@@ -217,7 +217,7 @@ fn build_spanning_tree(
   pred : Map[String, Array[String]],
 ) -> Array[(String, String)] {
   let tree : Array[(String, String)] = []
-  let in_tree : Map[String, Bool] = {}
+  let in_tree : Map[String, Bool] = Map([])
   if nodes.length() == 0 {
     return tree
   }
@@ -300,15 +300,15 @@ fn init_low_lim_values(
   tree_edges : Array[(String, String)],
 ) -> TreeInfo {
   // Build parent-child relationships from tree edges
-  let children : Map[String, Array[String]] = {}
-  let low : Map[String, Int] = {}
-  let lim : Map[String, Int] = {}
+  let children : Map[String, Array[String]] = Map([])
+  let low : Map[String, Int] = Map([])
+  let lim : Map[String, Int] = Map([])
   // Initialize children arrays
   for node in nodes {
     children[node] = []
   }
   // Find root (nodes without a parent in the tree)
-  let has_parent : Map[String, Bool] = {}
+  let has_parent : Map[String, Bool] = Map([])
   for edge in tree_edges {
     let (src, dst) = edge
     // In a directed spanning tree, src is parent of dst
@@ -450,7 +450,7 @@ fn compute_tail_component(
 ) -> Array[String] {
   // BFS from src without using the (src, dst) edge
   let component : Array[String] = []
-  let visited : Map[String, Bool] = {}
+  let visited : Map[String, Bool] = Map([])
   let queue : Array[String] = [src]
   visited[src] = true
   while queue.length() > 0 {

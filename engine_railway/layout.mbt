@@ -160,7 +160,7 @@ fn layout_graph(
 fn clone_boxes_railway(
   boxes : Map[String, @graph.Box],
 ) -> Map[String, @graph.Box] {
-  let cloned : Map[String, @graph.Box] = {}
+  let cloned : Map[String, @graph.Box] = Map([])
   for entry in boxes {
     cloned[entry.0] = entry.1
   }
@@ -283,7 +283,7 @@ fn route_edges_railway(
   level_heights : Array[Double],
   reserved_label_boxes : Array[@graph.Box],
 ) -> Unit raise @engine_api.LayoutError {
-  let gap_rail_reservations = Ref({})
+  let gap_rail_reservations = Ref(Map([]))
   let channel_reservations = Ref([])
   let ordered_edges = layout_input.edges.copy()
   ordered_edges.sort_by(fn(a, b) {
