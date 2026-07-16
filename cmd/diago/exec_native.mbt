@@ -25,7 +25,7 @@ fn command_exec_internal(command : String) -> Int {
 
 ///|
 #borrow(command)
-extern "C" fn system_ffi(command : Bytes) -> Int = "system"
+extern "C" fn system_ffi(command : Bytes) -> Int = "diago_system"
 
 ///|
 fn to_c_ascii_bytes(s : String) -> Bytes {

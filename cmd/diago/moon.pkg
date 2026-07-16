@@ -21,3 +21,7 @@ import {
 pkgtype(kind: "executable")
 
 supported_targets = "+native"
+
+options(
+  "native-stub": [ "exec_native.c" ],
+)
