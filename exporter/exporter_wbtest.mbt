@@ -303,6 +303,25 @@ test "near keys cannot target objects within sequence diagrams" {
 }
 
 ///|
+test "position rules keep quoted-dot and nested identities distinct" {
+  let source =
+    #|"seq.child": {
+    #|  top: 1
+    #|}
+    #|seq: {
+    #|  shape: sequence_diagram
+    #|  child
+    #|}
+  guard compile_source_graph(source) is Ok(graph) else {
+    fail("top-level quoted-dot object should not inherit the nested parent")
+  }
+  guard graph.find_object("\"seq.child\"") is Some(quoted) else {
+    fail("expected quoted-dot object")
+  }
+  @debug.assert_eq(quoted.top, Some(1))
+}
+
+///|
 test "near keys cannot target objects with constant near keys" {
   let source =
     #|title: Title {
@@ -686,6 +705,41 @@ test "graph objects preserve explicit language and sql constraints" {
   }
   @debug.assert_eq(snippet.language, Some("text"))
   @debug.assert_eq(column.sql_constraints, ["primary_key", "unique"])
+}
+
+///|
+test "sql endpoint normalization keeps quoted-dot objects distinct" {
+  let source =
+    #|"orders.id"
+    #|orders: {
+    #|  shape: sql_table
+    #|  id: int
+    #|}
+    #|users: {
+    #|  shape: sql_table
+    #|  id: int
+    #|}
+    #|"orders.id" -> users.id
+    #|orders.id -> users.id
+  guard compile_source_graph(source) is Ok(graph) else {
+    fail("expected syntax-distinct sql endpoint graph")
+  }
+  @debug.assert_eq(graph.edges.length(), 2)
+  let quoted_edge = graph.edges[0]
+  @debug.assert_eq(quoted_edge.src_id, "orders.id")
+  @debug.assert_eq(quoted_edge.src_id_syntax, "\"orders.id\"")
+  @debug.assert_eq(quoted_edge.src_column_index, None)
+  @debug.assert_eq(quoted_edge.dst_id, "users")
+  @debug.assert_eq(quoted_edge.dst_id_syntax, "users")
+  @debug.assert_eq(quoted_edge.dst_column_index, Some(0))
+
+  let column_edge = graph.edges[1]
+  @debug.assert_eq(column_edge.src_id, "orders")
+  @debug.assert_eq(column_edge.src_id_syntax, "orders")
+  @debug.assert_eq(column_edge.src_column_index, Some(0))
+  @debug.assert_eq(column_edge.dst_id, "users")
+  @debug.assert_eq(column_edge.dst_id_syntax, "users")
+  @debug.assert_eq(column_edge.dst_column_index, Some(0))
 }
 
 ///|

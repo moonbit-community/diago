@@ -3078,15 +3078,19 @@ fn validate_edge_rules(graph : Graph) -> Unit raise GraphCompileError {
 
 ///|
 fn validate_position_rules(graph : Graph) -> Unit raise GraphCompileError {
-  let object_by_id : Map[String, Object] = Map([])
+  let object_by_abs_id_syntax : Map[String, Object] = Map([])
   for obj in graph.objects {
-    object_by_id[obj.id] = obj
+    object_by_abs_id_syntax[obj.abs_id_syntax] = obj
   }
   for obj in graph.objects {
     if obj.top is None && obj.left is None {
       continue
     }
-    let parent = lookup_parent_object(graph, object_by_id, obj.id)
+    let parent = lookup_parent_object_by_abs_id_syntax(
+      graph,
+      object_by_abs_id_syntax,
+      obj.abs_id_syntax,
+    )
     if is_hierarchy_shape(parent) {
       raise Semantic(
         "position keywords cannot be used with shape \"hierarchy\"",
@@ -3095,7 +3099,11 @@ fn validate_position_rules(graph : Graph) -> Unit raise GraphCompileError {
     if parent.grid_columns is Some(_) || parent.grid_rows is Some(_) {
       raise Semantic("position keywords cannot be used with grids")
     }
-    if is_inside_sequence_diagram(graph, object_by_id, obj.id) {
+    if is_inside_sequence_diagram_by_abs_id_syntax(
+        graph,
+        object_by_abs_id_syntax,
+        obj.abs_id_syntax,
+      ) {
       raise Semantic(
         "position keywords cannot be used inside shape \"sequence_diagram\"",
       )
@@ -3108,38 +3116,6 @@ fn is_hierarchy_shape(obj : Object) -> Bool {
   match obj.raw_shape {
     Some(shape) => shape.to_lower() == "hierarchy"
     None => false
-  }
-}
-
-///|
-fn is_inside_sequence_diagram(
-  graph : Graph,
-  object_by_id : Map[String, Object],
-  id : String,
-) -> Bool {
-  if graph.root.shape_type == SequenceDiagram {
-    return true
-  }
-  has_sequence_diagram_ancestor(object_by_id, id)
-}
-
-///|
-fn has_sequence_diagram_ancestor(
-  object_by_id : Map[String, Object],
-  id : String,
-) -> Bool {
-  match parent_id_of(id) {
-    None => false
-    Some(parent_id) =>
-      match object_by_id.get(parent_id) {
-        Some(parent) =>
-          if parent.shape_type == SequenceDiagram {
-            true
-          } else {
-            has_sequence_diagram_ancestor(object_by_id, parent_id)
-          }
-        None => false
-      }
   }
 }
 
@@ -3268,40 +3244,19 @@ fn is_constant_near_object(obj : Object) -> Bool {
 }
 
 ///|
-fn lookup_parent_object(
+fn lookup_parent_object_by_abs_id_syntax(
   graph : Graph,
-  object_by_id : Map[String, Object],
-  id : String,
+  object_by_abs_id_syntax : Map[String, Object],
+  abs_id_syntax : String,
 ) -> Object {
-  match parent_id_of(id) {
-    Some(parent_id) =>
-      match object_by_id.get(parent_id) {
+  match parent_abs_id_syntax_of(abs_id_syntax) {
+    Some(parent_abs_id_syntax) =>
+      match object_by_abs_id_syntax.get(parent_abs_id_syntax) {
         Some(parent) => parent
         None => graph.root
       }
     None => graph.root
   }
-}
-
-///|
-fn parent_id_of(id : String) -> String? {
-  let mut last_dot = -1
-  for i = 0; i < id.length(); i = i + 1 {
-    if id[i] == '.' {
-      last_dot = i
-    }
-  }
-  if last_dot <= 0 {
-    return None
-  }
-  let out = StringBuilder::new()
-  for i = 0; i < last_dot; i = i + 1 {
-    match id[i].to_char() {
-      Some(c) => out.write_char(c)
-      None => ()
-    }
-  }
-  Some(out.to_string())
 }
 
 ///|
@@ -3893,25 +3848,29 @@ fn normalize_sql_table_edge_endpoints_recursive(graph : Graph) -> Unit {
 
 ///|
 fn normalize_sql_table_edge_endpoints(graph : Graph) -> Unit {
-  let object_by_id : Map[String, Object] = Map([])
+  let object_by_abs_id_syntax : Map[String, Object] = Map([])
   for obj in graph.objects {
-    object_by_id[obj.id] = obj
+    object_by_abs_id_syntax[obj.abs_id_syntax] = obj
   }
   for i, edge in graph.edges {
     let mut normalized_src_id = edge.src_id
     let mut normalized_dst_id = edge.dst_id
+    let mut normalized_src_id_syntax = edge.src_id_syntax
+    let mut normalized_dst_id_syntax = edge.dst_id_syntax
     let mut normalized_src_column_index = edge.src_column_index
     let mut normalized_dst_column_index = edge.dst_column_index
 
-    match sql_table_endpoint_info(object_by_id, normalized_src_id) {
-      Some((table_id, column_index)) => {
-        let dst_table_id = sql_table_id_for_endpoint(
-          object_by_id, normalized_dst_id,
+    match
+      sql_table_endpoint_info(object_by_abs_id_syntax, normalized_src_id_syntax) {
+      Some((table, column_index)) => {
+        let dst_table = sql_table_for_endpoint(
+          object_by_abs_id_syntax, normalized_dst_id_syntax,
         )
-        normalized_src_id = table_id
-        match dst_table_id {
+        normalized_src_id = table.id
+        normalized_src_id_syntax = table.abs_id_syntax
+        match dst_table {
           Some(dst_table) =>
-            if dst_table != table_id {
+            if dst_table.abs_id_syntax != table.abs_id_syntax {
               normalized_src_column_index = Some(column_index)
             }
           None => normalized_src_column_index = Some(column_index)
@@ -3919,9 +3878,11 @@ fn normalize_sql_table_edge_endpoints(graph : Graph) -> Unit {
       }
       None => ()
     }
-    match sql_table_endpoint_info(object_by_id, normalized_dst_id) {
-      Some((table_id, column_index)) => {
-        normalized_dst_id = table_id
+    match
+      sql_table_endpoint_info(object_by_abs_id_syntax, normalized_dst_id_syntax) {
+      Some((table, column_index)) => {
+        normalized_dst_id = table.id
+        normalized_dst_id_syntax = table.abs_id_syntax
         normalized_dst_column_index = Some(column_index)
       }
       None => ()
@@ -3930,6 +3891,8 @@ fn normalize_sql_table_edge_endpoints(graph : Graph) -> Unit {
       ..edge,
       src_id: normalized_src_id,
       dst_id: normalized_dst_id,
+      src_id_syntax: normalized_src_id_syntax,
+      dst_id_syntax: normalized_dst_id_syntax,
       src_column_index: normalized_src_column_index,
       dst_column_index: normalized_dst_column_index,
     }
@@ -3938,14 +3901,15 @@ fn normalize_sql_table_edge_endpoints(graph : Graph) -> Unit {
 
 ///|
 fn sql_table_endpoint_info(
-  object_by_id : Map[String, Object],
-  endpoint_id : String,
-) -> (String, Int)? {
-  let parent_id = match parent_id_of(endpoint_id) {
+  object_by_abs_id_syntax : Map[String, Object],
+  endpoint_abs_id_syntax : String,
+) -> (Object, Int)? {
+  let parent_abs_id_syntax = match
+    parent_abs_id_syntax_of(endpoint_abs_id_syntax) {
     Some(v) => v
     None => return None
   }
-  let parent = match object_by_id.get(parent_id) {
+  let parent = match object_by_abs_id_syntax.get(parent_abs_id_syntax) {
     Some(v) => v
     None => return None
   }
@@ -3953,31 +3917,35 @@ fn sql_table_endpoint_info(
     return None
   }
   for i, child in parent.children {
-    if child.id == endpoint_id {
-      return Some((parent.id, i))
+    if child.abs_id_syntax == endpoint_abs_id_syntax {
+      return Some((parent, i))
     }
   }
   None
 }
 
 ///|
-fn sql_table_id_for_endpoint(
-  object_by_id : Map[String, Object],
-  endpoint_id : String,
-) -> String? {
-  match object_by_id.get(endpoint_id) {
+fn sql_table_for_endpoint(
+  object_by_abs_id_syntax : Map[String, Object],
+  endpoint_abs_id_syntax : String,
+) -> Object? {
+  match object_by_abs_id_syntax.get(endpoint_abs_id_syntax) {
     Some(obj) =>
       if obj.shape_type == SqlTable {
-        Some(obj.id)
+        Some(obj)
       } else {
-        match sql_table_endpoint_info(object_by_id, endpoint_id) {
-          Some((table_id, _)) => Some(table_id)
+        match
+          sql_table_endpoint_info(
+            object_by_abs_id_syntax, endpoint_abs_id_syntax,
+          ) {
+          Some((table, _)) => Some(table)
           None => None
         }
       }
     None =>
-      match sql_table_endpoint_info(object_by_id, endpoint_id) {
-        Some((table_id, _)) => Some(table_id)
+      match
+        sql_table_endpoint_info(object_by_abs_id_syntax, endpoint_abs_id_syntax) {
+        Some((table, _)) => Some(table)
         None => None
       }
   }
