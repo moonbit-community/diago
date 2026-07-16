@@ -962,7 +962,7 @@ fn Parser::parse_array(self : Parser) -> @ast.ArrayValue? {
   while !self.is_at_end() {
     match self.peek() {
       RightBracket => break
-      Comma => {
+      Comma | Semicolon => {
         let _ = self.advance()
         self.skip_trivia()
         continue

@@ -708,6 +708,39 @@ test "graph objects preserve explicit language and sql constraints" {
 }
 
 ///|
+test "D2 semicolon arrays apply classes and SQL constraints" {
+  let source =
+    #|classes: {
+    #|  base.style.fill: red
+    #|  rounded.style.border-radius: 8
+    #|}
+    #|box: {
+    #|  class: [base; rounded]
+    #|}
+    #|users: {
+    #|  shape: sql_table
+    #|  id: int {constraint: [primary_key; unique]}
+    #|}
+  guard compile_source_graph(source) is Ok(graph) else {
+    fail("expected semicolon arrays to compile")
+  }
+  guard graph.find_object("box") is Some(box) else {
+    fail("expected box object")
+  }
+  guard graph.find_object("users.id") is Some(column) else {
+    fail("expected SQL column object")
+  }
+  @debug.assert_eq(box.classes, ["base", "rounded"])
+  guard box.style.fill is Some(fill) else { fail("expected fill style") }
+  guard box.style.border_radius is Some(border_radius) else {
+    fail("expected border radius")
+  }
+  @debug.assert_eq(fill.get_value(), "red")
+  @debug.assert_eq(border_radius.as_int(), Some(8))
+  @debug.assert_eq(column.sql_constraints, ["primary_key", "unique"])
+}
+
+///|
 test "sql endpoint normalization keeps quoted-dot objects distinct" {
   let source =
     #|"orders.id"

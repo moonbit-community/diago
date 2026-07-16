@@ -880,6 +880,32 @@ test "compile vars - spread array (reference behavior)" {
 }
 
 ///|
+test "compile vars - spread D2 semicolon array" {
+  let source =
+    #|vars: {
+    #|  base: [NOT NULL; UNQ]
+    #|}
+    #|
+    #|constraints: [PK; ...${base}]
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("constraints") is Some(constraints) else {
+    fail("expected constraints")
+  }
+  guard constraints.composite is Some(Array(arr)) else {
+    fail("expected constraints array")
+  }
+  @debug.assert_eq(arr.values.length(), 3)
+  guard arr.values[0] is Scalar(pk) else { fail("expected PK") }
+  guard arr.values[1] is Scalar(not_null) else { fail("expected NOT NULL") }
+  guard arr.values[2] is Scalar(unq) else { fail("expected UNQ") }
+  @debug.assert_eq(pk.to_string(), "PK")
+  @debug.assert_eq(not_null.to_string(), "NOT NULL")
+  @debug.assert_eq(unq.to_string(), "UNQ")
+}
+
+///|
 test "compile vars - unresolved substitution errors (reference behavior)" {
   let source = "x: ${missing}"
   let (ast, _) = @parser.parse(source)

@@ -247,6 +247,37 @@ test "parse array" {
 }
 
 ///|
+test "parse D2 semicolon-separated arrays" {
+  let source =
+    #|x: [a; b;]
+    #|nested: [a; [b; c]]
+    #|empty: []
+    #|commented: [a; # keep the next item
+    #|  b]
+  let (ast, errors) = parse(source)
+  assert_true(errors.is_empty())
+  @debug.assert_eq(ast.nodes.length(), 4)
+  guard ast.nodes[0] is Key(x) else { fail("expected x key") }
+  guard x.value is Some(Array(x_array)) else { fail("expected x array") }
+  @debug.assert_eq(x_array.nodes.length(), 2)
+  guard ast.nodes[1] is Key(nested) else { fail("expected nested key") }
+  guard nested.value is Some(Array(nested_array)) else {
+    fail("expected nested array")
+  }
+  @debug.assert_eq(nested_array.nodes.length(), 2)
+  guard ast.nodes[2] is Key(empty) else { fail("expected empty key") }
+  guard empty.value is Some(Array(empty_array)) else {
+    fail("expected empty array")
+  }
+  @debug.assert_eq(empty_array.nodes.length(), 0)
+  guard ast.nodes[3] is Key(commented) else { fail("expected commented key") }
+  guard commented.value is Some(Array(commented_array)) else {
+    fail("expected commented array")
+  }
+  @debug.assert_eq(commented_array.nodes.length(), 3)
+}
+
+///|
 test "parse block string |md" {
   let source =
     #|x: |md

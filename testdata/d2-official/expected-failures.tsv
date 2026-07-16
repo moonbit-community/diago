@@ -1,16 +1,4 @@
 static/bespoke-d2/animated.d2	unsupported_indexed_edge_override	Semantic(edge map keys must be reserved keywords)
-static/bespoke-d2/c4-code.d2	unsupported_bracket_list	expected value in array
-static/d2/c4-legend.d2	imported_unsupported_bracket_list	ImportError(parse error in imported file 'c4-models'
-static/d2/c4-models.d2	unsupported_bracket_list	expected value in array
-static/d2/c4-tags2.d2	imported_unsupported_bracket_list	ImportError(parse error in imported file 'c4-models'
-static/d2/c4-tags3.d2	imported_unsupported_bracket_list	ImportError(parse error in imported file 'c4-models'
-static/d2/globs-filter-2.d2	unsupported_bracket_list	expected value in array
-static/d2/grid-connections.d2	unsupported_bracket_list	expected value in array
+static/d2/grid-connections.d2	unsupported_grid_coordinate_key	unexpected } in file map
 static/d2/icons-1.d2	unsupported_edge_icon	Semantic(edge map keys must be reserved keywords)
-static/d2/imports-classes-main.d2	unsupported_bracket_list	expected value in array
-static/d2/imports-vv-history.d2	imported_unsupported_bracket_list	ImportError(parse error in imported file 'users-current'
 static/d2/links.d2	unsupported_edge_link	Semantic(edge map keys must be reserved keywords)
-static/d2/multiple-classes.d2	unsupported_bracket_list	expected value in array
-static/d2/ordered-classes.d2	unsupported_bracket_list	expected value in array
-static/d2/users-current.d2	unsupported_bracket_list	expected value in array
-static/d2/vars-spread.d2	unsupported_bracket_list	expected value in array
