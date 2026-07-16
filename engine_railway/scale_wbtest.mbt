@@ -40,7 +40,7 @@ fn run_railway_scale_fixture(
 ) -> RailwayRoutingResult raise @engine_api.LayoutError {
   let graph = railway_scale_fixture(node_count)
   let config = @engine_api.LayoutConfig::new()
-  let placement = run_placement_stage(graph, config, Down)
+  let placement = run_placement_stage_with_adapter(graph, config, Down, Dagre)
   let hierarchy = run_hierarchy_layout_stage(graph, placement, config, Down)
   let problem = build_routing_problem(placement, hierarchy, config, Down)
   run_routing_stage(graph, problem)

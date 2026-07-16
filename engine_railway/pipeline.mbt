@@ -32,6 +32,12 @@ fn copy_passthrough_layout_data(
 const RAILWAY_CONTAINER_PADDING : Double = 30.0
 
 ///|
+priv enum RailwayPlacementAdapter {
+  Dagre
+  Sugiyama
+}
+
+///|
 priv struct RailwayNodeLayout {
   boxes : Map[String, @graph.Box]
   level_heights : Array[Double]

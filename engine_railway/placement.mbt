@@ -13,13 +13,41 @@
 // limitations under the License.
 
 ///|
-fn place_nodes(
+fn place_nodes_with_adapter(
+  adapter : RailwayPlacementAdapter,
   graph : @graph.GraphInput,
   config : @engine_api.LayoutConfig,
   direction : @engine_api.Direction,
   object_by_id : Map[String, @graph.ObjectInput],
 ) -> RailwayNodeLayout raise @engine_api.LayoutError {
-  place_nodes_dagre(graph, config, direction, object_by_id)
+  match adapter {
+    Dagre => place_nodes_dagre(graph, config, direction, object_by_id)
+    Sugiyama => place_nodes_sugiyama(graph, config, direction, object_by_id)
+  }
+}
+
+///|
+fn place_nodes_sugiyama(
+  graph : @graph.GraphInput,
+  config : @engine_api.LayoutConfig,
+  direction : @engine_api.Direction,
+  object_by_id : Map[String, @graph.ObjectInput],
+) -> RailwayNodeLayout raise @engine_api.LayoutError {
+  let problem = @layout_core.compile(graph) catch {
+    error => raise Unsupported(error.message())
+  }
+  let placement = @sugiyama.place(
+    problem,
+    fn(obj) { object_size_with_objects(obj, config, object_by_id) },
+    direction,
+    config.horizontal_spacing,
+    config.vertical_spacing,
+  )
+  {
+    boxes: raw_object_map(placement.boxes),
+    level_heights: placement.level_heights,
+    rank_by_id: raw_object_map(placement.rank_by_id),
+  }
 }
 
 ///|

@@ -18,11 +18,23 @@ fn layout_graph(
   config : @engine_api.LayoutConfig,
   direction : @engine_api.Direction,
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
+  layout_graph_with_placement_adapter(graph, config, direction, Dagre)
+}
+
+///|
+fn layout_graph_with_placement_adapter(
+  graph : @graph.GraphInput,
+  config : @engine_api.LayoutConfig,
+  direction : @engine_api.Direction,
+  adapter : RailwayPlacementAdapter,
+) -> @graph.LayoutPatch raise @engine_api.LayoutError {
   keep_legacy_railway_symbols_alive()
   if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_with_engine_metrics(graph, config)
   }
-  let placement = run_placement_stage(graph, config, direction)
+  let placement = run_placement_stage_with_adapter(
+    graph, config, direction, adapter,
+  )
   let hierarchy = run_hierarchy_layout_stage(
     graph, placement, config, direction,
   )
@@ -42,10 +54,11 @@ fn layout_graph(
 }
 
 ///|
-fn run_placement_stage(
+fn run_placement_stage_with_adapter(
   graph : @graph.GraphInput,
   config : @engine_api.LayoutConfig,
   direction : @engine_api.Direction,
+  adapter : RailwayPlacementAdapter,
 ) -> RailwayPlacementResult raise @engine_api.LayoutError {
   let (layout_input, object_by_id, parent_id_by_child_id) = build_railway_layout_input(
     graph,
@@ -58,7 +71,9 @@ fn run_placement_stage(
     id_to_idx.set(layout_input.objects[i].id, i)
   }
   ignore(reversed_set)
-  let node_layout = place_nodes(layout_input, config, direction, object_by_id)
+  let node_layout = place_nodes_with_adapter(
+    adapter, layout_input, config, direction, object_by_id,
+  )
   let boxes = node_layout.boxes
   let level_heights = node_layout.level_heights
   let depths = rank_array_for_layout(
@@ -559,6 +574,7 @@ fn sync_boxes_from_patch_railway(
 
 ///|
 fn keep_legacy_railway_symbols_alive() -> Unit {
+  ignore(Sugiyama)
   ignore(object_size)
   ignore(relax_layout_nodes_against_containers)
   ignore(spread_sibling_boxes_railway)

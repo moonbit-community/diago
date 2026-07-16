@@ -2332,7 +2332,7 @@ test "railway stages expose placement hierarchy and routing results" {
   graph.edges.push(@graph.EdgeInput::new(0, "a", "b", false, true))
   let config = @engine_api.LayoutConfig::new()
 
-  let placement = run_placement_stage(graph, config, Down)
+  let placement = run_placement_stage_with_adapter(graph, config, Down, Dagre)
   assert_true(placement.boxes.contains(@layout_core.ObjectId::new("a")))
   assert_true(placement.boxes.contains(@layout_core.ObjectId::new("b")))
   assert_true(placement.depths.length() == 2)
