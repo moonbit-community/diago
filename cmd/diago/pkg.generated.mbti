@@ -6,13 +6,6 @@ import {
 }
 
 // Values
-pub fn command_exec(String) -> Int
-
-pub fn command_exec_is_supported() -> Bool
-
-pub fn sleep_is_supported() -> Bool
-
-pub fn sleep_ms(Int) -> Unit
 
 // Errors
 

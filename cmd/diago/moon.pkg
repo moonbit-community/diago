@@ -15,13 +15,17 @@ import {
   "moonbitlang/x/sys",
   "moonbitlang/x/path",
   "moonbitlang/core/argparse",
+  "moonbitlang/core/buffer",
   "moonbitlang/core/debug",
+  "moonbitlang/async",
+  "moonbitlang/async/http",
+  "moonbitlang/async/io",
 }
+
+import {
+  "moonbitlang/async/socket",
+} for "wbtest"
 
 pkgtype(kind: "executable")
 
 supported_targets = "+native"
-
-options(
-  "native-stub": [ "exec_native.c" ],
-)

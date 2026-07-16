@@ -270,7 +270,6 @@ test "precedence: env layout overrides invalid vars config layout-engine" {
     theme_overrides=req.theme_overrides,
     dark_theme_overrides=req.dark_theme_overrides,
     scale=req.scale,
-    bundle=req.bundle,
     no_xml_tag=req.no_xml_tag,
     salt=req.salt,
     omit_version=req.omit_version,

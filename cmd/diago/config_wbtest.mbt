@@ -428,16 +428,7 @@ test "local image assets are bundled even when remote bundling is disabled" {
     #|  shape: image
     #|  icon: .diago_bundle_compile_local.svg
     #|}
-  let svg = compile_source(
-    source,
-    Svg,
-    None,
-    Some("."),
-    Dagre,
-    false,
-    None,
-    bundle=false,
-  ).unwrap()
+  let svg = compile_source(source, Svg, None, Some("."), Dagre, false, None).unwrap()
   remove_config_test_file(icon_path)
   assert_true(svg.contains("data:image/svg+xml;base64,"))
   assert_false(svg.contains(icon_path))
@@ -468,7 +459,6 @@ test "svg compile keeps output when local bundling reports an error" {
     Dagre,
     false,
     None,
-    bundle=false,
   ).unwrap()
   remove_config_test_file(ok_icon_path)
   @debug.assert_eq(

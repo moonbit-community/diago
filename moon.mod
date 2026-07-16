@@ -15,6 +15,7 @@ import {
   "dowdiness/js_engine@0.1.0",
   "Milky2018/moon_elk@0.1.14",
   "moonbit-community/moon_dagre@0.2.6",
+  "moonbitlang/async@0.20.1",
 }
 
 readme = "README.mbt.md"

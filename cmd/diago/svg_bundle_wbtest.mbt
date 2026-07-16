@@ -85,7 +85,7 @@ test "bundle local image keeps svg and reports invalid relative base path" {
 }
 
 ///|
-test "bundle remote duplicate url is fetched once per run" {
+async test "bundle remote duplicate url is fetched once per run" {
   reset_bundle_test_state()
   let url = "https://example.com/icon.svg"
   test_remote_fetch_ok_overrides[url] = (ascii_bytes(test_svg_payload), "")
@@ -103,7 +103,7 @@ test "bundle remote duplicate url is fetched once per run" {
 }
 
 ///|
-test "bundle remote cache reuses fetched image across runs when enabled" {
+async test "bundle remote cache reuses fetched image across runs when enabled" {
   reset_bundle_test_state()
   let url = "https://example.com/icon.svg"
   test_remote_fetch_ok_overrides[url] = (
@@ -124,7 +124,7 @@ test "bundle remote cache reuses fetched image across runs when enabled" {
 }
 
 ///|
-test "bundle remote image keeps svg and reports oversized response" {
+async test "bundle remote image keeps svg and reports oversized response" {
   reset_bundle_test_state()
   let url = "https://example.com/huge.bin"
   test_remote_fetch_ok_overrides[url] = (
@@ -143,7 +143,7 @@ test "bundle remote image keeps svg and reports oversized response" {
 }
 
 ///|
-test "bundle remote image keeps svg and reports fetch errors" {
+async test "bundle remote image keeps svg and reports fetch errors" {
   reset_bundle_test_state()
   let url = "https://example.com/error.svg"
   test_remote_fetch_error_overrides[url] = "expected status 200 but got 500 Internal Server Error"
@@ -159,22 +159,65 @@ test "bundle remote image keeps svg and reports fetch errors" {
 }
 
 ///|
-test "bundle remote image requires command execution support" {
-  if command_exec_is_supported() {
-    return
+async test "fetch remote image with async HTTP and redirects" {
+  @async.with_task_group() <| group => {
+    let server = @http.Server(@socket.Addr::parse("127.0.0.1:0"))
+    group.spawn_bg(no_wait=true) <| () => {
+      server.run_forever() <| ((request, _body, conn) => {
+        if request.path == "/redirect" {
+          conn.send_response(302, "Found", extra_headers={
+            "Location": "/icon.svg",
+          })
+        } else {
+          conn
+          ..send_response(200, "OK", extra_headers={
+            "Content-Type": "image/svg+xml",
+          })
+          .write(test_svg_payload)
+        }
+      })
+    }
+    let fetched = fetch_remote_image_bytes(
+      "http://127.0.0.1:\{server.addr.port()}/redirect",
+    )
+    match fetched {
+      Ok((bytes, content_type)) => {
+        @debug.assert_eq(bytes, ascii_bytes(test_svg_payload))
+        @debug.assert_eq(content_type, "image/svg+xml")
+      }
+      Err(message) => fail(message)
+    }
   }
-  let svg =
-    #|<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/icon.svg"/></svg>
-  let bundled = bundle_remote_svg_images(svg)
-  @debug.assert_eq(
-    bundled.error,
-    Some("failed to bundle remote images: [https://example.com/icon.svg]"),
-  )
-  @debug.assert_eq(bundled.svg, svg)
 }
 
 ///|
-test "bundle remote image preserves successful replacements when another fetch fails" {
+test "resolve remote image redirects" {
+  @debug.assert_eq(
+    resolve_remote_redirect(
+      "https://example.com/assets/icon.svg?size=1", "../shared/icon.svg",
+    ),
+    Ok("https://example.com/assets/../shared/icon.svg"),
+  )
+  @debug.assert_eq(
+    resolve_remote_redirect(
+      "https://example.com/assets/icon.svg", "/images/icon.svg",
+    ),
+    Ok("https://example.com/images/icon.svg"),
+  )
+  @debug.assert_eq(
+    resolve_remote_redirect(
+      "https://example.com/assets/icon.svg", "//cdn.example.com/icon.svg",
+    ),
+    Ok("https://cdn.example.com/icon.svg"),
+  )
+  @debug.assert_eq(
+    resolve_remote_redirect("https://example.com", "icon.svg"),
+    Ok("https://example.com/icon.svg"),
+  )
+}
+
+///|
+async test "bundle remote image preserves successful replacements when another fetch fails" {
   reset_bundle_test_state()
   let ok_url = "https://example.com/ok.svg"
   let bad_url = "https://example.com/error.svg"

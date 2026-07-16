@@ -48,3 +48,33 @@ test "render output plan writes normally when no warning exists" {
     _ => fail("expected non-svg output without warning to write normally")
   }
 }
+
+///|
+async test "render pipeline applies remote bundling only at CLI orchestration" {
+  reset_bundle_test_state()
+  let url = "https://example.com/icon.svg"
+  test_remote_fetch_ok_overrides[url] = (
+    ascii_bytes(test_svg_payload),
+    "image/svg+xml",
+  )
+  let request = parse_render(
+    ["diago", "render", "--bundle", "demo.d2"],
+    Map([]),
+  )
+  let source =
+    #|photo: {
+    #|  shape: image
+    #|  icon: https://example.com/icon.svg
+    #|}
+  let compiled = match compile_render_source(request, source, None) {
+    Ok(result) => result
+    Err(message) => {
+      reset_bundle_test_state()
+      fail(message)
+    }
+  }
+  assert_true(compiled.output.contains("data:image/svg+xml;base64,"))
+  assert_false(compiled.output.contains(url))
+  @debug.assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
+  reset_bundle_test_state()
+}

@@ -40,6 +40,12 @@ priv struct ImageTagBundleResult {
 let max_bundle_image_size : Int = 1 << 25
 
 ///|
+let max_remote_redirects : Int = 5
+
+///|
+let remote_fetch_timeout_ms : Int = 20_000
+
+///|
 let persistent_bundle_cache : Map[String, String] = Map([])
 
 ///|
@@ -62,11 +68,50 @@ fn bundle_local_svg_images(
 }
 
 ///|
-fn bundle_remote_svg_images(
+async fn bundle_remote_svg_images(
   svg : String,
   cache_images? : Bool = false,
 ) -> SvgBundleResult {
-  bundle_svg_images_in_scope(svg, None, Remote, cache_images)
+  let remote_fetches : Map[String, Result[(Bytes, String), String]] = Map([])
+  for source in collect_remote_image_sources(svg) {
+    let key = bundle_cache_key(source, None)
+    if lookup_persistent_bundle_cache(key, cache_images) is None {
+      remote_fetches[source] = fetch_remote_image_bytes(source)
+    }
+  }
+  bundle_svg_images_in_scope(svg, None, Remote, cache_images, remote_fetches~)
+}
+
+///|
+fn collect_remote_image_sources(svg : String) -> Array[String] {
+  let sources : Array[String] = []
+  let seen : Set[String] = Set([])
+  let mut cursor = 0
+  while cursor < svg.length() {
+    let image_start = match find_substring_from(svg, "<image", cursor) {
+      Some(i) => i
+      None => break
+    }
+    let image_end = match find_tag_end(svg, image_start + 6) {
+      Some(i) => i
+      None => break
+    }
+    let tag = slice_string(svg, image_start, image_end + 1)
+    match read_image_href(tag) {
+      Some(value) => {
+        let source = normalize_source_reference(
+          decode_xml_attr_entities(value).trim().to_owned(),
+        )
+        if is_http_source(source) && !seen.contains(source) {
+          seen.add(source)
+          sources.push(source)
+        }
+      }
+      None => ()
+    }
+    cursor = image_end + 1
+  }
+  sources
 }
 
 ///|
@@ -75,6 +120,7 @@ fn bundle_svg_images_in_scope(
   base_path : String?,
   scope : BundleScope,
   cache_images : Bool,
+  remote_fetches? : Map[String, Result[(Bytes, String), String]] = Map([]),
 ) -> SvgBundleResult {
   let cache : Array[(String, String)] = []
   let failed_cache : Array[(String, String)] = []
@@ -99,7 +145,7 @@ fn bundle_svg_images_in_scope(
     }
     let tag = slice_string(svg, image_start, image_end + 1)
     let bundled = bundle_image_tag(
-      tag, base_path, scope, cache, failed_cache, cache_images,
+      tag, base_path, scope, cache, failed_cache, cache_images, remote_fetches,
     )
     out.write_string(bundled.tag)
     match bundled.error_href {
@@ -119,6 +165,7 @@ fn bundle_image_tag(
   cache : Array[(String, String)],
   failed_cache : Array[(String, String)],
   cache_images : Bool,
+  remote_fetches : Map[String, Result[(Bytes, String), String]],
 ) -> ImageTagBundleResult {
   let href_raw = match read_image_href(tag) {
     Some(value) => value
@@ -147,7 +194,7 @@ fn bundle_image_tag(
           Some(uri)
         }
         None =>
-          match build_image_data_uri(normalized, base_path) {
+          match build_image_data_uri(normalized, base_path, remote_fetches) {
             Ok(v) => {
               cache.push((key, v))
               store_persistent_bundle_cache(key, v, cache_images)
@@ -339,13 +386,16 @@ fn store_persistent_bundle_cache(
 fn build_image_data_uri(
   source : String,
   base_path : String?,
+  remote_fetches : Map[String, Result[(Bytes, String), String]],
 ) -> Result[String, String] {
   let normalized = normalize_source_reference(source)
   let (bytes, mime_type) = if is_http_source(normalized) {
     let (remote_bytes, remote_content_type) = match
-      fetch_remote_image_bytes(normalized) {
-      Ok(v) => v
-      Err(e) => return Err(e)
+      remote_fetches.get(normalized) {
+      Some(Ok(v)) => v
+      Some(Err(e)) => return Err(e)
+      None =>
+        return Err("remote image '\{normalized}' was not prepared for bundling")
     }
     (
       remote_bytes,
@@ -422,81 +472,265 @@ fn resolve_bundle_mime_type(
 }
 
 ///|
-fn fetch_remote_image_bytes(url : String) -> Result[(Bytes, String), String] {
+async fn fetch_remote_image_bytes(
+  url : String,
+) -> Result[(Bytes, String), String] {
   match fetch_remote_image_bytes_override(url) {
     Some(result) => return result
     None => ()
   }
-  if !command_exec_is_supported() {
-    return Err(
-      "remote image bundling requires native command execution support",
-    )
+  for current = url, redirects = 0 {
+    let fetched = @async.with_timeout(remote_fetch_timeout_ms, () => {
+      let proxy = match remote_proxy_url(current) {
+        Some(proxy_url) => Some(@http.Client(proxy_url))
+        None => None
+      }
+      let (response, client) = @http.get_stream(
+        current,
+        headers={
+          "User-Agent": "diago/\{CLI_VERSION}",
+          "Accept": "image/svg+xml,image/*,*/*;q=0.8",
+        },
+        proxy?,
+      )
+      defer client.close()
+      let body = if response.code >= 200 && response.code < 300 {
+        read_remote_image_body(client, current)
+      } else {
+        Ok(b"")
+      }
+      (response, body)
+    }) catch {
+      e => return Err("failed to fetch image '\{current}': \{e}")
+    }
+    let (response, body) = fetched
+    if response.code >= 300 && response.code < 400 {
+      if redirects >= max_remote_redirects {
+        return Err("failed to fetch image '\{url}': too many redirects")
+      }
+      let location = match response.headers.get("location") {
+        Some(value) => value
+        None =>
+          return Err(
+            "failed to fetch image '\{current}': redirect response \{response.code} has no Location header",
+          )
+      }
+      let next = match resolve_remote_redirect(current, location) {
+        Ok(value) => value
+        Err(message) => return Err(message)
+      }
+      continue next, redirects + 1
+    }
+    if response.code < 200 || response.code >= 300 {
+      return Err(
+        "failed to fetch image '\{current}': HTTP \{response.code} \{response.reason}",
+      )
+    }
+    let bytes = match body {
+      Ok(value) => value
+      Err(message) => return Err(message)
+    }
+    let content_type = response.headers.get("content-type").unwrap_or("")
+    return Ok((bytes, content_type))
   }
-  if command_exec("command -v curl >/dev/null 2>&1") != 0 {
-    return Err("curl is required for remote image bundling")
+}
+
+///|
+async fn read_remote_image_body(
+  reader : &@io.Reader,
+  url : String,
+) -> Result[Bytes, String] {
+  let buffer = @buffer.Buffer(size_hint=4096)
+  while reader.read_some(max_len=64 * 1024) is Some(chunk) {
+    if buffer.length() + chunk.length() > max_bundle_image_size {
+      return Err(
+        "fetched image '\{url}' exceeds max size \{max_bundle_image_size} bytes",
+      )
+    }
+    buffer.write_bytes(chunk)
   }
-  let tmp_path = "/tmp/diago_bundle_" +
-    stable_string_hash(url).to_string() +
-    ".bin"
-  let header_path = "/tmp/diago_bundle_" +
-    stable_string_hash(url).to_string() +
-    ".headers"
-  bundle_remove_file_quiet(tmp_path)
-  bundle_remove_file_quiet(header_path)
-  let cmd = "curl -L --fail --silent --show-error --max-time 20 " +
-    "-H " +
-    bundle_shell_quote(
-      "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-    ) +
-    " -H " +
-    bundle_shell_quote(
-      "Accept: image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-    ) +
-    " -H " +
-    bundle_shell_quote("Accept-Language: en-US,en;q=0.9") +
-    " -H " +
-    bundle_shell_quote("Accept-Encoding: gzip, deflate, br") +
-    " -H " +
-    bundle_shell_quote("DNT: 1") +
-    " -H " +
-    bundle_shell_quote("Upgrade-Insecure-Requests: 1") +
-    " -H " +
-    bundle_shell_quote("Sec-Fetch-Dest: image") +
-    " -H " +
-    bundle_shell_quote("Sec-Fetch-Mode: no-cors") +
-    " -H " +
-    bundle_shell_quote("Sec-Fetch-Site: cross-site") +
-    " -D " +
-    bundle_shell_quote(header_path) +
-    " --output " +
-    bundle_shell_quote(tmp_path) +
-    " " +
-    bundle_shell_quote(url)
-  let exit_code = command_exec(cmd)
-  if exit_code != 0 {
-    bundle_remove_file_quiet(tmp_path)
-    bundle_remove_file_quiet(header_path)
-    return Err("failed to fetch image '\{url}' (curl exit code \{exit_code})")
+  Ok(buffer.to_bytes())
+}
+
+///|
+fn remote_proxy_url(url : String) -> String? {
+  if remote_url_bypasses_proxy(url) {
+    return None
   }
-  let bytes = @fs.read_file_to_bytes(tmp_path) catch {
-    e => {
-      bundle_remove_file_quiet(tmp_path)
-      bundle_remove_file_quiet(header_path)
-      return Err("failed to read fetched image '\{tmp_path}': \{e}")
+  let proxy = if url.to_lower().has_prefix("https://") {
+    first_non_empty_env([
+      "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy",
+    ])
+  } else {
+    first_non_empty_env(["HTTP_PROXY", "http_proxy"])
+  }
+  match proxy {
+    Some(value) =>
+      if value.contains("://") {
+        Some(value)
+      } else {
+        Some("http://" + value)
+      }
+    None => None
+  }
+}
+
+///|
+fn first_non_empty_env(names : Array[String]) -> String? {
+  for name in names {
+    match @sys.get_env_var(name) {
+      Some(value) if value.trim() != "" => return Some(value.trim().to_owned())
+      _ => ()
     }
   }
-  if bytes.length() > max_bundle_image_size {
-    bundle_remove_file_quiet(tmp_path)
-    bundle_remove_file_quiet(header_path)
-    return Err(
-      "fetched image '\{url}' exceeds max size \{max_bundle_image_size} bytes",
-    )
+  None
+}
+
+///|
+fn remote_url_bypasses_proxy(url : String) -> Bool {
+  let host = match remote_url_host(url) {
+    Some(value) => value.to_lower()
+    None => return false
   }
-  let header_text = @fs.read_file_to_string(header_path) catch { _ => "" }
-  let content_type = parse_last_content_type_header(header_text).unwrap_or("")
-  bundle_remove_file_quiet(tmp_path)
-  bundle_remove_file_quiet(header_path)
-  Ok((bytes, content_type))
+  if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+    return true
+  }
+  let no_proxy = match first_non_empty_env(["NO_PROXY", "no_proxy"]) {
+    Some(value) => value
+    None => return false
+  }
+  for raw_rule in no_proxy.split(",") {
+    let rule = raw_rule.trim().to_owned().to_lower()
+    if rule == "*" {
+      return true
+    }
+    if rule == "" {
+      continue
+    }
+    let host_rule = strip_proxy_rule_port(rule)
+    let suffix = if host_rule.has_prefix(".") {
+      host_rule
+    } else {
+      "." + host_rule
+    }
+    if host == host_rule || host.has_suffix(suffix) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn strip_proxy_rule_port(rule : String) -> String {
+  if rule.has_prefix("[") {
+    match rule.find("]") {
+      Some(end) => return slice_string(rule, 1, end)
+      None => return rule
+    }
+  }
+  match rule.find(":") {
+    Some(colon) => slice_string(rule, 0, colon)
+    None => rule
+  }
+}
+
+///|
+fn remote_url_host(url : String) -> String? {
+  let scheme_end = match url.find("://") {
+    Some(index) => index
+    None => return None
+  }
+  let authority_start = scheme_end + 3
+  let authority_end = find_url_authority_end(url, authority_start)
+  let authority = slice_string(url, authority_start, authority_end)
+  let mut host_start = 0
+  for i in 0..<authority.length() {
+    if char_at(authority, i) == '@' {
+      host_start = i + 1
+    }
+  }
+  let host_port = slice_string(authority, host_start, authority.length())
+  if host_port.has_prefix("[") {
+    match host_port.find("]") {
+      Some(end) => Some(slice_string(host_port, 1, end))
+      None => None
+    }
+  } else {
+    match host_port.find(":") {
+      Some(colon) => Some(slice_string(host_port, 0, colon))
+      None => Some(host_port)
+    }
+  }
+}
+
+///|
+fn resolve_remote_redirect(
+  current : String,
+  location_raw : String,
+) -> Result[String, String] {
+  let location = location_raw.trim().to_owned()
+  if location == "" {
+    return Err("failed to fetch image '\{current}': redirect Location is empty")
+  }
+  if is_http_source(location) {
+    return Ok(location)
+  }
+  let scheme_end = match current.find("://") {
+    Some(index) => index
+    None =>
+      return Err("failed to resolve redirect from invalid URL '\{current}'")
+  }
+  let scheme = slice_string(current, 0, scheme_end)
+  if location.has_prefix("//") {
+    return Ok(scheme + ":" + location)
+  }
+  let authority_start = scheme_end + 3
+  let authority_end = find_url_authority_end(current, authority_start)
+  let origin = slice_string(current, 0, authority_end)
+  if location.has_prefix("/") {
+    return Ok(origin + location)
+  }
+  let current_without_fragment = match current.find("#") {
+    Some(index) => slice_string(current, 0, index)
+    None => current
+  }
+  if location.has_prefix("?") {
+    let base = match current_without_fragment.find("?") {
+      Some(index) => slice_string(current_without_fragment, 0, index)
+      None => current_without_fragment
+    }
+    return Ok(base + location)
+  }
+  if location.has_prefix("#") {
+    return Ok(current_without_fragment + location)
+  }
+  let current_without_query = match current_without_fragment.find("?") {
+    Some(index) => slice_string(current_without_fragment, 0, index)
+    None => current_without_fragment
+  }
+  let mut slash = authority_end
+  for i in authority_end..<current_without_query.length() {
+    if char_at(current_without_query, i) == '/' {
+      slash = i
+    }
+  }
+  let base = if slash == current_without_query.length() {
+    current_without_query + "/"
+  } else {
+    slice_string(current_without_query, 0, slash + 1)
+  }
+  Ok(base + location)
+}
+
+///|
+fn find_url_authority_end(url : String, start : Int) -> Int {
+  for i in start..<url.length() {
+    let c = char_at(url, i)
+    if c == '/' || c == '?' || c == '#' {
+      return i
+    }
+  }
+  url.length()
 }
 
 ///|
@@ -593,29 +827,6 @@ fn detect_mime_type(source_hint : String, bytes : Bytes) -> String {
   } else {
     "application/octet-stream"
   }
-}
-
-///|
-fn parse_last_content_type_header(header_text : String) -> String? {
-  if header_text == "" {
-    return None
-  }
-  let lines = header_text.split("\n").collect()
-  if lines.length() == 0 {
-    return None
-  }
-  let mut i = lines.length() - 1
-  while true {
-    let line = lines[i].trim().to_owned()
-    if line.to_lower().has_prefix("content-type:") {
-      return Some(slice_string(line, 13, line.length()).trim().to_owned())
-    }
-    if i == 0 {
-      break
-    }
-    i = i - 1
-  }
-  None
 }
 
 ///|
@@ -779,36 +990,3 @@ fn char_at(s : String, i : Int) -> Char {
 }
 
 ///|
-fn stable_string_hash(s : String) -> Int {
-  let mut hash = 1315423911
-  for c in s {
-    hash = (hash * 131 + c.to_int()) ^ (hash >> 7)
-  }
-  if hash < 0 {
-    -hash
-  } else {
-    hash
-  }
-}
-
-///|
-fn bundle_shell_quote(s : String) -> String {
-  let sb = StringBuilder::new()
-  sb.write_char('\'')
-  for c in s {
-    if c == '\'' {
-      sb.write_string("'\"'\"'")
-    } else {
-      sb.write_char(c)
-    }
-  }
-  sb.write_char('\'')
-  sb.to_string()
-}
-
-///|
-fn bundle_remove_file_quiet(path : String) -> Unit {
-  @fs.remove_file(path) catch {
-    _ => ()
-  }
-}

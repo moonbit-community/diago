@@ -119,7 +119,7 @@ fn parse_dump_input_engine(name : String) -> DumpInputEngine? {
 }
 
 ///|
-fn main {
+async fn main {
   run_cli(@sys.get_cli_args(), @sys.get_env_vars())
 }
 
@@ -443,7 +443,6 @@ fn compile_source(
   theme_overrides? : @diagram.ThemeOverrides? = None,
   dark_theme_overrides? : @diagram.ThemeOverrides? = None,
   scale? : Double? = None,
-  bundle? : Bool = false,
   no_xml_tag? : Bool? = None,
   salt? : String? = None,
   omit_version? : Bool? = None,
@@ -464,7 +463,6 @@ fn compile_source(
       theme_overrides~,
       dark_theme_overrides~,
       scale~,
-      bundle~,
       no_xml_tag~,
       salt~,
       omit_version~,
@@ -494,7 +492,6 @@ fn compile_source_with_warnings(
   theme_overrides? : @diagram.ThemeOverrides? = None,
   dark_theme_overrides? : @diagram.ThemeOverrides? = None,
   scale? : Double? = None,
-  bundle? : Bool = false,
   no_xml_tag? : Bool? = None,
   salt? : String? = None,
   omit_version? : Bool? = None,
@@ -515,7 +512,6 @@ fn compile_source_with_warnings(
         theme_overrides~,
         dark_theme_overrides~,
         scale~,
-        bundle~,
         no_xml_tag~,
         salt~,
         omit_version~,
@@ -554,7 +550,6 @@ fn compile_diago_svg_with_warnings(
   theme_overrides? : @diagram.ThemeOverrides? = None,
   dark_theme_overrides? : @diagram.ThemeOverrides? = None,
   scale? : Double? = None,
-  bundle? : Bool = false,
   no_xml_tag? : Bool? = None,
   salt? : String? = None,
   omit_version? : Bool? = None,
@@ -582,18 +577,7 @@ fn compile_diago_svg_with_warnings(
     Ok(svg) => {
       let cache_images = bundle_cache_enabled()
       let local_result = bundle_local_svg_images(svg, base_path, cache_images~)
-      let remote_result = if bundle {
-        bundle_remote_svg_images(local_result.svg, cache_images~)
-      } else {
-        { svg: local_result.svg, error: None }
-      }
-      Ok({
-        output: remote_result.svg,
-        warning: combine_compilation_warning(
-          local_result.error,
-          remote_result.error,
-        ),
-      })
+      Ok({ output: local_result.svg, warning: local_result.error })
     }
     Err(err) => Err(err)
   }

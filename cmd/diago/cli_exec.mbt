@@ -16,7 +16,7 @@
 const CLI_VERSION : String = "0.2.5"
 
 ///|
-fn run_cli(raw_args : Array[String], env : Map[String, String]) -> Unit {
+async fn run_cli(raw_args : Array[String], env : Map[String, String]) -> Unit {
   let request = match parse_cli_request(raw_args, env) {
     Ok(req) => req
     Err(err) => {
@@ -35,7 +35,7 @@ fn run_cli(raw_args : Array[String], env : Map[String, String]) -> Unit {
 }
 
 ///|
-fn execute_cli_request(request : CliRequest) -> Result[Unit, String] {
+async fn execute_cli_request(request : CliRequest) -> Result[Unit, String] {
   match request.command {
     Render =>
       match request.render {
@@ -74,7 +74,7 @@ fn execute_cli_request(request : CliRequest) -> Result[Unit, String] {
 }
 
 ///|
-fn execute_render(request : RenderRequest) -> Result[Unit, String] {
+async fn execute_render(request : RenderRequest) -> Result[Unit, String] {
   if request.watch {
     execute_render_watch(request)
   } else {
@@ -83,7 +83,7 @@ fn execute_render(request : RenderRequest) -> Result[Unit, String] {
 }
 
 ///|
-fn execute_render_once(request : RenderRequest) -> Result[Unit, String] {
+async fn execute_render_once(request : RenderRequest) -> Result[Unit, String] {
   if request.from_stdin {
     let source = @fs.read_file_to_string("/dev/stdin") catch {
       e => return Err("Error reading from stdin: \{e}")
@@ -121,56 +121,71 @@ fn normalize_output_target(output_path : String?) -> String? {
 }
 
 ///|
-fn compile_render_source(
+async fn compile_render_source(
   request : RenderRequest,
   source : String,
   base_path : String?,
 ) -> Result[CompiledSourceResult, String] {
-  if request.output_mode == Svg {
-    return compile_source_with_warnings(
-      source,
-      request.output_mode,
-      request.theme_name,
-      base_path,
-      request.layout_engine,
-      request.layout_explicit,
-      request.target_spec,
-      dark_theme_id=request.dark_theme_id,
-      sketch=request.sketch,
-      pad=request.pad,
-      center=request.center,
-      theme_overrides=request.theme_overrides,
-      dark_theme_overrides=request.dark_theme_overrides,
-      scale=request.scale,
-      bundle=request.bundle,
-      no_xml_tag=request.no_xml_tag,
-      salt=request.salt,
-      omit_version=request.omit_version,
-    )
+  let compiled = if request.output_mode == Svg {
+    match
+      compile_source_with_warnings(
+        source,
+        request.output_mode,
+        request.theme_name,
+        base_path,
+        request.layout_engine,
+        request.layout_explicit,
+        request.target_spec,
+        dark_theme_id=request.dark_theme_id,
+        sketch=request.sketch,
+        pad=request.pad,
+        center=request.center,
+        theme_overrides=request.theme_overrides,
+        dark_theme_overrides=request.dark_theme_overrides,
+        scale=request.scale,
+        no_xml_tag=request.no_xml_tag,
+        salt=request.salt,
+        omit_version=request.omit_version,
+      ) {
+      Ok(result) => result
+      Err(err) => return Err(err)
+    }
+  } else {
+    match
+      compile_source(
+        source,
+        request.output_mode,
+        request.theme_name,
+        base_path,
+        request.layout_engine,
+        request.layout_explicit,
+        request.target_spec,
+        dark_theme_id=request.dark_theme_id,
+        sketch=request.sketch,
+        pad=request.pad,
+        center=request.center,
+        theme_overrides=request.theme_overrides,
+        dark_theme_overrides=request.dark_theme_overrides,
+        scale=request.scale,
+        no_xml_tag=request.no_xml_tag,
+        salt=request.salt,
+        omit_version=request.omit_version,
+      ) {
+      Ok(output) => { output, warning: None }
+      Err(err) => return Err(err)
+    }
   }
-  match
-    compile_source(
-      source,
-      request.output_mode,
-      request.theme_name,
-      base_path,
-      request.layout_engine,
-      request.layout_explicit,
-      request.target_spec,
-      dark_theme_id=request.dark_theme_id,
-      sketch=request.sketch,
-      pad=request.pad,
-      center=request.center,
-      theme_overrides=request.theme_overrides,
-      dark_theme_overrides=request.dark_theme_overrides,
-      scale=request.scale,
-      bundle=request.bundle,
-      no_xml_tag=request.no_xml_tag,
-      salt=request.salt,
-      omit_version=request.omit_version,
-    ) {
-    Ok(output) => Ok({ output, warning: None })
-    Err(err) => Err(err)
+  if request.output_mode == Svg && request.bundle {
+    let remote = bundle_remote_svg_images(
+      compiled.output,
+      cache_images=bundle_cache_enabled(),
+    )
+    Ok({
+      output: remote.svg,
+      warning: combine_compilation_warning(compiled.warning, remote.error),
+    })
+  } else {
+    Ok(compiled)
   }
 }
 
@@ -230,10 +245,7 @@ fn normalize_input_path(input_path : String) -> String {
 }
 
 ///|
-fn execute_render_watch(request : RenderRequest) -> Result[Unit, String] {
-  if !sleep_is_supported() {
-    return Err("watch mode is not supported on this target.")
-  }
+async fn execute_render_watch(request : RenderRequest) -> Result[Unit, String] {
   if request.from_stdin {
     return Err("--watch cannot be used with --stdin.")
   }
@@ -273,7 +285,7 @@ fn execute_render_watch(request : RenderRequest) -> Result[Unit, String] {
   )
 
   while true {
-    sleep_ms(request.watch_interval_ms)
+    @async.sleep(request.watch_interval_ms)
     let maybe_source = Some(@fs.read_file_to_string(input)) catch {
       e => {
         let message = "Error reading file '\{input}': \{e}"
