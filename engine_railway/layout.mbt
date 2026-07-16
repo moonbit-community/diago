@@ -20,7 +20,7 @@ fn layout_graph(
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
   keep_legacy_railway_symbols_alive()
   if graph.root.shape_type == SequenceDiagram {
-    return layout_sequence_diagram_railway(graph, config)
+    return layout_sequence_with_engine_metrics(graph, config)
   }
   let patch = @graph.LayoutPatch::new()
   copy_passthrough_layout_data(patch, graph)
@@ -154,6 +154,21 @@ fn layout_graph(
     lane_plan.lane_by_edge,
   )
   patch
+}
+
+///|
+fn layout_sequence_with_engine_metrics(
+  graph : @graph.GraphInput,
+  config : @engine_api.LayoutConfig,
+) -> @graph.LayoutPatch {
+  let object_by_id : Map[String, @graph.ObjectInput] = Map([])
+  object_by_id[graph.root.id] = graph.root
+  for obj in graph.objects {
+    object_by_id[obj.id] = obj
+  }
+  @layout_sequence.layout(graph, fn(obj) {
+    object_size_with_objects(obj, config, object_by_id)
+  })
 }
 
 ///|
