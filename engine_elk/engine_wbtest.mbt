@@ -74,3 +74,15 @@ test "constant near place shifts down for outside-top labels like the reference"
   @debug.assert_eq(adjusted_pos.0, plain_pos.0)
   @debug.assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
 }
+
+///|
+test "elk edge ids preserve quoted syntax path segments" {
+  let quoted = @graph.EdgeInput::new(0, "\"a.b\"", "c", false, true)
+  let nested = @graph.EdgeInput::new(1, "a.b", "c", false, true)
+  @debug.assert_eq(d2_edge_abs_id(quoted, 0), "(\"a.b\" -> c)[0]")
+  @debug.assert_eq(d2_edge_abs_id(nested, 0), "(a.b -> c)[0]")
+  assert_true(
+    d2_edge_abs_id(quoted, 0) != d2_edge_abs_id(nested, 0),
+    msg="quoted-dot and nested edges need distinct ELK ids",
+  )
+}

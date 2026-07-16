@@ -6003,14 +6003,7 @@ fn d2_edge_abs_id(edge : @graph.EdgeInput, repeat_index : Int) -> String {
 
 ///|
 fn d2_split_abs_id_parts(id : String) -> Array[String] {
-  let out : Array[String] = []
-  if id == "" {
-    return out
-  }
-  for part in id.split(".") {
-    out.push(part.to_owned())
-  }
-  out
+  @graph.split_syntax_path(id)
 }
 
 ///|
