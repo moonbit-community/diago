@@ -80,6 +80,8 @@ priv struct RailwayRoutingProblem {
 ///|
 priv struct RailwayRoutingResult {
   patch : @graph.LayoutPatch
+  routing_passes : Int
+  title_collision_score : Int
 }
 
 ///|

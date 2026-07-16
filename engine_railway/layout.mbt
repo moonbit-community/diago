@@ -29,7 +29,16 @@ fn layout_graph(
   let routing_problem = build_routing_problem(
     placement, hierarchy, config, direction,
   )
-  run_routing_stage(graph, routing_problem).patch
+  let routing = run_routing_stage(graph, routing_problem)
+  if routing.routing_passes < 1 || routing.routing_passes > 2 {
+    raise Unsupported(
+      "railway routing used an invalid pass count: \{routing.routing_passes}",
+    )
+  }
+  if routing.title_collision_score < 0 {
+    raise Unsupported("railway routing produced an invalid title score")
+  }
+  routing.patch
 }
 
 ///|
@@ -178,19 +187,44 @@ fn run_routing_stage(
   graph : @graph.GraphInput,
   problem : RailwayRoutingProblem,
 ) -> RailwayRoutingResult raise @engine_api.LayoutError {
-  route_edges_railway(problem, [])
   recompute_container_label_boxes_railway(problem.patch, graph)
-  let reserved_label_boxes = collect_reserved_container_label_boxes_railway(
+  let reserved_title_boxes = collect_reserved_container_label_boxes_railway(
     problem.patch,
     graph,
   )
-  route_edges_railway(problem, reserved_label_boxes)
+  route_edges_railway(problem, reserved_title_boxes)
   recompute_container_label_boxes_railway(problem.patch, graph)
-  let final_reserved_label_boxes = collect_reserved_container_label_boxes_railway(
+  let mut routing_passes = 1
+  let mut title_collision_score = container_title_route_collision_score_railway(
     problem.patch,
     graph,
   )
-  route_edges_railway(problem, final_reserved_label_boxes)
+  if title_collision_score > 0 {
+    let first_routes = clone_edge_routes_railway(problem.patch.edges)
+    let first_title_boxes = clone_node_label_boxes_railway(
+      problem.patch.node_labels,
+    )
+    let corrected_title_boxes = collect_reserved_container_label_boxes_railway(
+      problem.patch,
+      graph,
+    )
+    route_edges_railway(problem, corrected_title_boxes)
+    recompute_container_label_boxes_railway(problem.patch, graph)
+    routing_passes = 2
+    let corrected_score = container_title_route_collision_score_railway(
+      problem.patch,
+      graph,
+    )
+    if corrected_score < title_collision_score {
+      title_collision_score = corrected_score
+    } else {
+      restore_edge_routes_railway(problem.patch.edges, first_routes)
+      restore_node_label_boxes_railway(
+        problem.patch.node_labels,
+        first_title_boxes,
+      )
+    }
+  }
   recompute_edge_label_boxes(
     problem.patch,
     graph,
@@ -198,7 +232,78 @@ fn run_routing_stage(
     problem.config,
     problem.lane_by_edge,
   )
-  { patch: problem.patch }
+  { patch: problem.patch, routing_passes, title_collision_score }
+}
+
+///|
+fn clone_edge_routes_railway(
+  routes : Map[Int, Array[@graph.Point]],
+) -> Map[Int, Array[@graph.Point]] {
+  let cloned : Map[Int, Array[@graph.Point]] = Map([])
+  for edge_index, route in routes {
+    cloned[edge_index] = route.copy()
+  }
+  cloned
+}
+
+///|
+fn restore_edge_routes_railway(
+  routes : Map[Int, Array[@graph.Point]],
+  saved : Map[Int, Array[@graph.Point]],
+) -> Unit {
+  routes.clear()
+  for edge_index, route in saved {
+    routes[edge_index] = route.copy()
+  }
+}
+
+///|
+fn clone_node_label_boxes_railway(
+  labels : Map[String, @graph.Box],
+) -> Map[String, @graph.Box] {
+  let cloned : Map[String, @graph.Box] = Map([])
+  for object_id, box in labels {
+    cloned[object_id] = box
+  }
+  cloned
+}
+
+///|
+fn restore_node_label_boxes_railway(
+  labels : Map[String, @graph.Box],
+  saved : Map[String, @graph.Box],
+) -> Unit {
+  labels.clear()
+  for object_id, box in saved {
+    labels[object_id] = box
+  }
+}
+
+///|
+fn container_title_route_collision_score_railway(
+  patch : @graph.LayoutPatch,
+  graph : @graph.GraphInput,
+) -> Int {
+  let container_ids : Map[String, Bool] = Map([])
+  for obj in graph.objects {
+    if is_layout_container_candidate(obj) {
+      container_ids[obj.id] = true
+    }
+  }
+  let mut collisions = 0
+  for object_id, label_box in patch.node_labels {
+    if !container_ids.contains(object_id) {
+      continue
+    }
+    for _, route in patch.edges {
+      for i in 1..<route.length() {
+        if segment_intersects_box(route[i - 1], route[i], label_box) {
+          collisions = collisions + 1
+        }
+      }
+    }
+  }
+  collisions
 }
 
 ///|

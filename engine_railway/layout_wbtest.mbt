@@ -2344,6 +2344,8 @@ test "railway stages expose placement hierarchy and routing results" {
   let problem = build_routing_problem(placement, hierarchy, config, Down)
   let result = run_routing_stage(graph, problem)
   assert_true(result.patch.edges.get(0).unwrap_or([]).length() >= 2)
+  assert_true(result.routing_passes >= 1 && result.routing_passes <= 2)
+  assert_true(result.title_collision_score >= 0)
 }
 
 ///|
