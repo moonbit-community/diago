@@ -101,3 +101,14 @@ test "diagram scope class follows diagram hash id instead of svg config font set
     diagram.hash_id(Some("salt")),
   )
 }
+
+///|
+test "svg identity formatting preserves quoted syntax paths" {
+  @debug.assert_eq(d2_output_abs_id("\"a.b\""), "\"a.b\"")
+  @debug.assert_eq(d2_output_abs_id("a.b"), "a.b")
+  @debug.assert_eq(d2_output_abs_id("outer.\"a.b\""), "outer.\"a.b\"")
+  assert_true(
+    d2_shape_wrapper_class("\"a.b\"") != d2_shape_wrapper_class("a.b"),
+    msg="quoted-dot and nested identities need distinct SVG wrapper classes",
+  )
+}

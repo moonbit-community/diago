@@ -1544,20 +1544,14 @@ fn d2_arrow_string(edge : Connection) -> String {
 
 ///|
 fn d2_split_abs_id(id : String) -> Array[String] {
-  let parts : Array[String] = []
-  if id != "" {
-    for part in id.split(".") {
-      parts.push(part.to_owned())
-    }
-  }
-  parts
+  @graph.split_syntax_path(id)
 }
 
 ///|
 fn d2_output_abs_id_parts(id : String) -> Array[String] {
   let parts : Array[String] = []
   for raw_part in d2_split_abs_id(id) {
-    parts.push(d2_format_key_segment(raw_part))
+    parts.push(d2_format_key_segment(@graph.display_key_segment(raw_part)))
   }
   parts
 }

@@ -65,6 +65,32 @@ fn compile_to_diagram(
 }
 
 ///|
+test "quoted syntax identities survive diagram and svg rendering" {
+  let source =
+    #|"a.b"
+    #|a: {
+    #|  b
+    #|}
+    #|"a.b" -> a.b
+  guard compile_to_diagram(source, Down) is Ok(diagram) else {
+    fail("expected syntax-distinct diagram")
+  }
+  guard diagram.find_object("\"a.b\"") is Some(quoted) else {
+    fail("expected quoted-dot shape")
+  }
+  guard diagram.find_object("a.b") is Some(nested) else {
+    fail("expected nested shape")
+  }
+  @debug.assert_eq(quoted.id, "\"a.b\"")
+  @debug.assert_eq(nested.id, "a.b")
+  assert_true(quoted.id != nested.id, msg="diagram shape identities")
+  let rendered = @renderer_svg.render(diagram, @renderer_svg.SvgConfig::new()) catch {
+    e => fail("SVG render error: \{e}")
+  }
+  assert_true(rendered.length() > 0, msg="rendered SVG")
+}
+
+///|
 /// Compile diago source to laid-out render graph (for position testing)
 fn compile_to_graph(
   source : String,
