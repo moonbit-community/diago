@@ -1147,7 +1147,6 @@ fn spread_sibling_boxes_railway(
       Some(v) => v
       None => continue
     }
-    let root_only_containers = parent_id == root_key
     let sibling_ids : Array[String] = []
     for child_id in parent_children {
       if !node_boxes.contains(child_id) {
@@ -1155,12 +1154,10 @@ fn spread_sibling_boxes_railway(
       }
       match object_by_id.get(child_id) {
         Some(obj) =>
-          if obj.shape_type != Class &&
-            obj.shape_type != SqlTable &&
-            (!root_only_containers || is_layout_container_candidate(obj)) {
+          if obj.shape_type != Class && obj.shape_type != SqlTable {
             sibling_ids.push(child_id)
           }
-        None => if !root_only_containers { sibling_ids.push(child_id) }
+        None => sibling_ids.push(child_id)
       }
     }
     if sibling_ids.length() <= 1 {
@@ -1194,6 +1191,43 @@ fn spread_sibling_boxes_railway(
       ),
     )
   }
+}
+
+///|
+fn spread_root_sibling_boxes_railway(
+  node_boxes : Map[String, @graph.Box],
+  graph : @graph.GraphInput,
+  object_by_id : Map[String, @graph.ObjectInput],
+  parent_id_by_child_id : Map[String, String],
+  direction : @engine_api.Direction,
+  config : @engine_api.LayoutConfig,
+) -> Unit {
+  let sibling_ids : Array[String] = []
+  let mut has_container = false
+  for obj in graph.objects {
+    if parent_id_by_child_id.contains(obj.id) ||
+      !node_boxes.contains(obj.id) ||
+      obj.shape_type == Class ||
+      obj.shape_type == SqlTable {
+      continue
+    }
+    sibling_ids.push(obj.id)
+    if is_layout_container_candidate(obj) {
+      has_container = true
+    }
+  }
+  if !has_container || sibling_ids.length() <= 1 {
+    return
+  }
+  ignore(
+    spread_sibling_subtrees_once_railway(
+      sibling_ids,
+      node_boxes,
+      object_by_id,
+      direction,
+      @cmp.maximum(12.0, config.edge_padding),
+    ),
+  )
 }
 
 ///|

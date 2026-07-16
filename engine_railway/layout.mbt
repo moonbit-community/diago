@@ -367,6 +367,9 @@ fn layout_hierarchy_railway(
     fit_container_boxes_in_map_railway(
       boxes, graph, object_by_id, parent_id_by_child_id, container_padding,
     )
+    spread_root_sibling_boxes_railway(
+      boxes, graph, object_by_id, parent_id_by_child_id, direction, config,
+    )
   }
 }
 
