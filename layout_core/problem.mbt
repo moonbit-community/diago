@@ -251,5 +251,9 @@ fn canonicalize_edge(edge : @graph.EdgeInput) -> @graph.EdgeInput {
     src_id_syntax=src_id,
     dst_id_syntax=dst_id,
     references=edge.references,
+    icon=edge.icon,
+    icon_position=edge.icon_position,
+    icon_border_radius=edge.icon_border_radius,
+    link=edge.link,
   )
 }

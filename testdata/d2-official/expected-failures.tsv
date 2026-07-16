@@ -1,4 +1,2 @@
 static/bespoke-d2/animated.d2	unsupported_indexed_edge_override	Semantic(edge map keys must be reserved keywords)
 static/d2/grid-connections.d2	unsupported_grid_coordinate_key	unexpected } in file map
-static/d2/icons-1.d2	unsupported_edge_icon	Semantic(edge map keys must be reserved keywords)
-static/d2/links.d2	unsupported_edge_link	Semantic(edge map keys must be reserved keywords)

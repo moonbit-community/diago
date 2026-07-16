@@ -18,25 +18,23 @@ element.
 
 | Engine | Passed | Expected failures | Unexpected failures |
 | --- | ---: | ---: | ---: |
-| Dagre | 183 | 4 | 0 |
-| ELK | 183 | 4 | 0 |
-| Railway | 183 | 4 | 0 |
-| Total executions | 549 | 12 | 0 |
+| Dagre | 185 | 2 | 0 |
+| ELK | 185 | 2 | 0 |
+| Railway | 185 | 2 | 0 |
+| Total executions | 555 | 6 | 0 |
 
-All three engines fail on exactly the same four inputs with the same
+All three engines fail on exactly the same two inputs with the same
 diagnostics. The failures occur during parsing or graph compilation, before
 layout engine dispatch. There are no additional engine-specific failures in
 this corpus.
 
 ## Failure classification
 
-The four failing inputs belong to four concrete compatibility categories.
+The two failing inputs belong to two concrete compatibility categories.
 
 | Category | Files | Stage | Root cause |
 | --- | ---: | --- | --- |
 | Grid coordinate keys | 1 | Parser | Commas terminate normal key paths, so D2 grid coordinates such as `0,0` are not yet recognized as grid cell identifiers. |
-| Edge `icon` property | 1 | Graph compilation | Object icons are supported, but `icon` is rejected inside an edge map. |
-| Edge `link` property | 1 | Graph compilation | Object links are supported, but `link` is rejected inside an edge map. |
 | Indexed edge override | 1 | Graph compilation | Scenario updates such as `(a -> b)[0].style.opacity` are parsed as edge updates but rejected by the graph semantic layer. |
 
 ## Resolved bracket-list compatibility
@@ -58,29 +56,37 @@ The change made 12 previously failing official fixtures pass. The remaining
 those arrays began parsing, its separate grid coordinate-key incompatibility
 became visible.
 
+## Resolved edge icon and link compatibility
+
+Edge maps now carry `icon` and `link` through the exporter, backend-neutral
+graph model, all layout engines, render-ready diagram, JSON output, and SVG
+renderer. Connection icons support D2's fixed 32-pixel size, automatic
+placement beside labels, `icon.near`, and `icon.style.border-radius`.
+Connection links wrap ordinary text labels using SVG anchors, matching the
+official renderer.
+
+This makes the official `static/d2/icons-1.d2` and `static/d2/links.d2`
+fixtures pass through Dagre, ELK, and Railway.
+
 ### Remaining failure fixtures
 
 - `static/d2/grid-connections.d2`: grid coordinate keys;
-- `static/d2/icons-1.d2`: edge `icon`;
-- `static/d2/links.d2`: edge `link`;
 - `static/bespoke-d2/animated.d2`: indexed edge style updates inside a
   scenario.
 
-The last three currently produce the generic graph diagnostic
-`Semantic(edge map keys must be reserved keywords)`. The identical diagnostic
-does not mean they are one feature: each requires a different addition to the
-edge semantic model.
+The indexed edge override currently produces the graph diagnostic
+`Semantic(edge map keys must be reserved keywords)`.
 
 ## Follow-up issues
 
 - [#18: Support D2 bracket-list syntax](https://github.com/moonbit-community/diago/issues/18) (resolved)
-- [#19: Support icon and link properties on D2 edges](https://github.com/moonbit-community/diago/issues/19)
+- [#19: Support icon and link properties on D2 edges](https://github.com/moonbit-community/diago/issues/19) (resolved)
 - [#20: Support indexed edge overrides in scenarios](https://github.com/moonbit-community/diago/issues/20)
 - [#21: Support D2 grid coordinate keys](https://github.com/moonbit-community/diago/issues/21)
 
 ## Regression policy
 
-The checked-in `expected-failures.tsv` records all four known failures and an
+The checked-in `expected-failures.tsv` records both known failures and an
 expected diagnostic fragment. The runner treats them as `xfail`.
 
 The run fails when:

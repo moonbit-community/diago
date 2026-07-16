@@ -308,6 +308,10 @@ pub struct EdgeModel {
   src_anchor : String?
   dst_anchor : String?
   label : String
+  icon : String?
+  icon_position : String?
+  icon_border_radius : Double?
+  link : String?
   style : StyleModel
   route : Array[Point]
   bend_points : Array[Point]?
@@ -355,6 +359,10 @@ pub fn EdgeModel::new(
     src_anchor: None,
     dst_anchor: None,
     label: "",
+    icon: None,
+    icon_position: None,
+    icon_border_radius: None,
+    link: None,
     style: StyleModel::new(),
     route: [],
     bend_points: None,

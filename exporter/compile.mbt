@@ -179,6 +179,10 @@ priv struct Edge {
   mut src_anchor : String?
   mut dst_anchor : String?
   mut label : String
+  mut icon : String?
+  mut icon_position : String?
+  mut icon_border_radius : Double?
+  mut link : String?
   style : Style
   mut bend_points : Array[Point]?
   is_curve : Bool
@@ -224,6 +228,10 @@ fn Edge::new(
     src_anchor: None,
     dst_anchor: None,
     label: "",
+    icon: None,
+    icon_position: None,
+    icon_border_radius: None,
+    link: None,
     style: Style::new(),
     bend_points: None,
     is_curve: false,
@@ -620,6 +628,10 @@ fn edge_to_input(edge : Edge) -> @graph.EdgeInput {
     src_id_syntax=edge.src_id_syntax,
     dst_id_syntax=edge.dst_id_syntax,
     references~,
+    icon=edge.icon,
+    icon_position=edge.icon_position,
+    icon_border_radius=edge.icon_border_radius,
+    link=edge.link,
   )
 }
 
@@ -2676,6 +2688,15 @@ fn process_edge_map(
       None => ()
     }
   }
+  if edge_map.get_field("icon") is Some(icon_field) {
+    process_edge_icon_field(edge, icon_field)
+  }
+  if edge_map.get_field("link") is Some(link_field) {
+    match link_field.primary {
+      Some(link) => edge.link = Some(link.to_string())
+      None => ()
+    }
+  }
   match edge_map.get_field("style") {
     Some(f) =>
       match f.composite {
@@ -2736,6 +2757,54 @@ fn process_edge_map(
     if !points.is_empty() {
       edge.bend_points = Some(points)
     }
+  }
+  validate_edge_link_safety(edge)
+}
+
+///|
+fn process_edge_icon_field(
+  edge : Edge,
+  field : @ir.Field,
+) -> Unit raise GraphCompileError {
+  match field.primary {
+    Some(icon) => edge.icon = Some(icon.to_string())
+    None => ()
+  }
+  match field.map() {
+    Some(icon_map) =>
+      for nested in icon_map.fields {
+        let name = nested.name.to_lower()
+        if name == "near" && nested.name_is_unquoted() {
+          match nested.primary {
+            Some(value) =>
+              if value.is_null() {
+                edge.icon_position = None
+              } else {
+                match d2_target_label_position(value.to_string()) {
+                  Some(position) => edge.icon_position = Some(position)
+                  None => raise Semantic("invalid \"near\" field")
+                }
+              }
+            None => raise Semantic("invalid \"near\" field")
+          }
+        } else if name == "style" && nested.name_is_unquoted() {
+          match nested.map() {
+            Some(style_map) => {
+              validate_style_keys(style_map)
+              let icon_style = Style::new()
+              process_style(icon_style, style_map)
+              match icon_style.border_radius {
+                Some(radius) => edge.icon_border_radius = Some(radius)
+                None => ()
+              }
+            }
+            None => ()
+          }
+        } else {
+          raise Semantic("unexpected field \{nested.name}")
+        }
+      }
+    None => ()
   }
 }
 
@@ -2830,7 +2899,7 @@ fn is_edge_reserved_keyword_or_class(name : String) -> Bool {
 fn is_edge_reserved_keyword(name : String) -> Bool {
   let keywords = [
     "style", "source-arrowhead", "target-arrowhead", "source-anchor", "target-anchor",
-    "bend-points", "route", "label",
+    "bend-points", "route", "label", "icon", "link",
   ]
   keywords.contains(name.to_lower())
 }
@@ -2916,6 +2985,19 @@ fn validate_link_safety(obj : Object) -> Unit raise GraphCompileError {
             }
           None => ()
         }
+      }
+    None => ()
+  }
+}
+
+///|
+fn validate_edge_link_safety(edge : Edge) -> Unit raise GraphCompileError {
+  match edge.link {
+    Some(link) =>
+      if is_http_url(link) && is_http_url(edge.label) {
+        raise Semantic(
+          "Label cannot be set to URL when link is also set (for security)",
+        )
       }
     None => ()
   }

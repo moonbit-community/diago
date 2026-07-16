@@ -1867,6 +1867,10 @@ fn clone_edge_with_layout(
     src_id_syntax=edge.src_id_syntax,
     dst_id_syntax=edge.dst_id_syntax,
     references=edge.references,
+    icon=edge.icon,
+    icon_position=edge.icon_position,
+    icon_border_radius=edge.icon_border_radius,
+    link=edge.link,
   )
 }
 

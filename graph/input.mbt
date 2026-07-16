@@ -558,6 +558,10 @@ pub struct EdgeInput {
   src_anchor : String?
   dst_anchor : String?
   label : String
+  icon : String?
+  icon_position : String?
+  icon_border_radius : Double?
+  link : String?
   style : StyleInput
   route : Array[Point]
   bend_points : Array[Point]?
@@ -605,6 +609,10 @@ pub fn EdgeInput::new(
     src_anchor: None,
     dst_anchor: None,
     label: "",
+    icon: None,
+    icon_position: None,
+    icon_border_radius: None,
+    link: None,
     style: StyleInput::new(),
     route: [],
     bend_points: None,
@@ -645,6 +653,10 @@ pub fn EdgeInput::from_parts(
   src_id_syntax? : String = src_id,
   dst_id_syntax? : String = dst_id,
   references? : Array[EdgeReference] = [],
+  icon? : String? = None,
+  icon_position? : String? = None,
+  icon_border_radius? : Double? = None,
+  link? : String? = None,
 ) -> EdgeInput {
   {
     index,
@@ -664,6 +676,10 @@ pub fn EdgeInput::from_parts(
     src_anchor,
     dst_anchor,
     label,
+    icon,
+    icon_position,
+    icon_border_radius,
+    link,
     style,
     route,
     bend_points,
@@ -1157,6 +1173,10 @@ pub fn EdgeInput::from_model(edge : EdgeModel) -> EdgeInput {
     src_id_syntax=edge.src_id_syntax,
     dst_id_syntax=edge.dst_id_syntax,
     references~,
+    icon=edge.icon,
+    icon_position=edge.icon_position,
+    icon_border_radius=edge.icon_border_radius,
+    link=edge.link,
   )
 }
 

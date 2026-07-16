@@ -153,6 +153,10 @@ pub struct Connection {
   src_anchor : String?
   dst_anchor : String?
   label : String
+  icon : String?
+  icon_position : String?
+  icon_border_radius : Double?
+  link : String?
   style : @graph.StyleInput
   route : Array[@graph.Point]
   bend_points : Array[@graph.Point]?
@@ -814,6 +818,22 @@ fn diagram_connection_json(connection : Connection) -> String {
     Some(value) => fields.push(("dstAnchor", json_string(value)))
     None => ()
   }
+  match connection.icon {
+    Some(value) => fields.push(("icon", json_string(value)))
+    None => ()
+  }
+  match connection.icon_position {
+    Some(value) => fields.push(("iconPosition", json_string(value)))
+    None => ()
+  }
+  match connection.icon_border_radius {
+    Some(value) => fields.push(("iconBorderRadius", json_double(value)))
+    None => ()
+  }
+  match connection.link {
+    Some(value) => fields.push(("link", json_string(value)))
+    None => ()
+  }
   match connection.bend_points {
     Some(points) => fields.push(("bendPoints", point_array_json(points)))
     None => ()
@@ -1221,6 +1241,10 @@ fn connection_from_edge(
     src_anchor: edge.src_anchor,
     dst_anchor: edge.dst_anchor,
     label: edge.label,
+    icon: edge.icon,
+    icon_position: edge.icon_position,
+    icon_border_radius: edge.icon_border_radius,
+    link: edge.link,
     style: edge.style,
     route: normalize_route_like_d2(edge.route),
     bend_points: normalize_bend_points_like_d2(edge.bend_points),
@@ -1522,6 +1546,10 @@ fn append_sequence_lifeline_connections(
               src_anchor: None,
               dst_anchor: None,
               label: "",
+              icon: None,
+              icon_position: None,
+              icon_border_radius: None,
+              link: None,
               style,
               route: [
                 @graph.Point::new(x, start_y),

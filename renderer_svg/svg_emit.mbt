@@ -1281,7 +1281,7 @@ fn d2_hash_connection_json_with_repeat_index(
     ),
   )
   fields.push(d2_json_field("labelPercentage", d2_json_number(0.0)))
-  fields.push(d2_json_field("link", d2_json_string("")))
+  fields.push(d2_json_field("link", d2_json_string(edge.link.unwrap_or(""))))
   fields.push(d2_json_field("route", d2_json_array(route_json)))
   if edge.is_curve {
     fields.push(d2_json_field("isCurve", d2_json_bool(true)))
@@ -1293,7 +1293,28 @@ fn d2_hash_connection_json_with_repeat_index(
     ),
   )
   fields.push(d2_json_field("tooltip", d2_json_string("")))
-  fields.push(d2_json_field("icon", "null"))
+  fields.push(
+    d2_json_field(
+      "icon",
+      match edge.icon {
+        Some(icon) => d2_json_string(icon)
+        None => "null"
+      },
+    ),
+  )
+  if edge.icon is Some(_) {
+    fields.push(
+      d2_json_field(
+        "iconPosition",
+        d2_json_string(edge.icon_position.unwrap_or(D2_DEFAULT_ICON_POSITION)),
+      ),
+    )
+  }
+  match edge.icon_border_radius {
+    Some(radius) =>
+      fields.push(d2_json_field("iconBorderRadius", d2_json_number(radius)))
+    None => ()
+  }
   fields.push(d2_json_field("zIndex", d2_json_int(edge.z_index)))
   d2_json_object(fields)
 }

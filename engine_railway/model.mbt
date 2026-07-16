@@ -156,6 +156,10 @@ fn edge_with_layout_endpoints(
     src_id_syntax=src_id,
     dst_id_syntax=dst_id,
     references=edge.references,
+    icon=edge.icon,
+    icon_position=edge.icon_position,
+    icon_border_radius=edge.icon_border_radius,
+    link=edge.link,
   )
 }
 

@@ -1349,6 +1349,9 @@ const D2_MAX_ICON_SIZE : Int = 64
 const D2_DEFAULT_ICON_POSITION : String = "INSIDE_MIDDLE_CENTER"
 
 ///|
+const D2_CONNECTION_ICON_LABEL_GAP : Double = 8.0
+
+///|
 const ARROWHEAD_PADDING : Double = 2.0
 
 ///|
@@ -2229,6 +2232,7 @@ pub fn render_svg(
       base_top,
       base_width,
       base_height,
+      config,
     ),
   )
   let edge_marker_ids : Map[String, String] = Map([])
@@ -2339,13 +2343,14 @@ fn edge_label_mask_def(
   mask_y : Int,
   mask_width : Int,
   mask_height : Int,
+  config : SvgConfig,
 ) -> String {
   let sb = StringBuilder::new()
   let mx = mask_x
   let my = mask_y
   let mw = mask_width
   let mh = mask_height
-  let mut label_count = 0
+  let mut cutout_count = 0
   sb.write_string(
     "<mask id=\"\{mask_id}\" maskUnits=\"userSpaceOnUse\" x=\"\{mx}\" y=\"\{my}\" width=\"\{mw}\" height=\"\{mh}\">\n",
   )
@@ -2353,24 +2358,43 @@ fn edge_label_mask_def(
     "<rect x=\"\{mx}\" y=\"\{my}\" width=\"\{mw}\" height=\"\{mh}\" fill=\"white\"></rect>\n",
   )
   for edge in graph.connections {
-    if edge.label == "" {
-      continue
-    }
-    match edge.label_box {
-      Some(label_box) => {
-        let label_x = round_double(label_box.x) - 2.0
-        let label_y = round_double(label_box.y)
-        let label_width = round_double(label_box.width).to_int() + 4
-        let label_height = round_double(label_box.height).to_int()
-        sb.write_string(
-          "<rect x=\"\{d2_fixed6(label_x)}\" y=\"\{d2_fixed6(label_y)}\" width=\"\{label_width}\" height=\"\{label_height}\" fill=\"black\"></rect>\n",
-        )
-        label_count = label_count + 1
+    if edge.label != "" {
+      match edge.label_box {
+        Some(label_box) => {
+          let icon_width = if edge.icon is Some(_) {
+            D2_CONNECTION_ICON_LABEL_GAP + D2_DEFAULT_ICON_SIZE.to_double()
+          } else {
+            0.0
+          }
+          let label_x = round_double(label_box.x) - icon_width - 2.0
+          let label_y = round_double(label_box.y)
+          let label_width = round_double(label_box.width + icon_width).to_int() +
+            4
+          let label_height = round_double(label_box.height).to_int()
+          sb.write_string(
+            "<rect x=\"\{d2_fixed6(label_x)}\" y=\"\{d2_fixed6(label_y)}\" width=\"\{label_width}\" height=\"\{label_height}\" fill=\"black\"></rect>\n",
+          )
+          cutout_count = cutout_count + 1
+        }
+        None => ()
       }
-      None => ()
+    } else if edge.icon is Some(_) {
+      let stroke_width = style_double(
+        edge.style.stroke_width,
+        config.default_stroke_width,
+      )
+      match edge_icon_box(edge, stroke_width) {
+        Some(icon_box) => {
+          sb.write_string(
+            "<rect x=\"\{d2_fixed6(icon_box.x - 2.0)}\" y=\"\{d2_fixed6(icon_box.y)}\" width=\"\{D2_DEFAULT_ICON_SIZE + 4}\" height=\"\{D2_DEFAULT_ICON_SIZE}\" fill=\"black\"></rect>\n",
+          )
+          cutout_count = cutout_count + 1
+        }
+        None => ()
+      }
     }
   }
-  if label_count == 0 {
+  if cutout_count == 0 {
     sb.write_string("\n")
   }
   sb.write_string("</mask>")
@@ -3078,6 +3102,21 @@ fn compute_graph_bounds(
           )
         None => ()
       }
+    }
+    match edge_icon_box(edge, stroke_width) {
+      Some(icon_box) =>
+        bounds = include_bounds(
+          bounds.0,
+          bounds.1,
+          bounds.2,
+          bounds.3,
+          bounds.4,
+          icon_box.x,
+          icon_box.y,
+          icon_box.x + icon_box.width,
+          icon_box.y + icon_box.height,
+        )
+      None => ()
     }
 
     let font_size = style_int(edge.style.font_size, config.font_size)
@@ -8307,6 +8346,112 @@ fn unlocked_top_label_top_left(
 }
 
 ///|
+fn edge_route_icon_box(edge : Connection, stroke_width : Double) -> Box? {
+  if edge.route.length() < 2 {
+    return None
+  }
+  let position = edge.icon_position.unwrap_or(D2_DEFAULT_ICON_POSITION)
+  let (percentage, offset_direction) = match position {
+    "INSIDE_MIDDLE_LEFT" => (0.25, 0)
+    "INSIDE_MIDDLE_CENTER" => (0.5, 0)
+    "INSIDE_MIDDLE_RIGHT" => (0.75, 0)
+    "OUTSIDE_TOP_LEFT" => (0.25, -1)
+    "OUTSIDE_TOP_CENTER" => (0.5, -1)
+    "OUTSIDE_TOP_RIGHT" => (0.75, -1)
+    "OUTSIDE_BOTTOM_LEFT" => (0.25, 1)
+    "OUTSIDE_BOTTOM_CENTER" => (0.5, 1)
+    "OUTSIDE_BOTTOM_RIGHT" => (0.75, 1)
+    _ => return None
+  }
+  let size = D2_DEFAULT_ICON_SIZE.to_double()
+  let (base_point, segment_index) = point_at_distance_on_route(
+    edge.route,
+    percentage * route_length(edge.route),
+  )
+  let mut center_x = base_point.x
+  let mut center_y = base_point.y
+  if offset_direction != 0 {
+    let segment_start = edge.route[segment_index]
+    let segment_end = edge.route[segment_index + 1]
+    let (normal_x, normal_y) = unit_normal_vector(
+      segment_start.x,
+      segment_start.y,
+      segment_end.x,
+      segment_end.y,
+    )
+    let direction = offset_direction.to_double()
+    center_x = center_x +
+      normal_x * direction * (stroke_width / 2.0 + LABEL_PADDING + size / 2.0)
+    center_y = center_y +
+      normal_y * direction * (stroke_width / 2.0 + LABEL_PADDING + size / 2.0)
+  }
+  Some(
+    Box::new(
+      d2_path_chop_precision(center_x - size / 2.0),
+      d2_path_chop_precision(center_y - size / 2.0),
+      size,
+      size,
+    ),
+  )
+}
+
+///|
+fn edge_icon_box(edge : Connection, stroke_width : Double) -> Box? {
+  if edge.icon is None {
+    return None
+  }
+  if edge.label != "" {
+    match edge.label_box {
+      Some(label_box) => {
+        let size = D2_DEFAULT_ICON_SIZE.to_double()
+        let label_x = round_double(label_box.x)
+        let label_y = round_double(label_box.y)
+        return Some(
+          Box::new(
+            label_x - D2_CONNECTION_ICON_LABEL_GAP - size,
+            label_y + label_box.height / 2.0 - size / 2.0,
+            size,
+            size,
+          ),
+        )
+      }
+      None => ()
+    }
+  }
+  edge_route_icon_box(edge, stroke_width)
+}
+
+///|
+fn render_edge_icon(
+  svg : @svg.Svg,
+  edge : Connection,
+  stroke_width : Double,
+) -> Unit {
+  guard edge.icon is Some(icon) else { return }
+  guard edge_icon_box(edge, stroke_width) is Some(box) else { return }
+  let image = @xml_emit.Element::new("image")
+    .attr("href", icon)
+    .attr("x", d2_fixed6(box.x))
+    .attr("y", d2_fixed6(box.y))
+    .attr_int("width", D2_DEFAULT_ICON_SIZE)
+    .attr_int("height", D2_DEFAULT_ICON_SIZE)
+  match edge.icon_border_radius {
+    Some(radius) =>
+      if radius != 0.0 {
+        svg.add(
+          image
+          .attr("clip-path", "inset(0 round \{d2_fixed6(radius)}px)")
+          .self_close()
+          .build(),
+        )
+      } else {
+        svg.add(image.self_close().build())
+      }
+    None => svg.add(image.self_close().build())
+  }
+}
+
+///|
 fn arrowhead_dimensions(
   arrowhead : @graph.ArrowheadType,
   stroke_width : Double,
@@ -8502,6 +8647,7 @@ fn render_svg_edge(
     config.default_stroke_width,
   )
   let path_data = d2_path_data(edge, src_adj, dst_adj, connection_border_radius)
+  render_edge_icon(svg, edge, stroke_width)
   if use_sketch {
     render_sketch_edge(
       svg,
@@ -8570,25 +8716,47 @@ fn render_svg_edge(
           theme,
           use_css_theme_vars,
         )
-        let font_class = d2_font_class_name(
+        let mut font_class = d2_font_class_name(
           theme.rules.mono || style_is_mono(edge.style.font_family),
           style_bool(edge.style.bold, false),
           style_bool(edge.style.italic, true),
           style_bool(edge.style.underline, false),
         )
-        svg.add(
-          d2_text_element(
-            cx,
-            baseline_y,
-            edge.label,
-            label_box.height,
-            text_color,
-            font_class,
-            label_font_size,
-            theme,
-            !use_css_theme_vars,
-          ),
-        )
+        let text = match non_empty_string(edge.link) {
+          Some(link) => {
+            font_class = font_class + " text-underline text-link"
+            @xml_emit.Element::new("a")
+            .attr("href", link)
+            .attr("xlink:href", link)
+            .raw(
+              d2_text_element(
+                cx,
+                baseline_y,
+                edge.label,
+                label_box.height,
+                text_color,
+                font_class,
+                label_font_size,
+                theme,
+                !use_css_theme_vars,
+              ),
+            )
+            .build()
+          }
+          None =>
+            d2_text_element(
+              cx,
+              baseline_y,
+              edge.label,
+              label_box.height,
+              text_color,
+              font_class,
+              label_font_size,
+              theme,
+              !use_css_theme_vars,
+            )
+        }
+        svg.add(text)
       }
       None =>
         raise InvalidDiagram(

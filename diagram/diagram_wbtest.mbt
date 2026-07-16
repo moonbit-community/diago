@@ -46,6 +46,10 @@ fn test_edge(
   label : String,
   src_label? : String? = None,
   dst_label? : String? = None,
+  icon? : String? = None,
+  icon_position? : String? = None,
+  icon_border_radius? : Double? = None,
+  link? : String? = None,
 ) -> @graph.EdgeInput {
   @graph.EdgeInput::from_parts(
     index,
@@ -71,6 +75,10 @@ fn test_edge(
     None,
     None,
     None,
+    icon~,
+    icon_position~,
+    icon_border_radius~,
+    link~,
   )
 }
 
@@ -244,6 +252,32 @@ test "get_corpus matches compatibility appendices legend and structured members"
     diagram.get_corpus(),
     content="Usertip1https://example.com2Accountnamestring+save()void+usersidintPKemailtextUNQowns1NLegendServiceUses",
   )
+}
+
+///|
+test "connection icon and link survive diagram conversion and JSON serialization" {
+  let diagram = test_diagram("root", edges=[
+    test_edge(
+      0,
+      "a",
+      "b",
+      "label",
+      icon=Some("https://example.com/icon.svg"),
+      icon_position=Some("INSIDE_MIDDLE_CENTER"),
+      icon_border_radius=Some(12.0),
+      link=Some("https://example.com/docs"),
+    ),
+  ])
+  let edge = diagram.connections[0]
+  @debug.assert_eq(edge.icon, Some("https://example.com/icon.svg"))
+  @debug.assert_eq(edge.icon_position, Some("INSIDE_MIDDLE_CENTER"))
+  @debug.assert_eq(edge.icon_border_radius, Some(12.0))
+  @debug.assert_eq(edge.link, Some("https://example.com/docs"))
+  let bytes = diagram.bytes()
+  assert_true(bytes.contains("\"icon\":\"https://example.com/icon.svg\""))
+  assert_true(bytes.contains("\"iconPosition\":\"INSIDE_MIDDLE_CENTER\""))
+  assert_true(bytes.contains("\"iconBorderRadius\":12"))
+  assert_true(bytes.contains("\"link\":\"https://example.com/docs\""))
 }
 
 ///|

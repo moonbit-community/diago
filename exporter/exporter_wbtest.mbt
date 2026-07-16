@@ -492,6 +492,37 @@ test "label icon and tooltip near fields follow position semantics" {
 }
 
 ///|
+test "edge icon and link fields compile like D2 connections" {
+  let source =
+    #|a -> b: hello {
+    #|  icon: https://example.com/icon.svg {
+    #|    near: outside-top-center
+    #|    style.border-radius: 12
+    #|  }
+    #|  link: https://example.com/docs
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(graph.edges.length(), 1)
+  let edge = graph.edges[0]
+  @debug.assert_eq(edge.icon, Some("https://example.com/icon.svg"))
+  @debug.assert_eq(edge.icon_position, Some("OUTSIDE_TOP_CENTER"))
+  @debug.assert_eq(edge.icon_border_radius, Some(12.0))
+  @debug.assert_eq(edge.link, Some("https://example.com/docs"))
+}
+
+///|
+test "edge links reject URL labels like object links" {
+  let source =
+    #|a -> b: https://example.com/label {
+    #|  link: https://example.com/docs
+    #|}
+  match compile_source_graph(source) {
+    Err(error) => assert_true(error.contains("Label cannot be set to URL"))
+    Ok(_) => fail("expected URL edge label safety error")
+  }
+}
+
+///|
 test "separate near fields and null position resets follow position semantics" {
   let source =
     #|hey: sushi {

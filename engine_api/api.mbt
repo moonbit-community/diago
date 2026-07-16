@@ -523,6 +523,10 @@ fn assign_sql_column_indices(graph : @graph.GraphInput) -> @graph.GraphInput {
         src_id_syntax=e.src_id_syntax,
         dst_id_syntax=e.dst_id_syntax,
         references=e.references,
+        icon=e.icon,
+        icon_position=e.icon_position,
+        icon_border_radius=e.icon_border_radius,
+        link=e.link,
       ),
     )
   }
@@ -621,6 +625,10 @@ fn normalize_routes(graph : @graph.GraphInput) -> @graph.GraphInput {
         src_id_syntax=e.src_id_syntax,
         dst_id_syntax=e.dst_id_syntax,
         references=e.references,
+        icon=e.icon,
+        icon_position=e.icon_position,
+        icon_border_radius=e.icon_border_radius,
+        link=e.link,
       ),
     )
   }

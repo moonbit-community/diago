@@ -83,6 +83,10 @@ pub struct EdgeInput {
   src_anchor : String?
   dst_anchor : String?
   label : String
+  icon : String?
+  icon_position : String?
+  icon_border_radius : Double?
+  link : String?
   style : StyleInput
   route : Array[Point]
   bend_points : Array[Point]?
@@ -94,7 +98,7 @@ pub struct EdgeInput {
   dst_column_index : Int?
 } derive(@debug.Debug)
 pub fn EdgeInput::from_model(EdgeModel) -> Self
-pub fn EdgeInput::from_parts(Int, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int, Int, Box?, Int?, Int?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference]) -> Self
+pub fn EdgeInput::from_parts(Int, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int, Int, Box?, Int?, Int?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference], icon? : String?, icon_position? : String?, icon_border_radius? : Double?, link? : String?) -> Self
 pub fn EdgeInput::get_dst_id(Self) -> String
 pub fn EdgeInput::get_label_box(Self) -> Box?
 pub fn EdgeInput::get_src_id(Self) -> String
@@ -120,6 +124,10 @@ pub struct EdgeModel {
   src_anchor : String?
   dst_anchor : String?
   label : String
+  icon : String?
+  icon_position : String?
+  icon_border_radius : Double?
+  link : String?
   style : StyleModel
   route : Array[Point]
   bend_points : Array[Point]?
