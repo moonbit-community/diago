@@ -1,34 +1,13 @@
 ///|
 priv struct SketchSession {
-  interp : @interpreter.Interpreter
+  disabled : Unit
 }
 
 ///|
 fn SketchSession::new() -> SketchSession raise @render_api.RenderError {
-  let interp = @interpreter.new_interpreter()
-  ignore(sketch_run_source(interp, sketch_runtime_source))
-  ignore(sketch_run_source(interp, sketch_setup_source))
-  { interp, }
-}
-
-///|
-fn sketch_run_source(
-  interp : @interpreter.Interpreter,
-  source : String,
-) -> @interpreter.Value raise @render_api.RenderError {
-  let program = @parser.parse(source) catch {
-    e => raise RenderFailed("Sketch runtime parse failed: \{e}")
-  }
-  let result = interp.run(program.stmts) catch {
-    e => raise RenderFailed("Sketch runtime execution failed: \{e}")
-  }
-  interp.run_microtasks() catch {
-    e => raise RenderFailed("Sketch runtime microtask failed: \{e}")
-  }
-  interp.run_timers() catch {
-    e => raise RenderFailed("Sketch runtime timer failed: \{e}")
-  }
-  result
+  let session = { disabled: () }
+  ignore(session.disabled)
+  raise UnsupportedFormat("sketch rendering is not supported")
 }
 
 ///|
@@ -66,65 +45,13 @@ fn sketch_base_shape_props(stroke_width : Double) -> String {
 }
 
 ///|
-fn truncate_sketch_path_decimals(path : String) -> String {
-  let out = StringBuilder::new()
-  let mut fractional_digits = -1
-  for ch in path {
-    if ch >= '0' && ch <= '9' {
-      if fractional_digits < 0 || fractional_digits < 6 {
-        out.write_char(ch)
-      }
-      if fractional_digits >= 0 {
-        fractional_digits = fractional_digits + 1
-      }
-    } else {
-      out.write_char(ch)
-      fractional_digits = if ch == '.' { 0 } else { -1 }
-    }
-  }
-  out.to_string()
-}
-
-///|
 fn SketchSession::eval_nodes(
   self : SketchSession,
   command : String,
 ) -> Array[Map[String, String]] raise @render_api.RenderError {
-  let extractor =
-    #|
-    #|(function() {
-    #|  var out = [];
-    #|  var children = node.children || [];
-    #|  for (var i = 0; i < children.length; i++) {
-    #|    var child = children[i];
-    #|    var d = "";
-    #|    if (child.attrs && child.attrs.d) {
-    #|      d = child.attrs.d;
-    #|    }
-    #|    out.push({
-    #|      d: d,
-    #|      fill: child.style && child.style.fill ? child.style.fill : "",
-    #|      stroke: child.style && child.style.stroke ? child.style.stroke : "",
-    #|      stroke_width: child.style && child.style.strokeWidth ? child.style.strokeWidth : ""
-    #|    });
-    #|  }
-    #|  return JSON.stringify(out);
-    #|})()
-  let source = command + extractor
-  let result = sketch_run_source(self.interp, source)
-  let json = @json.parse(result.to_string()[:]) catch {
-    e => raise RenderFailed("Sketch runtime JSON parse failed: \{e}")
-  }
-  let nodes : Array[Map[String, String]] = @json.from_json(json) catch {
-    e => raise RenderFailed("Sketch runtime JSON decode failed: \{e}")
-  }
-  for node in nodes {
-    match node.get("d") {
-      Some(path) => node["d"] = truncate_sketch_path_decimals(path)
-      None => ()
-    }
-  }
-  nodes
+  ignore(self)
+  ignore(command)
+  raise UnsupportedFormat("sketch rendering is not supported")
 }
 
 ///|
@@ -1093,71 +1020,5 @@ fn render_sketch_edge(
     stroke_width,
     theme,
     use_css_theme_vars,
-  )
-}
-
-///|
-fn format_sketch_pattern_template(
-  luminance_category : String,
-  diagram_hash : String,
-  fill : String,
-) -> String {
-  let values = [luminance_category, diagram_hash, fill]
-  let out = StringBuilder::new()
-  let mut value_index = 0
-  let chars = sketch_streaks_pattern_template.to_array()
-  let mut i = 0
-  while i < chars.length() {
-    if chars[i] == '%' &&
-      i + 1 < chars.length() &&
-      chars[i + 1] == 's' &&
-      value_index < values.length() {
-      out.write_string(values[value_index])
-      value_index += 1
-      i += 2
-    } else {
-      out.write_char(chars[i])
-      i += 1
-    }
-  }
-  out.to_string()
-}
-
-///|
-fn add_sketch_assets(
-  assets : SvgEmitAssets,
-  graph : Diagram,
-  config : SvgConfig,
-) -> Unit {
-  if !sketch_needed(graph, config) {
-    return
-  }
-  assets.add_def(
-    format_sketch_pattern_template(
-      "bright",
-      assets.diagram_hash,
-      "rgba(0, 0, 0, 0.1)",
-    ),
-  )
-  assets.add_def(
-    format_sketch_pattern_template(
-      "normal",
-      assets.diagram_hash,
-      "rgba(0, 0, 0, 0.16)",
-    ),
-  )
-  assets.add_def(
-    format_sketch_pattern_template(
-      "dark",
-      assets.diagram_hash,
-      "rgba(0, 0, 0, 0.32)",
-    ),
-  )
-  assets.add_def(
-    format_sketch_pattern_template(
-      "darker",
-      assets.diagram_hash,
-      "rgba(255, 255, 255, 0.24)",
-    ),
   )
 }

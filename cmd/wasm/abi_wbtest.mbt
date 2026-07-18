@@ -42,6 +42,16 @@ test "wasm ABI returns structured parse errors" {
 }
 
 ///|
+test "wasm ABI returns structured unsupported feature errors" {
+  let length = write_test_request(
+    "{\"version\":1,\"source\":\"formula: |tex\\n  x^2\\n|\",\"output\":\"svg\"}",
+  )
+  @debug.assert_eq(render(length), status_error)
+  @debug.assert_eq(result_error_kind(), error_unsupported_feature)
+  @debug.assert_eq(read_test_result(), "LaTeX labels are not supported")
+}
+
+///|
 test "wasm ABI validates request metadata without trapping" {
   @debug.assert_eq(render(-1), status_error)
   @debug.assert_eq(result_error_kind(), error_request_length)

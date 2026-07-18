@@ -10,13 +10,13 @@ No ready issues.
 
 | ID | Status | Priority | Type | Assignee | Blocked by | Blocks | Title |
 | --- | --- | ---: | --- | --- | --- | --- | --- |
-| [ISS-001](ISS-001.md) | deferred | 4 | chore | unassigned | none | none | Remove js_engine after community renderers mature |
+| [ISS-001](ISS-001.md) | deferred | 4 | chore | unassigned | none | none | Re-enable sketch and LaTeX with community renderers |
 
 ## Dependency Graph
 
 ```mermaid
 graph TD
-  ISS_001["ISS-001: Remove js_engine after community renderers mature"]
+  ISS_001["ISS-001: Re-enable sketch and LaTeX with community renderers"]
 ```
 
 ## Warnings

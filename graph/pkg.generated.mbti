@@ -204,6 +204,8 @@ pub fn GraphInput::from_parts(String, ObjectInput, Array[ObjectInput], Array[Edg
 pub fn GraphInput::get_edges(Self) -> Array[EdgeInput]
 pub fn GraphInput::get_objects(Self) -> Array[ObjectInput]
 pub fn GraphInput::new(String) -> Self
+pub fn GraphInput::uses_latex_labels(Self) -> Bool
+pub fn GraphInput::uses_sketch_styles(Self) -> Bool
 pub fn GraphInput::with_caps_lock(Self) -> Self
 pub fn GraphInput::with_default_font(Self, String) -> Self
 

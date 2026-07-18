@@ -20,6 +20,7 @@ pub struct DiagramOptions {
   layout_engine : LayoutEngine
   direction : @engine_api.Direction
   target_spec : String?
+  theme_name : String?
   layout_plugin : ((@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String])?
   route_plugin : ((@graph.GraphInput) -> Result[@graph.GraphInput, String])?
 }
@@ -29,6 +30,7 @@ pub fn DiagramOptions::with_layout_engine(Self, LayoutEngine) -> Self
 pub fn DiagramOptions::with_layout_plugin(Self, ((@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String])?) -> Self
 pub fn DiagramOptions::with_route_plugin(Self, ((@graph.GraphInput) -> Result[@graph.GraphInput, String])?) -> Self
 pub fn DiagramOptions::with_target_spec(Self, String?) -> Self
+pub fn DiagramOptions::with_theme_name(Self, String?) -> Self
 
 pub(all) enum LayoutEngine {
   Auto
@@ -42,6 +44,7 @@ pub(all) enum LibError {
   RenderError(String)
   ConfigError(String)
   TargetError(String)
+  UnsupportedFeature(String)
 } derive(Eq, @debug.Debug)
 
 pub(all) enum OutputMode {

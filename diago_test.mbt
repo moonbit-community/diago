@@ -303,3 +303,64 @@ test "without dark-theme-id svg keeps static theme colors" {
   let svg = compile(source)
   assert_true(!svg.contains("@media screen and (prefers-color-scheme: dark)"))
 }
+
+///|
+test "LaTeX labels report an unsupported feature" {
+  let source =
+    #|formula: |tex
+    #|  x^2
+    #||
+  try compile(source) catch {
+    UnsupportedFeature(message) =>
+      @debug.assert_eq(message, "LaTeX labels are not supported")
+    _ => fail("expected unsupported LaTeX error")
+  } noraise {
+    _ => fail("expected unsupported LaTeX error")
+  }
+}
+
+///|
+test "source sketch config reports an unsupported feature" {
+  let source =
+    #|vars: {
+    #|  d2-config: {
+    #|    sketch: true
+    #|  }
+    #|}
+    #|a -> b
+  try compile(source) catch {
+    UnsupportedFeature(message) =>
+      @debug.assert_eq(message, "sketch rendering is not supported")
+    _ => fail("expected unsupported sketch error")
+  } noraise {
+    _ => fail("expected unsupported sketch error")
+  }
+}
+
+///|
+test "sketch style reports an unsupported feature" {
+  let source =
+    #|a: {
+    #|  style.sketch: true
+    #|}
+  try compile(source) catch {
+    UnsupportedFeature(message) =>
+      @debug.assert_eq(message, "sketch rendering is not supported")
+    _ => fail("expected unsupported sketch error")
+  } noraise {
+    _ => fail("expected unsupported sketch error")
+  }
+}
+
+///|
+test "sketch compile option reports an unsupported feature" {
+  try
+    compile("a -> b", options=CompileOptions::new().with_sketch(Some(true)))
+  catch {
+    UnsupportedFeature(message) =>
+      @debug.assert_eq(message, "sketch rendering is not supported")
+    _ => fail("expected unsupported sketch error")
+  } noraise {
+    _ => fail("expected unsupported sketch error")
+  }
+}

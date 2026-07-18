@@ -22,6 +22,14 @@ OFFICIAL_ROOT = OFFICIAL_META / "d2-docs"
 EXPECTED_OFFICIAL_COUNT = 187
 
 
+def load_official_skips() -> dict[str, tuple[str, str]]:
+    skips: dict[str, tuple[str, str]] = {}
+    with (OFFICIAL_META / "skipped.tsv").open(encoding="utf-8") as source:
+        for path, category, reason in csv.reader(source, delimiter="\t"):
+            skips[path] = (category, reason)
+    return skips
+
+
 @dataclass(frozen=True)
 class Fixture:
     corpus: str
@@ -220,7 +228,10 @@ def main() -> int:
     result_dir.mkdir(parents=True)
     results_path = result_dir / "results.tsv"
     failures = 0
-    counts = {engine: {"pass": 0, "fail": 0} for engine in engines}
+    official_skips = load_official_skips()
+    counts = {
+        engine: {"pass": 0, "skip": 0, "fail": 0} for engine in engines
+    }
 
     with results_path.open("w", encoding="utf-8", newline="") as results_file:
         writer = csv.writer(results_file, delimiter="\t")
@@ -231,6 +242,24 @@ def main() -> int:
         for engine in engines:
             for fixture in fixtures:
                 completed += 1
+                skip = (
+                    official_skips.get(fixture.display_path)
+                    if fixture.corpus == "official"
+                    else None
+                )
+                if skip is not None:
+                    category, _reason = skip
+                    writer.writerow(
+                        [
+                            fixture.corpus,
+                            engine,
+                            "skip",
+                            category,
+                            fixture.display_path,
+                        ]
+                    )
+                    counts[engine]["skip"] += 1
+                    continue
                 base = output_base(result_dir, fixture, engine)
                 d2_svg = append_suffix(base, ".d2.svg")
                 diago_svg = append_suffix(base, ".diago.svg")
@@ -389,6 +418,7 @@ def main() -> int:
     for engine in engines:
         print(
             f"{engine:6} pass={counts[engine]['pass']} "
+            f"skip={counts[engine]['skip']} "
             f"fail={counts[engine]['fail']}"
         )
     return 1 if failures else 0

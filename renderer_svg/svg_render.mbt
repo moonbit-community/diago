@@ -2489,6 +2489,12 @@ pub fn render_svg(
   graph : Diagram,
   config : SvgConfig,
 ) -> String raise @render_api.RenderError {
+  if graph.shapes.any(fn(shape) { shape.language == Some("latex") }) {
+    raise UnsupportedFormat("LaTeX labels are not supported")
+  }
+  if sketch_needed(graph, config) {
+    raise UnsupportedFormat("sketch rendering is not supported")
+  }
   // The base render always uses the light theme. Dark theme is applied through
   // CSS media rules when configured.
   let light_theme = @themes.get_theme(config.theme_id).with_overrides(
@@ -2569,8 +2575,6 @@ pub fn render_svg(
   // Add fill patterns
   add_fill_patterns(emit_assets, graph, config, light_theme, use_css_theme_vars)
   add_gradients(emit_assets, graph)
-  // Add sketch runtime assets if needed
-  add_sketch_assets(emit_assets, graph, config)
   let sketch_session = if needs_sketch {
     Some(SketchSession::new())
   } else {
@@ -3663,33 +3667,7 @@ fn compute_graph_bounds(
         if object_label_visible(obj) &&
           obj.shape_type != Class &&
           obj.shape_type != SqlTable {
-          if has_class(obj, "lang:latex") {
-            let dims = @text_metrics.measure_label_latex(obj.label)
-            let (label_x, label_y, label_w) = plain_object_label_bounds_layout(
-              obj,
-              b,
-              dims.width,
-              dims.height,
-              layout_engine,
-            )
-            let label_bounds = d2_target_label_bounds(
-              label_x,
-              label_y,
-              label_w,
-              dims.height,
-            )
-            bounds = include_bounds(
-              bounds.0,
-              bounds.1,
-              bounds.2,
-              bounds.3,
-              bounds.4,
-              label_bounds.0,
-              label_bounds.1,
-              label_bounds.2,
-              label_bounds.3,
-            )
-          } else if has_class(obj, "lang:markdown") {
+          if has_class(obj, "lang:markdown") {
             let (label_x, label_y, label_w, label_h) = markdown_label_layout(
               obj, b, layout_engine, config,
             )
@@ -4327,29 +4305,13 @@ fn render_svg_latex_label(
   theme : @themes.Theme,
   use_css_theme_vars : Bool,
 ) -> Unit raise @render_api.RenderError {
-  let output = match @latex.render(obj.label) {
-    Ok(output) => output
-    Err(error) => raise RenderFailed(error.to_string())
-  }
-  let label_width = output.width.to_double()
-  let label_height = output.height.to_double()
-  let (x, y, _) = plain_object_label_layout(
-    obj, box, label_width, label_height, layout_engine,
-  )
-  let stroke_signature = c4_object_stroke_token(
-    obj,
-    style_string(obj.style.stroke, "N1"),
-    theme,
-  )
-  let color = resolve_theme_color(stroke_signature, theme, use_css_theme_vars)
-  let mut group = @xml_emit.Element::new("g")
-    .attr("transform", "translate(\{d2_fixed6(x)} \{d2_fixed6(y)})")
-    .attr("color", color)
-  match d2_theme_token(stroke_signature, theme) {
-    Some(token) => group = group.attr("class", " color-\{token}")
-    None => ()
-  }
-  svg.add(group.raw(output.svg).build())
+  ignore(svg)
+  ignore(obj)
+  ignore(box)
+  ignore(layout_engine)
+  ignore(theme)
+  ignore(use_css_theme_vars)
+  raise UnsupportedFormat("LaTeX labels are not supported")
 }
 
 ///|

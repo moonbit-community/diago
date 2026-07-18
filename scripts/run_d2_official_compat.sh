@@ -60,6 +60,20 @@ regressions=0
 
 for engine in "${engines[@]}"; do
   while IFS= read -r path; do
+    skipped="$(
+      awk -F '	' -v path="$path" '
+        $1 == path {
+          print $2 "\t" $3
+          exit
+        }
+      ' "$fixture_meta/skipped.tsv"
+    )"
+    if [[ -n "$skipped" ]]; then
+      category="${skipped%%$'\t'*}"
+      printf '%s\tskip\t%s\t%s\n' "$engine" "$category" "$path" >>"$results"
+      continue
+    fi
+
     output="$result_root/$engine/output/${path%.d2}.svg"
     log="$result_root/$engine/logs/${path%.d2}.log"
     mkdir -p "${output%/*}" "${log%/*}"
@@ -77,15 +91,22 @@ for engine in "${engines[@]}"; do
       --layout "$engine" \
       --no-bundle \
       "$fixture_root/$path" \
-      "$output" >"$log" 2>&1 &&
-      [[ -s "$output" ]] &&
-      grep -q '<svg' "$output"; then
+      "$output" >"$log" 2>&1; then
+      category="-"
+      if [[ ! -s "$output" ]]; then
+        category="template"
+      elif ! grep -q '<svg' "$output"; then
+        printf '%s\tunexpected_fail\tinvalid-output\t%s\n' \
+          "$engine" "$path" >>"$results"
+        regressions=$((regressions + 1))
+        continue
+      fi
       if [[ -n "$expected" ]]; then
         category="${expected%%$'\t'*}"
         printf '%s\txpass\t%s\t%s\n' "$engine" "$category" "$path" >>"$results"
         regressions=$((regressions + 1))
       else
-        printf '%s\tpass\t-\t%s\n' "$engine" "$path" >>"$results"
+        printf '%s\tpass\t%s\t%s\n' "$engine" "$category" "$path" >>"$results"
       fi
       continue
     fi
@@ -120,8 +141,9 @@ for engine in "${engines[@]}"; do
       counts[$2] += 1
     }
     END {
-      printf " pass=%d xfail=%d xpass=%d unexpected_fail=%d changed_fail=%d\n",
+      printf " pass=%d skip=%d xfail=%d xpass=%d unexpected_fail=%d changed_fail=%d\n",
         counts["pass"],
+        counts["skip"],
         counts["xfail"],
         counts["xpass"],
         counts["unexpected_fail"],

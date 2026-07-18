@@ -378,37 +378,23 @@ test "double-border style" {
 }
 
 ///|
-test "sketch mode style" {
+test "sketch mode style is unsupported" {
   let source =
     #|box {
     #|  style.sketch: true
     #|}
-  let svg = compile(source).unwrap()
-  assert_false(svg.contains("sketch-filter"))
-  assert_false(svg.contains("feTurbulence"))
-  assert_false(svg.contains("feDisplacementMap"))
-  assert_true(svg.contains("class=\"sketch-overlay-"))
-  assert_true(svg.contains("id=\"streaks-"))
-  let path_count = svg.split("<path").collect().length() - 1
-  assert_true(path_count >= 2, msg="expected rough paths, got \{path_count}")
+  guard compile(source) is Err(message) else { fail("expected sketch error") }
+  assert_true(message.contains("sketch rendering is not supported"))
 }
 
 ///|
-test "sketch mode on edge" {
+test "sketch mode on edge is unsupported" {
   let source =
     #|a -> b {
     #|  style.sketch: true
     #|}
-  let svg = compile(source).unwrap()
-  assert_false(svg.contains("sketch-filter"))
-  assert_false(svg.contains("filter=\"url(#sketch-filter)\""))
-  assert_true(svg.contains("id=\"streaks-"))
-  assert_false(svg.contains("marker-end="))
-  let path_count = svg.split("<path").collect().length() - 1
-  assert_true(
-    path_count >= 2,
-    msg="expected sketch connection paths, got \{path_count}",
-  )
+  guard compile(source) is Err(message) else { fail("expected sketch error") }
+  assert_true(message.contains("sketch rendering is not supported"))
 }
 
 ///|

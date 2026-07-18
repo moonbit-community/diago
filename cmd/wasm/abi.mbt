@@ -79,6 +79,9 @@ let error_target : Int = 17
 let error_result_too_large : Int = 18
 
 ///|
+let error_unsupported_feature : Int = 19
+
+///|
 priv struct WasmResultState {
   mut length : Int
   mut error_kind : Int
@@ -228,6 +231,7 @@ fn diago_error_metadata(error : @diago.DiagoError) -> (Int, String) {
     LayoutError(message) => (error_layout, message)
     RenderError(message) => (error_render, message)
     TargetError(message) => (error_target, message)
+    UnsupportedFeature(message) => (error_unsupported_feature, message)
   }
 }
 

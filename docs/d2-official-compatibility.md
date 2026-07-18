@@ -16,15 +16,17 @@ Every fixture was rendered as SVG with remote asset bundling disabled. Each
 successful command also had to produce a non-empty file containing an `<svg`
 element.
 
-| Engine | Passed | Expected failures | Unexpected failures |
-| --- | ---: | ---: | ---: |
-| Dagre | 187 | 0 | 0 |
-| ELK | 187 | 0 | 0 |
-| Railway | 187 | 0 | 0 |
-| Total | 561 | 0 | 0 |
+| Engine | Passed | Skipped | Expected failures | Unexpected failures |
+| --- | ---: | ---: | ---: | ---: |
+| Dagre | 183 | 4 | 0 | 0 |
+| ELK | 183 | 4 | 0 | 0 |
+| Railway | 183 | 4 | 0 | 0 |
+| Total | 549 | 12 | 0 | 0 |
 
-All 187 fixtures pass through all three engines. There are no remaining known
-compatibility failures in this corpus.
+Four fixtures are explicitly skipped: two use LaTeX labels and two enable
+sketch rendering. Diago intentionally does not support those features and
+returns an `UnsupportedFeature` error instead of falling back silently. All
+183 supported fixtures pass through all three engines.
 
 ## Normalized SVG parity
 
@@ -35,8 +37,8 @@ python3 scripts/test_svg_parity.py
 python3 scripts/check_d2_svg_parity.py --corpus all
 ```
 
-The gate covers all 41 repository examples plus all 187 pinned official
-fixtures on both Dagre and ELK (456 comparisons). Normalization removes only
+The gate covers all 41 repository examples plus the 183 supported pinned
+official fixtures on both Dagre and ELK (448 comparisons). Normalization removes only
 non-visual instability: XML attribute ordering, D2 scope salts and version
 metadata, embedded font payload bytes, and unused static renderer CSS. It
 preserves canvas geometry, DOM/render order, hierarchy, paths, masks, markers,
@@ -45,10 +47,10 @@ and a machine-readable `results.tsv` under `_build/d2-svg-parity`.
 
 Current strict results are:
 
-| Engine | Exact matches | Failures |
-| --- | ---: | ---: |
-| Dagre | 228 / 228 | 0 |
-| ELK | 228 / 228 | 0 |
+| Engine | Exact matches | Skipped | Failures |
+| --- | ---: | ---: | ---: |
+| Dagre | 224 / 224 | 4 | 0 |
+| ELK | 224 / 224 | 4 | 0 |
 
 `moon_elk` 0.2.1 fixed the remaining layered model-order divergence from D2's
 vendored elk.js. The previous five ELK fixture failures reduced to three unique
@@ -65,7 +67,9 @@ main graph.
 ## Failure classification
 
 There are no command, parser, compiler, renderer, normalized SVG parity, or
-known dependency failures in the covered corpus.
+known dependency failures in the supported corpus. The skipped fixtures are
+listed in `testdata/d2-official/skipped.tsv` with their unsupported feature and
+diagnostic.
 
 ## Resolved bracket-list compatibility
 
@@ -139,6 +143,10 @@ Dagre, ELK, and Railway.
 
 The checked-in `expected-failures.tsv` records both known failures and an
 expected diagnostic fragment. The runner treats them as `xfail`.
+
+The checked-in `skipped.tsv` records fixtures that exercise intentionally
+unsupported features. The runners report them as `skip` and do not invoke D2
+or Diago for those inputs.
 
 The run fails when:
 

@@ -1,6 +1,0 @@
-import {
-  "dowdiness/js_engine/parser",
-  "dowdiness/js_engine/interpreter",
-  "moonbitlang/core/json",
-  "moonbitlang/core/string",
-}

@@ -27,6 +27,11 @@ The runner builds the native CLI once, renders every fixture through Dagre,
 ELK, and Railway with remote asset bundling disabled, and stores generated
 outputs and logs under `_build/d2-official-compat`.
 
+Fixtures using intentionally unsupported features are listed in `skipped.tsv`
+and reported as `skip` without being rendered. Diago currently skips two
+LaTeX fixtures and two sketch fixtures. This is distinct from an `xfail`: the
+features are outside the supported surface rather than known regressions.
+
 Known incompatibilities are recorded in `expected-failures.tsv`. A known
 failure is reported as `xfail` and does not fail the runner. An unexpected
 failure, a changed diagnostic, or a formerly failing case that starts passing

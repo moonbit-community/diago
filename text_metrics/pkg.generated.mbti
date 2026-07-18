@@ -16,8 +16,6 @@ pub fn measure_label_code(String, Int, Bool, Bool) -> TextDimensions
 
 pub fn measure_label_hand_drawn(String, Int, Bool) -> TextDimensions
 
-pub fn measure_label_latex(String) -> TextDimensions
-
 pub fn measure_label_markdown(String, Int) -> TextDimensions
 
 pub fn measure_text(String, Int, Bool, Bool, Bool) -> MeasuredText

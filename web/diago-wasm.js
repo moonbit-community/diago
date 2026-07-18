@@ -16,6 +16,7 @@ export const DiagoWasmErrorKind = Object.freeze({
   render: 16,
   target: 17,
   result_too_large: 18,
+  unsupported_feature: 19,
 });
 
 const ERROR_NAMES = new Map(

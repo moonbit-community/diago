@@ -105,7 +105,7 @@ test "extract vars config into diagram config" {
   let source =
     #|vars: {
     #|  d2-config: {
-    #|    sketch: true
+    #|    sketch: false
     #|    theme-id: 4
     #|    dark-theme-id: 200
     #|    theme-overrides: {
@@ -133,7 +133,7 @@ test "extract vars config into diagram config" {
   match diagram.config {
     None => fail("expected diagram config")
     Some(config) => {
-      @debug.assert_eq(config.sketch, Some(true))
+      @debug.assert_eq(config.sketch, Some(false))
       @debug.assert_eq(config.theme_id, Some(4))
       @debug.assert_eq(config.dark_theme_id, Some(200))
       @debug.assert_eq(config.theme_overrides.unwrap().get("B1"), Some("red"))
@@ -303,7 +303,7 @@ test "cli center overrides vars config center=false" {
 }
 
 ///|
-test "vars config sketch enables global svg sketch mode" {
+test "vars config sketch is unsupported" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -311,48 +311,51 @@ test "vars config sketch enables global svg sketch mode" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
-  assert_true(svg.contains("id=\"streaks-"))
-  assert_false(svg.contains("sketch-filter"))
+  guard compile_source(source, Svg, None, None, Dagre, false, None)
+    is Err(message) else {
+    fail("expected sketch error")
+  }
+  assert_true(message.contains("sketch rendering is not supported"))
 }
 
 ///|
-test "cli sketch overrides vars config sketch=false and sketch=true" {
+test "cli sketch true is unsupported and false remains a no-op" {
   let source =
     #|vars: {
     #|  d2-config: {
-    #|    sketch: true
+    #|    sketch: false
     #|  }
     #|}
     #|a -> b
-  let source_svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
-  let cli_disabled_svg = compile_source(
-    source,
-    Svg,
-    None,
-    None,
-    Dagre,
-    false,
-    None,
-    sketch=Some(false),
-  ).unwrap()
+  guard compile_source(
+      source,
+      Svg,
+      None,
+      None,
+      Dagre,
+      false,
+      None,
+      sketch=Some(false),
+    )
+    is Ok(_) else {
+    fail("sketch=false must remain supported")
+  }
   let plain_source =
     #|a -> b
-  let cli_enabled_svg = compile_source(
-    plain_source,
-    Svg,
-    None,
-    None,
-    Dagre,
-    false,
-    None,
-    sketch=Some(true),
-  ).unwrap()
-  assert_true(source_svg.contains("id=\"streaks-"))
-  assert_false(cli_disabled_svg.contains("id=\"streaks-"))
-  assert_true(cli_enabled_svg.contains("id=\"streaks-"))
-  assert_false(source_svg.contains("sketch-filter"))
-  assert_false(cli_enabled_svg.contains("sketch-filter"))
+  guard compile_source(
+      plain_source,
+      Svg,
+      None,
+      None,
+      Dagre,
+      false,
+      None,
+      sketch=Some(true),
+    )
+    is Err(message) else {
+    fail("expected sketch error")
+  }
+  assert_true(message.contains("sketch rendering is not supported"))
 }
 
 ///|
@@ -366,7 +369,7 @@ test "vars config dark-theme-id emits dark media css" {
     #|a -> b
   let svg = compile_source(source, Svg, None, None, Dagre, false, None).unwrap()
   assert_true(svg.contains("@media screen and (prefers-color-scheme:dark)"))
-  assert_true(svg.contains("var(--d2-N7)"))
+  assert_true(svg.contains(".fill-N7{fill:#1E1E2E;}"))
 }
 
 ///|

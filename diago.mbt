@@ -296,6 +296,7 @@ pub(all) suberror DiagoError {
   RenderError(String)
   ConfigError(String)
   TargetError(String)
+  UnsupportedFeature(String)
 } derive(Eq, Debug)
 
 ///|
@@ -358,6 +359,7 @@ fn to_lib_diagram_options(options : CompileOptions) -> @lib.DiagramOptions {
     .with_layout_engine(to_lib_layout_engine(options.layout_engine))
     .with_direction(options.direction)
     .with_target_spec(options.target_spec)
+    .with_theme_name(options.theme_name)
   match options.layout_plugin {
     Some(plugin) =>
       resolved = resolved.with_layout_plugin(
@@ -441,5 +443,6 @@ fn[T] raise_diago_lib_error(err : @lib.LibError) -> T raise DiagoError {
     RenderError(message) => raise RenderError(message)
     ConfigError(message) => raise ConfigError(message)
     TargetError(message) => raise TargetError(message)
+    UnsupportedFeature(message) => raise UnsupportedFeature(message)
   }
 }

@@ -35,6 +35,7 @@ pub struct DiagramOptions {
   layout_engine : LayoutEngine
   direction : @engine_api.Direction
   target_spec : String?
+  theme_name : String?
   layout_plugin : ((
     @graph.GraphInput,
     @engine_api.LayoutConfig,
@@ -49,6 +50,7 @@ pub fn DiagramOptions::new() -> DiagramOptions {
     layout_engine: Auto,
     direction: Down,
     target_spec: None,
+    theme_name: None,
     layout_plugin: None,
     route_plugin: None,
   }
@@ -76,6 +78,14 @@ pub fn DiagramOptions::with_target_spec(
   target_spec : String?,
 ) -> DiagramOptions {
   { ..self, target_spec, }
+}
+
+///|
+pub fn DiagramOptions::with_theme_name(
+  self : DiagramOptions,
+  theme_name : String?,
+) -> DiagramOptions {
+  { ..self, theme_name, }
 }
 
 ///|
@@ -234,6 +244,7 @@ pub(all) enum LibError {
   RenderError(String)
   ConfigError(String)
   TargetError(String)
+  UnsupportedFeature(String)
 } derive(Eq, Debug)
 
 ///|
@@ -242,6 +253,15 @@ pub fn compile_diagram(
   source_config : @diagram.Config?,
   options? : DiagramOptions = DiagramOptions::new(),
 ) -> Result[@diagram.Diagram, LibError] {
+  if graph_input.uses_latex_labels() {
+    return Err(UnsupportedFeature("LaTeX labels are not supported"))
+  }
+  if graph_input.uses_sketch_styles() ||
+    source_config
+    .map(fn(config) { config.sketch.unwrap_or(false) })
+    .unwrap_or(false) {
+    return Err(UnsupportedFeature("sketch rendering is not supported"))
+  }
   let effective_layout_engine = match
     resolve_layout_engine(options.layout_engine, source_config) {
     Ok(engine) => engine
@@ -249,9 +269,13 @@ pub fn compile_diagram(
   }
   let graph_input = match source_config {
     Some(source) => {
-      let theme = match source.theme_id {
-        Some(theme_id) => Some(@themes.get_theme(theme_id))
-        None => None
+      let theme = match options.theme_name {
+        Some(theme_name) => Some(@themes.get_theme_by_name(theme_name))
+        None =>
+          match source.theme_id {
+            Some(theme_id) => Some(@themes.get_theme(theme_id))
+            None => None
+          }
       }
       let graph_input = match theme {
         Some(value) if value.rules.mono => graph_input.with_default_font("mono")
@@ -321,6 +345,9 @@ pub fn render(
   diagram : @diagram.Diagram,
   options? : RenderOptions = RenderOptions::new(),
 ) -> Result[String, LibError] {
+  if options.sketch.unwrap_or(false) {
+    return Err(UnsupportedFeature("sketch rendering is not supported"))
+  }
   match options.output_mode {
     Svg => {
       if diagram.shapes.is_empty() {

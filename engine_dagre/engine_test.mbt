@@ -122,7 +122,7 @@ test "dagre nested container padding matches D2 terminal theme geometry" {
 }
 
 ///|
-test "dagre root grid keeps outside container labels outside cell boxes" {
+test "dagre rejects LaTeX labels before layout" {
   let source =
     #|grid-columns: 3
     #|grid-gap: 100
@@ -145,18 +145,18 @@ test "dagre root grid keeps outside container labels outside cell boxes" {
   let graph = @exporter.compile("test", ir) catch {
     error => fail("graph error: \{error}")
   }
-  let laid_out = @engine_api.layout_with_engine(
-    DagreEngine::new(),
-    graph,
-    @engine_api.LayoutConfig::new(),
-    Down,
-  ) catch {
-    error => fail("layout error: \{error}")
+  try
+    @engine_api.layout_with_engine(
+      DagreEngine::new(),
+      graph,
+      @engine_api.LayoutConfig::new(),
+      Down,
+    )
+  catch {
+    Unsupported(message) =>
+      @debug.assert_eq(message, "LaTeX labels are not supported")
+    _ => fail("expected unsupported LaTeX error")
+  } noraise {
+    _ => fail("expected unsupported LaTeX error")
   }
-  let parent = laid_out.find_object("amscd plugin").unwrap()
-  guard parent.box is Some(parent_box) else { fail("expected parent box") }
-  let child = laid_out.find_object("amscd plugin.ex").unwrap()
-  guard child.box is Some(child_box) else { fail("expected child box") }
-  @debug.assert_eq(parent_box, @graph.Box::new(0.0, 41.0, 345.0, 132.0))
-  @debug.assert_eq(child_box, @graph.Box::new(30.0, 71.0, 285.0, 72.0))
 }

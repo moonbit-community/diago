@@ -43,6 +43,15 @@ let ascii = @diago.compile(
 
 Imports are explicit and backend-independent through `ParseOptions::with_import_resolver`.
 
+### Unsupported D2 features
+
+Diago does not currently support LaTeX labels (`|tex` or `|latex`) or sketch
+rendering (`style.sketch`, `vars.d2-config.sketch`, or the `sketch` render
+option). These inputs return `UnsupportedFeature` instead of silently falling
+back to plain text or ordinary SVG rendering. They can be reconsidered when
+backend-independent community implementations are available for all MoonBit
+targets.
+
 Native applications can opt into local file access through the filesystem adapter:
 
 ```moonbit nocheck

@@ -286,46 +286,6 @@ test "markdown table accessibility wrapper is removed like D2" {
 }
 
 ///|
-test "sketch path decimals are truncated without a JS callback" {
-  @debug.assert_eq(
-    truncate_sketch_path_decimals("M-1.123456789 2.5 C 10.0000001 3 4.123456 5"),
-    "M-1.123456 2.5 C 10.000000 3 4.123456 5",
-  )
-}
-
-///|
-test "sketch runtime returns rough connection paths" {
-  let session = SketchSession::new() catch {
-    error => fail("failed to initialize sketch runtime: \{error}")
-  }
-  let path = "M 55 32 M 55 32 C 94 32 114 32 150 33 M 54 31 C 93 33 113 33 150 32"
-  let shape_nodes = session.path_shape(path, 2.0) catch {
-    error => fail("failed to render sketch path shape: \{error}")
-  }
-  assert_true(!shape_nodes.is_empty())
-  let nodes = session.connection(path) catch {
-    error => fail("failed to render sketch connection: \{error}")
-  }
-  assert_true(!nodes.is_empty())
-  let mut has_path = false
-  for node in nodes {
-    if node.get("d").unwrap_or("") != "" {
-      has_path = true
-    }
-  }
-  assert_true(has_path)
-}
-
-///|
-test "sketch angles retain D2 transform precision" {
-  assert_eq(sketch_angle_string(sketch_angle(0.0, 0.0, 1.0, 0.0)), "0")
-  assert_eq(
-    sketch_angle_string(sketch_angle(0.0, 0.0, 0.0, 1.0)),
-    "90.00000250447816",
-  )
-}
-
-///|
 test "zero-opacity objects do not emit labels" {
   let style = @graph.StyleInput::from_parts(
     Some(@graph.StyleValue::from_double(0.0)),

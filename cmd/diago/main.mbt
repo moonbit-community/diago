@@ -787,6 +787,7 @@ fn diago_error_message(err : @diago_core.DiagoError) -> String {
     RenderError(message) => "Render error: \{message}"
     ConfigError(message) => "Config error: \{message}"
     TargetError(message) => message
+    UnsupportedFeature(message) => "Unsupported feature: \{message}"
   }
 }
 

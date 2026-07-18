@@ -33,6 +33,7 @@ pub(all) suberror DiagoError {
   RenderError(String)
   ConfigError(String)
   TargetError(String)
+  UnsupportedFeature(String)
 } derive(Eq, @debug.Debug)
 
 // Types and methods

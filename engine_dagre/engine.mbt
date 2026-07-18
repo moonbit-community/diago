@@ -6810,9 +6810,6 @@ fn measure_object_label_dims(
   is_bold : Bool,
   is_italic : Bool,
 ) -> @text_metrics.TextDimensions {
-  if obj.language == Some("latex") {
-    return @text_metrics.measure_label_latex(obj.label)
-  }
   if obj.shape_type == Code {
     return @text_metrics.measure_label_code(
       obj.label,

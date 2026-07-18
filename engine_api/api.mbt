@@ -289,6 +289,12 @@ fn check_feature_support(
   features : Array[LayoutFeature],
   graph : @graph.GraphInput,
 ) -> Unit raise LayoutError {
+  if graph.uses_latex_labels() {
+    raise unsupported("LaTeX labels are not supported")
+  }
+  if graph.uses_sketch_styles() {
+    raise unsupported("sketch rendering is not supported")
+  }
   let object_by_id = build_object_by_abs_id_syntax(graph)
   let parent_id_by_child_id = build_parent_id_by_child_abs_id_syntax(graph)
 
@@ -2987,9 +2993,7 @@ fn estimate_semantic_object_size(
   let is_bold = object_label_bold_like_d2(obj, inside_sequence)
   let is_italic = style_bool(obj.style.italic, false)
   let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
-  let label_dims = if obj.language == Some("latex") {
-    @text_metrics.measure_label_latex(obj.label)
-  } else if obj.shape_type == Code {
+  let label_dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else if obj.language == Some("markdown") {
     @text_metrics.measure_label_markdown(obj.label, font_size)

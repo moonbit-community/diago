@@ -81,7 +81,7 @@ fn build_render_subcommand() -> @argparse.Command {
         "sketch",
         short='s',
         long="sketch",
-        about="Render the diagram in global sketch mode",
+        about="Unsupported: sketch rendering is not available",
         env="DIAGO_SKETCH",
       ),
       FlagArg(

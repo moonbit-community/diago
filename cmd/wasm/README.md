@@ -47,7 +47,10 @@ The adapter is single-call-at-a-time and not reentrant.
 ```
 
 Only `version` and `source` are required. Other fields use the same defaults as
-the backend-independent MoonBit facade.
+the backend-independent MoonBit facade. LaTeX labels and sketch rendering are
+not supported. A request that enables `render.sketch`, or source containing
+`|tex`, `|latex`, `style.sketch: true`, or `vars.d2-config.sketch: true`, fails
+with error kind `19`.
 
 ## Error kinds
 
@@ -66,6 +69,7 @@ the backend-independent MoonBit facade.
 - `16`: render error
 - `17`: target selection error
 - `18`: result exceeds transfer capacity
+- `19`: unsupported feature
 
 On failure, the result body is the human-readable error message.
 `result_required_len` reports the original encoded body size, including when

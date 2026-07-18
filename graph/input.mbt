@@ -140,6 +140,78 @@ pub fn GraphInput::get_edges(self : GraphInput) -> Array[EdgeInput] {
 }
 
 ///|
+/// Whether this graph or one of its child boards contains a LaTeX label.
+pub fn GraphInput::uses_latex_labels(self : GraphInput) -> Bool {
+  if self.root.language == Some("latex") {
+    return true
+  }
+  for obj in self.objects {
+    if obj.language == Some("latex") {
+      return true
+    }
+  }
+  for layer in self.layers {
+    if layer.graph.uses_latex_labels() {
+      return true
+    }
+  }
+  for scenario in self.scenarios {
+    if scenario.graph.uses_latex_labels() {
+      return true
+    }
+  }
+  for step in self.steps {
+    if step.graph.uses_latex_labels() {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn StyleInput::enables_sketch(self : StyleInput) -> Bool {
+  match self.sketch {
+    Some(value) => value.as_bool().unwrap_or(false)
+    None => false
+  }
+}
+
+///|
+/// Whether this graph or one of its child boards explicitly enables sketch
+/// rendering on an object or edge.
+pub fn GraphInput::uses_sketch_styles(self : GraphInput) -> Bool {
+  if self.root.style.enables_sketch() {
+    return true
+  }
+  for obj in self.objects {
+    if obj.style.enables_sketch() {
+      return true
+    }
+  }
+  for edge in self.edges {
+    if edge.style.enables_sketch() {
+      return true
+    }
+  }
+  for layer in self.layers {
+    if layer.graph.uses_sketch_styles() {
+      return true
+    }
+  }
+  for scenario in self.scenarios {
+    if scenario.graph.uses_sketch_styles() {
+      return true
+    }
+  }
+  for step in self.steps {
+    if step.graph.uses_sketch_styles() {
+      return true
+    }
+  }
+  false
+}
+
+///|
 fn StyleInput::with_default_font(
   self : StyleInput,
   font : String,
