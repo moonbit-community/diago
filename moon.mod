@@ -3,7 +3,7 @@ name = "Milky2018/diago"
 version = "0.2.5"
 
 import {
-  "moonbitlang/x@0.4.38",
+  "moonbitlang/x@0.4.46",
   "Milky2018/xml@0.2.0",
   "moonbit-community/cmark@0.4.3",
   "Milky2018/moon_swash@0.1.3",
