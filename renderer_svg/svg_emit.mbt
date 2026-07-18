@@ -37,6 +37,7 @@ priv struct SvgEmitAssets {
   has_sketch_styles : Bool
   style_blocks : Array[String]
   defs : Array[String]
+  body_prefix_defs : Array[String]
   tail_elements : Array[String]
 }
 
@@ -56,6 +57,7 @@ fn SvgEmitAssets::new(
     has_sketch_styles,
     style_blocks: [],
     defs: [],
+    body_prefix_defs: [],
     tail_elements: [],
   }
 }
@@ -75,6 +77,14 @@ fn SvgEmitAssets::add_style(self : SvgEmitAssets, css : String) -> Unit {
 ///|
 fn SvgEmitAssets::add_def(self : SvgEmitAssets, def : String) -> Unit {
   self.defs.push(def)
+}
+
+///|
+fn SvgEmitAssets::add_body_prefix_def(
+  self : SvgEmitAssets,
+  def : String,
+) -> Unit {
+  self.body_prefix_defs.push(def)
 }
 
 ///|
@@ -772,8 +782,11 @@ fn d2_hash_arrowhead_value(arrowhead : ArrowheadType) -> String {
   match arrowhead {
     None => "none"
     Triangle => "triangle"
+    Arrow => "arrow"
     Diamond => "diamond"
+    FilledDiamond => "filled-diamond"
     Circle => "circle"
+    FilledCircle => "filled-circle"
     Open => "unfilled-triangle"
     Line => "line"
     CfOne => "cf-one"
@@ -809,7 +822,7 @@ fn d2_config_uses_mono(config : SvgConfig) -> Bool {
 
 ///|
 fn d2_hash_shape_font_family(shape : Shape, config : SvgConfig) -> String {
-  if d2_config_uses_mono(config) || style_is_mono(shape.style.font_family) {
+  if d2_config_uses_mono(config) || style_is_mono(shape.style.font) {
     "mono"
   } else {
     style_string(shape.style.font_family, "DEFAULT")
@@ -818,7 +831,7 @@ fn d2_hash_shape_font_family(shape : Shape, config : SvgConfig) -> String {
 
 ///|
 fn d2_hash_edge_font_family(edge : Connection, config : SvgConfig) -> String {
-  if d2_config_uses_mono(config) || style_is_mono(edge.style.font_family) {
+  if d2_config_uses_mono(config) || style_is_mono(edge.style.font) {
     "mono"
   } else {
     style_string(edge.style.font_family, "DEFAULT")
@@ -848,7 +861,7 @@ fn d2_hash_shape_label_dims(shape : Shape, config : SvgConfig) -> (Int, Int) {
   let font_size = style_int(shape.style.font_size, default_font_size)
   let is_mono = shape.shape_type == Code ||
     d2_config_uses_mono(config) ||
-    style_is_mono(shape.style.font_family)
+    style_is_mono(shape.style.font)
   let is_bold = style_bool(shape.style.bold, default_object_bold(shape))
   let is_italic = style_bool(shape.style.italic, false)
   let dims = @text_metrics.measure_label(
@@ -1197,6 +1210,9 @@ fn d2_hash_connection_json_with_repeat_index(
   fields.push(
     d2_json_field("src", d2_json_string(d2_output_abs_id(edge.src_id))),
   )
+  if !edge.classes.is_empty() {
+    fields.push(d2_json_field("classes", d2_json_string_array(edge.classes)))
+  }
   fields.push(
     d2_json_field(
       "srcArrow",
@@ -1747,21 +1763,30 @@ fn d2_edge_repeat_key(edge : Connection) -> String {
 
 ///|
 fn d2_connection_repeat_indices(connections : Array[Connection]) -> Array[Int] {
-  let key_counts : Map[String, Int] = Map([])
   let indices : Array[Int] = []
-  for edge in connections {
+  for i = 0; i < connections.length(); i = i + 1 {
+    let edge = connections[i]
     let key = d2_edge_repeat_key(edge)
-    let index = key_counts.get(key).unwrap_or(0)
+    let mut index = 0
+    for j = 0; j < connections.length(); j = j + 1 {
+      let candidate = connections[j]
+      if d2_edge_repeat_key(candidate) != key {
+        continue
+      }
+      if candidate.identity_scope_depth > edge.identity_scope_depth ||
+        (candidate.identity_scope_depth == edge.identity_scope_depth && j < i) {
+        index = index + 1
+      }
+    }
     indices.push(index)
-    key_counts[key] = index + 1
   }
   indices
 }
 
 ///|
 fn d2_connection_abs_id(edge : Connection, repeat_index : Int) -> String {
-  let src_parts = d2_output_abs_id_parts(edge.src_id)
-  let dst_parts = d2_output_abs_id_parts(edge.dst_id)
+  let src_parts = d2_output_abs_id_parts(edge.src_syntax_id)
+  let dst_parts = d2_output_abs_id_parts(edge.dst_syntax_id)
   let common : Array[String] = []
   let mut src_start = 0
   let mut dst_start = 0
@@ -2054,7 +2079,12 @@ fn d2_root_background_rect(
     Some(class_raw) => classes.write_string(class_raw)
     None => ()
   }
-  match d2_theme_token(fill, theme) {
+  let fill_token = if fill == theme.resolve("N7") {
+    Some("N7")
+  } else {
+    d2_theme_token(fill, theme)
+  }
+  match fill_token {
     Some(token) => classes.write_string(" fill-\{token}")
     None => ()
   }
@@ -2069,9 +2099,7 @@ fn d2_root_background_rect(
   if stroke != "" && stroke != "none" {
     sb.write_string(" stroke=\"\{@svg.escape_xml(stroke)}\"")
   }
-  if inline_theme || d2_theme_token(fill, theme) is None {
-    sb.write_string(" fill=\"\{@svg.escape_xml(fill)}\"")
-  } else {
+  if inline_theme || fill_token is None {
     sb.write_string(" fill=\"\{@svg.escape_xml(fill)}\"")
   }
   if class_value != "" {
@@ -2100,8 +2128,14 @@ fn d2_shape_rect(
   inline_theme : Bool,
   fill_class_token? : String? = None,
   stroke_class_token? : String? = None,
+  stroke_dash? : Double = 0.0,
+  mask? : String = "",
+  class_name? : String = "",
 ) -> String {
   let classes = StringBuilder::new()
+  if class_name != "" {
+    classes.write_string(class_name)
+  }
   let stroke_token = match stroke_class_token {
     Some(v) => Some(v)
     None => d2_theme_token(stroke, theme)
@@ -2132,19 +2166,30 @@ fn d2_shape_rect(
   if border_radius > 0.0 {
     sb.write_string(" rx=\"\{d2_fixed6(border_radius)}\"")
   }
-  if inline_theme || stroke_token is None {
+  if mask != "" {
+    sb.write_string(" mask=\"\{@svg.escape_xml(mask)}\"")
+  }
+  if stroke != "" && (inline_theme || stroke_token is None) {
     sb.write_string(" stroke=\"\{@svg.escape_xml(stroke)}\"")
   }
-  if inline_theme || fill_token is None {
+  if fill != "" && (inline_theme || fill_token is None) {
     sb.write_string(" fill=\"\{@svg.escape_xml(fill)}\"")
   }
   let class_value = classes.to_string()
   if class_value != "" {
     sb.write_string(" class=\"\{@svg.escape_xml(class_value)}\"")
   }
-  sb.write_string(
-    " style=\"stroke-width:\{@svg.escape_xml(stroke_width_css)};\"",
-  )
+  let styles : Array[String] = ["stroke-width:\{stroke_width_css}"]
+  if stroke_dash > 0.0 {
+    let (dash_size, gap_size) = d2_stroke_dash_attributes(
+      stroke_width, stroke_dash,
+    )
+    styles.push(
+      "stroke-dasharray:\{d2_fixed6(dash_size)},\{d2_fixed6(gap_size)}",
+    )
+  }
+  let style_value = @svg.escape_xml(styles.join(";") + ";")
+  sb.write_string(" style=\"\{style_value}\"")
   sb.write_string(" />")
   sb.to_string()
 }
@@ -2305,6 +2350,9 @@ fn emit_svg_document(
   let defs_block = emit_defs_block(combined_defs)
   if defs_block != "" {
     sb.write_string(defs_block)
+  }
+  for def in assets.body_prefix_defs {
+    sb.write_string(emit_defs_block([def]))
   }
   let mut index = body_index
   while index < body_elements.length() {

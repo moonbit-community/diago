@@ -141,18 +141,28 @@ pub fn Map::triple_glob(self : Map) -> Array[Field] {
 ///|
 fn Map::triple_glob_helper(self : Map, result : Array[Field]) -> Unit {
   for f in self.fields {
+    if f.is_board_keyword_name() {
+      match f.composite {
+        Some(Map(boards)) =>
+          for board in boards.fields {
+            match board.composite {
+              Some(Map(board_map)) => board_map.triple_glob_helper(result)
+              _ => ()
+            }
+          }
+        _ => ()
+      }
+      continue
+    }
     // Skip non-board reserved keywords
-    if f.is_reserved_keyword_name() && !f.is_board_keyword_name() {
+    if f.is_reserved_keyword_name() {
       match f.composite {
         Some(Map(m)) => m.triple_glob_helper(result)
         _ => ()
       }
       continue
     }
-    // Add this field (including board fields)
-    if !f.is_board_keyword_name() {
-      result.push(f)
-    }
+    result.push(f)
     // Recursively collect from children
     match f.composite {
       Some(Map(m)) => m.triple_glob_helper(result)
@@ -284,6 +294,78 @@ pub fn Map::single_glob(self : Map, pattern : Array[String]) -> Array[Field] {
 }
 
 ///|
+priv struct GlobTarget {
+  field : Field
+  parent_map : Map
+  level : Int
+}
+
+///|
+fn Map::glob_targets(self : Map, pattern : Array[String]) -> Array[GlobTarget] {
+  let targets : Array[GlobTarget] = []
+  if is_double_glob(pattern) {
+    self.collect_multi_glob_targets(targets, false, 0)
+  } else if is_triple_glob(pattern) {
+    self.collect_multi_glob_targets(targets, true, 0)
+  } else {
+    for field in self.single_glob(pattern) {
+      targets.push({ field, parent_map: self, level: 0 })
+    }
+  }
+  targets
+}
+
+///|
+fn Map::collect_multi_glob_targets(
+  self : Map,
+  targets : Array[GlobTarget],
+  include_boards : Bool,
+  level : Int,
+) -> Unit {
+  let snapshot = self.fields.copy()
+  for field in snapshot {
+    let child_map = match field.composite {
+      Some(Map(map)) => Some(map)
+      _ => None
+    }
+    if field.is_board_keyword_name() {
+      if include_boards {
+        match child_map {
+          Some(boards) =>
+            for board in boards.fields {
+              match board.composite {
+                Some(Map(board_map)) =>
+                  board_map.collect_multi_glob_targets(
+                    targets, include_boards, 0,
+                  )
+                _ => ()
+              }
+            }
+          None => ()
+        }
+      }
+      continue
+    }
+    if field.is_reserved_keyword_name() {
+      if field.name == "vars" && !include_boards {
+        match child_map {
+          Some(map) =>
+            map.collect_multi_glob_targets(targets, include_boards, level)
+          None => ()
+        }
+      }
+      continue
+    }
+    targets.push({ field, parent_map: self, level })
+    match child_map {
+      Some(map) =>
+        map.collect_multi_glob_targets(targets, include_boards, level + 1)
+      None => ()
+    }
+  }
+}
+
+///|
 /// Filter context for evaluating ampersand filters
 pub struct FilterContext {
   /// Current field being filtered
@@ -305,68 +387,225 @@ pub fn evaluate_filter(
   filter_key : String,
   filter_value : String,
 ) -> Bool {
+  evaluate_filter_at_level(ctx, filter_key, filter_value, 0)
+}
+
+///|
+fn evaluate_filter_at_level(
+  ctx : FilterContext,
+  filter_key : String,
+  filter_value : String,
+  level : Int,
+) -> Bool {
   // Check simple property filters
   match filter_key.to_lower() {
+    "level" => filter_value_matches(level.to_string(), filter_value)
     "shape" =>
       // Match against shape property
       match get_field_property(ctx.field, "shape") {
-        Some(v) => v.to_lower() == filter_value.to_lower()
-        None => filter_value.to_lower() == "rectangle" // default shape
+        Some(v) => filter_value_matches(v, filter_value)
+        None => filter_value_matches("rectangle", filter_value) // default shape
       }
     "label" =>
       // Match against primary value (label)
       match ctx.field.primary {
-        Some(s) => s.to_string().to_lower() == filter_value.to_lower()
-        None => filter_value == "" || filter_value == ctx.field.name
+        Some(s) => filter_value_matches(s.to_string(), filter_value)
+        None =>
+          filter_value == "" ||
+          filter_value_matches(ctx.field.name, filter_value)
       }
+    "class" =>
+      match field_property(ctx.field, "class") {
+        Some(class_field) =>
+          field_contains_filter_value(class_field, filter_value)
+        None => false
+      }
+    "connected" =>
+      filter_value_matches(
+        if field_is_connected(ctx.field, ctx.parent_map) {
+          "true"
+        } else {
+          "false"
+        },
+        filter_value,
+      )
+    "leaf" =>
+      filter_value_matches(
+        if field_is_leaf(ctx.field) {
+          "true"
+        } else {
+          "false"
+        },
+        filter_value,
+      )
     "opacity" =>
       match get_field_property(ctx.field, "opacity") {
-        Some(v) => v == filter_value
-        None => filter_value == "1" // default opacity
+        Some(v) => filter_value_matches(v, filter_value)
+        None => filter_value_matches("1", filter_value) // default opacity
       }
     "stroke-width" =>
       match get_field_property(ctx.field, "stroke-width") {
-        Some(v) => v == filter_value
-        None => filter_value == "2" // default stroke-width
+        Some(v) => filter_value_matches(v, filter_value)
+        None => filter_value_matches("2", filter_value) // default stroke-width
       }
     "border-radius" | "stroke-dash" =>
       match get_field_property(ctx.field, filter_key) {
-        Some(v) => v == filter_value
-        None => filter_value == "0" // default
+        Some(v) => filter_value_matches(v, filter_value)
+        None => filter_value_matches("0", filter_value) // default
       }
     "shadow" | "multiple" | "3d" | "animated" | "filled" =>
       match get_field_property(ctx.field, filter_key) {
-        Some(v) => v.to_lower() == filter_value.to_lower()
-        None => filter_value.to_lower() == "false" // default
+        Some(v) => filter_value_matches(v, filter_value)
+        None => filter_value_matches("false", filter_value) // default
       }
     "icon" | "tooltip" | "link" =>
       match get_field_property(ctx.field, filter_key) {
-        Some(v) => v == filter_value
-        None => filter_value == "" // default
+        Some(v) => filter_value_matches(v, filter_value)
+        None => filter_value == "" // absent properties do not satisfy wildcards
       }
     _ =>
       // Try to find the property in the field's map
       match get_field_property(ctx.field, filter_key) {
-        Some(v) => v.to_lower() == filter_value.to_lower()
+        Some(v) => filter_value_matches(v, filter_value)
         None => false
       }
   }
 }
 
 ///|
-/// Get a property value from a field's composite map
-fn get_field_property(field : Field, key : String) -> String? {
+pub fn filter_value_matches(actual : String, pattern : String) -> Bool {
+  let actual = actual.to_lower()
+  let pattern = pattern.to_lower()
+  let mut actual_index = 0
+  let mut pattern_index = 0
+  let mut star_index = -1
+  let mut star_match_index = 0
+  while actual_index < actual.length() {
+    if pattern_index < pattern.length() &&
+      pattern.code_unit_at(pattern_index) != '*'.to_int().to_uint16() &&
+      pattern.code_unit_at(pattern_index) == actual.code_unit_at(actual_index) {
+      actual_index = actual_index + 1
+      pattern_index = pattern_index + 1
+    } else if pattern_index < pattern.length() &&
+      pattern.code_unit_at(pattern_index) == '*'.to_int().to_uint16() {
+      star_index = pattern_index
+      star_match_index = actual_index
+      pattern_index = pattern_index + 1
+    } else if star_index >= 0 {
+      pattern_index = star_index + 1
+      star_match_index = star_match_index + 1
+      actual_index = star_match_index
+    } else {
+      return false
+    }
+  }
+  while pattern_index < pattern.length() &&
+        pattern.code_unit_at(pattern_index) == '*'.to_int().to_uint16() {
+    pattern_index = pattern_index + 1
+  }
+  pattern_index == pattern.length()
+}
+
+///|
+fn field_contains_filter_value(field : Field, filter_value : String) -> Bool {
+  match field.primary {
+    Some(value) =>
+      if filter_value_matches(value.to_string(), filter_value) {
+        return true
+      }
+    None => ()
+  }
   match field.composite {
-    Some(Map(m)) =>
-      match m.get_field(key) {
-        Some(f) =>
-          match f.primary {
-            Some(s) => Some(s.to_string())
-            None => None
-          }
+    Some(Array(array)) =>
+      for value in array.values {
+        match value {
+          Scalar(scalar) =>
+            if filter_value_matches(scalar.to_string(), filter_value) {
+              return true
+            }
+          _ => ()
+        }
+      }
+    _ => ()
+  }
+  false
+}
+
+///|
+fn field_is_connected(field : Field, parent_map : Map) -> Bool {
+  for edge in parent_map.edges {
+    if (
+        !edge.id.src_path.is_empty() &&
+        edge.id.src_path[0].to_lower() == field.name.to_lower()
+      ) ||
+      (
+        !edge.id.dst_path.is_empty() &&
+        edge.id.dst_path[0].to_lower() == field.name.to_lower()
+      ) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn field_is_leaf(field : Field) -> Bool {
+  match field.composite {
+    Some(Map(map)) =>
+      for child in map.fields {
+        if !child.is_reserved_keyword_name() {
+          return false
+        }
+      }
+    _ => ()
+  }
+  true
+}
+
+///|
+fn field_property(field : Field, key : String) -> Field? {
+  match field.composite {
+    Some(Map(map)) => field_property_in_map(map, key)
+    _ => None
+  }
+}
+
+///|
+fn field_property_in_map(map : Map, key : String) -> Field? {
+  let parts = key.split(".").collect()
+  let mut current = map
+  for i, part in parts {
+    guard current.get_field(part.to_owned()) is Some(field) else {
+      if parts.length() == 1 {
+        guard current.get_field("style") is Some(style_field) else {
+          return None
+        }
+        guard style_field.composite is Some(Map(style_map)) else { return None }
+        return style_map.get_field(part.to_owned())
+      }
+      return None
+    }
+    if i == parts.length() - 1 {
+      return Some(field)
+    }
+    match field.composite {
+      Some(Map(next)) => current = next
+      _ => return None
+    }
+  }
+  None
+}
+
+///|
+/// Get a scalar property value from a field's composite map.
+fn get_field_property(field : Field, key : String) -> String? {
+  match field_property(field, key) {
+    Some(property) =>
+      match property.primary {
+        Some(value) => Some(value.to_string())
         None => None
       }
-    _ => None
+    None => None
   }
 }
 
@@ -434,8 +673,16 @@ fn Map::apply_multi_glob_properties(
       // Triple glob (***): descend into boards, but don't apply to reserved keywords.
       if f.is_board_keyword_name() {
         match child_map {
-          Some(m) =>
-            m.apply_multi_glob_properties(properties, filters, include_boards)
+          Some(boards) =>
+            for board in boards.fields {
+              match board.composite {
+                Some(Map(board_map)) =>
+                  board_map.apply_multi_glob_properties(
+                    properties, filters, include_boards,
+                  )
+                _ => ()
+              }
+            }
           None => ()
         }
         continue
@@ -445,6 +692,11 @@ fn Map::apply_multi_glob_properties(
       }
       // Double glob (**): don't apply to reserved keywords (including `style`).
     } else if f.is_reserved_keyword_name() {
+      match child_map {
+        Some(m) =>
+          m.apply_multi_glob_properties(properties, filters, include_boards)
+        None => ()
+      }
       continue
     }
 
@@ -543,8 +795,11 @@ fn merge_properties_into_map(target : Map, src : Map) -> Unit {
     }
     match existing_field {
       Some(existing) => {
-        let primary = if prop.primary is Some(_) {
+        let prop_follows = glob_property_follows_existing(existing, prop)
+        let primary = if prop.primary is Some(_) && prop_follows {
           prop.primary
+        } else if prop.composite is Some(Array(_)) && prop_follows {
+          None
         } else {
           existing.primary
         }
@@ -557,8 +812,20 @@ fn merge_properties_into_map(target : Map, src : Map) -> Unit {
               }
               _ => Some(Map(clone_map_for_properties(src_map)))
             }
-          Some(other) => Some(clone_composite_for_properties(other))
-          None => existing.composite
+          Some(other) =>
+            if prop_follows {
+              Some(clone_composite_for_properties(other))
+            } else {
+              existing.composite
+            }
+          None =>
+            if prop.primary is Some(_) &&
+              prop_follows &&
+              existing.composite is Some(Array(_)) {
+              None
+            } else {
+              existing.composite
+            }
         }
         let updated = Field::new(
           existing.name,
@@ -578,6 +845,38 @@ fn merge_properties_into_map(target : Map, src : Map) -> Unit {
       None => target.add_field(clone_field_for_properties(prop))
     }
   }
+}
+
+///|
+fn glob_property_follows_existing(existing : Field, prop : Field) -> Bool {
+  guard prop.last_primary_ref() is Some(prop_ref) else { return true }
+  guard existing.last_primary_ref() is Some(existing_ref) else { return true }
+  let prop_context = prop_ref.context()
+  let existing_context = existing_ref.context()
+  match (prop_context, existing_context) {
+    (Some(prop_context), Some(existing_context)) =>
+      if prop_context.source_path != existing_context.source_path {
+        return true
+      }
+    _ => ()
+  }
+  reference_operation_range(prop_ref).start.offset >=
+  reference_operation_range(existing_ref).start.offset
+}
+
+///|
+fn reference_operation_range(reference : Reference) -> @lexer.Range {
+  if reference.due_to_glob() || reference.due_to_lazy_glob() {
+    match reference.context() {
+      Some(context) =>
+        match context.key {
+          Some(key) => return key.range
+          None => ()
+        }
+      None => ()
+    }
+  }
+  reference.range()
 }
 
 ///|

@@ -63,6 +63,7 @@ pub struct TitleLayout {
 /// separators). It only renders based on this layout.
 pub enum LegendEntryLayout {
   Shape(
+    id~ : String,
     icon_box~ : Box,
     shape~ : ShapeType,
     label~ : String,
@@ -71,9 +72,14 @@ pub enum LegendEntryLayout {
     label_y~ : Double
   )
   Connection(
+    src_id~ : String,
+    dst_id~ : String,
+    index~ : Int,
     line_start_x~ : Double,
     line_end_x~ : Double,
     line_y~ : Double,
+    src_arrow_enabled~ : Bool,
+    dst_arrow_enabled~ : Bool,
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
@@ -94,45 +100,81 @@ pub enum LegendEntryLayout {
 } derive(Debug)
 
 ///|
-fn estimate_text_width(text : String, font_size : Int) -> Double {
-  text.length().to_double() * font_size.to_double() * 0.6
+fn legend_text_dimensions(text : String) -> @text_metrics.TextDimensions {
+  @text_metrics.measure_text(text, 14, false, false, false).dimensions
 }
 
 ///|
-fn calculate_size(legend : LegendInput, font_size : Int) -> (Double, Double) {
+fn calculate_size(legend : LegendInput) -> (Double, Double, Int, Int) {
   if legend.is_empty() {
-    return (0.0, 0.0)
+    return (0.0, 0.0, 0, 0)
   }
-  let mut max_label_width = 0.0
-  let mut total_height = legend.padding * 2.0
-  match legend.title {
-    Some(t) => {
-      max_label_width = estimate_text_width(t, font_size)
-      total_height = total_height + font_size.to_double() + legend.entry_gap
-    }
-    None => ()
-  }
+  let mut max_label_width = 0
+  let mut total_height = 20 + 14 + 15
+  let mut shape_count = 0
+  let mut connection_count = 0
   for entry in legend.entries {
     match entry {
-      ShapeEntry(label~, ..)
-      | ConnectionEntry(label~, ..)
-      | CustomEntry(label~, ..) => {
-        let label_width = estimate_text_width(label, font_size)
+      ShapeEntry(label~, ..) => {
+        if label == "" {
+          continue
+        }
+        let dims = legend_text_dimensions(label)
+        let label_width = dims.width.to_int()
         max_label_width = if label_width > max_label_width {
           label_width
         } else {
           max_label_width
         }
-        total_height = total_height + legend.icon_size + legend.entry_gap
+        total_height = total_height + max_int(dims.height.to_int(), 24) + 15
+        shape_count += 1
       }
-      Separator => total_height = total_height + 4.0 + legend.entry_gap
+      ConnectionEntry(label~, ..) => {
+        if label == "" {
+          continue
+        }
+        let dims = legend_text_dimensions(label)
+        let label_width = dims.width.to_int()
+        max_label_width = if label_width > max_label_width {
+          label_width
+        } else {
+          max_label_width
+        }
+        total_height = total_height + max_int(dims.height.to_int(), 24) + 15
+        connection_count += 1
+      }
+      CustomEntry(label~, ..) => {
+        if label == "" {
+          continue
+        }
+        let dims = legend_text_dimensions(label)
+        max_label_width = max_int(max_label_width, dims.width.to_int())
+        total_height = total_height + max_int(dims.height.to_int(), 24) + 15
+        shape_count += 1
+      }
+      Separator => ()
     }
   }
-  let width = legend.padding * 2.0 +
-    legend.icon_size +
-    legend.entry_gap +
-    max_label_width
-  (width, total_height)
+  let item_count = shape_count + connection_count
+  if item_count > 0 {
+    total_height -= 15 / 2
+  }
+  if connection_count > 0 {
+    total_height += 30
+  } else {
+    total_height += 24
+  }
+  let width = 20 * 2 + 24 + 20 + max_label_width
+  (width.to_double(), total_height.to_double(), shape_count, connection_count)
+}
+
+///|
+fn max_int(a : Int, b : Int) -> Int {
+  if a > b {
+    a
+  } else {
+    b
+  }
 }
 
 ///|
@@ -147,59 +189,73 @@ pub fn compute_legend_layout(
   if legend.is_empty() || legend.position == Hidden {
     return None
   }
-  let (min_x, min_y, max_x, max_y) = bounds
-  let (width, height) = calculate_size(legend, config.font_size)
-  let margin = config.margin
-  let (x, y) = match legend.position {
-    TopLeft => (min_x + margin, min_y + margin)
-    TopRight => (max_x - width - margin, min_y + margin)
-    BottomLeft => (min_x + margin, max_y - height - margin)
-    BottomRight | Hidden => (max_x - width - margin, max_y - height - margin)
-  }
-  let fill = legend.fill.unwrap_or("#ffffff")
-  let stroke = legend.stroke.unwrap_or("#cccccc")
-  let mut current_y = y + legend.padding
-  let title = match legend.title {
-    Some(t) => {
-      let title_x = x + legend.padding
-      let title_y = current_y + config.font_size.to_double() * 0.8
-      current_y = current_y + config.font_size.to_double() + legend.entry_gap
-      Some({ x: title_x, y: title_y, text: t })
-    }
-    None => None
-  }
+  let (_, min_y, max_x, max_y) = bounds
+  ignore(config)
+  let (width, height, shape_count, connection_count) = calculate_size(legend)
+  let x = max_x + 10.0
+  let y = if max_y - height < min_y { min_y } else { max_y - height }
+  let fill = "#ffffff"
+  let stroke = "#DEE1EB"
+  let title_text = legend.title.unwrap_or("Legend")
+  let title = Some({ x: x + 20.0, y: y + 34.0, text: title_text })
+  let mut current_y = y + 54.0
   let entries : Array[LegendEntryLayout] = []
+  let mut emitted_separator = false
   for entry in legend.entries {
     match entry {
-      ShapeEntry(shape~, label~, style~) => {
-        let icon_box = Box::new(
-          x + legend.padding,
-          current_y,
-          legend.icon_size,
-          legend.icon_size,
-        )
-        let label_x = x + legend.padding + legend.icon_size + legend.entry_gap
+      ShapeEntry(id~, shape~, label~, style~) => {
+        if label == "" {
+          continue
+        }
+        let dims = legend_text_dimensions(label)
+        let row_height = max_int(dims.height.to_int(), 24)
+        let icon_box = Box::new(x + 20.0, current_y, 24.0, 24.0)
+        let label_x = x + 64.0
         let label_y = current_y +
-          legend.icon_size / 2.0 +
-          config.font_size.to_double() * 0.35
+          (row_height / 2 + (dims.height * 0.3).to_int()).to_double()
         entries.push(
-          Shape(icon_box~, shape~, label~, style~, label_x~, label_y~),
+          Shape(id~, icon_box~, shape~, label~, style~, label_x~, label_y~),
         )
-        current_y = current_y + legend.icon_size + legend.entry_gap
+        current_y = current_y + row_height.to_double() + 15.0
       }
-      ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
-        let line_y = current_y + legend.icon_size / 2.0
-        let line_start_x = x + legend.padding
-        let line_end_x = x + legend.padding + legend.icon_size
-        let label_x = x + legend.padding + legend.icon_size + legend.entry_gap
+      ConnectionEntry(
+        src_id~,
+        dst_id~,
+        index~,
+        src_arrow_enabled~,
+        dst_arrow_enabled~,
+        src_arrow~,
+        dst_arrow~,
+        label~,
+        style~
+      ) => {
+        if label == "" {
+          continue
+        }
+        if shape_count > 0 && connection_count > 0 && !emitted_separator {
+          current_y += 7.0
+          entries.push(Separator(x1=x + 20.0, x2=x + width - 20.0, y=current_y))
+          current_y += 15.0
+          emitted_separator = true
+        }
+        let dims = legend_text_dimensions(label)
+        let row_height = max_int(dims.height.to_int(), 24)
+        let line_y = current_y + 12.0
+        let line_start_x = x + 20.0
+        let line_end_x = line_start_x + 24.0
+        let label_x = x + 64.0
         let label_y = current_y +
-          legend.icon_size / 2.0 +
-          config.font_size.to_double() * 0.35
+          (row_height / 2 + (dims.height * 0.2).to_int()).to_double()
         entries.push(
           Connection(
+            src_id~,
+            dst_id~,
+            index~,
             line_start_x~,
             line_end_x~,
             line_y~,
+            src_arrow_enabled~,
+            dst_arrow_enabled~,
             src_arrow~,
             dst_arrow~,
             label~,
@@ -208,16 +264,17 @@ pub fn compute_legend_layout(
             label_y~,
           ),
         )
-        current_y = current_y + legend.icon_size + legend.entry_gap
+        current_y = current_y + row_height.to_double() + 15.0
       }
       CustomEntry(icon~, label~) => {
-        let icon_x = x + legend.padding
+        let icon_x = x + 20.0
         let icon_y = current_y
-        let icon_size = legend.icon_size
-        let label_x = x + legend.padding + icon_size + legend.entry_gap
+        let icon_size = 24.0
+        let label_x = x + 64.0
+        let dims = legend_text_dimensions(label)
+        let row_height = max_int(dims.height.to_int(), 24)
         let label_y = current_y +
-          icon_size / 2.0 +
-          config.font_size.to_double() * 0.35
+          (row_height / 2 + (dims.height * 0.3).to_int()).to_double()
         entries.push(
           Custom(
             icon_x~,
@@ -229,15 +286,9 @@ pub fn compute_legend_layout(
             label_y~,
           ),
         )
-        current_y = current_y + legend.icon_size + legend.entry_gap
+        current_y = current_y + row_height.to_double() + 15.0
       }
-      Separator => {
-        let y = current_y + 2.0
-        let x1 = x + legend.padding
-        let x2 = x + width - legend.padding
-        entries.push(Separator(x1~, x2~, y~))
-        current_y = current_y + 4.0 + legend.entry_gap
-      }
+      Separator => ()
     }
   }
   Some({ x, y, width, height, fill, stroke, title, entries })

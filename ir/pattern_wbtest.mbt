@@ -110,11 +110,14 @@ test "triple_glob includes all" {
   m.add_field(Field::simple("server"))
   // Add layers with children
   let layers_map = Map::new()
-  layers_map.add_field(Field::simple("layer1"))
+  let layer_map = Map::new()
+  layer_map.add_field(Field::simple("inside"))
+  layers_map.add_field(Field::new("layer1", None, Some(Map(layer_map)), []))
   m.add_field(Field::new("layers", None, Some(Map(layers_map)), []))
   // Triple glob should include fields inside layers
   let fields = m.triple_glob()
-  @debug.assert_eq(fields.length(), 2) // server and layer1 (not layers itself)
+  @debug.assert_eq(fields.length(), 2) // server and inside (not board names)
+  @debug.assert_eq(fields[1].name, "inside")
 }
 
 ///|
@@ -176,6 +179,53 @@ test "evaluate_filter with default" {
   let ctx = FilterContext::new(field, parent)
   assert_true(evaluate_filter(ctx, "shape", "rectangle"))
   assert_true(!evaluate_filter(ctx, "shape", "circle"))
+}
+
+///|
+test "filter values support case-insensitive wildcards" {
+  assert_true(filter_value_matches("https://google.com", "*"))
+  assert_true(filter_value_matches("Backend", "back*"))
+  assert_true(filter_value_matches("pre-middle-suffix", "pre*suffix"))
+  assert_true(!filter_value_matches("frontend", "back*"))
+  assert_true(!filter_value_matches("", "nonempty*"))
+}
+
+///|
+test "evaluate_filter supports class arrays, style paths, connected, and leaf" {
+  let parent = Map::new()
+  let a_map = Map::new()
+  a_map.add_field(
+    Field::new(
+      "class",
+      None,
+      Some(
+        Array(
+          IRArray::new([
+            Scalar(Scalar::string("server")),
+            Scalar(Scalar::string("deployed")),
+          ]),
+        ),
+      ),
+      [],
+    ),
+  )
+  let style_map = Map::new()
+  style_map.add_field(
+    Field::new("fill", Some(Scalar::string("blue")), None, []),
+  )
+  a_map.add_field(Field::new("style", None, Some(Map(style_map)), []))
+  let a = Field::new("a", None, Some(Map(a_map)), [])
+  parent.add_field(a)
+  parent.add_field(Field::simple("b"))
+  parent.add_edge(
+    Edge::new(EdgeID::new(["a"], ["b"], false, true), None, None, []),
+  )
+  let ctx = FilterContext::new(a, parent)
+  assert_true(evaluate_filter(ctx, "class", "server"))
+  assert_true(evaluate_filter(ctx, "style.fill", "blue"))
+  assert_true(evaluate_filter(ctx, "fill", "blue"))
+  assert_true(evaluate_filter(ctx, "connected", "true"))
+  assert_true(evaluate_filter(ctx, "leaf", "true"))
 }
 
 ///|

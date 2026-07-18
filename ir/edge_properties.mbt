@@ -50,13 +50,50 @@ fn edge_property_map(
 }
 
 ///|
-fn merge_edge_maps(base : Map?, patch : Map?) -> Map? {
+fn merge_edge_maps(base : Map?, patch : Map?, patch_overrides : Bool) -> Map? {
   match (base, patch) {
-    (Some(base), Some(patch)) => Some(base.overlay(patch))
+    (Some(base), Some(patch)) =>
+      if patch_overrides {
+        Some(base.overlay(patch))
+      } else {
+        let merged = base.overlay(Map::new())
+        merge_missing_edge_properties(merged, patch)
+        Some(merged)
+      }
     (Some(base), None) => Some(base)
     (None, Some(patch)) => Some(patch)
     (None, None) => None
   }
+}
+
+///|
+fn merge_missing_edge_properties(target : Map, patch : Map) -> Unit {
+  for patch_field in patch.fields {
+    match target.get_field(patch_field.name) {
+      Some(existing) =>
+        match (existing.composite, patch_field.composite) {
+          (Some(Map(existing_map)), Some(Map(patch_map))) =>
+            merge_missing_edge_properties(existing_map, patch_map)
+          _ => ()
+        }
+      None => target.add_field(clone_field(patch_field))
+    }
+  }
+}
+
+///|
+fn glob_edge_patch_follows_existing(
+  existing : Edge?,
+  glob_offset : Int,
+) -> Bool {
+  guard existing is Some(edge) else { return true }
+  for i = edge.references.length() - 1; i >= 0; i = i - 1 {
+    let reference = edge.references[i]
+    if !reference.due_to_glob {
+      return glob_offset >= reference.range.start.offset
+    }
+  }
+  true
 }
 
 ///|
@@ -65,6 +102,7 @@ fn apply_edge_value(
   edge_key : @ast.KeyPath?,
   patch_primary : Scalar?,
   patch_map : Map?,
+  patch_overrides? : Bool = true,
 ) -> (Scalar?, Map?) {
   let existing_primary = match existing {
     Some(edge) => edge.primary
@@ -77,7 +115,10 @@ fn apply_edge_value(
   match edge_key {
     Some(path) => {
       let property_map = edge_property_map(path, patch_primary, patch_map)
-      (existing_primary, merge_edge_maps(existing_map, Some(property_map)))
+      (
+        existing_primary,
+        merge_edge_maps(existing_map, Some(property_map), patch_overrides),
+      )
     }
     None =>
       (
@@ -85,7 +126,7 @@ fn apply_edge_value(
           Some(primary) => Some(primary)
           None => existing_primary
         },
-        merge_edge_maps(existing_map, patch_map),
+        merge_edge_maps(existing_map, patch_map, patch_overrides),
       )
   }
 }

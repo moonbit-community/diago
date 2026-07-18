@@ -85,8 +85,8 @@ pub fn ShapeType::from_string(s : String) -> ShapeType {
     "image" => Image
     "sequence_diagram" | "sequencediagram" => SequenceDiagram
     "octagon" => Octagon
-    "c4_person" | "c4person" => C4Person
-    "c4_container" | "c4container" => C4Container
+    "c4-person" | "c4_person" | "c4person" => C4Person
+    "c4-container" | "c4_container" | "c4container" => C4Container
     _ => Rectangle // Default to rectangle for unknown shapes
   }
 }

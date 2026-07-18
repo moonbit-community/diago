@@ -82,6 +82,10 @@ priv enum FontKind {
   SansSemibold
   SansItalic
   MonoRegular
+  MonoBold
+  MonoItalic
+  HandRegular
+  HandBold
 }
 
 ///|
@@ -91,7 +95,13 @@ fn select_font_kind(
   is_italic : Bool,
 ) -> FontKind {
   if is_mono {
-    MonoRegular
+    if is_bold {
+      MonoBold
+    } else if is_italic {
+      MonoItalic
+    } else {
+      MonoRegular
+    }
   } else if is_bold {
     SansBold
   } else if is_italic {
@@ -109,6 +119,7 @@ priv struct GlyphMetrics {
 }
 
 ///|
+#warnings("-unused_field")
 priv struct GlyphScale {
   metrics : GlyphMetrics
   scale : Double
@@ -116,10 +127,62 @@ priv struct GlyphScale {
 }
 
 ///|
+#warnings("-unused_value")
+fn GlyphScale::legacy_values(
+  self : GlyphScale,
+) -> (GlyphMetrics, Double, Double) {
+  (self.metrics, self.scale, self.fixed_scale)
+}
+
+///|
+fn font_units_per_em(kind : FontKind) -> Int {
+  match kind {
+    SansRegular => FONT_UNITS_PER_EM_SANS_REGULAR
+    SansBold => FONT_UNITS_PER_EM_SANS_BOLD
+    SansSemibold => FONT_UNITS_PER_EM_SANS_SEMIBOLD
+    SansItalic => FONT_UNITS_PER_EM_SANS_ITALIC
+    MonoRegular => FONT_UNITS_PER_EM_MONO_REGULAR
+    MonoBold => FONT_UNITS_PER_EM_MONO_BOLD
+    MonoItalic => FONT_UNITS_PER_EM_MONO_ITALIC
+    HandRegular => FONT_UNITS_PER_EM_HAND_REGULAR
+    HandBold => FONT_UNITS_PER_EM_HAND_BOLD
+  }
+}
+
+///|
+fn scale_font_unit(value : Int, font_size : Int, units_per_em : Int) -> Int {
+  let scaled = value * font_size * 64
+  if scaled >= 0 {
+    (scaled + units_per_em / 2) / units_per_em
+  } else {
+    (scaled - units_per_em / 2) / units_per_em
+  }
+}
+
+///|
+fn floor_fixed(value : Int) -> Int {
+  if value >= 0 {
+    value / 64
+  } else {
+    -((-value + 63) / 64)
+  }
+}
+
+///|
+fn ceil_fixed(value : Int) -> Int {
+  if value >= 0 {
+    (value + 63) / 64
+  } else {
+    -(-value / 64)
+  }
+}
+
+///|
 fn lookup_kerning_fixed(
   kind : FontKind,
   left_codepoint : Int,
   right_codepoint : Int,
+  font_size : Int,
 ) -> Int {
   if left_codepoint < 0 ||
     left_codepoint >= 256 ||
@@ -128,13 +191,18 @@ fn lookup_kerning_fixed(
     0
   } else {
     let idx = left_codepoint * 256 + right_codepoint
-    match kind {
+    let raw = match kind {
       SansRegular => kernings_fixed_sans_regular[idx]
       SansBold => kernings_fixed_sans_bold[idx]
       SansSemibold => kernings_fixed_sans_semibold[idx]
       SansItalic => kernings_fixed_sans_italic[idx]
       MonoRegular => kernings_fixed_mono_regular[idx]
+      MonoBold => kernings_fixed_mono_bold[idx]
+      MonoItalic => kernings_fixed_mono_italic[idx]
+      HandRegular => kernings_fixed_hand_regular[idx]
+      HandBold => kernings_fixed_hand_bold[idx]
     }
+    scale_font_unit(raw, font_size, font_units_per_em(kind))
   }
 }
 
@@ -172,6 +240,30 @@ fn lookup_base_glyph_metrics(kind : FontKind, codepoint : Int) -> GlyphMetrics {
           x_max: glyph_x_maxs_mono_regular[codepoint],
           advance_fixed: glyph_advances_fixed_mono_regular[codepoint],
         }
+      MonoBold =>
+        {
+          x_min: glyph_x_mins_mono_bold[codepoint],
+          x_max: glyph_x_maxs_mono_bold[codepoint],
+          advance_fixed: glyph_advances_fixed_mono_bold[codepoint],
+        }
+      MonoItalic =>
+        {
+          x_min: glyph_x_mins_mono_italic[codepoint],
+          x_max: glyph_x_maxs_mono_italic[codepoint],
+          advance_fixed: glyph_advances_fixed_mono_italic[codepoint],
+        }
+      HandRegular =>
+        {
+          x_min: glyph_x_mins_hand_regular[codepoint],
+          x_max: glyph_x_maxs_hand_regular[codepoint],
+          advance_fixed: glyph_advances_fixed_hand_regular[codepoint],
+        }
+      HandBold =>
+        {
+          x_min: glyph_x_mins_hand_bold[codepoint],
+          x_max: glyph_x_maxs_hand_bold[codepoint],
+          advance_fixed: glyph_advances_fixed_hand_bold[codepoint],
+        }
     }
   } else if codepoint >= GEO_START && codepoint <= GEO_END {
     let idx = codepoint - GEO_START
@@ -206,14 +298,164 @@ fn lookup_base_glyph_metrics(kind : FontKind, codepoint : Int) -> GlyphMetrics {
           x_max: glyph_x_maxs_mono_regular_geo[idx],
           advance_fixed: glyph_advances_fixed_mono_regular_geo[idx],
         }
+      MonoBold =>
+        {
+          x_min: glyph_x_mins_mono_bold_geo[idx],
+          x_max: glyph_x_maxs_mono_bold_geo[idx],
+          advance_fixed: glyph_advances_fixed_mono_bold_geo[idx],
+        }
+      MonoItalic =>
+        {
+          x_min: glyph_x_mins_mono_italic_geo[idx],
+          x_max: glyph_x_maxs_mono_italic_geo[idx],
+          advance_fixed: glyph_advances_fixed_mono_italic_geo[idx],
+        }
+      HandRegular =>
+        {
+          x_min: glyph_x_mins_hand_regular_geo[idx],
+          x_max: glyph_x_maxs_hand_regular_geo[idx],
+          advance_fixed: glyph_advances_fixed_hand_regular_geo[idx],
+        }
+      HandBold =>
+        {
+          x_min: glyph_x_mins_hand_bold_geo[idx],
+          x_max: glyph_x_maxs_hand_bold_geo[idx],
+          advance_fixed: glyph_advances_fixed_hand_bold_geo[idx],
+        }
     }
   } else {
-    // Use "M" as a conservative fallback for unknown glyphs.
-    lookup_base_glyph_metrics(kind, 'M'.to_int())
+    let replacement = match kind {
+      SansRegular => glyph_replacement_sans_regular
+      SansBold => glyph_replacement_sans_bold
+      SansSemibold => glyph_replacement_sans_semibold
+      SansItalic => glyph_replacement_sans_italic
+      MonoRegular => glyph_replacement_mono_regular
+      MonoBold => glyph_replacement_mono_bold
+      MonoItalic => glyph_replacement_mono_italic
+      HandRegular => glyph_replacement_hand_regular
+      HandBold => glyph_replacement_hand_bold
+    }
+    {
+      x_min: replacement[0],
+      x_max: replacement[1],
+      advance_fixed: replacement[2],
+    }
   }
 }
 
 ///|
+fn scaled_glyph_metrics(
+  kind : FontKind,
+  codepoint : Int,
+  font_size : Int,
+) -> GlyphMetrics {
+  if codepoint >= 0 && codepoint < 256 {
+    match size_specific_font_index(font_size) {
+      Some(index) =>
+        return match kind {
+          SansRegular =>
+            {
+              x_min: glyph_x_mins_sans_regular_by_size[index][codepoint],
+              x_max: glyph_x_maxs_sans_regular_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_sans_regular_by_size[index][codepoint],
+            }
+          SansBold =>
+            {
+              x_min: glyph_x_mins_sans_bold_by_size[index][codepoint],
+              x_max: glyph_x_maxs_sans_bold_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_sans_bold_by_size[index][codepoint],
+            }
+          SansSemibold =>
+            {
+              x_min: glyph_x_mins_sans_semibold_by_size[index][codepoint],
+              x_max: glyph_x_maxs_sans_semibold_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_sans_semibold_by_size[index][codepoint],
+            }
+          SansItalic =>
+            {
+              x_min: glyph_x_mins_sans_italic_by_size[index][codepoint],
+              x_max: glyph_x_maxs_sans_italic_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_sans_italic_by_size[index][codepoint],
+            }
+          MonoRegular =>
+            {
+              x_min: glyph_x_mins_mono_regular_by_size[index][codepoint],
+              x_max: glyph_x_maxs_mono_regular_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_mono_regular_by_size[index][codepoint],
+            }
+          MonoBold =>
+            {
+              x_min: glyph_x_mins_mono_bold_by_size[index][codepoint],
+              x_max: glyph_x_maxs_mono_bold_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_mono_bold_by_size[index][codepoint],
+            }
+          MonoItalic =>
+            {
+              x_min: glyph_x_mins_mono_italic_by_size[index][codepoint],
+              x_max: glyph_x_maxs_mono_italic_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_mono_italic_by_size[index][codepoint],
+            }
+          HandRegular =>
+            {
+              x_min: glyph_x_mins_hand_regular_by_size[index][codepoint],
+              x_max: glyph_x_maxs_hand_regular_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_hand_regular_by_size[index][codepoint],
+            }
+          HandBold =>
+            {
+              x_min: glyph_x_mins_hand_bold_by_size[index][codepoint],
+              x_max: glyph_x_maxs_hand_bold_by_size[index][codepoint],
+              advance_fixed: glyph_advances_fixed_hand_bold_by_size[index][codepoint],
+            }
+        }
+      None => ()
+    }
+  }
+  if (codepoint < 0 || codepoint >= 256) &&
+    (codepoint < GEO_START || codepoint > GEO_END) {
+    match size_specific_font_index(font_size) {
+      Some(index) => {
+        let replacement = match kind {
+          SansRegular => glyph_replacement_sans_regular_by_size[index]
+          SansBold => glyph_replacement_sans_bold_by_size[index]
+          SansSemibold => glyph_replacement_sans_semibold_by_size[index]
+          SansItalic => glyph_replacement_sans_italic_by_size[index]
+          MonoRegular => glyph_replacement_mono_regular_by_size[index]
+          MonoBold => glyph_replacement_mono_bold_by_size[index]
+          MonoItalic => glyph_replacement_mono_italic_by_size[index]
+          HandRegular => glyph_replacement_hand_regular_by_size[index]
+          HandBold => glyph_replacement_hand_bold_by_size[index]
+        }
+        return {
+          x_min: replacement[0],
+          x_max: replacement[1],
+          advance_fixed: replacement[2],
+        }
+      }
+      None => ()
+    }
+  }
+  let raw = lookup_base_glyph_metrics(kind, codepoint)
+  let units_per_em = font_units_per_em(kind)
+  {
+    x_min: floor_fixed(scale_font_unit(raw.x_min, font_size, units_per_em)),
+    x_max: ceil_fixed(scale_font_unit(raw.x_max, font_size, units_per_em)),
+    advance_fixed: scale_font_unit(raw.advance_fixed, font_size, units_per_em),
+  }
+}
+
+///|
+fn size_specific_font_index(font_size : Int) -> Int? {
+  for index, size in size_specific_font_sizes {
+    if size == font_size {
+      return Some(index)
+    }
+  }
+  None
+}
+
+///|
+#warnings("-unused_value")
 fn lookup_sized_glyph_metrics(
   kind : FontKind,
   codepoint : Int,
@@ -376,7 +618,7 @@ fn lookup_sized_glyph_metrics(
         } else {
           base
         }
-      SansItalic => base
+      SansItalic | MonoBold | MonoItalic | HandRegular | HandBold => base
     }
   }
 }
@@ -391,7 +633,25 @@ fn line_height_for(font_size : Int, is_mono : Bool) -> Double {
 }
 
 ///|
-fn regular_text_height_like_reference(text : String, font_size : Int) -> Double {
+let hand_line_heights_by_size : Array[Int] = [
+  2, 3, 11, 13, 16, 17, 18, 21, 23, 25, 27, 31, 36, 37, 38, 41, 44, 46, 50, 54, 61,
+  69, 94, 107, 113, 125,
+]
+
+///|
+fn hand_line_height_for(font_size : Int) -> Double {
+  match size_specific_font_index(font_size) {
+    Some(index) => hand_line_heights_by_size[index].to_double()
+    None => @math.ceil(font_size.to_double() * 1.25)
+  }
+}
+
+///|
+fn regular_text_height_like_reference(
+  text : String,
+  font_size : Int,
+  kind : FontKind,
+) -> Double {
   let lines = text.split("\n")
   let mut first_content_line = -1
   let mut last_content_line = -1
@@ -407,8 +667,173 @@ fn regular_text_height_like_reference(text : String, font_size : Int) -> Double 
   if first_content_line < 0 || last_content_line < 0 {
     return 0.0
   }
-  line_height_for(font_size, false) +
+  let first_line_height = match kind {
+    HandRegular | HandBold => hand_line_height_for(font_size)
+    _ => line_height_for(font_size, false)
+  }
+  first_line_height +
   (last_content_line - first_content_line).to_double() * font_size.to_double()
+}
+
+///|
+fn decode_utf8_codepoints(text : String) -> Array[Int] {
+  let bytes = @utf8.encode(text[:]).to_array()
+  let codepoints : Array[Int] = []
+  let mut i = 0
+  while i < bytes.length() {
+    let b0 = bytes[i].to_int()
+    if b0 < 0x80 {
+      codepoints.push(b0)
+      i = i + 1
+    } else if (b0 & 0xe0) == 0xc0 && i + 1 < bytes.length() {
+      let b1 = bytes[i + 1].to_int()
+      codepoints.push(((b0 & 0x1f) << 6) | (b1 & 0x3f))
+      i = i + 2
+    } else if (b0 & 0xf0) == 0xe0 && i + 2 < bytes.length() {
+      let b1 = bytes[i + 1].to_int()
+      let b2 = bytes[i + 2].to_int()
+      codepoints.push(((b0 & 0x0f) << 12) | ((b1 & 0x3f) << 6) | (b2 & 0x3f))
+      i = i + 3
+    } else if (b0 & 0xf8) == 0xf0 && i + 3 < bytes.length() {
+      let b1 = bytes[i + 1].to_int()
+      let b2 = bytes[i + 2].to_int()
+      let b3 = bytes[i + 3].to_int()
+      codepoints.push(
+        ((b0 & 0x07) << 18) |
+        ((b1 & 0x3f) << 12) |
+        ((b2 & 0x3f) << 6) |
+        (b3 & 0x3f),
+      )
+      i = i + 4
+    } else {
+      codepoints.push(0xfffd)
+      i = i + 1
+    }
+  }
+  codepoints
+}
+
+///|
+fn is_d2_wide_codepoint(codepoint : Int) -> Bool {
+  (codepoint >= 0x1100 && codepoint <= 0x115f) ||
+  codepoint == 0x2329 ||
+  codepoint == 0x232a ||
+  (codepoint >= 0x2e80 && codepoint <= 0xa4cf && codepoint != 0x303f) ||
+  (codepoint >= 0xac00 && codepoint <= 0xd7a3) ||
+  (codepoint >= 0xf900 && codepoint <= 0xfaff) ||
+  (codepoint >= 0xfe10 && codepoint <= 0xfe19) ||
+  (codepoint >= 0xfe30 && codepoint <= 0xfe6f) ||
+  (codepoint >= 0xff00 && codepoint <= 0xff60) ||
+  (codepoint >= 0xffe0 && codepoint <= 0xffe6) ||
+  (codepoint >= 0x20000 && codepoint <= 0x3fffd)
+}
+
+///|
+fn is_d2_emoji_codepoint(codepoint : Int) -> Bool {
+  (codepoint >= 0x1f000 && codepoint <= 0x1faff) ||
+  (codepoint >= 0x2600 && codepoint <= 0x27bf)
+}
+
+///|
+fn d2_replacement_cluster_width(
+  kind : FontKind,
+  font_size : Int,
+  rune_count : Int,
+) -> Double {
+  if rune_count <= 0 {
+    return 0.0
+  }
+  let glyph = scaled_glyph_metrics(kind, 0xfffd, font_size)
+  let advance = glyph.advance_fixed.to_double() / 64.0
+  let kern = lookup_kerning_fixed(kind, 0xfffd, 0xfffd, font_size).to_double() /
+    64.0
+  let left = if glyph.x_min < 0 { glyph.x_min.to_double() } else { 0.0 }
+  let right = if glyph.x_max > 0 {
+    glyph.x_max.to_double() + (rune_count - 1).to_double() * (advance + kern)
+  } else {
+    0.0
+  }
+  right - left
+}
+
+///|
+fn d2_unicode_line_delta(
+  line : String,
+  font_size : Int,
+  kind : FontKind,
+) -> Double {
+  let mono_kind = match kind {
+    SansBold | SansSemibold | MonoBold | HandBold => MonoBold
+    SansItalic | MonoItalic => MonoItalic
+    _ => MonoRegular
+  }
+  let mono_space = scaled_glyph_metrics(mono_kind, ' '.to_int(), font_size).advance_fixed.to_double() /
+    64.0
+  let mut delta = 0.0
+  let mut emoji_runes = 0
+  let mut emoji_join_pending = false
+
+  fn flush_emoji(
+    count : Int,
+    width : Double,
+    kind : FontKind,
+    font_size : Int,
+  ) -> Double {
+    if count > 0 {
+      width * 2.0 - d2_replacement_cluster_width(kind, font_size, count)
+    } else {
+      0.0
+    }
+  }
+
+  for cp in decode_utf8_codepoints(line) {
+    if is_d2_emoji_codepoint(cp) {
+      if emoji_runes == 0 || emoji_join_pending {
+        emoji_runes = emoji_runes + 1
+      } else {
+        delta = delta + flush_emoji(emoji_runes, mono_space, kind, font_size)
+        emoji_runes = 1
+      }
+      emoji_join_pending = false
+    } else if emoji_runes > 0 &&
+      (cp == 0x200d || cp == 0xfe0f || (cp >= 0x1f3fb && cp <= 0x1f3ff)) {
+      emoji_runes = emoji_runes + 1
+      emoji_join_pending = cp == 0x200d
+    } else {
+      delta = delta + flush_emoji(emoji_runes, mono_space, kind, font_size)
+      emoji_runes = 0
+      emoji_join_pending = false
+      if is_d2_wide_codepoint(cp) {
+        delta = delta +
+          mono_space * 2.0 -
+          d2_replacement_cluster_width(kind, font_size, 1)
+      }
+    }
+  }
+  delta + flush_emoji(emoji_runes, mono_space, kind, font_size)
+}
+
+///|
+fn d2_scale_unicode_width(
+  text : String,
+  font_size : Int,
+  kind : FontKind,
+  base_width : Double,
+  raw_line_widths : Array[Double],
+) -> Double {
+  let mut width = base_width
+  for index, line in text.split("\n") {
+    let raw = if index < raw_line_widths.length() {
+      raw_line_widths[index]
+    } else {
+      0.0
+    }
+    let scaled = raw + d2_unicode_line_delta(line.to_owned(), font_size, kind)
+    if scaled > width {
+      width = scaled
+    }
+  }
+  width
 }
 
 ///|
@@ -419,39 +844,34 @@ fn measure_text_with_mode(
   bounds_with_dot : Bool,
   use_code_line_height : Bool,
 ) -> MeasuredText {
-  let scale = font_size.to_double() / BASE_FONT_SIZE.to_double()
-  let fixed_scale = scale / 64.0
-  let space = lookup_sized_glyph_metrics(
-    kind,
-    ' '.to_int(),
-    font_size,
-    scale,
-    fixed_scale,
-  )
-  let tab_width = space.metrics.advance_fixed.to_double() *
-    space.fixed_scale *
-    TAB_SIZE
-  let kerning_fixed_scale = space.fixed_scale
+  let space = scaled_glyph_metrics(kind, ' '.to_int(), font_size)
+  let tab_width = space.advance_fixed.to_double() / 64.0 * TAB_SIZE
   let mut line_count = 0
   let mut has_area = false
   let mut bounds_left = 0.0
   let mut bounds_right = 0.0
   let mut dot_x = 0.0
   let mut prev_cp = -1
+  let raw_line_widths : Array[Double] = []
+  let mut line_has_area = false
+  let mut line_bounds_left = 0.0
+  let mut line_bounds_right = 0.0
 
   // Analyze each character following the ruler.drawBuf approach.
-  let len = text.length()
-  let mut i = 0
-  while i < len {
-    match text[i].to_char() {
-      Some('\n') => {
+  for cp in decode_utf8_codepoints(text) {
+    match cp {
+      0x0a => {
+        raw_line_widths.push(line_bounds_right - line_bounds_left)
+        line_has_area = false
+        line_bounds_left = 0.0
+        line_bounds_right = 0.0
         dot_x = 0.0
         line_count = line_count + 1
       }
-      Some('\r') =>
+      0x0d =>
         // Carriage return moves to line origin without advancing lines.
         dot_x = 0.0
-      Some('\t') => {
+      0x09 => {
         // Mirror the reference tab behavior.
         // NOTE: This does not reset `prevR`; keep kerning behavior aligned.
         let mut rem = dot_x % tab_width
@@ -461,18 +881,14 @@ fn measure_text_with_mode(
         }
         dot_x = dot_x + rem
       }
-      Some(c) => {
-        let cp = c.to_int()
+      _ => {
         if prev_cp >= 0 {
-          let k_fixed = lookup_kerning_fixed(kind, prev_cp, cp)
-          dot_x = dot_x + k_fixed.to_double() * kerning_fixed_scale
+          let k_fixed = lookup_kerning_fixed(kind, prev_cp, cp, font_size)
+          dot_x = dot_x + k_fixed.to_double() / 64.0
         }
-        let sized = lookup_sized_glyph_metrics(
-          kind, cp, font_size, scale, fixed_scale,
-        )
-        let m = sized.metrics
-        let left = dot_x + m.x_min.to_double() * sized.scale
-        let right = dot_x + m.x_max.to_double() * sized.scale
+        let m = scaled_glyph_metrics(kind, cp, font_size)
+        let left = dot_x + m.x_min.to_double()
+        let right = dot_x + m.x_max.to_double()
         let is_area = left != right
 
         if bounds_with_dot {
@@ -497,7 +913,29 @@ fn measure_text_with_mode(
           }
         }
 
-        dot_x = dot_x + m.advance_fixed.to_double() * sized.fixed_scale
+        if bounds_with_dot {
+          if left < line_bounds_left {
+            line_bounds_left = left
+          }
+          if right > line_bounds_right {
+            line_bounds_right = right
+          }
+        } else if !line_has_area {
+          line_bounds_left = left
+          line_bounds_right = right
+          if is_area {
+            line_has_area = true
+          }
+        } else {
+          if left < line_bounds_left {
+            line_bounds_left = left
+          }
+          if right > line_bounds_right {
+            line_bounds_right = right
+          }
+        }
+
+        dot_x = dot_x + m.advance_fixed.to_double() / 64.0
         prev_cp = cp
 
         if bounds_with_dot {
@@ -507,14 +945,26 @@ fn measure_text_with_mode(
           if dot_x > bounds_right {
             bounds_right = dot_x
           }
+          if dot_x < line_bounds_left {
+            line_bounds_left = dot_x
+          }
+          if dot_x > line_bounds_right {
+            line_bounds_right = dot_x
+          }
         }
       }
-      None => ()
     }
-    i = i + 1
   }
 
-  let max_line_width = bounds_right - bounds_left
+  raw_line_widths.push(line_bounds_right - line_bounds_left)
+
+  let max_line_width = d2_scale_unicode_width(
+    text,
+    font_size,
+    kind,
+    bounds_right - bounds_left,
+    raw_line_widths,
+  )
 
   // Handle empty lines using the reference logic.
   let lines_iter = text.split("\n")
@@ -526,15 +976,13 @@ fn measure_text_with_mode(
   }
 
   let total_height = if use_code_line_height {
-    // Calculate height using the reference formula.
+    // The first line occupies the precise Source Code Pro glyph bounds; only
+    // subsequent baselines are separated by CODE_LINE_HEIGHT. Treating every
+    // line as a full 1.3em makes two-line code blocks one pixel too tall.
     let base_height = font_size.to_double()
-    let line_height = if use_code_line_height {
-      // reference behavior for language-tagged code snippets.
-      font_size.to_double() * CODE_LINE_HEIGHT
-    } else {
-      line_height_for(font_size, bounds_with_dot)
-    }
-    let mut total_height = (line_count + 1).to_double() * line_height
+    let precise_first_line_height = base_height * 161.0 / 128.0
+    let mut total_height = precise_first_line_height +
+      line_count.to_double() * base_height * CODE_LINE_HEIGHT
     // Add one font-size line when there is a leading blank line.
     let has_leading = if lines.length() > 0 {
       lines[0].trim() == ""
@@ -565,7 +1013,7 @@ fn measure_text_with_mode(
     total_height = total_height + trailing_height
     total_height
   } else {
-    regular_text_height_like_reference(text, font_size)
+    regular_text_height_like_reference(text, font_size, kind)
   }
 
   // Text measurement returns raw text dimensions.
@@ -592,42 +1040,18 @@ pub fn measure_text(
   is_italic : Bool,
 ) -> MeasuredText {
   let kind = select_font_kind(is_mono, is_bold, is_italic)
-  measure_text_with_mode(text, font_size, kind, is_mono, false)
+  measure_text_with_mode(text, font_size, kind, false, false)
 }
 
 ///|
-fn trailing_dot_delta_for_line(
-  line : String,
+/// Measure text with D2's hand-drawn font used by sketch diagrams.
+pub fn measure_text_hand_drawn(
+  text : String,
   font_size : Int,
-  kind : FontKind,
-) -> Double {
-  let scale = font_size.to_double() / BASE_FONT_SIZE.to_double()
-  let fixed_scale = scale / 64.0
-  let mut last_cp = -1
-  let len = line.length()
-  let mut i = 0
-  while i < len {
-    match line[i].to_char() {
-      Some('\n') | Some('\r') | Some('\t') => ()
-      Some(c) => last_cp = c.to_int()
-      None => ()
-    }
-    i = i + 1
-  }
-  if last_cp < 0 {
-    return 0.0
-  }
-  let glyph = lookup_sized_glyph_metrics(
-    kind, last_cp, font_size, scale, fixed_scale,
-  )
-  let advance = glyph.metrics.advance_fixed.to_double() * glyph.fixed_scale
-  let right = glyph.metrics.x_max.to_double() * glyph.scale
-  let delta = advance - right
-  if delta > 0.0 {
-    delta
-  } else {
-    0.0
-  }
+  is_bold : Bool,
+) -> MeasuredText {
+  let kind = if is_bold { HandBold } else { HandRegular }
+  measure_text_with_mode(text, font_size, kind, false, false)
 }
 
 ///|
@@ -653,29 +1077,7 @@ fn measure_text_with_dot_bounds_kind(
   font_size : Int,
   kind : FontKind,
 ) -> MeasuredText {
-  let is_mono = match kind {
-    MonoRegular => true
-    _ => false
-  }
-  let base = measure_text_with_mode(text, font_size, kind, is_mono, false)
-  let mut max_line_width = 0.0
-  for line in text.split("\n") {
-    let line_text = line.to_owned()
-    let line_measured = measure_text_with_mode(
-      line_text, font_size, kind, is_mono, false,
-    )
-    let line_width = line_measured.max_line_width +
-      trailing_dot_delta_for_line(line_text, font_size, kind)
-    if line_width > max_line_width {
-      max_line_width = line_width
-    }
-  }
-  let width = @math.ceil(max_line_width)
-  {
-    dimensions: { width, height: base.dimensions.height },
-    line_count: base.line_count,
-    max_line_width,
-  }
+  measure_text_with_mode(text, font_size, kind, true, false)
 }
 
 ///|
@@ -709,6 +1111,16 @@ pub fn measure_label(
   is_italic : Bool,
 ) -> TextDimensions {
   measure_text(text, font_size, is_mono, is_bold, is_italic).dimensions
+}
+
+///|
+/// Measure label dimensions with D2's hand-drawn font.
+pub fn measure_label_hand_drawn(
+  text : String,
+  font_size : Int,
+  is_bold : Bool,
+) -> TextDimensions {
+  measure_text_hand_drawn(text, font_size, is_bold).dimensions
 }
 
 ///|

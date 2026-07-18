@@ -194,6 +194,7 @@ fn render_person_svg(ctx : SvgShapeContext) -> Unit {
     false,
     None,
     None,
+    0.0,
   )
 }
 
@@ -327,14 +328,18 @@ fn render_callout_svg(ctx : SvgShapeContext) -> Unit {
 
 ///|
 fn render_c4_person_svg(ctx : SvgShapeContext) -> Unit {
+  let theme = @themes.get_theme(ctx.config.theme_id)
   render_svg_c4_person(
     ctx.svg,
     ctx.box_,
-    ctx.label,
     ctx.fill,
     ctx.stroke,
     ctx.stroke_width,
-    ctx.config,
+    theme,
+    false,
+    None,
+    None,
+    0.0,
   )
 }
 

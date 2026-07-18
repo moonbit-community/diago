@@ -1126,36 +1126,23 @@ pub fn crosshatch_pattern(
 ///|
 /// Build a grain/paper texture pattern definition
 pub fn grain_pattern(id : String, color : String, bg_color : String) -> String {
-  let size = 4.0
-  let rect_elem = @xml_emit.Element::new("rect")
-    .attr_num("width", size)
-    .attr_num("height", size)
-    .attr("fill", bg_color)
-    .self_close()
-    .build()
-  let circle1 = @xml_emit.Element::new("circle")
-    .attr_num("cx", 1.0)
-    .attr_num("cy", 1.0)
-    .attr_num("r", 0.5)
-    .attr("fill", color)
-    .attr("opacity", "0.3")
-    .self_close()
-    .build()
-  let circle2 = @xml_emit.Element::new("circle")
-    .attr_num("cx", 3.0)
-    .attr_num("cy", 3.0)
-    .attr_num("r", 0.5)
-    .attr("fill", color)
-    .attr("opacity", "0.3")
-    .self_close()
-    .build()
-  @xml_emit.Element::new("pattern")
-  .attr("id", id)
-  .attr("patternUnits", "userSpaceOnUse")
-  .attr_num("width", size)
-  .attr_num("height", size)
-  .children([rect_elem, circle1, circle2])
-  .build()
+  let _ = color
+  let _ = bg_color
+  let scope = if id.has_prefix("grain-") { id[6:].to_owned() } else { id }
+  let escaped_id = @xml_emit.escape(id)
+  let escaped_scope = @xml_emit.escape(scope)
+  "<pattern id=\"\{escaped_id}\" x=\"0\" y=\"0\" width=\"300\" height=\"300\" patternUnits=\"userSpaceOnUse\">\n" +
+  "<g opacity=\"0.8\" clip-path=\"url(#clip0_3943_51420-\{escaped_scope})\">\n" +
+  "<path d=\"M300 0H0V300H300V0Z\" fill=\"url(#pattern0-\{escaped_scope})\" fill-opacity=\"0.9\"/>\n" +
+  "</g>\n<defs>\n" +
+  "<pattern id=\"pattern0-\{escaped_scope}\" patternContentUnits=\"objectBoundingBox\" width=\"1\" height=\"1\">\n" +
+  "<use xlink:href=\"#image0_3943_51420-\{escaped_scope}\" transform=\"scale(0.00214592 0.00286533)\"/>\n" +
+  "</pattern>\n" +
+  "<clipPath id=\"clip0_3943_51420-\{escaped_scope}\">\n" +
+  "<rect width=\"300\" height=\"300\" fill=\"white\"/>\n" +
+  "</clipPath>\n" +
+  "<image id=\"image0_3943_51420-\{escaped_scope}\" width=\"466\" height=\"349\" xlink:href=\"data:image/png;base64,\{d2_grain_png_base64}\"/>\n" +
+  "</defs>\n</pattern>\n"
 }
 
 // =============================================================================

@@ -173,6 +173,15 @@ test "parse double quoted string keeps escaped dollar literal" {
 }
 
 ///|
+test "parse unquoted key decodes escaped newline" {
+  let (ast, errors) = parse("ClusterIP\\nService 1")
+  assert_true(errors.is_empty())
+  guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
+  guard key.key is Some(path) else { fail("expected key path") }
+  @debug.assert_eq(path.to_strings(), ["ClusterIP\nService 1"])
+}
+
+///|
 test "parse block" {
   let (ast, errors) = parse("container { child }")
   assert_true(errors.is_empty())
@@ -605,6 +614,26 @@ test "parse star block scalar value" {
   }
   guard label is Scalar(String(sv)) else { fail("expected scalar label") }
   @debug.assert_eq(sv.content(), "*")
+  @debug.assert_eq(props.nodes.length(), 1)
+}
+
+///|
+test "parse indexed edge group block scalar value" {
+  let source =
+    #|(** -> **)[*]: unsuspend {
+    #|  &label: likes
+    #|}
+  let (ast, errors) = parse(source)
+  assert_true(errors.is_empty())
+  @debug.assert_eq(ast.nodes.length(), 1)
+  guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
+  guard key.value is Some(BlockScalar(label, props)) else {
+    fail("expected edge block scalar")
+  }
+  guard label is Scalar(String(Unquoted(value))) else {
+    fail("expected unquoted suspension label")
+  }
+  @debug.assert_eq(value.to_string(), "unsuspend")
   @debug.assert_eq(props.nodes.length(), 1)
 }
 

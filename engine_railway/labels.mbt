@@ -130,7 +130,7 @@ fn object_size_with_objects(
   }
   let is_bold = style_bool(obj.style.bold, default_object_bold_for_sizing(obj))
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = style_is_mono(obj.style.font_family)
+  let is_mono = style_is_mono(obj.style.font)
   let dims = @text_metrics.measure_label(
     obj.label,
     font_size,
@@ -204,6 +204,9 @@ const D2_CLASS_TYPE_PADDING : Double = 20.0
 const D2_CLASS_VERTICAL_PADDING : Double = 20.0
 
 ///|
+const D2_INNER_LABEL_PADDING : Double = 5.0
+
+///|
 priv struct ClassMemberInfo {
   name : String
   type_name : String
@@ -270,9 +273,11 @@ fn estimate_class_size(
     row_font_size + D2_CLASS_HEADER_FONT_ADD,
   )
   let header_dims = header_measured.dimensions
+  let padded_header_width = header_dims.width + D2_INNER_LABEL_PADDING
+  let padded_header_height = header_dims.height + D2_INNER_LABEL_PADDING
 
-  let mut max_width = if header_dims.width > 12.0 {
-    header_dims.width
+  let mut max_width = if padded_header_width > 12.0 {
+    padded_header_width
   } else {
     12.0
   }
@@ -312,16 +317,16 @@ fn estimate_class_size(
           any_row_text, row_font_size,
         ).dimensions
       let row_height = row_dims.height + D2_CLASS_VERTICAL_PADDING
-      let header_height_min = if 2.0 * row_height > header_dims.height + 10.0 {
+      let header_height_min = if 2.0 * row_height > padded_header_height + 10.0 {
         2.0 * row_height
       } else {
-        header_dims.height + 10.0
+        padded_header_height + 10.0
       }
       height = row_height * row_count.to_double() + header_height_min
     }
     None => {
-      let header_floor = if header_dims.height > 12.0 {
-        header_dims.height
+      let header_floor = if padded_header_height > 12.0 {
+        padded_header_height
       } else {
         12.0
       }
@@ -1127,7 +1132,7 @@ fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
   }
   let is_bold = style_bool(edge.style.bold, false)
   let is_italic = style_bool(edge.style.italic, true)
-  let is_mono = style_is_mono(edge.style.font_family)
+  let is_mono = style_is_mono(edge.style.font)
   let dims = @text_metrics.measure_label(
     edge.label,
     font_size,

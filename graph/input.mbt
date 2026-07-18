@@ -140,6 +140,107 @@ pub fn GraphInput::get_edges(self : GraphInput) -> Array[EdgeInput] {
 }
 
 ///|
+fn StyleInput::with_default_font(
+  self : StyleInput,
+  font : String,
+) -> StyleInput {
+  if self.font is Some(_) {
+    self
+  } else {
+    { ..self, font: Some(StyleValue::from_string(font)) }
+  }
+}
+
+///|
+/// Apply a layout-time fallback font without overriding explicit object or edge
+/// font styles. Theme rules use this before invoking any layout backend so text
+/// measurement remains backend-independent.
+pub fn GraphInput::with_default_font(
+  self : GraphInput,
+  font : String,
+) -> GraphInput {
+  let objects = self.objects.map(fn(obj) {
+    { ..obj, style: obj.style.with_default_font(font) }
+  })
+  let edges = self.edges.map(fn(edge) {
+    { ..edge, style: edge.style.with_default_font(font) }
+  })
+  let layers = self.layers.map(fn(layer) {
+    LayerInput::new(layer.name, layer.graph.with_default_font(font))
+  })
+  let scenarios = self.scenarios.map(fn(scenario) {
+    ScenarioInput::new(scenario.name, scenario.graph.with_default_font(font))
+  })
+  let steps = self.steps.map(fn(step) {
+    StepInput::new(step.name, step.graph.with_default_font(font))
+  })
+  {
+    ..self,
+    root: { ..self.root, style: self.root.style.with_default_font(font) },
+    objects,
+    edges,
+    layers,
+    scenarios,
+    steps,
+  }
+}
+
+///|
+fn StyleInput::disables_text_transform(self : StyleInput) -> Bool {
+  match self.text_transform {
+    Some(value) => value.get_value().to_lower() == "none"
+    None => false
+  }
+}
+
+///|
+fn ObjectInput::with_caps_lock(self : ObjectInput) -> ObjectInput {
+  if self.shape_type == Code ||
+    self.language == Some("latex") ||
+    self.style.disables_text_transform() {
+    self
+  } else {
+    { ..self, label: self.label.to_upper() }
+  }
+}
+
+///|
+fn EdgeInput::with_caps_lock(self : EdgeInput) -> EdgeInput {
+  if self.style.disables_text_transform() {
+    self
+  } else {
+    { ..self, label: self.label.to_upper() }
+  }
+}
+
+///|
+/// Apply a theme's caps-lock rule before layout so measured labels and rendered
+/// labels use the same text. Explicit `text-transform: none`, code blocks, and
+/// LaTeX labels retain their source text, matching D2's theme semantics.
+pub fn GraphInput::with_caps_lock(self : GraphInput) -> GraphInput {
+  let objects = self.objects.map(fn(obj) { obj.with_caps_lock() })
+  let edges = self.edges.map(fn(edge) { edge.with_caps_lock() })
+  let layers = self.layers.map(fn(layer) {
+    LayerInput::new(layer.name, layer.graph.with_caps_lock())
+  })
+  let scenarios = self.scenarios.map(fn(scenario) {
+    ScenarioInput::new(scenario.name, scenario.graph.with_caps_lock())
+  })
+  let steps = self.steps.map(fn(step) {
+    StepInput::new(step.name, step.graph.with_caps_lock())
+  })
+  {
+    ..self,
+    root: self.root.with_caps_lock(),
+    objects,
+    edges,
+    layers,
+    scenarios,
+    steps,
+  }
+}
+
+///|
 fn copy_graph_data_value(value : GraphDataValue) -> GraphDataValue {
   match value {
     Text(text) => Text(text)
@@ -224,7 +325,20 @@ pub fn display_key_segment(segment : String) -> String {
     match segment[i].to_char() {
       Some(ch) =>
         if escaped {
-          out.write_char(ch)
+          if quote == '"' {
+            match ch {
+              'a' => out.write_char('\u{7}')
+              'b' => out.write_char('\u{8}')
+              'f' => out.write_char('\u{c}')
+              'n' => out.write_char('\n')
+              'r' => out.write_char('\r')
+              't' => out.write_char('\t')
+              'v' => out.write_char('\u{b}')
+              _ => out.write_char(ch)
+            }
+          } else {
+            out.write_char(ch)
+          }
           escaped = false
         } else if ch == '\\' {
           escaped = true
@@ -391,6 +505,7 @@ pub struct ObjectInput {
   sql_constraints : Array[String]
   grid_rows : Int?
   grid_columns : Int?
+  grid_row_directed : Bool?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
@@ -433,6 +548,7 @@ pub fn ObjectInput::new(
     sql_constraints: [],
     grid_rows: None,
     grid_columns: None,
+    grid_row_directed: None,
     grid_gap: None,
     horizontal_gap: None,
     vertical_gap: None,
@@ -479,6 +595,7 @@ pub fn ObjectInput::from_parts(
   icon_position? : String? = None,
   tooltip_position? : String? = None,
   label_position? : String? = None,
+  grid_row_directed? : Bool? = None,
 ) -> ObjectInput {
   {
     id,
@@ -504,6 +621,7 @@ pub fn ObjectInput::from_parts(
     sql_constraints,
     grid_rows,
     grid_columns,
+    grid_row_directed,
     grid_gap,
     horizontal_gap,
     vertical_gap,
@@ -547,6 +665,7 @@ pub struct EdgeInput {
   src_id_syntax : String
   dst_id_syntax : String
   references : Array[EdgeReference]
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   src_arrowhead : ArrowheadType
@@ -590,6 +709,7 @@ pub fn EdgeInput::new(
     src_id_syntax,
     dst_id_syntax,
     references: [],
+    classes: [],
     src_arrow,
     dst_arrow,
     src_arrowhead: if src_arrow {
@@ -657,6 +777,7 @@ pub fn EdgeInput::from_parts(
   icon_position? : String? = None,
   icon_border_radius? : Double? = None,
   link? : String? = None,
+  classes? : Array[String] = [],
 ) -> EdgeInput {
   {
     index,
@@ -665,6 +786,7 @@ pub fn EdgeInput::from_parts(
     src_id_syntax,
     dst_id_syntax,
     references,
+    classes,
     src_arrow,
     dst_arrow,
     src_arrowhead,
@@ -935,8 +1057,18 @@ pub fn StyleInput::from_parts(
 
 ///|
 pub enum LegendEntryInput {
-  ShapeEntry(shape~ : ShapeType, label~ : String, style~ : StyleInput?)
+  ShapeEntry(
+    id~ : String,
+    shape~ : ShapeType,
+    label~ : String,
+    style~ : StyleInput?
+  )
   ConnectionEntry(
+    src_id~ : String,
+    dst_id~ : String,
+    index~ : Int,
+    src_arrow_enabled~ : Bool,
+    dst_arrow_enabled~ : Bool,
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
@@ -951,8 +1083,9 @@ pub fn LegendEntryInput::shape(
   shape : ShapeType,
   label : String,
   style : StyleInput?,
+  id? : String = label,
 ) -> LegendEntryInput {
-  ShapeEntry(shape~, label~, style~)
+  ShapeEntry(id~, shape~, label~, style~)
 }
 
 ///|
@@ -961,8 +1094,23 @@ pub fn LegendEntryInput::connection(
   dst_arrow : ArrowheadType,
   label : String,
   style : StyleInput?,
+  src_id? : String = "src",
+  dst_id? : String = "dst",
+  index? : Int = 0,
+  src_arrow_enabled? : Bool = src_arrow != None,
+  dst_arrow_enabled? : Bool = dst_arrow != None,
 ) -> LegendEntryInput {
-  ConnectionEntry(src_arrow~, dst_arrow~, label~, style~)
+  ConnectionEntry(
+    src_id~,
+    dst_id~,
+    index~,
+    src_arrow_enabled~,
+    dst_arrow_enabled~,
+    src_arrow~,
+    dst_arrow~,
+    label~,
+    style~,
+  )
 }
 
 ///|
@@ -1177,6 +1325,7 @@ pub fn EdgeInput::from_model(edge : EdgeModel) -> EdgeInput {
     icon_position=edge.icon_position,
     icon_border_radius=edge.icon_border_radius,
     link=edge.link,
+    classes=edge.classes,
   )
 }
 

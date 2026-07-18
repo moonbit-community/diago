@@ -100,6 +100,7 @@ priv struct Object {
   mut height : Double?
   mut grid_rows : Int?
   mut grid_columns : Int?
+  mut grid_row_directed : Bool?
   mut grid_gap : Double?
   mut horizontal_gap : Double?
   mut vertical_gap : Double?
@@ -143,6 +144,7 @@ fn Object::new(
     height: None,
     grid_rows: None,
     grid_columns: None,
+    grid_row_directed: None,
     grid_gap: None,
     horizontal_gap: None,
     vertical_gap: None,
@@ -168,6 +170,7 @@ priv struct Edge {
   src_id_syntax : String
   dst_id_syntax : String
   mut references : Array[@graph.EdgeReference]
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   mut src_arrowhead : ArrowheadType
@@ -209,6 +212,7 @@ fn Edge::new(
     src_id_syntax,
     dst_id_syntax,
     references: [],
+    classes: [],
     src_arrow,
     dst_arrow,
     src_arrowhead: if src_arrow {
@@ -244,8 +248,13 @@ fn Edge::new(
 
 ///|
 priv enum LegendEntry {
-  ShapeEntry(shape~ : ShapeType, label~ : String, style~ : Style?)
+  ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : Style?)
   ConnectionEntry(
+    src_id~ : String,
+    dst_id~ : String,
+    index~ : Int,
+    src_arrow_enabled~ : Bool,
+    dst_arrow_enabled~ : Bool,
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
@@ -260,8 +269,9 @@ fn LegendEntry::shape(
   shape : ShapeType,
   label : String,
   style : Style?,
+  id? : String = label,
 ) -> LegendEntry {
-  ShapeEntry(shape~, label~, style~)
+  ShapeEntry(id~, shape~, label~, style~)
 }
 
 ///|
@@ -270,8 +280,23 @@ fn LegendEntry::connection(
   dst_arrow : ArrowheadType,
   label : String,
   style : Style?,
+  src_id? : String = "src",
+  dst_id? : String = "dst",
+  index? : Int = 0,
+  src_arrow_enabled? : Bool = src_arrow != None,
+  dst_arrow_enabled? : Bool = dst_arrow != None,
 ) -> LegendEntry {
-  ConnectionEntry(src_arrow~, dst_arrow~, label~, style~)
+  ConnectionEntry(
+    src_id~,
+    dst_id~,
+    index~,
+    src_arrow_enabled~,
+    dst_arrow_enabled~,
+    src_arrow~,
+    dst_arrow~,
+    label~,
+    style~,
+  )
 }
 
 ///|
@@ -476,20 +501,38 @@ fn style_to_input(style : Style) -> @graph.StyleInput {
 ///|
 fn legend_entry_to_input(entry : LegendEntry) -> @graph.LegendEntryInput {
   match entry {
-    ShapeEntry(shape~, label~, style~) => {
+    ShapeEntry(id~, shape~, label~, style~) => {
       let style_input = match style {
         Some(s) => Some(style_to_input(s))
         None => None
       }
-      @graph.LegendEntryInput::shape(shape, label, style_input)
+      @graph.LegendEntryInput::shape(shape, label, style_input, id~)
     }
-    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
+    ConnectionEntry(
+      src_id~,
+      dst_id~,
+      index~,
+      src_arrow_enabled~,
+      dst_arrow_enabled~,
+      src_arrow~,
+      dst_arrow~,
+      label~,
+      style~
+    ) => {
       let style_input = match style {
         Some(s) => Some(style_to_input(s))
         None => None
       }
       @graph.LegendEntryInput::connection(
-        src_arrow, dst_arrow, label, style_input,
+        src_arrow,
+        dst_arrow,
+        label,
+        style_input,
+        src_id~,
+        dst_id~,
+        index~,
+        src_arrow_enabled~,
+        dst_arrow_enabled~,
       )
     }
     CustomEntry(icon~, label~) => @graph.LegendEntryInput::custom(icon, label)
@@ -513,6 +556,34 @@ fn legend_to_input(legend : Legend) -> @graph.LegendInput {
     legend.entry_gap,
     legend.icon_size,
   )
+}
+
+///|
+fn apply_text_transform_like_d2(label : String, style : Style) -> String {
+  let transform = match style.text_transform {
+    Some(value) => value.to_lower()
+    None => return label
+  }
+  match transform {
+    "uppercase" => label.to_upper()
+    "lowercase" => label.to_lower()
+    "capitalize" => {
+      let out = StringBuilder::new()
+      let mut at_word_start = true
+      for ch in label {
+        if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' {
+          out.write_char(ch)
+          at_word_start = true
+        } else {
+          let piece = ch.to_string()
+          out.write_string(if at_word_start { piece.to_upper() } else { piece })
+          at_word_start = false
+        }
+      }
+      out.to_string()
+    }
+    _ => label
+  }
 }
 
 ///|
@@ -541,7 +612,7 @@ fn object_to_input(obj : Object) -> @graph.ObjectInput {
   }
   @graph.ObjectInput::from_parts(
     obj.id,
-    obj.label,
+    apply_text_transform_like_d2(obj.label, obj.style),
     obj.shape_type,
     style_to_input(obj.style),
     box,
@@ -572,6 +643,7 @@ fn object_to_input(obj : Object) -> @graph.ObjectInput {
     icon_position=obj.icon_position,
     tooltip_position=obj.tooltip_position,
     label_position=obj.label_position,
+    grid_row_directed=obj.grid_row_directed,
   )
 }
 
@@ -615,7 +687,7 @@ fn edge_to_input(edge : Edge) -> @graph.EdgeInput {
     edge.dst_arrowhead_label_color,
     edge.src_anchor,
     edge.dst_anchor,
-    edge.label,
+    apply_text_transform_like_d2(edge.label, edge.style),
     style_to_input(edge.style),
     [],
     bend_points,
@@ -632,6 +704,7 @@ fn edge_to_input(edge : Edge) -> @graph.EdgeInput {
     icon_position=edge.icon_position,
     icon_border_radius=edge.icon_border_radius,
     link=edge.link,
+    classes=edge.classes,
   )
 }
 
@@ -676,10 +749,23 @@ fn sort_edge_array_by_references(edges : Array[Edge]) -> Unit {
     original_index_by_edge[edge.index] = i
   }
   edges.sort_by(fn(a, b) {
-    let cmp = if a.references.length() > 0 && b.references.length() > 0 {
-      compare_reference_ranges(a.references[0].range, b.references[0].range)
-    } else {
-      0
+    let ordering_reference = fn(edge : Edge) {
+      let mut selected : @graph.EdgeReference? = None
+      for reference in edge.references {
+        if !reference.due_to_glob && !reference.due_to_lazy_glob {
+          selected = Some(reference)
+          break
+        }
+      }
+      match selected {
+        Some(reference) => Some(reference)
+        None => edge.references.get(0)
+      }
+    }
+    let cmp = match (ordering_reference(a), ordering_reference(b)) {
+      (Some(a_reference), Some(b_reference)) =>
+        compare_reference_ranges(a_reference.range, b_reference.range)
+      _ => 0
     }
     if cmp != 0 {
       return cmp
@@ -704,15 +790,6 @@ fn sort_graph_by_references(graph : Graph) -> Unit {
   sort_children_by_references(graph.root)
   for obj in graph.objects {
     sort_children_by_references(obj)
-  }
-  for layer in graph.layers {
-    sort_graph_by_references(layer.graph)
-  }
-  for scenario in graph.scenarios {
-    sort_graph_by_references(scenario.graph)
-  }
-  for step in graph.steps {
-    sort_graph_by_references(step.graph)
   }
 }
 
@@ -754,7 +831,7 @@ fn graph_to_input(graph : Graph) -> @graph.GraphInput {
   }
   let root = @graph.ObjectInput::from_parts(
     graph.root.id,
-    graph.root.label,
+    apply_text_transform_like_d2(graph.root.label, graph.root.style),
     graph.root.shape_type,
     style_to_input(graph.root.style),
     root_box,
@@ -782,6 +859,7 @@ fn graph_to_input(graph : Graph) -> @graph.GraphInput {
     id_syntax=graph.root.id_syntax,
     abs_id_syntax=graph.root.abs_id_syntax,
     references=root_references,
+    grid_row_directed=graph.root.grid_row_directed,
   )
   let edges : Array[@graph.EdgeInput] = []
   for e in graph.edges {
@@ -1026,7 +1104,7 @@ fn canonicalize_board_links_recursive(
   board_path : Array[String],
 ) -> Unit {
   for obj in graph.objects {
-    canonicalize_object_board_links(obj, root_graph, board_path)
+    canonicalize_object_board_links(obj, graph, root_graph, board_path)
   }
   for layer in graph.layers {
     canonicalize_board_links_recursive(
@@ -1054,22 +1132,28 @@ fn canonicalize_board_links_recursive(
 ///|
 fn canonicalize_object_board_links(
   obj : Object,
+  current_graph : Graph,
   root_graph : Graph,
   board_path : Array[String],
 ) -> Unit {
   match obj.link {
     Some(link) =>
-      obj.link = canonicalize_board_link(link, root_graph, board_path)
+      obj.link = canonicalize_board_link(
+        link, current_graph, root_graph, board_path,
+      )
     None => ()
   }
   for child in obj.children {
-    canonicalize_object_board_links(child, root_graph, board_path)
+    canonicalize_object_board_links(
+      child, current_graph, root_graph, board_path,
+    )
   }
 }
 
 ///|
 fn canonicalize_board_link(
   link : String,
+  current_graph : Graph,
   root_graph : Graph,
   board_path : Array[String],
 ) -> String? {
@@ -1095,13 +1179,132 @@ fn canonicalize_board_link(
   if !is_root_board_link_path(resolved_path) {
     return None
   }
+  let target_graph = match board_graph_at_path(root_graph, resolved_path, 0) {
+    Some(target_graph) => target_graph
+    None => return None
+  }
   if !has_board_path(root_graph, resolved_path, 0) {
     return None
   }
   if board_path_matches_link_path(board_path, resolved_path) {
     return None
   }
-  Some(format_board_link_path(resolved_path))
+  Some(
+    relative_board_svg_href(
+      board_path, current_graph, resolved_path, target_graph,
+    ),
+  )
+}
+
+///|
+fn board_graph_at_path(
+  graph : Graph,
+  path : Array[(String, Bool)],
+  index : Int,
+) -> Graph? {
+  if index >= path.length() {
+    return Some(graph)
+  }
+  let (head, head_unquoted) = path[index]
+  if head == "root" && head_unquoted {
+    return board_graph_at_path(graph, path, index + 1)
+  }
+  if !head_unquoted || index + 1 >= path.length() {
+    return None
+  }
+  let (board_name, _) = path[index + 1]
+  match head {
+    "layers" =>
+      for layer in graph.layers {
+        if layer.name == board_name {
+          return board_graph_at_path(layer.graph, path, index + 2)
+        }
+      }
+    "scenarios" =>
+      for scenario in graph.scenarios {
+        if scenario.name == board_name {
+          return board_graph_at_path(scenario.graph, path, index + 2)
+        }
+      }
+    "steps" =>
+      for step in graph.steps {
+        if step.name == board_name {
+          return board_graph_at_path(step.graph, path, index + 2)
+        }
+      }
+    _ => ()
+  }
+  None
+}
+
+///|
+fn board_names_from_current_path(path : Array[String]) -> Array[String] {
+  let names : Array[String] = []
+  let mut index = 2
+  while index < path.length() {
+    names.push(path[index])
+    index = index + 2
+  }
+  names
+}
+
+///|
+fn board_names_from_link_path(path : Array[(String, Bool)]) -> Array[String] {
+  let names : Array[String] = []
+  let mut index = 2
+  while index < path.length() {
+    let (name, _) = path[index]
+    names.push(name)
+    index = index + 2
+  }
+  names
+}
+
+///|
+fn board_has_children(graph : Graph) -> Bool {
+  !graph.layers.is_empty() ||
+  !graph.scenarios.is_empty() ||
+  !graph.steps.is_empty()
+}
+
+///|
+fn relative_board_svg_href(
+  current_path : Array[String],
+  current_graph : Graph,
+  target_path : Array[(String, Bool)],
+  target_graph : Graph,
+) -> String {
+  let current_names = board_names_from_current_path(current_path)
+  let target_names = board_names_from_link_path(target_path)
+  let current_dir = current_names.copy()
+  if !board_has_children(current_graph) && !current_dir.is_empty() {
+    ignore(current_dir.pop())
+  }
+  let target_components : Array[String] = []
+  for i, name in target_names {
+    if i == target_names.length() - 1 && !board_has_children(target_graph) {
+      target_components.push(name + ".svg")
+    } else {
+      target_components.push(name)
+    }
+  }
+  if target_names.is_empty() || board_has_children(target_graph) {
+    target_components.push("index.svg")
+  }
+  let mut common = 0
+  while common < current_dir.length() &&
+        common < target_components.length() - 1 &&
+        current_dir[common] == target_components[common] {
+    common = common + 1
+  }
+  let parts : Array[String] = []
+  for i = common; i < current_dir.length(); i = i + 1 {
+    parts.push("..")
+  }
+  for i = common; i < target_components.length(); i = i + 1 {
+    parts.push(target_components[i])
+  }
+  parts.join("/")
 }
 
 ///|
@@ -1273,57 +1476,6 @@ fn board_path_matches_link_path(
 }
 
 ///|
-fn format_board_link_path(path : Array[(String, Bool)]) -> String {
-  let buf = StringBuilder::new()
-  for i, entry in path {
-    let (segment, _) = entry
-    if i > 0 {
-      buf.write_char('.')
-    }
-    if i == 0 {
-      buf.write_string("root")
-    } else if i % 2 == 1 {
-      buf.write_string(segment.to_lower())
-    } else {
-      buf.write_string(d2_format_board_name_segment(segment))
-    }
-  }
-  buf.to_string()
-}
-
-///|
-fn d2_format_board_name_segment(s : String) -> String {
-  if s.length() == 0 {
-    return "\"\""
-  }
-  let key_specials = "#;\n\\{}[]'\"|:.-<>*&()@&"
-  let chars = s.to_array()
-  for i, r in chars {
-    if r == '-' {
-      if i + 1 < chars.length() && chars[i + 1] != '-' {
-        continue
-      }
-    }
-    if d2_contains_char(key_specials, r) {
-      return d2_quote_key_segment(s)
-    }
-  }
-  if d2_has_surrounding_whitespace(s) || d2_is_reserved_for_unquoted_key(s) {
-    return d2_quote_key_segment(s)
-  }
-  d2_escape_unquoted_key_value(s)
-}
-
-///|
-fn d2_quote_key_segment(s : String) -> String {
-  if !d2_contains_char(s, '"') || d2_contains_char(s, '\n') {
-    "\"\{d2_escape_double_quoted_value(s)}\""
-  } else {
-    "'\{d2_escape_single_quoted_value(s)}'"
-  }
-}
-
-///|
 fn is_remote_or_absolute_link(s : String) -> Bool {
   if s.has_prefix("/") {
     return true
@@ -1389,6 +1541,9 @@ fn compile_objects(
   for field in ir.fields {
     // Skip reserved keywords (like 'classes', 'vars', etc.)
     if field.is_reserved_keyword_name() {
+      continue
+    }
+    if field.primary is Some(value) && value.is_null() {
       continue
     }
     let id_val = field.name
@@ -1484,6 +1639,9 @@ fn compile_children(
     if field.is_reserved_keyword_name() {
       continue
     }
+    if field.primary is Some(value) && value.is_null() {
+      continue
+    }
     let id_val = field.name
     let id_syntax = d2_format_key_segment(id_val)
     let id = "\{prefix}.\{id_val}"
@@ -1494,6 +1652,9 @@ fn compile_children(
     match field.primary {
       Some(scalar) => set_object_label_from_scalar(child, scalar)
       None => child.label = field.name // Use field name, not full path
+    }
+    if parent.shape_type == SqlTable && child.label == field.name {
+      child.label = ""
     }
     // Process nested composites
     match field.composite {
@@ -1849,6 +2010,24 @@ fn process_special_fields(
       }
     None => ()
   }
+  // When both dimensions are specified, D2 fills in the direction of the
+  // keyword that appears first in the effective map.
+  let mut grid_rows_index : Int? = None
+  let mut grid_columns_index : Int? = None
+  for index, field in ir.fields {
+    if field.name_is_unquoted() {
+      match field.name.to_lower() {
+        "grid-rows" => grid_rows_index = Some(index)
+        "grid-columns" => grid_columns_index = Some(index)
+        _ => ()
+      }
+    }
+  }
+  match (grid_rows_index, grid_columns_index) {
+    (Some(rows_index), Some(columns_index)) =>
+      obj.grid_row_directed = Some(rows_index < columns_index)
+    _ => ()
+  }
   // Process grid-gap
   match ir.get_field("grid-gap") {
     Some(f) =>
@@ -1982,9 +2161,13 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
     Some(f) =>
       match f.primary {
         Some(s) =>
-          match parse_double(s.to_string()) {
-            Some(v) => style.opacity = Some(v)
-            None => ()
+          if s.is_null() {
+            style.opacity = None
+          } else {
+            match parse_double(s.to_string()) {
+              Some(v) => style.opacity = Some(v)
+              None => ()
+            }
           }
         None => ()
       }
@@ -1994,7 +2177,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("stroke") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.stroke = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.stroke = None
+          } else {
+            style.stroke = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2003,7 +2191,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("fill") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.fill = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.fill = None
+          } else {
+            style.fill = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2013,9 +2206,13 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
     Some(f) =>
       match f.primary {
         Some(s) =>
-          match parse_double(s.to_string()) {
-            Some(v) => style.stroke_width = Some(v)
-            None => ()
+          if s.is_null() {
+            style.stroke_width = None
+          } else {
+            match parse_double(s.to_string()) {
+              Some(v) => style.stroke_width = Some(v)
+              None => ()
+            }
           }
         None => ()
       }
@@ -2026,9 +2223,13 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
     Some(f) =>
       match f.primary {
         Some(s) =>
-          match parse_double(s.to_string()) {
-            Some(v) => style.stroke_dash = Some(v)
-            None => ()
+          if s.is_null() {
+            style.stroke_dash = None
+          } else {
+            match parse_double(s.to_string()) {
+              Some(v) => style.stroke_dash = Some(v)
+              None => ()
+            }
           }
         None => ()
       }
@@ -2039,9 +2240,13 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
     Some(f) =>
       match f.primary {
         Some(s) =>
-          match parse_double(s.to_string()) {
-            Some(v) => style.border_radius = Some(v)
-            None => ()
+          if s.is_null() {
+            style.border_radius = None
+          } else {
+            match parse_double(s.to_string()) {
+              Some(v) => style.border_radius = Some(v)
+              None => ()
+            }
           }
         None => ()
       }
@@ -2051,7 +2256,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("font") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.font = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.font = None
+          } else {
+            style.font = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2061,9 +2271,13 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
     Some(f) =>
       match f.primary {
         Some(s) =>
-          match parse_int(s.to_string()) {
-            Some(v) => style.font_size = Some(v)
-            None => ()
+          if s.is_null() {
+            style.font_size = None
+          } else {
+            match parse_int(s.to_string()) {
+              Some(v) => style.font_size = Some(v)
+              None => ()
+            }
           }
         None => ()
       }
@@ -2073,7 +2287,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("font-color") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.font_color = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.font_color = None
+          } else {
+            style.font_color = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2082,7 +2301,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("bold") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.bold = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.bold = None
+          } else {
+            style.bold = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2091,7 +2315,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("underline") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.underline = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.underline = None
+          } else {
+            style.underline = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2100,7 +2329,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("italic") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.italic = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.italic = None
+          } else {
+            style.italic = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2109,26 +2343,42 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("shadow") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.shadow = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.shadow = None
+          } else {
+            style.shadow = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
   }
   // 3D
   let mut three_d_primary : String? = None
+  let mut reset_three_d = false
   match ir.get_field("3d") {
     Some(f) =>
       match f.primary {
-        Some(s) => three_d_primary = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            reset_three_d = true
+          } else {
+            three_d_primary = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
   }
-  if three_d_primary is None {
+  if three_d_primary is None && !reset_three_d {
     match ir.get_field("3") {
       Some(f) => {
         match f.primary {
-          Some(s) => three_d_primary = Some(s.to_string())
+          Some(s) =>
+            if s.is_null() {
+              reset_three_d = true
+            } else {
+              three_d_primary = Some(s.to_string())
+            }
           None => ()
         }
         if three_d_primary is None {
@@ -2137,7 +2387,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
               match m.get_field("d") {
                 Some(df) =>
                   match df.primary {
-                    Some(s) => three_d_primary = Some(s.to_string())
+                    Some(s) =>
+                      if s.is_null() {
+                        reset_three_d = true
+                      } else {
+                        three_d_primary = Some(s.to_string())
+                      }
                     None => ()
                   }
                 None => ()
@@ -2149,25 +2404,39 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
       None => ()
     }
   }
-  if three_d_primary is None {
+  if three_d_primary is None && !reset_three_d {
     match ir.get_field("d") {
       Some(f) =>
         match f.primary {
-          Some(s) => three_d_primary = Some(s.to_string())
+          Some(s) =>
+            if s.is_null() {
+              reset_three_d = true
+            } else {
+              three_d_primary = Some(s.to_string())
+            }
           None => ()
         }
       None => ()
     }
   }
-  match three_d_primary {
-    Some(s) => style.three_d = Some(s == "true")
-    None => ()
+  if reset_three_d {
+    style.three_d = None
+  } else {
+    match three_d_primary {
+      Some(s) => style.three_d = Some(s == "true")
+      None => ()
+    }
   }
   // Multiple
   match ir.get_field("multiple") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.multiple = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.multiple = None
+          } else {
+            style.multiple = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2176,7 +2445,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("animated") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.animated = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.animated = None
+          } else {
+            style.animated = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2185,7 +2459,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("filled") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.filled = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.filled = None
+          } else {
+            style.filled = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2194,7 +2473,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("text-transform") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.text_transform = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.text_transform = None
+          } else {
+            style.text_transform = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2203,7 +2487,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("font-family") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.font_family = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.font_family = None
+          } else {
+            style.font_family = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2212,7 +2501,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("fill-pattern") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.fill_pattern = Some(s.to_string())
+        Some(s) =>
+          if s.is_null() {
+            style.fill_pattern = None
+          } else {
+            style.fill_pattern = Some(s.to_string())
+          }
         None => ()
       }
     None => ()
@@ -2221,7 +2515,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("double-border") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.double_border = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.double_border = None
+          } else {
+            style.double_border = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2230,7 +2529,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("sketch") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.sketch = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.sketch = None
+          } else {
+            style.sketch = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2239,7 +2543,12 @@ fn process_style(style : Style, ir : @ir.Map) -> Unit {
   match ir.get_field("curved") {
     Some(f) =>
       match f.primary {
-        Some(s) => style.curved = Some(s.to_string() == "true")
+        Some(s) =>
+          if s.is_null() {
+            style.curved = None
+          } else {
+            style.curved = Some(s.to_string() == "true")
+          }
         None => ()
       }
     None => ()
@@ -2530,8 +2839,14 @@ fn compile_edges_in_map(
     }
   }
   for edge in ir.edges {
+    if edge.primary is Some(value) && value.is_null() {
+      continue
+    }
     let src_id = join_path(prefix, edge.id.src_path)
     let dst_id = join_path(prefix, edge.id.dst_path)
+    if !graph_has_object(graph, src_id) || !graph_has_object(graph, dst_id) {
+      continue
+    }
     let src_id_syntax = join_path_syntax(prefix_syntax, edge.id.src_path)
     let dst_id_syntax = join_path_syntax(prefix_syntax, edge.id.dst_path)
     let graph_edge = Edge::new(
@@ -2570,6 +2885,16 @@ fn compile_edges_in_map(
 }
 
 ///|
+fn graph_has_object(graph : Graph, id : String) -> Bool {
+  for obj in graph.objects {
+    if obj.id == id {
+      return true
+    }
+  }
+  false
+}
+
+///|
 fn parse_arrowhead_shape_string(raw : String) -> ArrowheadType? {
   match raw.to_lower() {
     "none"
@@ -2592,6 +2917,19 @@ fn parse_arrowhead_shape_string(raw : String) -> ArrowheadType? {
     | "cf-many-optional"
     | "cfmanyoptional" => Some(ArrowheadType::from_string(raw))
     _ => None
+  }
+}
+
+///|
+fn arrowhead_with_filled(
+  arrowhead : ArrowheadType,
+  filled : Bool,
+) -> ArrowheadType {
+  match arrowhead {
+    Diamond | FilledDiamond => if filled { FilledDiamond } else { Diamond }
+    Circle | FilledCircle => if filled { FilledCircle } else { Circle }
+    Triangle | Open => if filled { Triangle } else { Open }
+    _ => arrowhead
   }
 }
 
@@ -2628,10 +2966,23 @@ fn process_edge_arrowhead_field(
           }
         None => ()
       }
+      match arrowhead_map.get_field("label") {
+        Some(label_f) =>
+          match label_f.primary {
+            Some(label) =>
+              if is_source {
+                edge.src_arrowhead_label = Some(label.to_string())
+              } else {
+                edge.dst_arrowhead_label = Some(label.to_string())
+              }
+            None => ()
+          }
+        None => ()
+      }
       match arrowhead_map.get_field("style") {
         Some(style_f) =>
           match style_f.map() {
-            Some(style_map) =>
+            Some(style_map) => {
               match style_map.get_field("font-color") {
                 Some(color_f) =>
                   match color_f.primary {
@@ -2645,6 +2996,28 @@ fn process_edge_arrowhead_field(
                   }
                 None => ()
               }
+              match style_map.get_field("filled") {
+                Some(filled_f) =>
+                  match filled_f.primary {
+                    Some(filled) => {
+                      let value = filled.to_string() == "true"
+                      if is_source {
+                        edge.src_arrowhead = arrowhead_with_filled(
+                          edge.src_arrowhead,
+                          value,
+                        )
+                      } else {
+                        edge.dst_arrowhead = arrowhead_with_filled(
+                          edge.dst_arrowhead,
+                          value,
+                        )
+                      }
+                    }
+                    None => ()
+                  }
+                None => ()
+              }
+            }
             None => ()
           }
         None => ()
@@ -2817,6 +3190,7 @@ fn process_edge_map_classes(
   match edge_map.get_field("class") {
     Some(class_field) =>
       for class_name in edge_class_names_from_field(class_field) {
+        edge.classes.push(class_name)
         match classes.get(class_name) {
           Some(class_def) => process_edge_map(edge, class_def, classes)
           None => ()
@@ -3388,6 +3762,7 @@ fn compile_legend(
   let legend_graph = Graph::new("d2-legend")
   compile_objects(legend_graph, legend_map, "", "", classes)
   compile_edges(legend_graph, legend_map, classes)
+  apply_d2_color_defaults(legend_graph)
   let legend = Legend::new()
   match lf.primary {
     Some(p) => legend.set_title(p.to_string())
@@ -3401,17 +3776,26 @@ fn compile_legend(
     }
     have_shapes = true
     legend.add_entry(
-      LegendEntry::shape(obj.shape_type, obj.label, Some(obj.style)),
+      LegendEntry::shape(
+        obj.shape_type,
+        obj.label,
+        Some(obj.style),
+        id=obj.abs_id_syntax,
+      ),
     )
   }
   let mut have_edges = false
   let mut added_sep = false
+  let edge_repeat_count : Map[String, Int] = Map([])
   for edge in legend_graph.edges {
     if have_shapes && !added_sep {
       legend.add_entry(LegendEntry::separator())
       added_sep = true
     }
     let (src_arrowhead, dst_arrowhead) = effective_edge_arrowheads(edge)
+    let repeat_key = "\{edge.src_id_syntax}\u0000\{edge.src_arrow.to_string()}\u0000\{edge.dst_id_syntax}\u0000\{edge.dst_arrow.to_string()}"
+    let repeat_index = edge_repeat_count.get_or_default(repeat_key, 0)
+    edge_repeat_count[repeat_key] = repeat_index + 1
     have_edges = true
     legend.add_entry(
       LegendEntry::connection(
@@ -3419,6 +3803,11 @@ fn compile_legend(
         dst_arrowhead,
         edge.label,
         Some(edge.style),
+        src_id=edge.src_id_syntax,
+        dst_id=edge.dst_id_syntax,
+        index=repeat_index,
+        src_arrow_enabled=edge.src_arrow,
+        dst_arrow_enabled=edge.dst_arrow,
       ),
     )
   }
@@ -4043,55 +4432,254 @@ fn handle_root_shape(
   ir : @ir.Map,
 ) -> Unit raise GraphCompileError {
   process_special_fields(graph.root, ir)
+  if graph.root.shape_type == SequenceDiagram && !ir.has_field("label") {
+    graph.root.label = ""
+  }
 }
 
 ///|
 fn apply_sequence_defaults(graph : Graph) -> Unit {
-  if graph.root.shape_type != SequenceDiagram {
+  let sequence_roots : Array[Object] = []
+  if graph.root.shape_type == SequenceDiagram {
+    sequence_roots.push(graph.root)
+  }
+  for obj in graph.objects {
+    if obj.shape_type == SequenceDiagram {
+      sequence_roots.push(obj)
+    }
+  }
+  if sequence_roots.is_empty() {
     return
   }
-  let child_ids : Map[String, Bool] = Map([])
-  for obj in graph.objects {
-    for child in obj.children {
-      child_ids[child.id] = true
+  for sequence_root in sequence_roots {
+    if sequence_root.style.stroke_width is None {
+      sequence_root.style.stroke_width = Some(0.0)
     }
-  }
-  for obj in graph.objects {
-    if child_ids.contains(obj.id) {
-      continue
+    if sequence_root.label_position is None {
+      sequence_root.label_position = Some("INSIDE_TOP_CENTER")
     }
-    let has_messages = object_has_incident_edge(graph, obj.id)
-    if obj.style.fill is None {
-      obj.style.fill = Some(if has_messages { "B5" } else { "N7" })
+    let candidates = if sequence_root.abs_id_syntax == graph.root.abs_id_syntax {
+      graph.objects.filter(fn(obj) {
+        @graph.syntax_path_depth(obj.abs_id_syntax) == 1
+      })
+    } else {
+      sequence_root.children
     }
-    if obj.style.stroke is None {
-      obj.style.stroke = Some("B1")
+    let actors : Array[Object] = []
+    for obj in candidates {
+      let has_non_edge_ref = object_has_non_edge_reference(obj)
+      let contains_edge = object_contains_edge_reference(graph, obj)
+      let has_incident_edge = object_is_exact_edge_endpoint(graph, obj)
+      let has_descendant_endpoint = object_has_descendant_endpoint(graph, obj)
+      let children_are_only_notes = object_children_are_only_sequence_notes(
+        graph, obj,
+      )
+      let is_explicit_actor = has_non_edge_ref &&
+        (
+          (
+            !contains_edge &&
+            (obj.children.is_empty() || children_are_only_notes)
+          ) ||
+          has_incident_edge ||
+          (has_descendant_endpoint && !contains_edge)
+        )
+      let is_implicit_actor = !has_non_edge_ref &&
+        (has_incident_edge || has_descendant_endpoint)
+      if is_explicit_actor || is_implicit_actor {
+        actors.push(obj)
+      }
     }
-  }
-  for edge in graph.edges {
-    if edge.style.stroke is None {
-      edge.style.stroke = Some("B1")
+    for actor in actors {
+      let has_messages = object_has_incident_edge(graph, actor)
+      if actor.style.fill is None {
+        actor.style.fill = Some(if has_messages { "B5" } else { "N7" })
+      }
+      if actor.style.stroke is None {
+        actor.style.stroke = Some("B1")
+      }
+      if has_messages &&
+        !actor.children.is_empty() &&
+        actor.shape_type == Rectangle &&
+        actor.label_position is None {
+        actor.label_position = Some("INSIDE_MIDDLE_CENTER")
+      }
+      if (actor.shape_type == Person || actor.shape_type == C4Person) &&
+        actor.label_position is None {
+        actor.label_position = Some("OUTSIDE_BOTTOM_CENTER")
+      }
     }
-    if edge.style.font_color is None {
-      edge.style.font_color = Some("N2")
+    let actor_ids : Map[String, Bool] = Map([])
+    for actor in actors {
+      actor_ids[actor.abs_id_syntax] = true
     }
-    if edge.style.italic is None {
-      edge.style.italic = Some(true)
+    let sequence_prefix = sequence_root.abs_id_syntax + "."
+    for obj in graph.objects {
+      if actor_ids.contains(obj.abs_id_syntax) ||
+        obj.abs_id_syntax == sequence_root.abs_id_syntax ||
+        (
+          sequence_root.abs_id_syntax != graph.root.abs_id_syntax &&
+          !obj.abs_id_syntax.has_prefix(sequence_prefix)
+        ) {
+        continue
+      }
+      if object_is_exact_edge_endpoint(graph, obj) {
+        let mut actor_depth = @graph.syntax_path_depth(
+          sequence_root.abs_id_syntax,
+        )
+        for actor in actors {
+          if obj.abs_id_syntax.has_prefix(actor.abs_id_syntax + ".") {
+            actor_depth = @graph.syntax_path_depth(actor.abs_id_syntax)
+            break
+          }
+        }
+        let relative_depth = @graph.syntax_path_depth(obj.abs_id_syntax) -
+          actor_depth
+        if obj.style.fill is None {
+          obj.style.fill = Some(
+            if relative_depth <= 1 {
+              "B4"
+            } else if relative_depth == 2 {
+              "B5"
+            } else {
+              "B6"
+            },
+          )
+        }
+        if obj.style.stroke is None {
+          obj.style.stroke = Some("B1")
+        }
+        obj.label = ""
+      } else if obj.children.is_empty() {
+        obj.shape_type = Page
+        if obj.style.fill is None {
+          obj.style.fill = Some("N7")
+        }
+        if obj.style.stroke is None {
+          obj.style.stroke = Some("B1")
+        }
+        obj.classes.push("__diago_sequence_note")
+      } else {
+        if obj.style.fill is None {
+          obj.style.fill = Some("N5")
+        }
+        if obj.style.stroke is None {
+          obj.style.stroke = Some("B1")
+        }
+        if obj.style.stroke_width is None {
+          obj.style.stroke_width = Some(0.0)
+        }
+        if obj.label_position is None {
+          obj.label_position = Some("INSIDE_TOP_LEFT")
+        }
+        obj.classes.push("__diago_sequence_group")
+      }
     }
-    if edge.style.curved is None {
-      edge.style.curved = Some(false)
+    for edge in graph.edges {
+      if sequence_root.abs_id_syntax != graph.root.abs_id_syntax &&
+        !(edge.src_id_syntax.has_prefix(sequence_root.abs_id_syntax + ".") &&
+        edge.dst_id_syntax.has_prefix(sequence_root.abs_id_syntax + ".")) {
+        continue
+      }
+      if edge.style.stroke is None {
+        edge.style.stroke = Some(
+          if edge.style.stroke_dash is Some(_) {
+            "B2"
+          } else {
+            "B1"
+          },
+        )
+      }
+      if edge.style.font_color is None {
+        edge.style.font_color = Some("N2")
+      }
+      if edge.style.italic is None {
+        edge.style.italic = Some(true)
+      }
+      if edge.style.curved is None {
+        edge.style.curved = Some(false)
+      }
     }
   }
 }
 
 ///|
-fn object_has_incident_edge(graph : Graph, object_id : String) -> Bool {
+fn object_has_incident_edge(graph : Graph, obj : Object) -> Bool {
+  let descendant_prefix = obj.abs_id_syntax + "."
   for edge in graph.edges {
-    if edge.src_id == object_id || edge.dst_id == object_id {
+    if edge.src_id_syntax == obj.abs_id_syntax ||
+      edge.dst_id_syntax == obj.abs_id_syntax ||
+      edge.src_id == obj.id ||
+      edge.dst_id == obj.id ||
+      edge.src_id.has_suffix("." + obj.id_val) ||
+      edge.dst_id.has_suffix("." + obj.id_val) ||
+      edge.src_id_syntax.has_prefix(descendant_prefix) ||
+      edge.dst_id_syntax.has_prefix(descendant_prefix) {
       return true
     }
   }
   false
+}
+
+///|
+fn object_is_exact_edge_endpoint(graph : Graph, obj : Object) -> Bool {
+  for edge in graph.edges {
+    if edge.src_id_syntax == obj.abs_id_syntax ||
+      edge.dst_id_syntax == obj.abs_id_syntax ||
+      edge.src_id == obj.id ||
+      edge.dst_id == obj.id {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn object_has_non_edge_reference(obj : Object) -> Bool {
+  for reference in obj.references {
+    if !reference.in_edge &&
+      !reference.due_to_glob &&
+      !reference.due_to_lazy_glob {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn object_contains_edge_reference(graph : Graph, obj : Object) -> Bool {
+  for edge in graph.edges {
+    for reference in edge.references {
+      if reference.contained_by(obj.abs_id_syntax) {
+        return true
+      }
+    }
+  }
+  false
+}
+
+///|
+fn object_has_descendant_endpoint(graph : Graph, obj : Object) -> Bool {
+  let prefix = obj.abs_id_syntax + "."
+  for edge in graph.edges {
+    if edge.src_id_syntax.has_prefix(prefix) ||
+      edge.dst_id_syntax.has_prefix(prefix) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn object_children_are_only_sequence_notes(graph : Graph, obj : Object) -> Bool {
+  if obj.children.is_empty() {
+    return false
+  }
+  for child in obj.children {
+    if !child.children.is_empty() || object_is_exact_edge_endpoint(graph, child) {
+      return false
+    }
+  }
+  true
 }
 
 ///|
@@ -4113,10 +4701,10 @@ fn apply_d2_color_defaults(graph : Graph) -> Unit {
 
 ///|
 fn d2_default_object_fill(obj : Object) -> String {
-  let level = object_depth_from_id(obj.id)
+  let level = @graph.syntax_path_depth(obj.abs_id_syntax)
   let shape = obj.shape_type
   if shape == SqlTable || shape == Class {
-    return "N7"
+    return "N1"
   }
   if shape == Rectangle ||
     shape == Square ||
@@ -4171,7 +4759,7 @@ fn d2_default_object_stroke(obj : Object) -> String {
     return "N1"
   }
   if shape == Class || shape == SqlTable {
-    return "N1"
+    return "N7"
   }
   let dash = match obj.style.stroke_dash {
     Some(v) => v
@@ -4216,7 +4804,7 @@ fn apply_d2_text_defaults(graph : Graph) -> Unit {
       } else if !inside_sequence &&
         (is_container || is_grid_diagram) &&
         obj.shape_type != Text {
-        container_level_label_size(object_depth_from_id(obj.id))
+        container_level_label_size(@graph.syntax_path_depth(obj.abs_id_syntax))
       } else {
         16
       }
@@ -4236,17 +4824,6 @@ fn apply_d2_text_defaults(graph : Graph) -> Unit {
       obj.style.italic = Some(false)
     }
   }
-}
-
-///|
-fn object_depth_from_id(id : String) -> Int {
-  let mut depth = 1
-  for i = 0; i < id.length(); i = i + 1 {
-    if id[i] == '.' {
-      depth = depth + 1
-    }
-  }
-  depth
 }
 
 ///|

@@ -47,6 +47,8 @@ pub struct ColorPalette {
 ///|
 /// Special rendering rules
 pub struct SpecialRules {
+  /// Apply the C4 model visual hierarchy.
+  c4 : Bool
   /// Use monospace font
   mono : Bool
   /// Disable rounded corners
@@ -64,6 +66,7 @@ pub struct SpecialRules {
 ///|
 pub fn SpecialRules::default() -> SpecialRules {
   {
+    c4: false,
     mono: false,
     no_corner_radius: false,
     outer_container_double_border: false,

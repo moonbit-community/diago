@@ -9,6 +9,8 @@ import {
 // Values
 pub fn cycle_detected(String) -> LayoutError
 
+pub fn estimate_nested_grid_layout_like_d2(@graph.ObjectInput, Array[String], Map[String, (Double, Double)], Map[String, @graph.ObjectInput]) -> (Double, Double, Map[String, @graph.Box])?
+
 pub fn estimate_root_grid_child_boxes(@graph.ObjectInput, Array[String], Map[String, (Double, Double)]) -> Map[String, @graph.Box]?
 
 pub fn invalid_graph(String) -> LayoutError

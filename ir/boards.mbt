@@ -33,6 +33,7 @@ fn compile_board_patch(
         target,
         ast,
         ast.nodes,
+        [],
         resolver,
         [],
         source_path=patch.source_path,

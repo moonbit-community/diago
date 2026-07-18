@@ -5,7 +5,7 @@ priv struct SketchSession {
 
 ///|
 fn SketchSession::new() -> SketchSession raise @render_api.RenderError {
-  let interp = @interpreter.Interpreter::new()
+  let interp = @interpreter.new_interpreter()
   ignore(sketch_run_source(interp, sketch_runtime_source))
   ignore(sketch_run_source(interp, sketch_setup_source))
   { interp, }
@@ -66,6 +66,26 @@ fn sketch_base_shape_props(stroke_width : Double) -> String {
 }
 
 ///|
+fn truncate_sketch_path_decimals(path : String) -> String {
+  let out = StringBuilder::new()
+  let mut fractional_digits = -1
+  for ch in path {
+    if ch >= '0' && ch <= '9' {
+      if fractional_digits < 0 || fractional_digits < 6 {
+        out.write_char(ch)
+      }
+      if fractional_digits >= 0 {
+        fractional_digits = fractional_digits + 1
+      }
+    } else {
+      out.write_char(ch)
+      fractional_digits = if ch == '.' { 0 } else { -1 }
+    }
+  }
+  out.to_string()
+}
+
+///|
 fn SketchSession::eval_nodes(
   self : SketchSession,
   command : String,
@@ -79,9 +99,7 @@ fn SketchSession::eval_nodes(
     #|    var child = children[i];
     #|    var d = "";
     #|    if (child.attrs && child.attrs.d) {
-    #|      d = child.attrs.d.replace(/(\d+)\.(\d+)/g, function(_, intPart, fracPart) {
-    #|        return intPart + "." + fracPart.slice(0, 6);
-    #|      });
+    #|      d = child.attrs.d;
     #|    }
     #|    out.push({
     #|      d: d,
@@ -97,9 +115,16 @@ fn SketchSession::eval_nodes(
   let json = @json.parse(result.to_string()[:]) catch {
     e => raise RenderFailed("Sketch runtime JSON parse failed: \{e}")
   }
-  @json.from_json(json) catch {
+  let nodes : Array[Map[String, String]] = @json.from_json(json) catch {
     e => raise RenderFailed("Sketch runtime JSON decode failed: \{e}")
   }
+  for node in nodes {
+    match node.get("d") {
+      Some(path) => node["d"] = truncate_sketch_path_decimals(path)
+      None => ()
+    }
+  }
+  nodes
 }
 
 ///|
@@ -154,7 +179,7 @@ fn SketchSession::connection(
   path_d : String,
 ) -> Array[Map[String, String]] raise @render_api.RenderError {
   self.eval_nodes(
-    "node = rc.path(\{sketch_js_string(path_d)}, { roughness: 0.5, seed: 1 });",
+    "node = rc.path(\{sketch_js_string(path_d)}, { stroke: \"#000\", roughness: 0.5, seed: 1 });",
   )
 }
 
@@ -180,6 +205,11 @@ fn sketch_arrowhead_command(
         "node = rc.polygon([[-10, -4], [0, 0], [-10, 4]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", seed: 2 });",
         None,
       )
+    Arrow =>
+      (
+        "node = rc.polygon([[-10, -4], [0, 0], [-10, 4], [-7, 0]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", seed: 2 });",
+        None,
+      )
     Open =>
       (
         "node = rc.polygon([[-10, -4], [0, 0], [-10, 4]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", seed: 2 });",
@@ -190,9 +220,19 @@ fn sketch_arrowhead_command(
         "node = rc.polygon([[-20, 0], [-10, 5], [0, 0], [-10, -5], [-20, 0]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", seed: 1 });",
         None,
       )
+    FilledDiamond =>
+      (
+        "node = rc.polygon([[-20, 0], [-10, 5], [0, 0], [-10, -5], [-20, 0]], { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"zigzag\", fillWeight: 4, seed: 1 });",
+        None,
+      )
     Circle =>
       (
         "node = rc.circle(-2, -1, 8, { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{background_fill_js}, fillStyle: \"solid\", fillWeight: 1, seed: 5 });",
+        None,
+      )
+    FilledCircle =>
+      (
+        "node = rc.circle(-2, -1, 8, { strokeWidth: \{width_js}, stroke: \{stroke_js}, fill: \{stroke_js}, fillStyle: \"solid\", fillWeight: 1, seed: 5 });",
         None,
       )
     CfMany =>
@@ -291,42 +331,29 @@ fn sketch_shape_overlay_class(fill : String, theme : @themes.Theme) -> String {
 }
 
 ///|
-fn sketch_transform(x : Double, y : Double) -> String? {
-  if x == 0.0 && y == 0.0 {
-    None
-  } else {
-    Some("translate(\{d2_fixed6(x)} \{d2_fixed6(y)})")
+fn sketch_shape_overlay_class_with_token(
+  fill : String,
+  theme : @themes.Theme,
+  fill_class_token : String?,
+) -> String {
+  match fill_class_token {
+    Some(token) => "sketch-overlay-\{token}"
+    None => sketch_shape_overlay_class(fill, theme)
   }
+}
+
+///|
+fn sketch_transform(x : Double, y : Double) -> String? {
+  Some("translate(\{d2_fixed6(x)} \{d2_fixed6(y)})")
 }
 
 ///|
 fn sketch_mask(diagram_hash : String, obj : Shape) -> String? {
   if obj.label != "" &&
-    (
-      d2_label_position_is_outside(obj.label_position.unwrap_or("")) ||
-      d2_label_position_is_border(obj.label_position.unwrap_or(""))
-    ) {
+    d2_label_position_is_border(obj.label_position.unwrap_or("")) {
     Some("url(#\{diagram_hash})")
   } else {
     None
-  }
-}
-
-///|
-fn sketch_fill_value(node_fill : String, fill : String) -> String {
-  match node_fill {
-    "#000" => fill
-    "" | "none" => "none"
-    _ => node_fill
-  }
-}
-
-///|
-fn sketch_stroke_value(node_stroke : String, stroke : String) -> String {
-  match node_stroke {
-    "#000" => stroke
-    "" | "none" => "none"
-    _ => node_stroke
   }
 }
 
@@ -420,11 +447,11 @@ fn sketch_overlay_rect_element(
   border_radius : Double,
   mask : String?,
 ) -> String {
+  let transform = sketch_transform(x, y).unwrap()
   let element = @xml_emit.Element::new("rect")
-    .attr("x", d2_fixed6(x))
-    .attr("y", d2_fixed6(y))
     .attr("width", d2_fixed6(width))
     .attr("height", d2_fixed6(height))
+    .attr("transform", transform)
     .attr("class", class_name)
     .attr_if("mask", mask.unwrap_or(""))
   let element = if border_radius > 0.0 {
@@ -447,10 +474,9 @@ fn sketch_overlay_ellipse_element(
   mask : String?,
 ) -> String {
   @xml_emit.Element::new("ellipse")
-  .attr("cx", d2_fixed6(cx))
-  .attr("cy", d2_fixed6(cy))
   .attr("rx", d2_fixed6(rx))
   .attr("ry", d2_fixed6(ry))
+  .attr("transform", sketch_transform(cx, cy).unwrap())
   .attr("class", class_name)
   .attr_if("mask", mask.unwrap_or(""))
   .self_close()
@@ -466,52 +492,39 @@ fn add_sketch_path_nodes(
   fill : String,
   overlay_fill : String,
   stroke : String,
+  stroke_width : Double,
   theme : @themes.Theme,
-  use_css_theme_vars : Bool,
+  _use_css_theme_vars : Bool,
   fill_class_token : String?,
   stroke_class_token : String?,
   overlay_geometry : String,
   mask : String?,
 ) -> Unit {
   let transform = sketch_transform(translate_x, translate_y)
-  let overlay_class = sketch_shape_overlay_class(overlay_fill, theme)
+  let overlay_class = sketch_shape_overlay_class_with_token(
+    overlay_fill, theme, fill_class_token,
+  )
   for node in nodes {
     let d = node.get("d").unwrap_or("")
     if d == "" {
       continue
     }
-    let mapped_fill = sketch_fill_value(node.get("fill").unwrap_or(""), fill)
-    let mapped_stroke = sketch_stroke_value(
-      node.get("stroke").unwrap_or(""),
-      stroke,
-    )
-    let stroke_width = node.get("stroke_width").unwrap_or("1")
-    let shape_fill_class_token = if mapped_fill == fill {
-      fill_class_token
-    } else {
-      None
-    }
-    let shape_stroke_class_token = if mapped_stroke == stroke {
-      stroke_class_token
-    } else {
-      None
-    }
     svg.add(
       sketch_path_element(
         d,
-        mapped_fill,
-        mapped_stroke,
-        stroke_width,
-        None,
+        fill,
+        stroke,
+        sketch_js_number(stroke_width),
+        Some("shape"),
         transform,
         mask,
         theme,
-        !use_css_theme_vars,
-        shape_fill_class_token,
-        shape_stroke_class_token,
+        false,
+        fill_class_token,
+        stroke_class_token,
       ),
     )
-    if overlay_geometry == "path" && mapped_fill != "none" {
+    if overlay_geometry == "path" && fill != "none" {
       svg.add(sketch_overlay_path_element(d, overlay_class, transform, mask))
     }
   }
@@ -637,6 +650,7 @@ fn sketch_path_shape_data(
         false,
         None,
         None,
+        0.0,
       )
     "cloud" =>
       render_svg_cloud(
@@ -769,6 +783,7 @@ fn render_sketch_box_shape(
         fill,
         overlay_fill,
         stroke,
+        stroke_width,
         theme,
         use_css_theme_vars,
         fill_class_token,
@@ -782,7 +797,9 @@ fn render_sketch_box_shape(
           box.y + box.height / 2.0,
           box.width / 2.0,
           box.height / 2.0,
-          sketch_shape_overlay_class(overlay_fill, theme),
+          sketch_shape_overlay_class_with_token(
+            overlay_fill, theme, fill_class_token,
+          ),
           mask,
         ),
       )
@@ -812,6 +829,7 @@ fn render_sketch_box_shape(
         fill,
         overlay_fill,
         stroke,
+        stroke_width,
         theme,
         use_css_theme_vars,
         fill_class_token,
@@ -845,6 +863,7 @@ fn render_sketch_box_shape(
           fill,
           overlay_fill,
           stroke,
+          stroke_width,
           theme,
           use_css_theme_vars,
           fill_class_token,
@@ -869,6 +888,7 @@ fn render_sketch_box_shape(
           fill,
           overlay_fill,
           stroke,
+          stroke_width,
           theme,
           use_css_theme_vars,
           fill_class_token,
@@ -886,6 +906,7 @@ fn render_sketch_box_shape(
           fill,
           overlay_fill,
           stroke,
+          stroke_width,
           theme,
           use_css_theme_vars,
           fill_class_token,
@@ -899,7 +920,9 @@ fn render_sketch_box_shape(
             box.y,
             box.width,
             box.height,
-            sketch_shape_overlay_class(overlay_fill, theme),
+            sketch_shape_overlay_class_with_token(
+              overlay_fill, theme, fill_class_token,
+            ),
             0.0,
             mask,
           ),
@@ -913,7 +936,18 @@ fn render_sketch_box_shape(
 
 ///|
 fn sketch_angle(x1 : Double, y1 : Double, x2 : Double, y2 : Double) -> Double {
-  @math.atan2(y2 - y1, x2 - x1) * 180.0 / @math.PI
+  Float::from_double(@math.atan2(y2 - y1, x2 - x1)).to_double() *
+  180.0 /
+  @math.PI
+}
+
+///|
+fn sketch_angle_string(angle : Double) -> String {
+  if angle == 0.0 {
+    "0"
+  } else {
+    angle.to_string()
+  }
 }
 
 ///|
@@ -927,7 +961,7 @@ fn render_sketch_arrowhead(
   stroke : String,
   stroke_width : Double,
   theme : @themes.Theme,
-  use_css_theme_vars : Bool,
+  _use_css_theme_vars : Bool,
 ) -> Unit raise @render_api.RenderError {
   if arrowhead == None {
     return
@@ -938,7 +972,7 @@ fn render_sketch_arrowhead(
     stroke_width,
     theme.colors.n7,
   )
-  let transform = "translate(\{d2_fixed6(anchor.x + adj.0)} \{d2_fixed6(anchor.y + adj.1)}) rotate(\{d2_fixed6(angle)})"
+  let transform = "translate(\{d2_fixed6(anchor.x + adj.0)} \{d2_fixed6(anchor.y + adj.1)}) rotate(\{sketch_angle_string(angle)})"
   for node in nodes {
     let d = node.get("d").unwrap_or("")
     if d == "" {
@@ -954,7 +988,7 @@ fn render_sketch_arrowhead(
         Some(transform),
         None,
         theme,
-        !use_css_theme_vars,
+        false,
         None,
         None,
       ),
@@ -985,7 +1019,11 @@ fn render_sketch_edge(
     edge.style.stroke_width,
     config.default_stroke_width,
   )
-  let connection_border_radius = style_double(edge.style.border_radius, 10.0)
+  let connection_border_radius = if theme.rules.no_corner_radius {
+    0.0
+  } else {
+    style_double(edge.style.border_radius, 10.0)
+  }
   let stroke_dash = style_double(edge.style.stroke_dash, 0.0)
   let (src_adj, dst_adj) = get_arrowhead_adjustments(
     edge,
@@ -997,17 +1035,8 @@ fn render_sketch_edge(
   if style_bool(edge.style.animated, false) {
     svg.add(
       d2_connection_path_element(
-        path_data,
-        stroke,
-        stroke_signature,
-        stroke_width,
-        stroke_dash,
-        "",
-        "",
-        edge_label_mask_url,
-        true,
-        theme,
-        !use_css_theme_vars,
+        path_data, stroke, stroke_signature, stroke_width, stroke_dash, "", "", edge_label_mask_url,
+        true, theme, false,
       ),
     )
   } else {

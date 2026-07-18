@@ -28,51 +28,65 @@ using @layout_svg {type LegendLayout}
 pub fn render_legend_svg(
   svg : @svg.Svg,
   layout : LegendLayout,
+  diagram_hash : String,
   config : SvgConfig,
-) -> Unit {
-  // Render legend background
+  theme : @themes.Theme,
+) -> Unit raise @render_api.RenderError {
   svg.add(
-    @svg.rect(
-      layout.x,
-      layout.y,
-      layout.width,
-      layout.height,
-      fill=layout.fill,
-      stroke=layout.stroke,
-      stroke_width=1.0,
-      rx=Some(4.0),
-      ry=Some(4.0),
-    ),
+    @xml_emit.Element::new("rect")
+    .attr("x", d2_fixed6(layout.x))
+    .attr("y", d2_fixed6(layout.y))
+    .attr("width", d2_fixed6(layout.width))
+    .attr("height", d2_fixed6(layout.height))
+    .attr("rx", d2_fixed6(4.0))
+    .attr("fill", "#F7F7FA")
+    .attr("stroke", "#DEE1EB")
+    .attr(
+      "style", "stroke-width: 1px; filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1))",
+    )
+    .build(),
   )
-
-  // Render title if present
+  svg.add(
+    @xml_emit.Element::new("rect")
+    .attr("x", d2_fixed6(layout.x))
+    .attr("y", d2_fixed6(layout.y))
+    .attr("width", d2_fixed6(layout.width))
+    .attr("height", d2_fixed6(layout.height))
+    .attr("rx", d2_fixed6(4.0))
+    .attr("fill", "#ffffff")
+    .attr("stroke", "#DEE1EB")
+    .attr("style", "stroke-width: 1px")
+    .build(),
+  )
   match layout.title {
     Some(title) =>
       svg.add(
         @xml_emit.Element::new("text")
-        .attr_num("x", title.x)
-        .attr_num("y", title.y)
-        .attr("font-family", "Arial, sans-serif")
-        .attr_int("font-size", config.font_size)
-        .attr("font-weight", "bold")
-        .attr("fill", config.default_stroke)
+        .attr("class", "text-bold")
+        .attr_int("x", title.x.to_int())
+        .attr_int("y", title.y.to_int())
+        .attr("style", "font-size: 16px;")
         .text(title.text)
         .build(),
       )
     None => ()
   }
-
-  // Render each entry
   for entry in layout.entries {
     match entry {
-      Shape(icon_box~, shape~, label~, style~, label_x~, label_y~) =>
+      Shape(id~, icon_box~, shape~, label~, style~, label_x~, label_y~) =>
         render_shape_entry(
-          svg, icon_box, shape, label, style, label_x, label_y, config,
+          svg, id, icon_box, shape, label, style, label_x, label_y, diagram_hash,
+          config, theme,
         )
       Connection(
+        src_id~,
+        dst_id~,
+        index~,
         line_start_x~,
         line_end_x~,
         line_y~,
+        src_arrow_enabled~,
+        dst_arrow_enabled~,
         src_arrow~,
         dst_arrow~,
         label~,
@@ -81,8 +95,9 @@ pub fn render_legend_svg(
         label_y~
       ) =>
         render_connection_entry(
-          svg, line_start_x, line_end_x, line_y, src_arrow, dst_arrow, label, style,
-          label_x, label_y, config,
+          svg, src_id, dst_id, index, line_start_x, line_end_x, line_y, src_arrow_enabled,
+          dst_arrow_enabled, src_arrow, dst_arrow, label, style, label_x, label_y,
+          config, theme,
         )
       Custom(icon_x~, icon_y~, icon_size~, icon~, label~, label_x~, label_y~) =>
         render_custom_entry(
@@ -91,13 +106,12 @@ pub fn render_legend_svg(
       Separator(x1~, x2~, y~) =>
         svg.add(
           @xml_emit.Element::new("line")
-          .attr_num("x1", x1)
-          .attr_num("y1", y)
-          .attr_num("x2", x2)
-          .attr_num("y2", y)
-          .attr("stroke", "#cccccc")
-          .attr_num("stroke-width", 1.0)
-          .self_close()
+          .attr("x1", d2_fixed6(x1))
+          .attr("y1", d2_fixed6(y))
+          .attr("x2", d2_fixed6(x2))
+          .attr("y2", d2_fixed6(y))
+          .attr("stroke", "#DEE1EB")
+          .attr("stroke-dasharray", "2,2")
           .build(),
         )
     }
@@ -107,39 +121,61 @@ pub fn render_legend_svg(
 ///|
 fn render_shape_entry(
   svg : @svg.Svg,
+  id : String,
   icon_box : @graph.Box,
   shape : @graph.ShapeType,
   label : String,
   style : @graph.StyleInput?,
   label_x : Double,
   label_y : Double,
+  diagram_hash : String,
   config : SvgConfig,
-) -> Unit {
-  let fill = match style {
-    Some(s) =>
-      match s.fill {
-        Some(f) => f.get_value()
-        None => config.default_fill
-      }
-    None => config.default_fill
-  }
-  let stroke = match style {
-    Some(s) =>
-      match s.stroke {
-        Some(f) => f.get_value()
-        None => config.default_stroke
-      }
-    None => config.default_stroke
-  }
-  let ctx = SvgShapeContext::new(svg, icon_box, fill, stroke, 1.0, "", config)
-  render_shape_svg(shape, ctx)
+  theme : @themes.Theme,
+) -> Unit raise @render_api.RenderError {
+  let icon_style = style.unwrap_or(@graph.StyleInput::new())
+  let icon_shape = Shape::legend_icon(id, shape, icon_style)
+  svg.add(
+    @xml_emit.Element::new("g")
+    .attr(
+      "transform",
+      "translate(\{icon_box.x.to_int()}, \{icon_box.y.to_int()}) scale(0.200000)",
+    )
+    .open_tag(),
+  )
+  let appendix_items : Array[String] = []
+  render_svg_object(
+    svg,
+    diagram_hash,
+    appendix_items,
+    icon_shape,
+    [],
+    None,
+    config,
+    theme,
+    false,
+    "",
+    pass=Background,
+  )
+  render_svg_object(
+    svg,
+    diagram_hash,
+    appendix_items,
+    icon_shape,
+    [],
+    None,
+    config,
+    theme,
+    false,
+    "",
+    pass=Foreground,
+  )
+  svg.add("</g>")
   svg.add(
     @xml_emit.Element::new("text")
-    .attr_num("x", label_x)
-    .attr_num("y", label_y)
-    .attr("font-family", "Arial, sans-serif")
-    .attr_int("font-size", config.font_size)
-    .attr("fill", config.default_stroke)
+    .attr("class", "text")
+    .attr_int("x", label_x.to_int())
+    .attr_int("y", label_y.to_int())
+    .attr("style", "font-size: 14px;")
     .text(label)
     .build(),
   )
@@ -148,40 +184,58 @@ fn render_shape_entry(
 ///|
 fn render_connection_entry(
   svg : @svg.Svg,
+  src_id : String,
+  dst_id : String,
+  index : Int,
   line_start_x : Double,
-  line_end_x : Double,
+  _line_end_x : Double,
   line_y : Double,
+  src_arrow_enabled : Bool,
+  dst_arrow_enabled : Bool,
   src_arrow : @graph.ArrowheadType,
   dst_arrow : @graph.ArrowheadType,
   label : String,
-  _style : @graph.StyleInput?,
+  style : @graph.StyleInput?,
   label_x : Double,
   label_y : Double,
   config : SvgConfig,
-) -> Unit {
-  let stroke = config.default_stroke
-  let marker_start = src_arrow.marker_url(true)
-  let marker_end = dst_arrow.marker_url(false)
-  svg.add(
-    @xml_emit.Element::new("line")
-    .attr_num("x1", line_start_x)
-    .attr_num("y1", line_y)
-    .attr_num("x2", line_end_x)
-    .attr_num("y2", line_y)
-    .attr("stroke", stroke)
-    .attr_num("stroke-width", 2.0)
-    .attr_if("marker-start", marker_start)
-    .attr_if("marker-end", marker_end)
-    .self_close()
-    .build(),
+  theme : @themes.Theme,
+) -> Unit raise @render_api.RenderError {
+  let edge_style = style.unwrap_or(@graph.StyleInput::new())
+  let edge = Connection::legend_icon(
+    src_id, dst_id, index, src_arrow_enabled, dst_arrow_enabled, src_arrow, dst_arrow,
+    edge_style,
   )
+  let connection_id = d2_connection_abs_id(edge, index)
+  let icon_x = line_start_x.to_int()
+  let icon_y = line_y.to_int()
+  let legend_hash = "legend-\{d2_secret_hash("\{connection_id}-\{icon_x}-\{icon_y}")}"
+  svg.add(
+    @xml_emit.Element::new("g")
+    .attr("transform", "translate(\{icon_x}, \{icon_y}) scale(0.500000)")
+    .open_tag(),
+  )
+  let marker_ids : Map[String, String] = Map([])
+  render_svg_edge(
+    svg,
+    edge,
+    index,
+    [],
+    None,
+    "url(#\{legend_hash})",
+    marker_ids,
+    legend_hash,
+    config,
+    theme,
+    false,
+  )
+  svg.add("</g>")
   svg.add(
     @xml_emit.Element::new("text")
-    .attr_num("x", label_x)
-    .attr_num("y", label_y)
-    .attr("font-family", "Arial, sans-serif")
-    .attr_int("font-size", config.font_size)
-    .attr("fill", config.default_stroke)
+    .attr("class", "text")
+    .attr_int("x", label_x.to_int())
+    .attr_int("y", label_y.to_int())
+    .attr("style", "font-size: 14px;")
     .text(label)
     .build(),
   )

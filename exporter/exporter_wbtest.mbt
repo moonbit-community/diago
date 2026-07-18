@@ -27,6 +27,184 @@ fn compile_source_graph(source : String) -> Result[@graph.GraphInput, String] {
 }
 
 ///|
+test "triple-glob defaults reach exported objects and edges" {
+  let source =
+    #|***.style.fill: lightblue
+    #|(*** -> ***)[*]: {
+    #|  style.stroke: red
+    #|}
+    #|x -> y
+  let graph = compile_source_graph(source).unwrap()
+  guard graph.find_object("x") is Some(x) else { fail("expected x") }
+  guard graph.find_object("y") is Some(y) else { fail("expected y") }
+  @debug.assert_eq(
+    x.style.fill,
+    Some(@graph.StyleValue::from_string("lightblue")),
+  )
+  @debug.assert_eq(
+    y.style.fill,
+    Some(@graph.StyleValue::from_string("lightblue")),
+  )
+  @debug.assert_eq(
+    graph.edges[0].style.stroke,
+    Some(@graph.StyleValue::from_string("red")),
+  )
+}
+
+///|
+test "root sequence diagrams export root actors with D2 defaults" {
+  let graph = compile_source_graph(
+    (
+      #|shape: sequence_diagram
+      #|alice -> bob
+      #|note
+    ),
+  ).unwrap()
+  assert_eq(graph.root.label, "")
+  guard graph.find_object("alice") is Some(alice) else {
+    fail("expected alice")
+  }
+  guard graph.find_object("bob") is Some(bob) else { fail("expected bob") }
+  guard graph.find_object("note") is Some(note) else { fail("expected note") }
+  @debug.assert_eq(alice.style.fill, Some(@graph.StyleValue::from_string("B5")))
+  @debug.assert_eq(bob.style.fill, Some(@graph.StyleValue::from_string("B5")))
+  @debug.assert_eq(note.style.fill, Some(@graph.StyleValue::from_string("N7")))
+}
+
+///|
+test "nested sequence actors inherit message defaults by syntax path" {
+  let graph = compile_source_graph(
+    (
+      #|seq: {
+      #|  shape: sequence_diagram
+      #|  alice.t -> bob.t
+      #|}
+    ),
+  ).unwrap()
+  for id in ["seq.alice", "seq.bob"] {
+    guard graph.find_object(id) is Some(actor) else {
+      fail("expected nested actor \{id}")
+    }
+    @debug.assert_eq(
+      actor.style.fill,
+      Some(@graph.StyleValue::from_string("B5")),
+    )
+    @debug.assert_eq(actor.label_position, Some("INSIDE_MIDDLE_CENTER"))
+  }
+}
+
+///|
+test "sequence descendants export as activations notes and groups" {
+  let graph = compile_source_graph(
+    (
+      #|shape: sequence_diagram
+      #|alice.t -> bob
+      #|bob."remember this"
+      #|phase: {
+      #|  alice -> bob
+      #|}
+    ),
+  ).unwrap()
+  guard graph.find_object("alice.t") is Some(activation) else {
+    fail("expected activation")
+  }
+  assert_eq(activation.label, "")
+  @debug.assert_eq(
+    activation.style.fill,
+    Some(@graph.StyleValue::from_string("B4")),
+  )
+  guard graph.find_object("bob.remember this") is Some(note) else {
+    fail("expected note")
+  }
+  assert_eq(note.shape_type, @graph.ShapeType::Page)
+  guard graph.find_object("phase") is Some(group) else {
+    fail("expected group")
+  }
+  @debug.assert_eq(group.style.fill, Some(@graph.StyleValue::from_string("N5")))
+  @debug.assert_eq(
+    group.style.stroke_width,
+    Some(@graph.StyleValue::from_double(0.0)),
+  )
+  assert_true(group.classes.contains("__diago_sequence_group"))
+}
+
+///|
+test "triple-glob defaults reach objects inside layers" {
+  let source =
+    #|***.style.fill: yellow
+    #|layers: {
+    #|  next: {
+    #|    a
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(graph.layers.length(), 1)
+  guard graph.layers[0].graph.find_object("a") is Some(a) else {
+    fail("expected layer object a")
+  }
+  @debug.assert_eq(a.style.fill, Some(@graph.StyleValue::from_string("yellow")))
+}
+
+///|
+test "edge glob endpoint filters remain isolated after graph export" {
+  let source =
+    #|(** -> **)[*]: {
+    #|  &src: a
+    #|  &dst: c
+    #|  style.stroke: yellow
+    #|}
+    #|a -> b
+    #|a -> c
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(graph.edges.length(), 2)
+  for edge in graph.edges {
+    guard edge.style.stroke is Some(stroke) else {
+      fail("expected defaulted edge stroke")
+    }
+    @debug.assert_eq(
+      stroke.get_value(),
+      if edge.dst_id == "c" {
+        "yellow"
+      } else {
+        "B1"
+      },
+    )
+  }
+}
+
+///|
+test "imported class retains nested style properties" {
+  let source =
+    #|...@classes
+    #|user.class: person
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let resolver = @ir.ImportResolver::new(fn(path) {
+    if path == "classes" || path == "classes.d2" {
+      let classes_source =
+        #|classes.person: {
+        #|  shape: person
+        #|  style.stroke-dash: 3
+        #|}
+      Some(classes_source)
+    } else {
+      None
+    }
+  })
+  let ir = @ir.compile_with_imports(ast, resolver) catch {
+    error => fail("IR error: \{error}")
+  }
+  let graph = compile("root", ir) catch {
+    error => fail("graph error: \{error}")
+  }
+  guard graph.find_object("user") is Some(user) else { fail("expected user") }
+  guard user.style.stroke_dash is Some(stroke_dash) else {
+    fail("expected stroke dash")
+  }
+  @debug.assert_eq(stroke_dash.get_value(), "3")
+}
+
+///|
 test "classes block is treated as reserved during object compilation" {
   let class_def = @ir.Map::new()
   class_def.add_field(
@@ -191,6 +369,36 @@ test "scenario edge declarations append after inherited parallel edges" {
   @debug.assert_eq(scenario.edges.length(), 2)
   @debug.assert_eq(scenario.edges[0].label, "base")
   @debug.assert_eq(scenario.edges[1].label, "added")
+}
+
+///|
+test "scenario edge order preserves inherited overlay mutation order" {
+  let source =
+    #|local.code -> github.dev: commit
+    #|github: {
+    #|  dev -> master.workflows: merge
+    #|}
+    #|github.master.workflows -> aws.builders: upload
+    #|aws: {
+    #|  builders -> s3: binaries
+    #|  ec2 <- s3: pull
+    #|}
+    #|local.code -> aws.ec2: direct
+    #|scenarios: {
+    #|  hotfix: {
+    #|    (local.code -> github.dev)[0].style.opacity: 0.1
+    #|    github: {
+    #|      (dev -> master.workflows)[0].style.opacity: 0.1
+    #|    }
+    #|    (github.master.workflows -> aws.builders)[0].style.opacity: 0.1
+    #|    (local.code -> aws.ec2)[0].style.opacity: 1
+    #|  }
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(
+    graph.scenarios[0].graph.edges.map(fn(edge) { edge.label }),
+    ["merge", "binaries", "pull", "commit", "upload", "direct"],
+  )
 }
 
 ///|
@@ -375,7 +583,7 @@ test "board links canonicalize quoted board targets" {
   guard graph.find_object("x") is Some(x) else {
     fail("expected linked object")
   }
-  @debug.assert_eq(x.link, Some("root.layers.\"cat.go\""))
+  @debug.assert_eq(x.link, Some("cat.go.svg"))
 }
 
 ///|
@@ -416,9 +624,9 @@ test "board links resolve relative underscores and discard invalid links" {
   guard kitten_board.find_object("remote") is Some(remote) else {
     fail("expected remote-link object")
   }
-  @debug.assert_eq(question.link, Some("root.layers.cat"))
+  @debug.assert_eq(question.link, Some("cat/index.svg"))
   @debug.assert_eq(plain.link, None)
-  @debug.assert_eq(up.link, Some("root.layers.cat"))
+  @debug.assert_eq(up.link, Some("index.svg"))
   @debug.assert_eq(self.link, None)
   @debug.assert_eq(missing.link, None)
   @debug.assert_eq(remote.link, Some("https://example.com/docs"))
@@ -628,6 +836,66 @@ test "grid nested simple edges fixture compiles edge classes on grid descendants
 }
 
 ///|
+test "edge classes retain names and distinguish arrow from triangle" {
+  let source =
+    #|a -> b: {
+    #|  class: arrow
+    #|}
+    #|classes.arrow: {
+    #|  target-arrowhead.shape: arrow
+    #|  style.stroke: black
+    #|}
+  let graph = compile_source_graph(source).unwrap()
+  @debug.assert_eq(graph.edges.length(), 1)
+  let edge = graph.edges[0]
+  @debug.assert_eq(edge.classes, ["arrow"])
+  @debug.assert_eq(edge.dst_arrowhead, @graph.Arrow)
+  @debug.assert_eq(
+    edge.style.stroke,
+    Some(@graph.StyleValue::from_string("black")),
+  )
+}
+
+///|
+test "nested arrowhead label field is exported" {
+  let graph = compile_source_graph("a -> b: { source-arrowhead.label: 1 }").unwrap()
+  @debug.assert_eq(graph.edges.length(), 1)
+  @debug.assert_eq(graph.edges[0].src_arrowhead_label, Some("1"))
+}
+
+///|
+test "arrowhead filled style selects the effective marker shape" {
+  let graph = compile_source_graph(
+    "a <-> b: { source-arrowhead.shape: triangle; source-arrowhead.style.filled: false; target-arrowhead.shape: diamond; target-arrowhead.style.filled: true }",
+  ).unwrap()
+  @debug.assert_eq(graph.edges.length(), 1)
+  @debug.assert_eq(graph.edges[0].src_arrowhead, @graph.Open)
+  @debug.assert_eq(graph.edges[0].dst_arrowhead, @graph.FilledDiamond)
+}
+
+///|
+test "grid fill direction follows the first dimension keyword" {
+  let rows_first = compile_source_graph(
+    (
+      #|grid-rows: 2
+      #|grid-columns: 3
+      #|a
+      #|b
+    ),
+  ).unwrap()
+  let columns_first = compile_source_graph(
+    (
+      #|grid-columns: 3
+      #|grid-rows: 2
+      #|a
+      #|b
+    ),
+  ).unwrap()
+  @debug.assert_eq(rows_first.root.grid_row_directed, Some(true))
+  @debug.assert_eq(columns_first.root.grid_row_directed, Some(false))
+}
+
+///|
 test "comma-bearing grid cell IDs survive graph export" {
   let source =
     #|grid-rows: 1
@@ -716,6 +984,42 @@ test "separate near fields and null position resets follow position semantics" {
 }
 
 ///|
+test "null style values reset inherited properties" {
+  let source =
+    #|one: {
+    #|  style.fill: pink
+    #|  style.stroke: green
+    #|}
+    #|one.style.stroke: null
+  let graph = compile_source_graph(source).unwrap()
+  guard graph.find_object("one") is Some(one) else { fail("expected object") }
+  @debug.assert_eq(one.style.fill.unwrap().get_value(), "pink")
+  @debug.assert_eq(one.style.stroke.unwrap().get_value(), "B1")
+}
+
+///|
+test "null removes objects and connections" {
+  let graph = compile_source_graph(
+    (
+      #|one -> two
+      #|two: null
+    ),
+  ).unwrap()
+  @debug.assert_eq(graph.objects.length(), 1)
+  @debug.assert_eq(graph.objects[0].id, "one")
+  @debug.assert_eq(graph.edges.length(), 0)
+
+  let edge_graph = compile_source_graph(
+    (
+      #|one -> two
+      #|(one -> two)[0]: null
+    ),
+  ).unwrap()
+  @debug.assert_eq(edge_graph.objects.length(), 2)
+  @debug.assert_eq(edge_graph.edges.length(), 0)
+}
+
+///|
 test "tooltip near rejects label-only positions like the reference" {
   let source =
     #|hey: {
@@ -779,7 +1083,7 @@ test "legend config follows the compile semantics and defaults" {
   @debug.assert_eq(legend.entries.length(), 5)
 
   match legend.entries[0] {
-    ShapeEntry(shape~, label~, style~) => {
+    ShapeEntry(shape~, label~, style~, ..) => {
       @debug.assert_eq(shape, Person)
       @debug.assert_eq(label, "A person who interacts with the system")
       guard style is Some(style_input) else {
@@ -791,7 +1095,7 @@ test "legend config follows the compile semantics and defaults" {
   }
 
   match legend.entries[1] {
-    ShapeEntry(shape~, label~, style~) => {
+    ShapeEntry(shape~, label~, style~, ..) => {
       @debug.assert_eq(shape, Cylinder)
       @debug.assert_eq(label, "Stores application data")
       guard style is Some(style_input) else {
@@ -805,7 +1109,7 @@ test "legend config follows the compile semantics and defaults" {
   assert_true(legend.entries[2] is Separator)
 
   match legend.entries[3] {
-    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
+    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~, ..) => {
       @debug.assert_eq(src_arrow, None)
       @debug.assert_eq(dst_arrow, Triangle)
       @debug.assert_eq(label, "Reads data")
@@ -818,7 +1122,7 @@ test "legend config follows the compile semantics and defaults" {
   }
 
   match legend.entries[4] {
-    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~) => {
+    ConnectionEntry(src_arrow~, dst_arrow~, label~, style~, ..) => {
       @debug.assert_eq(src_arrow, None)
       @debug.assert_eq(dst_arrow, Triangle)
       @debug.assert_eq(label, "Returns results")
@@ -1101,4 +1405,55 @@ test "sort_graph_by_references reorders objects edges and children by source ran
   @debug.assert_eq(parent.children.map(fn(child) { child.id }), [
     "parent.early", "parent.late",
   ])
+}
+
+///|
+test "edge ordering ignores glob references that precede direct syntax" {
+  let graph = Graph::new("test")
+  let later = Edge::new(0, "a", "b", false, true)
+  later.references = [
+    @graph.EdgeReference::new(
+      test_range(1),
+      0,
+      Some("root"),
+      None,
+      true,
+      true,
+      true,
+    ),
+    @graph.EdgeReference::new(
+      test_range(40),
+      0,
+      Some("root"),
+      None,
+      true,
+      false,
+      false,
+    ),
+  ]
+  let earlier = Edge::new(1, "c", "d", false, true)
+  earlier.references = [
+    @graph.EdgeReference::new(
+      test_range(2),
+      1,
+      Some("root"),
+      None,
+      true,
+      true,
+      true,
+    ),
+    @graph.EdgeReference::new(
+      test_range(20),
+      1,
+      Some("root"),
+      None,
+      true,
+      false,
+      false,
+    ),
+  ]
+  graph.add_edge(later)
+  graph.add_edge(earlier)
+  sort_graph_by_references(graph)
+  @debug.assert_eq(graph.edges.map(fn(edge) { edge.index }), [1, 0])
 }

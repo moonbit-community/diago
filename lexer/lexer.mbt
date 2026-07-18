@@ -433,7 +433,20 @@ fn Lexer::scan_number(self : Lexer, start : Position, first : Char) -> Unit {
 fn Lexer::scan_identifier(self : Lexer, start : Position, first : Char) -> Unit {
   let buf = StringBuilder::new()
   buf.write_char(first)
-  while !self.is_at_end() && is_ident_continue(self.peek()) {
+  if first == '\\' && !self.is_at_end() && self.peek() != '\n' {
+    buf.write_char(self.advance())
+  }
+  while !self.is_at_end() {
+    if self.peek() == '\\' {
+      buf.write_char(self.advance())
+      if !self.is_at_end() && self.peek() != '\n' {
+        buf.write_char(self.advance())
+      }
+      continue
+    }
+    if !is_ident_continue(self.peek()) {
+      break
+    }
     if self.peek() == '-' {
       let next = self.peek_next()
       if next == '>' || next == '-' {

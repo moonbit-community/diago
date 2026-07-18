@@ -1,3 +1,7 @@
 import {
   "Milky2018/diago/diagram",
 }
+
+import {
+  "moonbitlang/core/debug",
+} for "wbtest"

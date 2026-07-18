@@ -247,6 +247,25 @@ pub fn compile_diagram(
     Ok(engine) => engine
     Err(err) => return Err(err)
   }
+  let graph_input = match source_config {
+    Some(source) => {
+      let theme = match source.theme_id {
+        Some(theme_id) => Some(@themes.get_theme(theme_id))
+        None => None
+      }
+      let graph_input = match theme {
+        Some(value) if value.rules.mono => graph_input.with_default_font("mono")
+        _ if source.sketch.unwrap_or(false) =>
+          graph_input.with_default_font("hand-drawn")
+        _ => graph_input
+      }
+      match theme {
+        Some(value) if value.rules.caps_lock => graph_input.with_caps_lock()
+        _ => graph_input
+      }
+    }
+    None => graph_input
+  }
   let config = @engine_api.LayoutConfig::new()
   let laid_out_graph = match options.layout_plugin {
     Some(plugin) =>
@@ -304,6 +323,9 @@ pub fn render(
 ) -> Result[String, LibError] {
   match options.output_mode {
     Svg => {
+      if diagram.shapes.is_empty() {
+        return Ok("")
+      }
       let render_config = resolve_svg_config(options, diagram.config)
       let diagram = diagram.with_render_hash_config(
         render_config.theme_id,

@@ -67,7 +67,7 @@ async fn execute_render(request : RenderRequest) -> Result[Unit, String] {
 async fn execute_render_once(request : RenderRequest) -> Result[Unit, String] {
   if request.from_stdin {
     let source = @fs.read_file_to_string("/dev/stdin") catch {
-      e => return Err("Error reading from stdin: \{e}")
+      @fs.IOError(message) => return Err("Error reading from stdin: \{message}")
     }
     let compiled = match compile_render_source(request, source, None) {
       Ok(v) => v
@@ -82,7 +82,8 @@ async fn execute_render_once(request : RenderRequest) -> Result[Unit, String] {
     None => return Err("internal error: missing input path")
   }
   let source = @fs.read_file_to_string(input_path) catch {
-    e => return Err("Error reading file '\{input_path}': \{e}")
+    @fs.IOError(message) =>
+      return Err("Error reading file '\{input_path}': \{message}")
   }
   let compiled = match
     compile_render_source(request, source, get_dir_path(input_path)) {
@@ -245,7 +246,8 @@ async fn execute_render_watch(request : RenderRequest) -> Result[Unit, String] {
   }
   let base_path = get_dir_path(input)
   let mut last_source = @fs.read_file_to_string(input) catch {
-    e => return Err("Error reading file '\{input}': \{e}")
+    @fs.IOError(message) =>
+      return Err("Error reading file '\{input}': \{message}")
   }
   let initial = compile_render_source(request, last_source, base_path)
   match initial {
@@ -268,9 +270,9 @@ async fn execute_render_watch(request : RenderRequest) -> Result[Unit, String] {
   while true {
     @async.sleep(request.watch_interval_ms)
     let maybe_source = Some(@fs.read_file_to_string(input)) catch {
-      e => {
-        let message = "Error reading file '\{input}': \{e}"
-        println(message)
+      @fs.IOError(message) => {
+        let display = "Error reading file '\{input}': \{message}"
+        println(display)
         None
       }
     }
@@ -299,7 +301,8 @@ fn execute_fmt(request : FmtRequest) -> Result[Unit, String] {
   for file_path in request.files {
     let normalized = normalize_input_path(file_path)
     let source = @fs.read_file_to_string(normalized) catch {
-      e => return Err("Error reading file '\{normalized}': \{e}")
+      @fs.IOError(message) =>
+        return Err("Error reading file '\{normalized}': \{message}")
     }
     let (ast, parse_errors) = @compiler.parse(source)
     if !parse_errors.is_empty() {
@@ -311,7 +314,8 @@ fn execute_fmt(request : FmtRequest) -> Result[Unit, String] {
         unformatted_count = unformatted_count + 1
       } else {
         @fs.write_string_to_file(normalized, formatted) catch {
-          e => return Err("Error writing file '\{normalized}': \{e}")
+          @fs.IOError(message) =>
+            return Err("Error writing file '\{normalized}': \{message}")
         }
       }
     }
@@ -329,7 +333,7 @@ fn execute_fmt(request : FmtRequest) -> Result[Unit, String] {
 fn execute_validate(request : ValidateRequest) -> Result[Unit, String] {
   let source = if request.from_stdin {
     @fs.read_file_to_string("/dev/stdin") catch {
-      e => return Err("Error reading from stdin: \{e}")
+      @fs.IOError(message) => return Err("Error reading from stdin: \{message}")
     }
   } else {
     let path_raw = match request.input_path {
@@ -338,7 +342,8 @@ fn execute_validate(request : ValidateRequest) -> Result[Unit, String] {
     }
     let path = normalize_input_path(path_raw)
     @fs.read_file_to_string(path) catch {
-      e => return Err("Error reading file '\{path}': \{e}")
+      @fs.IOError(message) =>
+        return Err("Error reading file '\{path}': \{message}")
     }
   }
   let (ast, parse_errors) = @compiler.parse(source)

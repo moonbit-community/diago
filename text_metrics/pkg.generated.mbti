@@ -6,17 +6,25 @@ import {
 }
 
 // Values
+pub fn markdown_source_like_d2(String) -> String
+
 pub fn measure_edge_label(String, Int) -> TextDimensions
 
 pub fn measure_label(String, Int, Bool, Bool, Bool) -> TextDimensions
 
 pub fn measure_label_code(String, Int, Bool, Bool) -> TextDimensions
 
+pub fn measure_label_hand_drawn(String, Int, Bool) -> TextDimensions
+
+pub fn measure_label_latex(String) -> TextDimensions
+
 pub fn measure_label_markdown(String, Int) -> TextDimensions
 
 pub fn measure_text(String, Int, Bool, Bool, Bool) -> MeasuredText
 
 pub fn measure_text_code(String, Int, Bool, Bool) -> MeasuredText
+
+pub fn measure_text_hand_drawn(String, Int, Bool) -> MeasuredText
 
 pub fn measure_text_mono_plain(String, Int) -> MeasuredText
 

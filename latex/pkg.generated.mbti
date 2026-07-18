@@ -1,0 +1,27 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Milky2018/diago/latex"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn render(String) -> Result[LatexOutput, LatexError]
+
+// Errors
+pub(all) suberror LatexError {
+  RuntimeError(String)
+  InvalidSvg(String)
+} derive(Eq, @debug.Debug)
+pub impl Show for LatexError
+
+// Types and methods
+pub(all) struct LatexOutput {
+  svg : String
+  width : Int
+  height : Int
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

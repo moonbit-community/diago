@@ -72,8 +72,7 @@ fn default_shape_label_position(
   }
   let is_bold = style_bool(shape.style.bold, false)
   let is_italic = style_bool(shape.style.italic, false)
-  let is_mono = shape.shape_type == Code ||
-    style_is_mono(shape.style.font_family)
+  let is_mono = shape.shape_type == Code || style_is_mono(shape.style.font)
   let dims = @text_metrics.measure_label(
     shape.label,
     font_size,

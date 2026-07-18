@@ -873,6 +873,15 @@ fn Parser::parse_edge_group(
         Some(val) => value = Some(val)
         None => ()
       }
+      self.skip_whitespace_not_newline()
+      match (value, self.peek()) {
+        (Some(Scalar(_)), LeftBrace) =>
+          match self.parse_block() {
+            Some(block) => value = Some(BlockScalar(value.unwrap(), block))
+            None => ()
+          }
+        _ => ()
+      }
     }
     LeftBrace =>
       match self.parse_block() {

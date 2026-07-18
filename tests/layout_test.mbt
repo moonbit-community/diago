@@ -237,6 +237,57 @@ test "reference nested_layout_bug root grid keeps nested container as a grid cel
 }
 
 ///|
+test "grid unaligned preserves reference fractional route geometry" {
+  let source =
+    #|grid-columns: 1
+    #|us-east-1: {
+    #|  grid-rows: 1
+    #|  a
+    #|  b
+    #|  c
+    #|  d
+    #|  e
+    #|}
+    #|us-west-1: {
+    #|  grid-rows: 1
+    #|  a
+    #|}
+    #|us-east-1.c -> us-west-1.a
+  let graph_input = compile_graph_no_layout(source).unwrap()
+  let dagre = @engine_api.layout_with_engine(
+    @engine_dagre.DagreEngine::new(),
+    graph_input,
+    @engine_api.LayoutConfig::new(),
+    Down,
+  ) catch {
+    e => fail("dagre layout error: \{e}")
+  }
+  let elk = @engine_api.layout_with_engine(
+    @engine_elk.ElkEngine::new(),
+    graph_input,
+    @engine_api.LayoutConfig::new(),
+    Down,
+  ) catch {
+    e => fail("elk layout error: \{e}")
+  }
+  for graph in [dagre, elk] {
+    @debug.assert_eq(
+      graph.find_object("us-east-1.c").unwrap().box,
+      Some(@graph.Box::new(246.0, 60.0, 53.0, 66.0)),
+    )
+    @debug.assert_eq(
+      graph.find_object("us-west-1.a").unwrap().box,
+      Some(@graph.Box::new(60.0, 286.0, 53.0, 66.0)),
+    )
+    @debug.assert_eq(graph.edges[0].route.length(), 2)
+    @debug.assert_eq(graph.edges[0].route[0].x, 246.5)
+    @debug.assert_eq(graph.edges[0].route[0].y, 125.0)
+    @debug.assert_eq(graph.edges[0].route[1].x, 112.5)
+    @debug.assert_eq(graph.edges[0].route[1].y, 287.0)
+  }
+}
+
+///|
 fn assert_root_grid_nested_layout_like_d2(
   graph : @graph.GraphInput,
   engine_name : String,
@@ -2657,6 +2708,117 @@ test "reference grid_edge_across_cell matches stable target geometry" {
 }
 
 ///|
+test "official nested grid cross edge uses D2 logical boundary" {
+  let source = @fs.read_file_to_string(
+    "testdata/d2-official/d2-docs/static/bespoke-d2/grid-nested-connections.d2",
+  )
+  let graph_input = compile_graph_no_layout(source).unwrap()
+  let config = @engine_api.LayoutConfig::new()
+  let dagre = @engine_api.layout_with_engine(
+    @engine_dagre.DagreEngine::new(),
+    graph_input,
+    config,
+    Down,
+  ) catch {
+    e => fail("dagre layout error: \{e}")
+  }
+  let elk = @engine_api.layout_with_engine(
+    @engine_elk.ElkEngine::new(),
+    graph_input,
+    config,
+    Down,
+  ) catch {
+    e => fail("elk layout error: \{e}")
+  }
+  let dagre_target = @diagram.from_graph(dagre, None)
+  let elk_target = @diagram.from_graph(elk, None)
+  let dagre_edge = find_connection(
+    dagre_target, "top-row.Random Matrix Generator", "bottom-row.matrix-container.matrix",
+  ).unwrap()
+  let elk_edge = find_connection(
+    elk_target, "top-row.Random Matrix Generator", "bottom-row.matrix-container.matrix",
+  ).unwrap()
+  assert_route_points_close(
+    dagre_edge.route,
+    [@graph.Point::new(1342.0, 230.0), @graph.Point::new(1321.0, 450.0)],
+    tolerance=0.000001,
+  )
+  assert_route_points_close(
+    elk_edge.route,
+    [@graph.Point::new(1348.0, 230.0), @graph.Point::new(1343.0, 450.0)],
+    tolerance=0.000001,
+  )
+}
+
+///|
+test "official grid padding preserves escaped IDs and glob classes" {
+  let source = @fs.read_file_to_string(
+    "testdata/d2-official/d2-docs/static/d2/grid-padding-1.d2",
+  )
+  let graph = compile_graph_no_layout(source).unwrap()
+  let service = graph
+    .find_object("Kubernetes.system.Backend Node.ClusterIP\nService 1")
+    .unwrap()
+  @debug.assert_eq(
+    service.abs_id_syntax,
+    "Kubernetes.system.Backend Node.\"ClusterIP\\nService 1\"",
+  )
+  assert_true(service.classes.contains("clust"))
+
+  let next_pod = graph
+    .find_object("Kubernetes.system.Backend Node.Deployment 1.NEXT POD 1")
+    .unwrap()
+  assert_true(next_pod.classes.contains("nextpod"))
+  @debug.assert_eq(
+    next_pod.icon,
+    Some("https://www.svgrepo.com/show/378440/nextjs-fill.svg"),
+  )
+
+  let flask_pod = graph
+    .find_object("Kubernetes.system.Frontend Node.Deployment 2.FLASK POD 1")
+    .unwrap()
+  assert_true(flask_pod.classes.contains("flaskpod"))
+  @debug.assert_eq(
+    flask_pod.icon,
+    Some("https://www.svgrepo.com/show/508915/flask.svg"),
+  )
+}
+
+///|
+test "official class members preserve escaped visibility prefixes" {
+  let source = @fs.read_file_to_string(
+    "testdata/d2-official/d2-docs/static/d2/classes-2.d2",
+  )
+  let graph = compile_graph_no_layout(source).unwrap()
+  let parser = graph.find_object("D2 Parser").unwrap()
+  @debug.assert_eq(parser.child_ids, [
+    "D2 Parser.+reader", "D2 Parser.readerPos", "D2 Parser.-lookahead", "D2 Parser.\"#lookaheadPos\"",
+    "D2 Parser.\"+peek()\"", "D2 Parser.\"rewind()\"", "D2 Parser.\"commit()\"",
+    "D2 Parser.\"#peekn(n int)\"",
+  ])
+}
+
+///|
+test "sequence connection identities omit nested group scopes" {
+  let source = @fs.read_file_to_string(
+    "testdata/d2-official/d2-docs/static/d2/sequence-diagrams-scope.d2",
+  )
+  let graph = compile_graph_no_layout(source).unwrap()
+  let group = graph.find_object("Office chatter.awkward small talk").unwrap()
+  assert_true(group.classes.contains("__diago_sequence_group"))
+  @debug.assert_eq(group.abs_id_syntax, "Office chatter.awkward small talk")
+  let diagram = @diagram.from_graph(graph, None)
+  let identities : Array[String] = []
+  for edge in diagram.connections {
+    identities.push("\{edge.src_syntax_id}->\{edge.dst_syntax_id}")
+  }
+  @debug.assert_eq(identities, [
+    "Office chatter.alice->Office chatter.bob", "Office chatter.bob->Office chatter.alice",
+    "Office chatter.alice->Office chatter.bob", "Office chatter.bob->Office chatter.alice",
+  ])
+}
+
+///|
 fn assert_constant_near_title_like_d2(
   graph : @graph.GraphInput,
   engine_name : String,
@@ -3144,7 +3306,10 @@ fn find_connection(
   dst_id : String,
 ) -> @diagram.Connection? {
   for connection in diagram.get_edges() {
-    if connection.src_lookup_id == src_id && connection.dst_lookup_id == dst_id {
+    if (
+        connection.src_lookup_id == src_id || connection.src_syntax_id == src_id
+      ) &&
+      (connection.dst_lookup_id == dst_id || connection.dst_syntax_id == dst_id) {
       return Some(connection)
     }
   }
@@ -3159,7 +3324,10 @@ fn find_connections(
 ) -> Array[@diagram.Connection] {
   let matches : Array[@diagram.Connection] = []
   for connection in diagram.get_edges() {
-    if connection.src_lookup_id == src_id && connection.dst_lookup_id == dst_id {
+    if (
+        connection.src_lookup_id == src_id || connection.src_syntax_id == src_id
+      ) &&
+      (connection.dst_lookup_id == dst_id || connection.dst_syntax_id == dst_id) {
       matches.push(connection)
     }
   }

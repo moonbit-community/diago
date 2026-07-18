@@ -527,6 +527,7 @@ fn assign_sql_column_indices(graph : @graph.GraphInput) -> @graph.GraphInput {
         icon_position=e.icon_position,
         icon_border_radius=e.icon_border_radius,
         link=e.link,
+        classes=e.classes,
       ),
     )
   }
@@ -548,6 +549,119 @@ fn prepare_graph_for_layout(
   let prepared = assign_sql_column_indices(normalize_sequence_root(graph))
   ignore(compile_layout_problem(prepared))
   prepared
+}
+
+///|
+fn resolve_default_object_positions(
+  obj : @graph.ObjectInput,
+  engine_name : String,
+) -> @graph.ObjectInput {
+  let mut icon_position = obj.icon_position
+  let mut label_position = obj.label_position
+  let is_grid = obj.grid_rows is Some(_) || obj.grid_columns is Some(_)
+  if is_grid {
+    if obj.icon is Some(_) && icon_position is None {
+      icon_position = Some("INSIDE_TOP_LEFT")
+    }
+    if obj.label != "" && label_position is None {
+      label_position = Some("INSIDE_TOP_CENTER")
+    }
+  } else if obj.icon is Some(_) && icon_position is None {
+    if !obj.child_ids.is_empty() {
+      icon_position = Some(
+        if engine_name == "elk" {
+          "INSIDE_TOP_LEFT"
+        } else {
+          "OUTSIDE_TOP_LEFT"
+        },
+      )
+      if label_position is None {
+        label_position = Some(
+          if engine_name == "elk" {
+            "INSIDE_TOP_RIGHT"
+          } else {
+            "OUTSIDE_TOP_RIGHT"
+          },
+        )
+      }
+    } else if obj.shape_type == Class ||
+      obj.shape_type == SqlTable ||
+      obj.language is Some(_) {
+      icon_position = Some("OUTSIDE_TOP_LEFT")
+    } else {
+      icon_position = Some("INSIDE_MIDDLE_CENTER")
+    }
+  }
+  if !is_grid && obj.label != "" && label_position is None {
+    if !obj.child_ids.is_empty() {
+      label_position = Some(
+        if engine_name == "elk" {
+          "INSIDE_TOP_CENTER"
+        } else {
+          "OUTSIDE_TOP_CENTER"
+        },
+      )
+    } else if obj.shape_type == Image || obj.shape_type == Person {
+      label_position = Some("OUTSIDE_BOTTOM_CENTER")
+    } else if obj.icon is Some(_) {
+      label_position = Some("INSIDE_TOP_CENTER")
+    }
+  }
+  @graph.ObjectInput::from_parts(
+    obj.id,
+    obj.label,
+    obj.shape_type,
+    obj.style,
+    obj.box,
+    obj.label_box,
+    obj.child_ids,
+    obj.z_index,
+    obj.icon,
+    obj.tooltip,
+    obj.link,
+    obj.classes,
+    obj.grid_rows,
+    obj.grid_columns,
+    obj.grid_gap,
+    obj.horizontal_gap,
+    obj.vertical_gap,
+    obj.grid_column_span,
+    obj.grid_row_span,
+    obj.near,
+    obj.top,
+    obj.left,
+    direction=obj.direction,
+    language=obj.language,
+    sql_constraints=obj.sql_constraints,
+    id_val=obj.id_val,
+    id_syntax=obj.id_syntax,
+    abs_id_syntax=obj.abs_id_syntax,
+    references=obj.references,
+    icon_position~,
+    tooltip_position=obj.tooltip_position,
+    label_position~,
+    grid_row_directed=obj.grid_row_directed,
+  )
+}
+
+///|
+fn resolve_default_object_positions_for_engine(
+  graph : @graph.GraphInput,
+  engine_name : String,
+) -> @graph.GraphInput {
+  let objects : Array[@graph.ObjectInput] = []
+  for obj in graph.objects {
+    objects.push(resolve_default_object_positions(obj, engine_name))
+  }
+  clone_graph_with_parts(
+    graph,
+    resolve_default_object_positions(graph.root, engine_name),
+    objects,
+    graph.edges,
+    graph.layers,
+    graph.scenarios,
+    graph.steps,
+  )
 }
 
 ///|
@@ -629,6 +743,7 @@ fn normalize_routes(graph : @graph.GraphInput) -> @graph.GraphInput {
         icon_position=e.icon_position,
         icon_border_radius=e.icon_border_radius,
         link=e.link,
+        classes=e.classes,
       ),
     )
   }
@@ -641,6 +756,113 @@ fn normalize_routes(graph : @graph.GraphInput) -> @graph.GraphInput {
     graph.scenarios,
     graph.steps,
   )
+}
+
+///|
+fn recompute_final_edge_label_boxes_like_d2(
+  graph : @graph.GraphInput,
+) -> @graph.GraphInput {
+  let edges : Array[@graph.EdgeInput] = []
+  for edge in graph.edges {
+    let label_box = match edge.label_box {
+      Some(box) if edge.label != "" && !edge.route.is_empty() => {
+        let center = d2_target_route_point_at_percent_like_d2(edge.route, 0.5)
+        Some(
+          @graph.Box::new(
+            d2_label_chop_precision_like_d2(center.x - box.width / 2.0),
+            d2_label_chop_precision_like_d2(center.y - box.height / 2.0),
+            box.width,
+            box.height,
+          ),
+        )
+      }
+      other => other
+    }
+    edges.push(
+      clone_edge_with_layout(edge, edge.route, edge.bend_points, label_box),
+    )
+  }
+  clone_graph_with_parts(
+    graph,
+    graph.root,
+    graph.objects,
+    edges,
+    graph.layers,
+    graph.scenarios,
+    graph.steps,
+  )
+}
+
+///|
+fn d2_target_route_point_at_percent_like_d2(
+  route : Array[@graph.Point],
+  percent : Double,
+) -> @graph.Point {
+  if route.is_empty() {
+    return @graph.Point::new(0.0, 0.0)
+  }
+  if route.length() == 1 {
+    return d2_target_route_point_like_d2(route[0])
+  }
+  let target_route : Array[@graph.Point] = []
+  for point in route {
+    target_route.push(d2_target_route_point_like_d2(point))
+  }
+  let mut total = 0.0
+  for i in 1..<target_route.length() {
+    total = total +
+      d2_route_point_distance_like_d2(target_route[i - 1], target_route[i])
+  }
+  if total <= 0.000001 {
+    return target_route[0]
+  }
+  let target = total * percent
+  let mut walked = 0.0
+  for i in 1..<target_route.length() {
+    let p0 = target_route[i - 1]
+    let p1 = target_route[i]
+    let segment = d2_route_point_distance_like_d2(p0, p1)
+    if segment <= 0.000001 {
+      continue
+    }
+    if walked + segment >= target {
+      let t = (target - walked) / segment
+      return @graph.Point::new(
+        p0.x + (p1.x - p0.x) * t,
+        p0.y + (p1.y - p0.y) * t,
+      )
+    }
+    walked = walked + segment
+  }
+  target_route[target_route.length() - 1]
+}
+
+///|
+fn d2_target_route_point_like_d2(point : @graph.Point) -> @graph.Point {
+  @graph.Point::new(
+    Float::from_double((point.x * 1000.0).to_int().to_double() / 1000.0).to_double(),
+    Float::from_double((point.y * 1000.0).to_int().to_double() / 1000.0).to_double(),
+  )
+}
+
+///|
+fn d2_route_point_distance_like_d2(
+  a : @graph.Point,
+  b : @graph.Point,
+) -> Double {
+  let dx = b.x - a.x
+  let dy = b.y - a.y
+  (dx * dx + dy * dy).sqrt()
+}
+
+///|
+fn d2_label_chop_precision_like_d2(value : Double) -> Double {
+  let rounded = (Float::from_double(value * 10000.0).to_double() / 10000.0).round()
+  if rounded == 0.0 {
+    0.0
+  } else {
+    rounded
+  }
 }
 
 ///|
@@ -961,6 +1183,64 @@ fn estimate_grid_container_layout_like_d2(
 }
 
 ///|
+/// Estimate a real nested grid container, including D2's outside-label
+/// margins and container padding, from backend-produced child sizes.
+pub fn estimate_nested_grid_layout_like_d2(
+  parent : @graph.ObjectInput,
+  child_ids : Array[String],
+  child_size_by_id : Map[String, (Double, Double)],
+  object_by_id : Map[String, @graph.ObjectInput],
+) -> (Double, Double, Map[String, @graph.Box])? {
+  let metrics_by_id : Map[String, GridChildLayoutMetrics] = Map([])
+  let layout_size_by_id : Map[String, (Double, Double)] = Map([])
+  for child_id in child_ids {
+    let child = match object_by_id.get(child_id) {
+      Some(value) => value
+      None => return None
+    }
+    let (width, height) = match child_size_by_id.get(child_id) {
+      Some(value) => value
+      None => return None
+    }
+    let (label_position, icon_position) = grid_child_effective_positions_like_d2(
+      child,
+    )
+    let margin = grid_child_margin_like_d2(
+      child, width, height, label_position, icon_position,
+    )
+    let metrics : GridChildLayoutMetrics = {
+      layout_width: width + margin.left + margin.right,
+      layout_height: height + margin.top + margin.bottom,
+      label_position,
+      icon_position,
+      initial_margin: margin,
+    }
+    metrics_by_id[child_id] = metrics
+    layout_size_by_id[child_id] = (metrics.layout_width, metrics.layout_height)
+  }
+  let layout = match
+    estimate_grid_container_layout_like_d2(parent, child_ids, layout_size_by_id) {
+    Some(value) => value
+    None => return None
+  }
+  let boxes : Map[String, @graph.Box] = Map([])
+  for child_id in child_ids {
+    let child = object_by_id.get(child_id).unwrap()
+    let metrics = metrics_by_id.get(child_id).unwrap()
+    let cell = layout.child_boxes.get(child_id).unwrap()
+    boxes[child_id] = grid_child_restored_box_like_d2(
+      child,
+      metrics,
+      cell.x,
+      cell.y,
+      cell.width,
+      cell.height,
+    )
+  }
+  Some((layout.width, layout.height, boxes))
+}
+
+///|
 fn grid_child_layout_metrics_like_d2(
   obj : @graph.ObjectInput,
   config : LayoutConfig,
@@ -1193,9 +1473,9 @@ fn grid_child_label_dimensions_like_d2(
     Some(v) => v.as_int().unwrap_or(16)
     None => 16
   }
-  let is_bold = style_bool(obj.style.bold, false)
+  let is_bold = object_label_bold_like_d2(obj, false)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else {
@@ -1469,9 +1749,9 @@ fn object_label_dimensions_like_d2(
     Some(v) => v.as_int().unwrap_or(16)
     None => 16
   }
-  let is_bold = style_bool(obj.style.bold, false)
+  let is_bold = object_label_bold_like_d2(obj, false)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let dims = if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
   } else {
@@ -1484,6 +1764,68 @@ fn object_label_dimensions_like_d2(
     )
   }
   (dims.width + padding, dims.height + padding)
+}
+
+///|
+fn resize_label_box_for_position_like_d2(
+  box : @graph.Box,
+  width : Double,
+  height : Double,
+  position : String?,
+) -> @graph.Box {
+  let upper = position.unwrap_or("INSIDE_MIDDLE_CENTER").to_upper()
+  let x = if upper.has_suffix("_RIGHT") {
+    box.x + box.width - width
+  } else if upper.has_suffix("_CENTER") {
+    box.x + (box.width - width) / 2.0
+  } else {
+    box.x
+  }
+  let y = if upper.contains("_BOTTOM_") {
+    box.y + box.height - height
+  } else if upper.contains("_MIDDLE_") {
+    box.y + (box.height - height) / 2.0
+  } else {
+    box.y
+  }
+  @graph.Box::new(x, y, width, height)
+}
+
+///|
+fn label_box_for_position_like_d2(
+  box : @graph.Box,
+  width : Double,
+  height : Double,
+  position : String?,
+) -> @graph.Box {
+  let upper = position.unwrap_or("INSIDE_MIDDLE_CENTER").to_upper()
+  let outside_left = upper.has_prefix("OUTSIDE_LEFT_")
+  let outside_right = upper.has_prefix("OUTSIDE_RIGHT_")
+  let outside_top = upper.has_prefix("OUTSIDE_TOP_")
+  let outside_bottom = upper.has_prefix("OUTSIDE_BOTTOM_")
+  let x = if outside_left {
+    box.x - D2_LABEL_PADDING - width
+  } else if outside_right {
+    box.x + box.width + D2_LABEL_PADDING
+  } else if upper.has_suffix("_LEFT") {
+    box.x + D2_LABEL_PADDING
+  } else if upper.has_suffix("_RIGHT") {
+    box.x + box.width - D2_LABEL_PADDING - width
+  } else {
+    box.x + (box.width - width) / 2.0
+  }
+  let y = if outside_top {
+    box.y - D2_LABEL_PADDING - height
+  } else if outside_bottom {
+    box.y + box.height + D2_LABEL_PADDING
+  } else if upper.has_suffix("_TOP") || upper.contains("_TOP_") {
+    box.y + D2_LABEL_PADDING
+  } else if upper.has_suffix("_BOTTOM") || upper.contains("_BOTTOM_") {
+    box.y + box.height - D2_LABEL_PADDING - height
+  } else {
+    box.y + (box.height - height) / 2.0
+  }
+  @graph.Box::new(x, y, width, height)
 }
 
 ///|
@@ -1815,7 +2157,10 @@ pub fn estimate_root_grid_child_boxes(
 
   let mut row_directed = false
   if rows != 0 && columns != 0 {
-    row_directed = true
+    row_directed = match parent.grid_row_directed {
+      Some(value) => value
+      None => true
+    }
     let mut capacity = rows * columns
     while capacity < n {
       if row_directed {
@@ -2236,8 +2581,27 @@ fn restore_grid_semantics(
         match
           estimate_root_grid_child_boxes(parent, child_ids, child_size_by_id) {
           Some(child_boxes) =>
-            for child_id, box in child_boxes {
-              override_boxes[child_id] = box
+            for child_id, content_box in child_boxes {
+              let metrics = match child_metrics_by_id.get(child_id) {
+                Some(value) => value
+                None => continue
+              }
+              let child = match laid_out_by_id.get(child_id) {
+                Some(value) => value
+                None =>
+                  match original_by_id.get(child_id) {
+                    Some(value) => value
+                    None => continue
+                  }
+              }
+              override_boxes[child_id] = grid_child_restored_box_like_d2(
+                child,
+                metrics,
+                content_box.x,
+                content_box.y,
+                content_box.width,
+                content_box.height,
+              )
             }
           None => ()
         }
@@ -2335,7 +2699,30 @@ fn restore_grid_semantics(
         None => obj.box
       }
       let label_box = match override_box {
-        Some(_) => laid_out_obj.label_box
+        Some(override_value) =>
+          match laid_out_obj.label_box {
+            Some(current) => {
+              let (width, height) = object_label_dimensions_like_d2(obj, 0.0)
+              let (position, _) = grid_child_effective_positions_like_d2(obj)
+              Some(
+                resize_label_box_for_position_like_d2(
+                  current, width, height, position,
+                ),
+              )
+            }
+            None =>
+              if grid_child_has_label_like_d2(obj) {
+                let (width, height) = object_label_dimensions_like_d2(obj, 0.0)
+                let (position, _) = grid_child_effective_positions_like_d2(obj)
+                Some(
+                  label_box_for_position_like_d2(
+                    override_value, width, height, position,
+                  ),
+                )
+              } else {
+                None
+              }
+          }
         None => obj.label_box
       }
       objects.push(
@@ -2505,6 +2892,7 @@ fn clone_object_with_parts_and_label(
     icon_position=obj.icon_position,
     tooltip_position=obj.tooltip_position,
     label_position=obj.label_position,
+    grid_row_directed=obj.grid_row_directed,
   )
 }
 
@@ -2514,6 +2902,39 @@ fn semantic_object_size(
   config : LayoutConfig,
   inside_sequence? : Bool = false,
 ) -> (Double, Double) {
+  if obj.label == "" &&
+    obj.shape_type != Image &&
+    obj.shape_type != SqlTable &&
+    obj.shape_type != Class {
+    let (desired_width, desired_height) = match obj.box {
+      Some(box) => (box.width, box.height)
+      None => (0.0, 0.0)
+    }
+    if obj.shape_type == Circle || obj.shape_type == Square {
+      let side = if desired_width > 0.0 || desired_height > 0.0 {
+        if desired_width > desired_height {
+          desired_width
+        } else {
+          desired_height
+        }
+      } else {
+        100.0
+      }
+      return (side, side)
+    }
+    return (
+      if desired_width > 0.0 {
+        desired_width
+      } else {
+        100.0
+      },
+      if desired_height > 0.0 {
+        desired_height
+      } else {
+        100.0
+      },
+    )
+  }
   match obj.box {
     Some(box) => {
       let (auto_width, auto_height) = estimate_semantic_object_size(
@@ -2523,6 +2944,21 @@ fn semantic_object_size(
       )
       let width = if box.width > 0.0 { box.width } else { auto_width }
       let height = if box.height > 0.0 { box.height } else { auto_height }
+      let (width, height) = if obj.shape_type == Circle ||
+        obj.shape_type == Square {
+        let side = if width > height { width } else { height }
+        (side, side)
+      } else if box.width <= 0.0 || box.height <= 0.0 {
+        if obj.shape_type == Person {
+          limit_ar(width, height, D2_PERSON_AR_LIMIT)
+        } else if obj.shape_type == Oval {
+          limit_ar(width, height, D2_OVAL_AR_LIMIT)
+        } else {
+          (width, height)
+        }
+      } else {
+        (width, height)
+      }
       (
         positive_or(width, config.default_width),
         positive_or(height, config.default_height),
@@ -2550,9 +2986,13 @@ fn estimate_semantic_object_size(
   let font_size = object_label_font_size_like_d2(obj, inside_sequence)
   let is_bold = object_label_bold_like_d2(obj, inside_sequence)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
-  let label_dims = if obj.shape_type == Code {
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
+  let label_dims = if obj.language == Some("latex") {
+    @text_metrics.measure_label_latex(obj.label)
+  } else if obj.shape_type == Code {
     @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
+  } else if obj.language == Some("markdown") {
+    @text_metrics.measure_label_markdown(obj.label, font_size)
   } else {
     @text_metrics.measure_label(
       obj.label,
@@ -2722,10 +3162,16 @@ fn object_label_bold_like_d2(
   obj : @graph.ObjectInput,
   inside_sequence : Bool,
 ) -> Bool {
-  let default_bold = !inside_sequence &&
-    obj.child_ids.is_empty() &&
-    obj.shape_type != Text
-  style_bool(obj.style.bold, default_bold)
+  if inside_sequence || obj.shape_type == Class {
+    false
+  } else {
+    style_bool(obj.style.bold, false) ||
+    (
+      obj.child_ids.is_empty() &&
+      !obj.classes.contains("__diago_nested_layout_placeholder") &&
+      obj.shape_type != Text
+    )
+  }
 }
 
 ///|
@@ -3213,9 +3659,12 @@ pub fn[Engine : LayoutEngine] layout_with_engine(
 ) -> @graph.GraphInput raise LayoutError {
   check_feature_support(engine.engine_name(), engine.features(), graph)
   let effective_direction = graph_layout_direction(graph, direction)
-  let prepared = prepare_graph_for_layout(graph)
+  let prepared = resolve_default_object_positions_for_engine(
+    prepare_graph_for_layout(graph),
+    engine.engine_name(),
+  )
   let (nested_prepared, nested_sequence_ctx) = prepare_nested_sequence_layouts(
-    engine, prepared, config, effective_direction,
+    engine, prepared, config,
   )
   let (engine_graph, semantic_ctx) = prepare_layout_semantics(
     nested_prepared, config,
@@ -3264,15 +3713,17 @@ pub fn[Engine : LayoutEngine] layout_with_engine(
   }
   restore_graph_order_like_d2(
     graph,
-    normalize_routes(
-      clone_graph_with_parts(
-        laid_out,
-        laid_out.root,
-        laid_out.objects,
-        laid_out.edges,
-        layers,
-        scenarios,
-        steps,
+    recompute_final_edge_label_boxes_like_d2(
+      normalize_routes(
+        clone_graph_with_parts(
+          laid_out,
+          laid_out.root,
+          laid_out.objects,
+          laid_out.edges,
+          layers,
+          scenarios,
+          steps,
+        ),
       ),
     ),
   )

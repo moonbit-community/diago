@@ -83,7 +83,8 @@ test "examples: dagre svg e2e snapshots and reference semantic parity" {
 ///|
 fn e2e_example_names() -> Result[Array[String], String] {
   let entries = @fs.read_dir("examples") catch {
-    e => return Err("failed to read examples directory: \{e}")
+    @fs.IOError(message) =>
+      return Err("failed to read examples directory: \{message}")
   }
   let names : Array[String] = []
   for entry in entries {
@@ -469,7 +470,7 @@ fn snapshot_line_counts(snapshot : String) -> Map[String, Int] {
 ///|
 fn read_required_file(path : String) -> Result[String, String] {
   try @fs.read_file_to_string(path) catch {
-    e => Err("failed to read '\{path}': \{e}")
+    @fs.IOError(message) => Err("failed to read '\{path}': \{message}")
   } noraise {
     content => Ok(content)
   }

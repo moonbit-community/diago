@@ -41,8 +41,12 @@ pub struct Connection {
   index : Int
   src_id : String
   dst_id : String
+  src_syntax_id : String
+  dst_syntax_id : String
   src_lookup_id : String
   dst_lookup_id : String
+  identity_scope_depth : Int
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   src_arrowhead : @graph.ArrowheadType
@@ -68,6 +72,7 @@ pub struct Connection {
   src_column_index : Int?
   dst_column_index : Int?
 } derive(@debug.Debug)
+pub fn Connection::legend_icon(String, String, Int, Bool, Bool, @graph.ArrowheadType, @graph.ArrowheadType, @graph.StyleInput) -> Self
 
 pub struct Diagram {
   name : String
@@ -136,6 +141,7 @@ pub struct Shape {
 pub fn Shape::center(Self) -> @graph.Point?
 pub fn Shape::get_box(Self) -> @graph.Box?
 pub fn Shape::get_id(Self) -> String
+pub fn Shape::legend_icon(String, @graph.ShapeType, @graph.StyleInput) -> Self
 
 pub struct ThemeOverrides {
   n1 : String?

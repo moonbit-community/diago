@@ -25,8 +25,11 @@ pub fn syntax_path_last_display(String) -> String
 pub(all) enum ArrowheadType {
   None
   Triangle
+  Arrow
   Diamond
+  FilledDiamond
   Circle
+  FilledCircle
   Open
   Line
   CfOne
@@ -72,6 +75,7 @@ pub struct EdgeInput {
   src_id_syntax : String
   dst_id_syntax : String
   references : Array[EdgeReference]
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   src_arrowhead : ArrowheadType
@@ -98,7 +102,7 @@ pub struct EdgeInput {
   dst_column_index : Int?
 } derive(@debug.Debug)
 pub fn EdgeInput::from_model(EdgeModel) -> Self
-pub fn EdgeInput::from_parts(Int, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int, Int, Box?, Int?, Int?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference], icon? : String?, icon_position? : String?, icon_border_radius? : Double?, link? : String?) -> Self
+pub fn EdgeInput::from_parts(Int, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int, Int, Box?, Int?, Int?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference], icon? : String?, icon_position? : String?, icon_border_radius? : Double?, link? : String?, classes? : Array[String]) -> Self
 pub fn EdgeInput::get_dst_id(Self) -> String
 pub fn EdgeInput::get_label_box(Self) -> Box?
 pub fn EdgeInput::get_src_id(Self) -> String
@@ -113,6 +117,7 @@ pub struct EdgeModel {
   src_id_syntax : String
   dst_id_syntax : String
   references : Array[EdgeReference]
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   src_arrowhead : ArrowheadType
@@ -199,6 +204,8 @@ pub fn GraphInput::from_parts(String, ObjectInput, Array[ObjectInput], Array[Edg
 pub fn GraphInput::get_edges(Self) -> Array[EdgeInput]
 pub fn GraphInput::get_objects(Self) -> Array[ObjectInput]
 pub fn GraphInput::new(String) -> Self
+pub fn GraphInput::with_caps_lock(Self) -> Self
+pub fn GraphInput::with_default_font(Self, String) -> Self
 
 pub struct GraphModel {
   name : String
@@ -271,26 +278,26 @@ pub fn Legend::set_title(Self, String) -> Self
 pub fn Legend::with_position(LegendPosition) -> Self
 
 pub(all) enum LegendEntry {
-  ShapeEntry(shape~ : ShapeType, label~ : String, style~ : StyleInput?)
-  ConnectionEntry(src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
+  ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : StyleInput?)
+  ConnectionEntry(src_id~ : String, dst_id~ : String, index~ : Int, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
   CustomEntry(icon~ : String, label~ : String)
   Separator
 } derive(@debug.Debug)
-pub fn LegendEntry::connection(ArrowheadType, ArrowheadType, String, StyleInput?) -> Self
+pub fn LegendEntry::connection(ArrowheadType, ArrowheadType, String, StyleInput?, src_id? : String, dst_id? : String, index? : Int, src_arrow_enabled? : Bool, dst_arrow_enabled? : Bool) -> Self
 pub fn LegendEntry::custom(String, String) -> Self
 pub fn LegendEntry::separator() -> Self
-pub fn LegendEntry::shape(ShapeType, String, StyleInput?) -> Self
+pub fn LegendEntry::shape(ShapeType, String, StyleInput?, id? : String) -> Self
 
 pub enum LegendEntryInput {
-  ShapeEntry(shape~ : ShapeType, label~ : String, style~ : StyleInput?)
-  ConnectionEntry(src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
+  ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : StyleInput?)
+  ConnectionEntry(src_id~ : String, dst_id~ : String, index~ : Int, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
   CustomEntry(icon~ : String, label~ : String)
   Separator
 } derive(@debug.Debug)
-pub fn LegendEntryInput::connection(ArrowheadType, ArrowheadType, String, StyleInput?) -> Self
+pub fn LegendEntryInput::connection(ArrowheadType, ArrowheadType, String, StyleInput?, src_id? : String, dst_id? : String, index? : Int, src_arrow_enabled? : Bool, dst_arrow_enabled? : Bool) -> Self
 pub fn LegendEntryInput::custom(String, String) -> Self
 pub fn LegendEntryInput::separator() -> Self
-pub fn LegendEntryInput::shape(ShapeType, String, StyleInput?) -> Self
+pub fn LegendEntryInput::shape(ShapeType, String, StyleInput?, id? : String) -> Self
 
 pub struct LegendInput {
   title : String?
@@ -353,6 +360,7 @@ pub struct ObjectInput {
   sql_constraints : Array[String]
   grid_rows : Int?
   grid_columns : Int?
+  grid_row_directed : Bool?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
@@ -364,7 +372,7 @@ pub struct ObjectInput {
   direction : String?
 } derive(@debug.Debug)
 pub fn ObjectInput::from_model(ObjectModel) -> Self
-pub fn ObjectInput::from_parts(String, String, ShapeType, StyleInput, Box?, Box?, Array[String], Int, String?, String?, String?, Array[String], Int?, Int?, Double?, Double?, Double?, Int?, Int?, String?, Int?, Int?, direction? : String?, language? : String?, sql_constraints? : Array[String], id_val? : String, id_syntax? : String, abs_id_syntax? : String, references? : Array[ObjectReference], icon_position? : String?, tooltip_position? : String?, label_position? : String?) -> Self
+pub fn ObjectInput::from_parts(String, String, ShapeType, StyleInput, Box?, Box?, Array[String], Int, String?, String?, String?, Array[String], Int?, Int?, Double?, Double?, Double?, Int?, Int?, String?, Int?, Int?, direction? : String?, language? : String?, sql_constraints? : Array[String], id_val? : String, id_syntax? : String, abs_id_syntax? : String, references? : Array[ObjectReference], icon_position? : String?, tooltip_position? : String?, label_position? : String?, grid_row_directed? : Bool?) -> Self
 pub fn ObjectInput::get_box(Self) -> Box?
 pub fn ObjectInput::get_label_box(Self) -> Box?
 pub fn ObjectInput::lookup_id(Self) -> String

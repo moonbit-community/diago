@@ -54,7 +54,6 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
   engine : Engine,
   graph : @graph.GraphInput,
   config : LayoutConfig,
-  direction : Direction,
 ) -> (@graph.GraphInput, NestedSequenceContext) raise LayoutError {
   let candidate_ids = collect_nested_sequence_candidate_ids(graph)
   if candidate_ids.is_empty() {
@@ -78,6 +77,7 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
       !is_constant_near
     if is_constant_near {
       let original_near = container.near
+      let nested_direction = nested_layout_direction_like_d2(container)
       let (prepared_without_nested, constant_near_graph, external_edge_indices) = extract_constant_near_graph_like_d2(
         prepared_graph, container_id,
       )
@@ -87,7 +87,7 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
           constant_near_graph, container_id,
         ),
         config,
-        direction,
+        nested_direction,
       )
       let laid_out_constant_near = restore_constant_near_after_layout_like_d2(
         laid_out_constant_near, container_id, original_near,
@@ -108,11 +108,12 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
       external_edge_indices,
     ) = extract_nested_sequence_graph(prepared_graph, container_id)
     if is_root_grid_cell_container {
+      let nested_direction = nested_layout_direction_like_d2(container)
       let include_self_graph = extract_nested_include_self_graph_like_d2(
         prepared_graph, container_id,
       )
       let laid_out_include_self = layout_with_engine(
-        engine, include_self_graph, config, direction,
+        engine, include_self_graph, config, nested_direction,
       )
       let (placeholder_root, finalized_nested) = finalize_grid_cell_container_like_d2(
         prepared_graph, laid_out_include_self, descendant_graph, container_id, internal_edge_indices,
@@ -134,8 +135,9 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
       continue
     }
     let nested_graph = descendant_graph
+    let nested_direction = nested_layout_direction_like_d2(container)
     let laid_out_nested = layout_with_engine(
-      engine, nested_graph, config, direction,
+      engine, nested_graph, config, nested_direction,
     )
     let finalized_nested = finalize_nested_sequence_graph(laid_out_nested)
     let placeholder_box = match finalized_nested.root.box {
@@ -158,6 +160,14 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
     }
   }
   (prepared_graph, context)
+}
+
+///|
+fn nested_layout_direction_like_d2(container : @graph.ObjectInput) -> Direction {
+  match container.direction {
+    Some(raw) => direction_from_keyword(raw).unwrap_or(Down)
+    None => Down
+  }
 }
 
 ///|
@@ -234,7 +244,7 @@ fn restore_nested_sequence_layouts(
           Some(laid_out_obj) =>
             if container_ids.contains(original_obj.abs_id_syntax) {
               clone_object_with_parts_and_label(
-                laid_out_obj,
+                original_obj,
                 laid_out_obj.box,
                 None,
                 original_obj.child_ids,
@@ -589,6 +599,7 @@ fn clone_object_with_near_like_d2(
     icon_position=obj.icon_position,
     tooltip_position=obj.tooltip_position,
     label_position=obj.label_position,
+    grid_row_directed=obj.grid_row_directed,
   )
 }
 
@@ -616,6 +627,7 @@ fn restore_constant_near_after_layout_like_d2(
           obj.box,
           obj.label_box,
           obj.child_ids,
+          obj.classes,
           effective_label_position,
           obj.icon_position,
         ),
@@ -845,7 +857,7 @@ fn extract_nested_include_self_graph_like_d2(
     None,
     None,
     None,
-    direction=graph.root.direction,
+    direction=container.direction,
   )
   @graph.GraphInput::from_parts(
     graph.name,
@@ -910,6 +922,7 @@ fn finalize_grid_cell_container_like_d2(
     Some(placeholder_box),
     placeholder_label_box,
     [],
+    nested_layout_placeholder_classes(container.classes),
     effective_label_position,
     effective_icon_position,
   )
@@ -976,6 +989,7 @@ fn finalize_grid_cell_container_like_d2(
     Some(placeholder_box),
     placeholder_label_box,
     descendant_graph.root.child_ids,
+    container.classes,
     effective_label_position,
     effective_icon_position,
   )
@@ -992,6 +1006,7 @@ fn clone_object_with_parts_and_effective_positions(
   box : @graph.Box?,
   label_box : @graph.Box?,
   child_ids : Array[String],
+  classes : Array[String],
   label_position : String?,
   icon_position : String?,
 ) -> @graph.ObjectInput {
@@ -1007,7 +1022,7 @@ fn clone_object_with_parts_and_effective_positions(
     obj.icon,
     obj.tooltip,
     obj.link,
-    obj.classes,
+    classes,
     obj.grid_rows,
     obj.grid_columns,
     obj.grid_gap,
@@ -1028,6 +1043,7 @@ fn clone_object_with_parts_and_effective_positions(
     icon_position~,
     tooltip_position=obj.tooltip_position,
     label_position~,
+    grid_row_directed=obj.grid_row_directed,
   )
 }
 
@@ -1045,14 +1061,56 @@ fn finalize_nested_sequence_graph(
   } else {
     shift_nested_sequence_graph(graph, dx, dy)
   }
-  let placeholder_box = match shifted.root.box {
-    Some(box) =>
-      if box.width > 0.0 && box.height > 0.0 {
-        @graph.Box::new(0.0, 0.0, box.width, box.height)
-      } else {
-        nested_sequence_placeholder_box(saw_content, max_x + dx, max_y + dy)
+  let placeholder_box = if shifted.root.shape_type == SequenceDiagram {
+    match nested_sequence_lifeline_end_y(shifted) {
+      Some(end_y) => {
+        let mut has_person_participant = false
+        for child_id in shifted.root.child_ids {
+          match shifted.find_object(child_id) {
+            Some(obj) =>
+              if obj.shape_type == Person {
+                has_person_participant = true
+              }
+            None => ()
+          }
+        }
+        let horizontal_padding = if !shifted.activation_boxes.is_empty() ||
+          has_person_participant {
+          D2_NESTED_SEQUENCE_ACTIVATION_HORIZONTAL_PADDING
+        } else {
+          D2_NESTED_SEQUENCE_HORIZONTAL_PADDING
+        }
+        @graph.Box::new(
+          0.0,
+          0.0,
+          max_x + dx + horizontal_padding,
+          end_y + D2_NESTED_SEQUENCE_VERTICAL_PADDING,
+        )
       }
-    None => nested_sequence_placeholder_box(saw_content, max_x + dx, max_y + dy)
+      None =>
+        nested_sequence_placeholder_box(saw_content, max_x + dx, max_y + dy)
+    }
+  } else {
+    match shifted.root.box {
+      Some(box) =>
+        if box.width > 0.0 && box.height > 0.0 {
+          @graph.Box::new(0.0, 0.0, box.width, box.height)
+        } else {
+          nested_non_sequence_placeholder_box_like_d2(
+            shifted,
+            saw_content,
+            max_x + dx,
+            max_y + dy,
+          )
+        }
+      None =>
+        nested_non_sequence_placeholder_box_like_d2(
+          shifted,
+          saw_content,
+          max_x + dx,
+          max_y + dy,
+        )
+    }
   }
   let root = clone_object_with_parts(
     shifted.root,
@@ -1068,6 +1126,103 @@ fn finalize_nested_sequence_graph(
     shifted.sequence_notes,
     shifted.sequence_fragments_layout,
   )
+}
+
+///|
+fn nested_non_sequence_placeholder_box_like_d2(
+  graph : @graph.GraphInput,
+  saw_content : Bool,
+  max_x : Double,
+  max_y : Double,
+) -> @graph.Box {
+  if graph.root.grid_rows is Some(_) || graph.root.grid_columns is Some(_) {
+    let (hgap, vgap) = grid_semantic_gaps(graph.root)
+    let padding = grid_semantic_padding_like_d2(
+      graph.root,
+      max_x,
+      max_y,
+      hgap,
+      vgap,
+    )
+    @graph.Box::new(
+      0.0,
+      0.0,
+      if saw_content {
+        max_x + padding.right
+      } else {
+        0.0
+      },
+      if saw_content {
+        max_y + padding.bottom
+      } else {
+        0.0
+      },
+    )
+  } else {
+    nested_sequence_placeholder_box(saw_content, max_x, max_y)
+  }
+}
+
+///|
+const D2_NESTED_SEQUENCE_HORIZONTAL_PADDING : Double = 10.0
+
+///|
+const D2_NESTED_SEQUENCE_ACTIVATION_HORIZONTAL_PADDING : Double = 12.0
+
+///|
+const D2_NESTED_SEQUENCE_VERTICAL_PADDING : Double = 12.0
+
+///|
+const D2_NESTED_SEQUENCE_LIFELINE_STEP : Double = 70.0
+
+///|
+fn nested_sequence_lifeline_end_y(graph : @graph.GraphInput) -> Double? {
+  if graph.root.child_ids.is_empty() {
+    return None
+  }
+  let participant_ids : Map[String, Bool] = Map([])
+  for id in graph.root.child_ids {
+    match graph.find_object(id) {
+      Some(obj) =>
+        if !obj.classes.contains("__diago_sequence_group") {
+          participant_ids[id] = true
+        }
+      None => ()
+    }
+  }
+  let mut end_y = 0.0
+  let mut saw_participant = false
+  for obj in graph.objects {
+    if !participant_ids.contains(obj.abs_id_syntax) {
+      continue
+    }
+    match obj.box {
+      Some(box) => {
+        saw_participant = true
+        if box.y + box.height > end_y {
+          end_y = box.y + box.height
+        }
+      }
+      None => ()
+    }
+  }
+  if !saw_participant {
+    return None
+  }
+  for edge in graph.edges {
+    for point in edge.route {
+      if point.y > end_y {
+        end_y = point.y
+      }
+    }
+  }
+  for note in graph.sequence_notes {
+    let box = note.2
+    if box.y + box.height > end_y {
+      end_y = box.y + box.height
+    }
+  }
+  Some(end_y + D2_NESTED_SEQUENCE_LIFELINE_STEP)
 }
 
 ///|
@@ -1234,7 +1389,17 @@ fn install_nested_sequence_placeholder(
   let objects : Array[@graph.ObjectInput] = []
   for obj in graph.objects {
     if obj.abs_id_syntax == container_id {
-      objects.push(clone_object_with_parts(obj, Some(placeholder_box), []))
+      objects.push(
+        clone_object_with_parts_and_effective_positions(
+          obj,
+          Some(placeholder_box),
+          None,
+          [],
+          nested_layout_placeholder_classes(obj.classes),
+          obj.label_position,
+          obj.icon_position,
+        ),
+      )
     } else {
       objects.push(obj)
     }
@@ -1248,6 +1413,16 @@ fn install_nested_sequence_placeholder(
     graph.sequence_notes,
     graph.sequence_fragments_layout,
   )
+}
+
+///|
+fn nested_layout_placeholder_classes(classes : Array[String]) -> Array[String] {
+  let result : Array[String] = []
+  for class_name in classes {
+    result.push(class_name)
+  }
+  result.push("__diago_nested_layout_placeholder")
+  result
 }
 
 ///|
@@ -1461,6 +1636,8 @@ fn constant_near_bounding_box_like_d2(
   graph : @graph.GraphInput,
   placed_near_ids : Map[String, Bool],
 ) -> (Double, Double, Double, Double) {
+  let object_by_id = build_object_by_abs_id_syntax(graph)
+  let parent_id_by_child_id = build_parent_id_by_child_abs_id_syntax(graph)
   let mut min_x = 1000000000000.0
   let mut min_y = 1000000000000.0
   let mut max_x = -1000000000000.0
@@ -1482,6 +1659,15 @@ fn constant_near_bounding_box_like_d2(
     has_bounds = true
   }
   for obj in graph.objects {
+    match parent_id_by_child_id.get(obj.abs_id_syntax) {
+      Some(parent_id) =>
+        match object_by_id.get(parent_id) {
+          Some(parent) if parent.shape_type == SqlTable ||
+            parent.shape_type == Class => continue
+          _ => ()
+        }
+      None => ()
+    }
     let box = match obj.box {
       Some(current) => current
       None => continue
@@ -1699,17 +1885,46 @@ fn route_nested_external_edge(
     (object_by_id.get(edge.src_id_syntax), object_by_id.get(edge.dst_id_syntax)) {
     (Some(src), Some(dst)) =>
       match (src.box, dst.box) {
-        (Some(src_box), Some(dst_box)) =>
+        (Some(src_box), Some(dst_box)) => {
+          let src_layout_box = nested_external_layout_box_like_d2(src, src_box)
+          let dst_layout_box = nested_external_layout_box_like_d2(dst, dst_box)
           clip_default_route_like_d2(
             [src_box.center(), dst_box.center()],
-            src_box,
-            dst_box,
+            src_layout_box,
+            dst_layout_box,
           )
+        }
         _ => edge.route
       }
     _ => edge.route
   }
   clone_edge_with_layout(edge, route, None, None)
+}
+
+///|
+fn nested_external_layout_box_like_d2(
+  obj : @graph.ObjectInput,
+  box : @graph.Box,
+) -> @graph.Box {
+  if obj.grid_rows is None && obj.grid_columns is None {
+    return box
+  }
+  let (label_position, icon_position) = grid_child_effective_positions_like_d2(
+    obj,
+  )
+  let margin = grid_child_margin_like_d2(
+    obj,
+    box.width,
+    box.height,
+    label_position,
+    icon_position,
+  )
+  @graph.Box::new(
+    box.x - margin.left,
+    box.y - margin.top,
+    box.width + margin.left + margin.right,
+    box.height + margin.top + margin.bottom,
+  )
 }
 
 ///|
@@ -1725,49 +1940,87 @@ fn clip_default_route_like_d2(
   for point in route {
     clipped.push(point)
   }
-  clipped[0] = box_border_point_towards_like_d2(src_box, clipped[1])
+  clipped[0] = box_border_point_on_segment_like_d2(
+    src_box,
+    clipped[1],
+    clipped[0],
+  )
   let last_index = clipped.length() - 1
-  clipped[last_index] = box_border_point_towards_like_d2(
+  clipped[last_index] = box_border_point_on_segment_like_d2(
     dst_box,
     clipped[last_index - 1],
+    clipped[last_index],
   )
   clipped
 }
 
 ///|
-fn box_border_point_towards_like_d2(
+fn box_border_point_on_segment_like_d2(
   box : @graph.Box,
-  target : @graph.Point,
+  segment_start : @graph.Point,
+  segment_end : @graph.Point,
 ) -> @graph.Point {
-  let center = box.center()
-  let dx = target.x - center.x
-  let dy = target.y - center.y
-  if dx.abs() <= 1.0e-9 && dy.abs() <= 1.0e-9 {
-    return center
+  if (segment_start.x - segment_end.x).abs() <= 1.0e-9 &&
+    (segment_start.y - segment_end.y).abs() <= 1.0e-9 {
+    return segment_end
   }
+  let top_left = @graph.Point::new(box.x, box.y)
+  let top_right = @graph.Point::new(box.x + box.width, box.y)
+  let bottom_right = @graph.Point::new(box.x + box.width, box.y + box.height)
+  let bottom_left = @graph.Point::new(box.x, box.y + box.height)
+  for
+    border in [
+      (top_left, top_right),
+      (top_right, bottom_right),
+      (bottom_right, bottom_left),
+      (bottom_left, top_left),
+    ] {
+    let (a, b) = border
+    match segment_intersection_point_like_d2(segment_start, segment_end, a, b) {
+      Some(point) => return point
+      None => ()
+    }
+  }
+  segment_end
+}
 
-  let large = 1.0e18
-  let tx = if dx.abs() > 1.0e-9 {
-    if dx > 0.0 {
-      (box.x + box.width - center.x) / dx
-    } else {
-      (box.x - center.x) / dx
-    }
-  } else {
-    large
+///|
+fn segment_intersection_point_like_d2(
+  u0 : @graph.Point,
+  u1 : @graph.Point,
+  v0 : @graph.Point,
+  v1 : @graph.Point,
+) -> @graph.Point? {
+  let udx = u1.x - u0.x
+  let vdx = v1.x - v0.x
+  let uvdx = v0.x - u0.x
+  let udy = u1.y - u0.y
+  let vdy = v1.y - v0.y
+  let uvdy = v0.y - u0.y
+  let denominator = udy * vdx - udx * vdy
+  if denominator == 0.0 {
+    return None
   }
-  let ty = if dy.abs() > 1.0e-9 {
-    if dy > 0.0 {
-      (box.y + box.height - center.y) / dy
-    } else {
-      (box.y - center.y) / dy
-    }
-  } else {
-    large
+  let s = (vdx * uvdy - vdy * uvdx) / denominator
+  let t = (udx * uvdy - udy * uvdx) / denominator
+  if s < 0.0 || s > 1.0 || t < 0.0 || t > 1.0 {
+    return None
   }
-  let t = if ty < tx { ty } else { tx }
-  let t = if t < 0.0 { 0.0 } else { t }
-  @graph.Point::new(center.x + dx * t, center.y + dy * t)
+  Some(
+    @graph.Point::new(
+      u0.x + round_like_go(s * udx),
+      u0.y + round_like_go(s * udy),
+    ),
+  )
+}
+
+///|
+fn round_like_go(value : Double) -> Double {
+  if value >= 0.0 {
+    (value + 0.5).to_int().to_double()
+  } else {
+    (value - 0.5).to_int().to_double()
+  }
 }
 
 ///|
@@ -1830,6 +2083,7 @@ fn clone_nested_sequence_root(obj : @graph.ObjectInput) -> @graph.ObjectInput {
     icon_position=obj.icon_position,
     tooltip_position=obj.tooltip_position,
     label_position=obj.label_position,
+    grid_row_directed=obj.grid_row_directed,
   )
 }
 
@@ -1871,6 +2125,7 @@ fn clone_edge_with_layout(
     icon_position=edge.icon_position,
     icon_border_radius=edge.icon_border_radius,
     link=edge.link,
+    classes=edge.classes,
   )
 }
 

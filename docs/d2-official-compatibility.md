@@ -26,6 +26,38 @@ element.
 All 187 fixtures pass through all three engines. There are no remaining known
 compatibility failures in this corpus.
 
+## Normalized SVG parity
+
+Strict normalized SVG parity against D2 0.7.1 is checked with:
+
+```sh
+python3 scripts/test_svg_parity.py
+python3 scripts/check_d2_svg_parity.py --corpus all
+```
+
+The gate covers all 41 repository examples plus all 187 pinned official
+fixtures on both Dagre and ELK (456 comparisons). Normalization removes only
+non-visual instability: XML attribute ordering, D2 scope salts and version
+metadata, embedded font payload bytes, and unused static renderer CSS. It
+preserves canvas geometry, DOM/render order, hierarchy, paths, masks, markers,
+links, images, labels, and active styles. Failures produce canonical SVG diffs
+and a machine-readable `results.tsv` under `_build/d2-svg-parity`.
+
+Current strict results are:
+
+| Engine | Exact matches | Dependency blockers |
+| --- | ---: | ---: |
+| Dagre | 228 / 228 | 0 |
+| ELK | 221 / 228 | 7 |
+
+The seven ELK blockers are `static/bespoke-d2/c4-code.d2`,
+`static/bespoke-d2/classes-3.d2`, `static/bespoke-d2/wcc.d2`,
+`static/blog/sketch/animated.d2`, `static/d2/border-label.d2`,
+`static/d2/c4-legend.d2`, and `static/d2/c4-tags3.d2`. For each case, Diago
+and D2 send canonically identical input JSON to ELK, but `moon_elk` and D2's
+vendored elk.js return different layout JSON. These cases therefore require a
+`moon_elk` fix rather than renderer-side compensation in Diago.
+
 ## Failure classification
 
 There are no remaining failure categories.

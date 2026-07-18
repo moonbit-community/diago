@@ -140,8 +140,12 @@ pub struct Connection {
   index : Int
   src_id : String
   dst_id : String
+  src_syntax_id : String
+  dst_syntax_id : String
   src_lookup_id : String
   dst_lookup_id : String
+  identity_scope_depth : Int
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   src_arrowhead : @graph.ArrowheadType
@@ -167,6 +171,94 @@ pub struct Connection {
   src_column_index : Int?
   dst_column_index : Int?
 } derive(Debug)
+
+///|
+/// Build the renderable shape used by the SVG legend's scaled icon.
+pub fn Shape::legend_icon(
+  id : String,
+  shape_type : @graph.ShapeType,
+  style : @graph.StyleInput,
+) -> Shape {
+  {
+    id,
+    semantic_id: id,
+    label: "",
+    shape_type,
+    style,
+    box: Some(@graph.Box::new(0.0, 0.0, 120.0, 120.0)),
+    label_box: None,
+    label_width: None,
+    label_height: None,
+    child_ids: [],
+    z_index: 0,
+    icon: None,
+    icon_position: None,
+    tooltip: None,
+    tooltip_position: None,
+    link: None,
+    label_position: None,
+    classes: [],
+    language: None,
+    sql_constraints: [],
+    grid_rows: None,
+    grid_columns: None,
+    grid_gap: None,
+    horizontal_gap: None,
+    vertical_gap: None,
+    grid_column_span: None,
+    grid_row_span: None,
+    near: None,
+  }
+}
+
+///|
+/// Build the renderable connection used by the SVG legend's scaled icon.
+pub fn Connection::legend_icon(
+  src_id : String,
+  dst_id : String,
+  index : Int,
+  src_arrow : Bool,
+  dst_arrow : Bool,
+  src_arrowhead : @graph.ArrowheadType,
+  dst_arrowhead : @graph.ArrowheadType,
+  style : @graph.StyleInput,
+) -> Connection {
+  {
+    index,
+    src_id,
+    dst_id,
+    src_syntax_id: src_id,
+    dst_syntax_id: dst_id,
+    src_lookup_id: src_id,
+    dst_lookup_id: dst_id,
+    identity_scope_depth: @graph.syntax_path_depth(src_id),
+    classes: [],
+    src_arrow,
+    dst_arrow,
+    src_arrowhead,
+    dst_arrowhead,
+    src_arrowhead_label: None,
+    dst_arrowhead_label: None,
+    src_arrowhead_label_color: None,
+    dst_arrowhead_label_color: None,
+    src_anchor: None,
+    dst_anchor: None,
+    label: "",
+    icon: None,
+    icon_position: None,
+    icon_border_radius: None,
+    link: None,
+    style,
+    route: [@graph.Point::new(0.0, 0.0), @graph.Point::new(48.0, 0.0)],
+    bend_points: None,
+    is_curve: false,
+    z_index: 0,
+    reference_count: 1,
+    label_box: None,
+    src_column_index: None,
+    dst_column_index: None,
+  }
+}
 
 ///|
 /// Render-ready diagram.
@@ -781,6 +873,8 @@ fn diagram_connection_json(connection : Connection) -> String {
     ("index", json_int(connection.index)),
     ("srcId", json_string(connection.src_id)),
     ("dstId", json_string(connection.dst_id)),
+    ("srcSyntaxId", json_string(connection.src_syntax_id)),
+    ("dstSyntaxId", json_string(connection.dst_syntax_id)),
     ("srcLookupId", json_string(connection.src_lookup_id)),
     ("dstLookupId", json_string(connection.dst_lookup_id)),
     ("srcArrow", json_bool(connection.src_arrow)),
@@ -1221,15 +1315,22 @@ fn connection_from_edge(
   edge : @graph.EdgeInput,
   src_id? : String = edge.src_id,
   dst_id? : String = edge.dst_id,
+  src_syntax_id? : String = edge.src_id_syntax,
+  dst_syntax_id? : String = edge.dst_id_syntax,
   src_lookup_id? : String = edge.src_id_syntax,
   dst_lookup_id? : String = edge.dst_id_syntax,
+  identity_scope_depth? : Int = @graph.syntax_path_depth(src_syntax_id),
 ) -> Connection {
   {
     index: edge.index,
     src_id,
     dst_id,
+    src_syntax_id,
+    dst_syntax_id,
     src_lookup_id,
     dst_lookup_id,
+    identity_scope_depth,
+    classes: edge.classes,
     src_arrow: edge.src_arrow,
     dst_arrow: edge.dst_arrow,
     src_arrowhead: edge.src_arrowhead,
@@ -1258,6 +1359,28 @@ fn connection_from_edge(
 }
 
 ///|
+fn sequence_connection_syntax_id(
+  id : String,
+  object_by_abs_id : Map[String, @graph.ObjectInput],
+) -> String {
+  let parts = @graph.split_syntax_path(id)
+  let kept : Array[String] = []
+  let prefix : Array[String] = []
+  for part in parts {
+    prefix.push(part)
+    let abs_id = prefix.join(".")
+    let is_group = match object_by_abs_id.get(abs_id) {
+      Some(obj) => obj.classes.contains("__diago_sequence_group")
+      None => false
+    }
+    if !is_group {
+      kept.push(part)
+    }
+  }
+  kept.join(".")
+}
+
+///|
 fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
   if !graph.root.child_ids.is_empty() {
     let ids : Array[String] = []
@@ -1267,7 +1390,10 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
     }
     for id in graph.root.child_ids {
       if exists.contains(id) {
-        ids.push(id)
+        guard graph.find_object(id) is Some(obj) else { continue }
+        if !obj.classes.contains("__diago_sequence_group") {
+          ids.push(id)
+        }
       }
     }
     if !ids.is_empty() {
@@ -1397,19 +1523,33 @@ const D2_SEQUENCE_VERTICAL_PAD : Double = 40.0
 const D2_SEQUENCE_LIFELINE_LABEL_PAD : Double = 5.0
 
 ///|
-fn sequence_lifeline_start_y(shape : Shape, box : @graph.Box) -> Double {
+fn sequence_lifeline_start_y(
+  graph : @graph.GraphInput,
+  shape : Shape,
+  box : @graph.Box,
+) -> Double {
   let mut actor_bottom = box.y + box.height
+  match graph.find_object(shape.id) {
+    Some(obj) =>
+      match obj.box {
+        Some(raw_box) => actor_bottom = raw_box.y + raw_box.height
+        None => ()
+      }
+    None => ()
+  }
   if shape.label == "" {
     return actor_bottom
   }
-  match shape.label_box {
-    Some(label_box) =>
-      if label_box.y >= box.y + box.height {
-        actor_bottom = actor_bottom +
-          label_box.height +
-          D2_SEQUENCE_LIFELINE_LABEL_PAD
-      }
-    None => ()
+  let outside_bottom = match shape.label_position {
+    Some(position) => position.has_prefix("OUTSIDE_BOTTOM_")
+    None => shape.shape_type == Person || shape.shape_type == Image
+  }
+  if outside_bottom {
+    match shape.label_height {
+      Some(height) =>
+        actor_bottom = actor_bottom + height + D2_SEQUENCE_LIFELINE_LABEL_PAD
+      None => ()
+    }
   }
   actor_bottom
 }
@@ -1424,7 +1564,15 @@ fn sequence_lifeline_style(
   }
   @graph.StyleInput::from_parts(
     None,
-    Some(@graph.StyleValue::from_string("B2")),
+    match actor_style.stroke {
+      Some(value) =>
+        if value.get_value() == "B1" {
+          Some(@graph.StyleValue::from_string("B2"))
+        } else {
+          Some(value)
+        }
+      None => Some(@graph.StyleValue::from_string("B2"))
+    },
     None,
     Some(@graph.StyleValue::from_int(D2_SEQUENCE_LIFELINE_STROKE_WIDTH)),
     stroke_dash,
@@ -1514,6 +1662,19 @@ fn append_sequence_lifeline_connections(
     D2_SEQUENCE_MIN_MESSAGE_DISTANCE +
     D2_SEQUENCE_VERTICAL_PAD
 
+  append_sequence_lifelines(
+    graph, participant_ids, shape_by_id, lifeline_end_y, connections,
+  )
+}
+
+///|
+fn append_sequence_lifelines(
+  graph : @graph.GraphInput,
+  participant_ids : Array[String],
+  shape_by_id : Map[String, Shape],
+  lifeline_end_y : Double,
+  connections : Array[Connection],
+) -> Unit {
   let mut next_index = 0
   for conn in connections {
     if conn.index >= next_index {
@@ -1526,15 +1687,19 @@ fn append_sequence_lifeline_connections(
       Some(shape) =>
         match shape.box {
           Some(box) => {
-            let start_y = sequence_lifeline_start_y(shape, box)
+            let start_y = sequence_lifeline_start_y(graph, shape, box)
             let x = box.x + box.width / 2.0
             let style = sequence_lifeline_style(shape.style)
             connections.push({
               index: next_index,
               src_id: id,
               dst_id: "",
+              src_syntax_id: id,
+              dst_syntax_id: "",
               src_lookup_id: id,
               dst_lookup_id: "",
+              identity_scope_depth: @graph.syntax_path_depth(id),
+              classes: [],
               src_arrow: false,
               dst_arrow: false,
               src_arrowhead: None,
@@ -1552,8 +1717,14 @@ fn append_sequence_lifeline_connections(
               link: None,
               style,
               route: [
-                @graph.Point::new(x, start_y),
-                @graph.Point::new(x, lifeline_end_y),
+                @graph.Point::new(
+                  truncate_float32_like_d2(truncate_decimals_like_d2(x)),
+                  truncate_float32_like_d2(truncate_decimals_like_d2(start_y)),
+                ),
+                @graph.Point::new(
+                  truncate_float32_like_d2(truncate_decimals_like_d2(x)),
+                  lifeline_end_y,
+                ),
               ],
               bend_points: None,
               is_curve: false,
@@ -1573,13 +1744,271 @@ fn append_sequence_lifeline_connections(
 }
 
 ///|
+fn nested_sequence_participant_for_endpoint(
+  endpoint_id : String,
+  participant_ids : Array[String],
+) -> String? {
+  let endpoint_parts = @graph.split_syntax_path(endpoint_id)
+  for participant_id in participant_ids {
+    let participant_key = @graph.syntax_path_last(participant_id).to_lower()
+    for part in endpoint_parts {
+      if part.to_lower() == participant_key {
+        return Some(participant_id)
+      }
+    }
+  }
+  None
+}
+
+///|
+fn append_nested_sequence_lifeline_connections(
+  graph : @graph.GraphInput,
+  shapes : Array[Shape],
+  connections : Array[Connection],
+  activation_ids : Map[String, Bool],
+) -> Unit {
+  if graph.root.shape_type == SequenceDiagram {
+    return
+  }
+  let shape_by_id : Map[String, Shape] = Map([])
+  for shape in shapes {
+    shape_by_id[shape.id] = shape
+  }
+  for container in shapes {
+    if container.shape_type != SequenceDiagram {
+      continue
+    }
+    let participant_ids : Array[String] = []
+    for id in container.child_ids {
+      match shape_by_id.get(id) {
+        Some(shape) =>
+          if !shape.classes.contains("__diago_sequence_group") {
+            participant_ids.push(id)
+          }
+        None => ()
+      }
+    }
+    if participant_ids.is_empty() {
+      continue
+    }
+    let container_box = match container.box {
+      Some(box) => box
+      None => continue
+    }
+    let descendant_ids : Map[String, Bool] = Map([])
+    let queue : Array[String] = participant_ids.copy()
+    let mut cursor = 0
+    while cursor < queue.length() {
+      let id = queue[cursor]
+      cursor += 1
+      if descendant_ids.contains(id) {
+        continue
+      }
+      descendant_ids[id] = true
+      match shape_by_id.get(id) {
+        Some(shape) =>
+          for child_id in shape.child_ids {
+            queue.push(child_id)
+          }
+        None => ()
+      }
+    }
+
+    let mut end_y = 0.0
+    for i = 0; i < connections.length(); i = i + 1 {
+      let connection = connections[i]
+      let endpoints_inside = if connection.route.is_empty() {
+        false
+      } else {
+        let first = connection.route[0]
+        let last = connection.route[connection.route.length() - 1]
+        first.x >= container_box.x &&
+        first.y >= container_box.y &&
+        first.x <= container_box.x + container_box.width &&
+        first.y <= container_box.y + container_box.height &&
+        last.x >= container_box.x &&
+        last.y >= container_box.y &&
+        last.x <= container_box.x + container_box.width &&
+        last.y <= container_box.y + container_box.height
+      }
+      let semantic_descendants = descendant_ids.contains(
+          connection.src_lookup_id,
+        ) &&
+        descendant_ids.contains(connection.dst_lookup_id)
+      if !semantic_descendants && !endpoints_inside {
+        continue
+      }
+      let src_participant = nested_sequence_participant_for_endpoint(
+        connection.src_lookup_id,
+        participant_ids,
+      )
+      let dst_participant = nested_sequence_participant_for_endpoint(
+        connection.dst_lookup_id,
+        participant_ids,
+      )
+      let normalized_connection = match (src_participant, dst_participant) {
+        (Some(src), Some(dst)) =>
+          {
+            ..connection,
+            src_id: if activation_ids.contains(connection.src_lookup_id) {
+              connection.src_id
+            } else {
+              src
+            },
+            dst_id: if activation_ids.contains(connection.dst_lookup_id) {
+              connection.dst_id
+            } else {
+              dst
+            },
+            src_lookup_id: if activation_ids.contains(connection.src_lookup_id) {
+              connection.src_lookup_id
+            } else {
+              src
+            },
+            dst_lookup_id: if activation_ids.contains(connection.dst_lookup_id) {
+              connection.dst_lookup_id
+            } else {
+              dst
+            },
+            z_index: if connection.z_index < D2_SEQUENCE_MESSAGE_Z_INDEX {
+              D2_SEQUENCE_MESSAGE_Z_INDEX
+            } else {
+              connection.z_index
+            },
+          }
+        _ =>
+          if connection.z_index < D2_SEQUENCE_MESSAGE_Z_INDEX {
+            { ..connection, z_index: D2_SEQUENCE_MESSAGE_Z_INDEX }
+          } else {
+            connection
+          }
+      }
+      connections[i] = normalized_connection
+      for point in connection.route {
+        if point.y > end_y {
+          end_y = point.y
+        }
+      }
+    }
+    for participant_id in participant_ids {
+      match shape_by_id.get(participant_id) {
+        Some(shape) =>
+          match shape.box {
+            Some(box) =>
+              if box.y + box.height > end_y {
+                end_y = box.y + box.height
+              }
+            None => ()
+          }
+        None => ()
+      }
+    }
+    for note in graph.sequence_notes {
+      let note_box = note.2
+      if note_box.x >= container_box.x &&
+        note_box.y >= container_box.y &&
+        note_box.x + note_box.width <= container_box.x + container_box.width &&
+        note_box.y + note_box.height <= container_box.y + container_box.height &&
+        note_box.y + note_box.height > end_y {
+        end_y = note_box.y + note_box.height
+      }
+    }
+    if end_y <= 0.0 {
+      continue
+    }
+    append_sequence_lifelines(
+      graph,
+      participant_ids,
+      shape_by_id,
+      end_y + D2_SEQUENCE_MIN_MESSAGE_DISTANCE + D2_SEQUENCE_VERTICAL_PAD,
+      connections,
+    )
+  }
+}
+
+///|
 /// Convert a laid-out graph to a render-ready diagram.
 ///
 /// This is the only conversion renderers should need.
 pub fn from_graph(graph : @graph.GraphInput, config : Config?) -> Diagram {
   let shapes : Array[Shape] = []
+  let hidden_sequence_aliases : Map[String, Bool] = Map([])
+  let sequence_aliases : Map[String, String] = Map([])
+  let sequence_parents : Map[String, String] = Map([])
+  if graph.root.shape_type == SequenceDiagram {
+    let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
+    for obj in graph.objects {
+      object_by_abs_id[obj.abs_id_syntax] = obj
+    }
+    let participant_ids = sequence_participant_ids(graph)
+    let participant_set : Map[String, Bool] = Map([])
+    for id in participant_ids {
+      participant_set[id] = true
+    }
+    let aliases = sequence_participant_alias_by_abs_id(
+      graph, participant_ids, object_by_abs_id,
+    )
+    for id, participant_id in aliases {
+      sequence_aliases[id] = participant_id
+    }
+    let parents = sequence_parent_id_by_child_id(graph)
+    for id, parent in parents {
+      sequence_parents[id] = parent
+    }
+    for obj in graph.objects {
+      if !participant_set.contains(obj.abs_id_syntax) &&
+        aliases.contains(obj.abs_id_syntax) &&
+        !obj.child_ids.is_empty() {
+        hidden_sequence_aliases[obj.abs_id_syntax] = true
+      }
+    }
+  }
+  let activation_ids : Map[String, Bool] = Map([])
+  for activation in graph.activation_boxes {
+    activation_ids[activation.0] = true
+  }
   for obj in graph.objects {
-    shapes.push(shape_from_object(obj))
+    if hidden_sequence_aliases.contains(obj.abs_id_syntax) {
+      continue
+    }
+    let base_shape = shape_from_object(obj)
+    let shape = if obj.classes.contains("__diago_sequence_note") {
+      let mut current = obj.abs_id_syntax
+      let mut render_id = obj.abs_id_syntax
+      while true {
+        match sequence_parents.get(current) {
+          Some(parent) =>
+            match sequence_aliases.get(parent) {
+              Some(participant_id) => {
+                render_id = participant_id + "." + obj.id_syntax
+                break
+              }
+              None => current = parent
+            }
+          None => break
+        }
+      }
+      { ..base_shape, id: render_id }
+    } else {
+      base_shape
+    }
+    shapes.push(
+      if activation_ids.contains(obj.abs_id_syntax) {
+        {
+          ..shape,
+          label: "",
+          label_width: None,
+          label_height: None,
+          z_index: 2,
+        }
+      } else if shape.classes.contains("__diago_sequence_group") {
+        { ..shape, z_index: 3 }
+      } else if shape.classes.contains("__diago_sequence_note") {
+        { ..shape, z_index: 5 }
+      } else {
+        shape
+      },
+    )
   }
   let connections : Array[Connection] = []
   if graph.root.shape_type == SequenceDiagram {
@@ -1609,22 +2038,65 @@ pub fn from_graph(graph : @graph.GraphInput, config : Config?) -> Diagram {
         parent_id_by_child_id,
         participant_alias_by_abs_id,
       )
+      let src_display_id = if activation_ids.contains(edge.src_id_syntax) {
+        edge.src_id
+      } else {
+        src_lookup_id
+      }
+      let dst_display_id = if activation_ids.contains(edge.dst_id_syntax) {
+        edge.dst_id
+      } else {
+        dst_lookup_id
+      }
+      let src_syntax_id = sequence_connection_syntax_id(
+        edge.src_id_syntax,
+        object_by_abs_id,
+      )
+      let dst_syntax_id = sequence_connection_syntax_id(
+        edge.dst_id_syntax,
+        object_by_abs_id,
+      )
       connections.push(
         connection_from_edge(
           edge,
-          src_id=src_lookup_id,
-          dst_id=dst_lookup_id,
+          src_id=src_display_id,
+          dst_id=dst_display_id,
+          src_syntax_id~,
+          dst_syntax_id~,
           src_lookup_id~,
           dst_lookup_id~,
+          identity_scope_depth=@graph.syntax_path_depth(edge.src_id_syntax),
         ),
       )
     }
   } else {
+    let object_by_abs_id : Map[String, @graph.ObjectInput] = Map([])
+    for obj in graph.objects {
+      object_by_abs_id[obj.abs_id_syntax] = obj
+    }
     for edge in graph.edges {
-      connections.push(connection_from_edge(edge))
+      let src_syntax_id = sequence_connection_syntax_id(
+        edge.src_id_syntax,
+        object_by_abs_id,
+      )
+      let dst_syntax_id = sequence_connection_syntax_id(
+        edge.dst_id_syntax,
+        object_by_abs_id,
+      )
+      connections.push(
+        connection_from_edge(
+          edge,
+          src_syntax_id~,
+          dst_syntax_id~,
+          identity_scope_depth=@graph.syntax_path_depth(edge.src_id_syntax),
+        ),
+      )
     }
   }
   append_sequence_lifeline_connections(graph, shapes, connections)
+  append_nested_sequence_lifeline_connections(
+    graph, shapes, connections, activation_ids,
+  )
   let layers : Array[Diagram] = []
   for layer in graph.layers {
     layers.push(from_graph(layer.graph, config))

@@ -144,6 +144,9 @@ fn write_compiled_output(
   output_path : String?,
   output : String,
 ) -> Result[Unit, String] {
+  if output == "" {
+    return Ok(())
+  }
   match output_path {
     Some(path) => write_output(path, output)
     None => {
@@ -156,7 +159,8 @@ fn write_compiled_output(
 ///|
 fn write_output(path : String, content : String) -> Result[Unit, String] {
   @fs.write_string_to_file(path, content) catch {
-    e => return Err("Error writing file '\{path}': \{e}")
+    @fs.IOError(message) =>
+      return Err("Error writing file '\{path}': \{message}")
   }
   println("Written to \{path}")
   Ok(())
@@ -186,7 +190,8 @@ fn replace_extension(path : String, new_ext : String) -> String {
 ///|
 fn collect_default_dump_input_sources() -> Result[Array[String], String] {
   let entries = @fs.read_dir("examples") catch {
-    e => return Err("Error reading directory 'examples': \{e}")
+    @fs.IOError(message) =>
+      return Err("Error reading directory 'examples': \{message}")
   }
   let paths : Array[String] = []
   for entry in entries {
@@ -218,7 +223,7 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
     }
   }
   @fs.create_dir(path) catch {
-    e => {
+    @fs.IOError(message) => {
       let exists_as_dir = if @fs.path_exists(path) {
         @fs.is_dir(path) catch {
           _ => false
@@ -229,7 +234,7 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
       if exists_as_dir {
         return Ok(())
       }
-      return Err("Error creating directory '\{path}': \{e}")
+      return Err("Error creating directory '\{path}': \{message}")
     }
   }
   Ok(())
@@ -242,19 +247,49 @@ fn dump_input_for_file(
   dump_engine : DumpInputEngine,
 ) -> Result[String, String] {
   let source = @fs.read_file_to_string(input_path) catch {
-    e => return Err("Error reading file '\{input_path}': \{e}")
+    @fs.IOError(message) =>
+      return Err("Error reading file '\{input_path}': \{message}")
   }
-  let (ast, parse_errors) = @compiler.parse(source)
-  if !parse_errors.is_empty() {
-    return Err("Parse errors in '\{input_path}': \{parse_errors}")
-  }
-
   let resolver = @diago_fs.import_resolver(base_path=get_dir_path(input_path))
-  let ir = @ir.compile_with_imports(ast, resolver) catch {
-    e => return Err("IR error in '\{input_path}': \{e}")
+  let compiled = match
+    @compiler.compile_graph(
+      "diagram",
+      source,
+      options=@compiler.ParseOptions::new().with_import_resolver(Some(resolver)),
+    ) {
+    Ok(compiled) => compiled
+    Err(e) => {
+      let message = match e {
+        ParseError(message)
+        | IOError(message)
+        | IrError(message)
+        | GraphError(message)
+        | ConfigError(message) => message
+      }
+      return Err("Compile error in '\{input_path}': \{message}")
+    }
   }
-  let graph_input = @exporter.to_graph("diagram", ir) catch {
-    e => return Err("Graph error in '\{input_path}': \{e}")
+  let source_config = compiled.source_config()
+  let mut graph_input = compiled.graph_input()
+  match source_config {
+    Some(config) => {
+      let theme = match config.theme_id {
+        Some(theme_id) => Some(@themes.get_theme(theme_id))
+        None => None
+      }
+      graph_input = match theme {
+        Some(value) if value.rules.mono => graph_input.with_default_font("mono")
+        _ if config.sketch.unwrap_or(false) =>
+          graph_input.with_default_font("hand-drawn")
+        _ => graph_input
+      }
+      match theme {
+        Some(value) if value.rules.caps_lock =>
+          graph_input = graph_input.with_caps_lock()
+        _ => ()
+      }
+    }
+    None => ()
   }
 
   let input_json = match dump_engine {
@@ -276,7 +311,8 @@ fn dump_input_for_file(
   let output_name = replace_extension(basename_string(input_path), ".json")
   let out_path = @path.Path(out_dir).join(Path(output_name)).to_string()
   @fs.write_string_to_file(out_path, input_json.stringify(escape_slash=false)) catch {
-    e => return Err("Error writing file '\{out_path}': \{e}")
+    @fs.IOError(message) =>
+      return Err("Error writing file '\{out_path}': \{message}")
   }
   Ok(out_path)
 }

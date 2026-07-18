@@ -3,6 +3,7 @@ import {
   "Milky2018/diago/font_subset",
   "Milky2018/diago/graph",
   "Milky2018/diago/layout_svg",
+  "Milky2018/diago/latex",
   "Milky2018/diago/svg",
   "Milky2018/diago/xml_emit",
   "Milky2018/diago/text_metrics",
@@ -16,6 +17,7 @@ import {
   "moonbitlang/core/hashset",
   "moonbitlang/core/math",
   "moonbitlang/x/codec/base64",
+  "moonbitlang/x/crypto",
   "moonbit-community/cmark/cmark_html",
   "moonbitlang/core/debug",
 }

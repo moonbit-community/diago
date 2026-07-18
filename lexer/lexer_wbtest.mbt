@@ -120,6 +120,14 @@ test "tokenize line comment" {
 }
 
 ///|
+test "escaped hash remains unquoted text" {
+  let (tokens, errors) = tokenize("\\#private: int")
+  assert_true(errors.is_empty())
+  @debug.assert_eq(tokens[0].kind, Ident("\\#private"))
+  @debug.assert_eq(tokens[1].kind, Colon)
+}
+
+///|
 test "tokenize block comment" {
   let (tokens, _) = tokenize("/* block comment */ server")
   @debug.assert_eq(tokens.length(), 3) // comment, server, EOF

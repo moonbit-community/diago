@@ -115,7 +115,7 @@ pub fn layout(
   )
   let note_height_by_id_for_layout : Map[String, Double] = Map([])
   for note in sequence_notes_for_layout {
-    let (_, height) = measure_object(note)
+    let (_, height) = sequence_note_size_like_d2(note, measure_object)
     note_height_by_id_for_layout[note.abs_id_syntax] = height
   }
 
@@ -145,11 +145,13 @@ pub fn layout(
       continue
     }
     let required = max_note_width / 2.0 + D2_SEQUENCE_HORIZONTAL_PAD
-    if i < actor_x_step.length() && required > actor_x_step[i] {
-      actor_x_step[i] = required
-    }
-    if i > 0 && required > actor_x_step[i - 1] {
-      actor_x_step[i - 1] = required
+    if i < actor_x_step.length() {
+      if required > actor_x_step[i] {
+        actor_x_step[i] = required
+      }
+      if i > 0 && required > actor_x_step[i - 1] {
+        actor_x_step[i - 1] = required
+      }
     }
   }
 
@@ -227,12 +229,37 @@ pub fn layout(
         }
       None => ()
     }
-    patch.nodes[id] = @graph.Box::new(
+    let actor_box = @graph.Box::new(
       (centers[i] - width / 2.0).round(),
       y,
       width,
       height,
     )
+    patch.nodes[id] = actor_box
+    match object_by_abs_id.get(id) {
+      Some(obj) => {
+        let font_size = match obj.style.font_size {
+          Some(value) => value.as_int().unwrap_or(16)
+          None => 16
+        }
+        let dims = measure_object_label_dims(
+          obj,
+          font_size,
+          style_is_mono(obj.style.font),
+          style_bool(obj.style.bold, false),
+          style_bool(obj.style.italic, false),
+        )
+        if dims.width > 0.0 && dims.height > 0.0 {
+          patch.node_labels[id] = @graph.Box::new(
+            actor_box.x,
+            actor_box.y + actor_box.height,
+            dims.width,
+            dims.height,
+          )
+        }
+      }
+      None => ()
+    }
   }
 
   let y_step = D2_SEQUENCE_MIN_MESSAGE_DISTANCE + D2_SEQUENCE_VERTICAL_PAD
@@ -589,9 +616,9 @@ fn sequence_measured_label_height(obj : @graph.ObjectInput) -> Double {
     Some(v) => v.as_int().unwrap_or(16)
     None => 16
   }
-  let is_bold = style_bool(obj.style.bold, false)
+  let is_bold = false
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = style_is_mono(obj.style.font_family)
+  let is_mono = style_is_mono(obj.style.font)
   let dims = measure_object_label_dims(
     obj, font_size, is_mono, is_bold, is_italic,
   )
@@ -604,7 +631,7 @@ fn sequence_measured_label_height(obj : @graph.ObjectInput) -> Double {
 
 ///|
 fn sequence_root_label_height(graph : @graph.GraphInput) -> Double {
-  if graph.root.label == "" || graph.root.label == graph.root.id_val {
+  if graph.root.label == "" {
     0.0
   } else {
     sequence_label_height(graph.root)
@@ -833,7 +860,9 @@ fn sequence_place_notes_like_d2(
         vertical_index {
         continue
       }
-      let (_, note_height) = measure_object(other_note)
+      let (_, note_height) = sequence_note_size_like_d2(
+        other_note, measure_object,
+      )
       y = y + note_height + y_step
     }
     let center_x = match
@@ -846,14 +875,30 @@ fn sequence_place_notes_like_d2(
       Some(value) => value
       None => continue
     }
-    let (width, height) = measure_object(note)
-    patch.nodes[note.abs_id_syntax] = @graph.Box::new(
-      center_x - width / 2.0,
-      y,
-      width,
-      height,
-    )
+    let (width, height) = sequence_note_size_like_d2(note, measure_object)
+    let note_box = @graph.Box::new(center_x - width / 2.0, y, width, height)
+    patch.nodes[note.abs_id_syntax] = note_box
+    patch.sequence_notes.push((note.abs_id_syntax, note.label, note_box))
   }
+}
+
+///|
+fn sequence_note_size_like_d2(
+  note : @graph.ObjectInput,
+  measure_object : (@graph.ObjectInput) -> (Double, Double),
+) -> (Double, Double) {
+  let (width, measured_height) = measure_object(note)
+  let font_size = match note.style.font_size {
+    Some(value) => value.as_int().unwrap_or(16)
+    None => 16
+  }
+  let outside_label_line_height = font_size.to_double() + 5.0
+  let height = if measured_height > outside_label_line_height {
+    measured_height - outside_label_line_height
+  } else {
+    measured_height
+  }
+  (width, height)
 }
 
 ///|
@@ -979,12 +1024,14 @@ fn sequence_place_spans_like_d2(
       Some(value) => value
       None => continue
     }
-    patch.nodes[span.abs_id_syntax] = @graph.Box::new(
+    let span_box = @graph.Box::new(
       center_x - width / 2.0,
       padded_min_y,
       width,
       height,
     )
+    patch.nodes[span.abs_id_syntax] = span_box
+    patch.activation_boxes.push((span.abs_id_syntax, span_box))
   }
 }
 
@@ -1037,7 +1084,9 @@ fn sequence_place_groups_like_d2(
         continue
       }
       saw_content = true
-      let (_, text_height) = sequence_edge_text_size(edge)
+      // D2's routing uses a compacted message height, but group bounds are
+      // expanded around the rendered label box itself.
+      let (_, text_height) = sequence_edge_label_size(edge)
       let label_height = text_height / 2.0
       let edge_pad = if label_height + D2_SEQUENCE_GROUP_CONTAINER_PADDING >
         D2_SEQUENCE_MIN_MESSAGE_DISTANCE / 2.0 {
@@ -1259,16 +1308,21 @@ fn sequence_adjust_group_label_like_d2(
 ///|
 fn sequence_group_objects_like_d2(
   graph : @graph.GraphInput,
-  _object_by_abs_id : Map[String, @graph.ObjectInput],
+  object_by_abs_id : Map[String, @graph.ObjectInput],
   parent_id_by_child_id : Map[String, String],
 ) -> Array[@graph.ObjectInput] {
   let groups : Array[@graph.ObjectInput] = []
   let participant_ids : Map[String, Bool] = Map([])
-  for participant_id in sequence_participant_ids(graph) {
+  let participant_id_list = sequence_participant_ids(graph)
+  for participant_id in participant_id_list {
     participant_ids[participant_id] = true
   }
+  let participant_aliases = sequence_participant_alias_by_abs_id(
+    graph, participant_id_list, object_by_abs_id,
+  )
   for obj in graph.objects {
-    if participant_ids.contains(obj.abs_id_syntax) {
+    if participant_ids.contains(obj.abs_id_syntax) ||
+      participant_aliases.contains(obj.abs_id_syntax) {
       continue
     }
     if sequence_is_group_like_d2(obj, graph) {
@@ -1582,11 +1636,17 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
       let has_descendant_endpoint = sequence_has_descendant_endpoint_like_d2(
         obj, graph,
       )
+      let children_are_only_notes = sequence_children_are_only_notes(
+        obj, object_by_abs_id,
+      )
       let is_explicit_actor = has_non_edge_ref &&
         (
-          !contains_any_edge ||
+          (
+            !contains_any_edge &&
+            (obj.child_ids.is_empty() || children_are_only_notes)
+          ) ||
           has_incident_edge ||
-          (has_descendant_endpoint && obj.child_ids.is_empty())
+          (has_descendant_endpoint && !contains_any_edge)
         )
       let is_implicit_actor = !has_non_edge_ref &&
         (has_incident_edge || has_descendant_endpoint)
@@ -1611,6 +1671,26 @@ fn sequence_participant_ids(graph : @graph.GraphInput) -> Array[String] {
     }
   }
   ids
+}
+
+///|
+fn sequence_children_are_only_notes(
+  obj : @graph.ObjectInput,
+  object_by_abs_id : Map[String, @graph.ObjectInput],
+) -> Bool {
+  if obj.child_ids.is_empty() {
+    return false
+  }
+  for child_id in obj.child_ids {
+    match object_by_abs_id.get(child_id) {
+      Some(child) =>
+        if !child.classes.contains("__diago_sequence_note") {
+          return false
+        }
+      None => return false
+    }
+  }
+  true
 }
 
 ///|
@@ -1654,7 +1734,7 @@ fn fallback_sequence_edge_label_size(
   }
   let is_bold = style_bool(edge.style.bold, false)
   let is_italic = style_bool(edge.style.italic, true)
-  let is_mono = style_is_mono(edge.style.font_family)
+  let is_mono = style_is_mono(edge.style.font)
   let dims = @text_metrics.measure_label(
     edge.label,
     font_size,
@@ -1776,13 +1856,23 @@ fn recompute_edge_label_boxes(
       Some(v) => v
       None => continue
     }
-    let center = route_point_at_percent(route, 0.5)
+    let center = d2_target_route_point_at_percent(route, 0.5)
     patch.edge_labels[edge.index] = @graph.Box::new(
-      (center.x - width / 2.0).round(),
-      (center.y - height / 2.0).round(),
+      d2_chop_precision(center.x - width / 2.0),
+      d2_chop_precision(center.y - height / 2.0),
       width,
       height,
     )
+  }
+}
+
+///|
+fn d2_chop_precision(value : Double) -> Double {
+  let rounded = (Float::from_double(value * 10000.0).to_double() / 10000.0).round()
+  if rounded == 0.0 {
+    0.0
+  } else {
+    rounded
   }
 }
 
@@ -1815,7 +1905,7 @@ fn fallback_rendered_edge_label_size(
   }
   let is_bold = style_bool(edge.style.bold, false)
   let is_italic = style_bool(edge.style.italic, true)
-  let is_mono = style_is_mono(edge.style.font_family)
+  let is_mono = style_is_mono(edge.style.font)
   let dims = @text_metrics.measure_label(
     edge.label,
     font_size,
@@ -1877,6 +1967,23 @@ fn route_point_at_percent(
     walked = walked + segment
   }
   route[route.length() - 1]
+}
+
+///|
+fn d2_target_route_point_at_percent(
+  route : Array[@graph.Point],
+  percent : Double,
+) -> @graph.Point {
+  let target_route : Array[@graph.Point] = []
+  for point in route {
+    target_route.push(
+      @graph.Point::new(
+        Float::from_double((point.x * 1000.0).to_int().to_double() / 1000.0).to_double(),
+        Float::from_double((point.y * 1000.0).to_int().to_double() / 1000.0).to_double(),
+      ),
+    )
+  }
+  route_point_at_percent(target_route, percent)
 }
 
 ///|

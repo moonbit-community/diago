@@ -329,8 +329,8 @@ test "c4_person shape renders person icon" {
     #|  shape: c4_person
     #|}
   let svg = compile(source).unwrap()
-  assert_true(svg.contains("<circle")) // Head
-  assert_true(svg.contains("<rect")) // Body
+  let path_count = svg.split("<path").collect().length() - 1
+  assert_true(path_count >= 2)
   assert_true(svg.contains("User"))
 }
 

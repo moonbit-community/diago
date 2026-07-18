@@ -404,7 +404,8 @@ fn build_image_data_uri(
   } else {
     let path = resolve_local_image_path(normalized, base_path)
     let bytes = @fs.read_file_to_bytes(path) catch {
-      e => return Err("failed to read image file '\{path}': \{e}")
+      @fs.IOError(message) =>
+        return Err("failed to read image file '\{path}': \{message}")
     }
     (bytes, resolve_bundle_mime_type(path, bytes, ""))
   }

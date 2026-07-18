@@ -100,6 +100,23 @@ fn compile_to_graph(
 }
 
 ///|
+test "constant-near children use the nested default direction" {
+  let source =
+    #|direction: right
+    #|x -> y
+    #|legend: {
+    #|  near: bottom-center
+    #|  color1: foo
+    #|  color2: bar
+    #|}
+  let diagram = compile_to_graph(source, Down).unwrap()
+  let first = diagram.find_object("legend.color1").unwrap().get_box().unwrap()
+  let second = diagram.find_object("legend.color2").unwrap().get_box().unwrap()
+  @debug.assert_eq(first.y, second.y)
+  assert_true(first.x < second.x)
+}
+
+///|
 /// Compile diago source to ASCII art
 fn compile_ascii(source : String) -> Result[String, String] {
   match compile_to_diagram(source, Down) {
@@ -578,13 +595,8 @@ test "terminal theme container dots" {
     #|  child
     #|}
   let svg = compile_with_theme(source, 300).unwrap()
-  // Terminal theme container_dots should add circle elements at corners
-  // Count circle elements - should have 4 for the container corners
-  let circle_count = svg.split("<circle").collect().length() - 1
-  assert_true(
-    circle_count >= 4,
-    msg="Expected at least 4 circles for container dots, got \{circle_count}",
-  )
+  assert_true(svg.contains("<pattern"))
+  assert_true(svg.contains("dots-overlay"))
 }
 
 ///|

@@ -25,10 +25,16 @@ pub(all) enum ArrowheadType {
   None
   /// Default filled triangle arrow
   Triangle
-  /// Filled diamond shape
+  /// Filled arrow with a concave tail
+  Arrow
+  /// Unfilled diamond shape
   Diamond
-  /// Filled circle
+  /// Filled diamond shape
+  FilledDiamond
+  /// Unfilled circle
   Circle
+  /// Filled circle
+  FilledCircle
   /// Open (unfilled) triangle arrow
   Open
   /// Simple line terminator
@@ -57,9 +63,12 @@ pub impl Show for ArrowheadType with fn output(self, logger) {
 pub fn ArrowheadType::from_string(s : String) -> ArrowheadType {
   match s.to_lower() {
     "none" | "" => None
-    "triangle" | "arrow" => Triangle
+    "triangle" => Triangle
+    "arrow" => Arrow
     "diamond" => Diamond
+    "filled-diamond" => FilledDiamond
     "circle" => Circle
+    "filled-circle" => FilledCircle
     "open" => Open
     "line" => Line
     "cf-one" | "cfone" => CfOne
@@ -78,8 +87,11 @@ pub fn ArrowheadType::to_arrowhead_string(self : ArrowheadType) -> String {
   match self {
     None => "none"
     Triangle => "triangle"
+    Arrow => "arrow"
     Diamond => "diamond"
+    FilledDiamond => "filled-diamond"
     Circle => "circle"
+    FilledCircle => "filled-circle"
     Open => "open"
     Line => "line"
     CfOne => "cf-one"
@@ -97,8 +109,11 @@ pub fn ArrowheadType::marker_id(self : ArrowheadType, reverse : Bool) -> String 
   let base = match self {
     None => return "" // No marker needed
     Triangle => "arrow-triangle"
+    Arrow => "arrow"
     Diamond => "arrow-diamond"
+    FilledDiamond => "arrow-diamond-filled"
     Circle => "arrow-circle"
+    FilledCircle => "arrow-circle-filled"
     Open => "arrow-open"
     Line => "arrow-line"
     CfOne => "arrow-cf-one"
@@ -149,8 +164,9 @@ pub fn ArrowheadType::to_ascii(self : ArrowheadType, reverse : Bool) -> String {
   match self {
     None => if reverse { "-" } else { "-" }
     Triangle => if reverse { "<" } else { ">" }
-    Diamond => if reverse { "<>" } else { "<>" }
-    Circle => if reverse { "o" } else { "o" }
+    Arrow => if reverse { "<" } else { ">" }
+    Diamond | FilledDiamond => if reverse { "<>" } else { "<>" }
+    Circle | FilledCircle => if reverse { "o" } else { "o" }
     Open => if reverse { "<" } else { ">" }
     Line => if reverse { "|" } else { "|" }
     CfOne => if reverse { "|" } else { "|" }

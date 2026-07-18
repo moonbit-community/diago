@@ -107,6 +107,10 @@ test "svg identity formatting preserves quoted syntax paths" {
   @debug.assert_eq(d2_output_abs_id("\"a.b\""), "\"a.b\"")
   @debug.assert_eq(d2_output_abs_id("a.b"), "a.b")
   @debug.assert_eq(d2_output_abs_id("outer.\"a.b\""), "outer.\"a.b\"")
+  @debug.assert_eq(
+    d2_output_abs_id("outer.\"line\\nnext\""),
+    "outer.\"line\\nnext\"",
+  )
   assert_true(
     d2_shape_wrapper_class("\"a.b\"") != d2_shape_wrapper_class("a.b"),
     msg="quoted-dot and nested identities need distinct SVG wrapper classes",

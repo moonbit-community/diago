@@ -293,7 +293,7 @@ test "dark-theme-id enables css media theme variables" {
     #|a -> b
   let svg = compile(source)
   assert_true(svg.contains("@media screen and (prefers-color-scheme:dark)"))
-  assert_true(svg.contains("var(--d2-N7)"))
+  assert_true(svg.contains(".fill-N7{fill:#1E1E2E;}"))
 }
 
 ///|

@@ -13,8 +13,8 @@ pub fn compute_legend_layout(@graph.LegendInput, (Double, Double, Double, Double
 
 // Types and methods
 pub enum LegendEntryLayout {
-  Shape(icon_box~ : @graph.Box, shape~ : @graph.ShapeType, label~ : String, style~ : @graph.StyleInput?, label_x~ : Double, label_y~ : Double)
-  Connection(line_start_x~ : Double, line_end_x~ : Double, line_y~ : Double, src_arrow~ : @graph.ArrowheadType, dst_arrow~ : @graph.ArrowheadType, label~ : String, style~ : @graph.StyleInput?, label_x~ : Double, label_y~ : Double)
+  Shape(id~ : String, icon_box~ : @graph.Box, shape~ : @graph.ShapeType, label~ : String, style~ : @graph.StyleInput?, label_x~ : Double, label_y~ : Double)
+  Connection(src_id~ : String, dst_id~ : String, index~ : Int, line_start_x~ : Double, line_end_x~ : Double, line_y~ : Double, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : @graph.ArrowheadType, dst_arrow~ : @graph.ArrowheadType, label~ : String, style~ : @graph.StyleInput?, label_x~ : Double, label_y~ : Double)
   Custom(icon_x~ : Double, icon_y~ : Double, icon_size~ : Double, icon~ : String, label~ : String, label_x~ : Double, label_y~ : Double)
   Separator(x1~ : Double, x2~ : Double, y~ : Double)
 } derive(@debug.Debug)

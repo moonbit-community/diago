@@ -285,11 +285,13 @@ fn layout_sequence_with_engine_metrics(
 ) -> @graph.LayoutPatch {
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
+  object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
+    object_by_id[obj.abs_id_syntax] = obj
   }
   @layout_sequence.layout(graph, fn(obj) {
-    sequence_object_size(obj, config, object_by_id)
+    object_size(obj, config, object_by_id, inside_sequence=true)
   })
 }
 
@@ -313,146 +315,13 @@ fn recompute_edge_label_boxes(
       Some(v) => v
       None => continue
     }
-    let center = route_point_at_percent(route, 0.5)
+    let center = d2_target_route_point_at_percent(route, 0.5)
     let label_x = round_double(center.x - width / 2.0)
     let label_y = round_double(center.y - height / 2.0)
     patch.edge_labels[edge.index] = @graph.Box::new(
       label_x, label_y, width, height,
     )
   }
-}
-
-///|
-fn sequence_object_size(
-  obj : @graph.ObjectInput,
-  config : @engine_api.LayoutConfig,
-  object_by_id : Map[String, @graph.ObjectInput],
-) -> (Double, Double) {
-  let estimate_auto_size = () => {
-    if obj.shape_type == SqlTable {
-      let (width, height) = estimate_sql_table_size(obj, object_by_id)
-      (
-        clamp_positive(width, config.default_width),
-        clamp_positive(height, config.default_height),
-      )
-    } else if obj.shape_type == Class {
-      let (width, height) = estimate_class_size(obj, object_by_id)
-      (
-        clamp_positive(width, config.default_width),
-        clamp_positive(height, config.default_height),
-      )
-    } else {
-      estimate_sequence_object_size(obj, config)
-    }
-  }
-  match obj.box {
-    Some(box) => {
-      let (auto_width, auto_height) = estimate_auto_size()
-      let width = if box.width > 0.0 { box.width } else { auto_width }
-      let height = if box.height > 0.0 { box.height } else { auto_height }
-      (
-        clamp_positive(width, config.default_width),
-        clamp_positive(height, config.default_height),
-      )
-    }
-    None => estimate_auto_size()
-  }
-}
-
-///|
-fn estimate_sequence_object_size(
-  obj : @graph.ObjectInput,
-  config : @engine_api.LayoutConfig,
-) -> (Double, Double) {
-  let font_size = match obj.style.font_size {
-    Some(v) => v.as_int().unwrap_or(16)
-    None => 16
-  }
-  let is_bold = style_bool(obj.style.bold, false)
-  let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
-  let label_dims = if obj.shape_type == Code {
-    @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
-  } else {
-    @text_metrics.measure_label(
-      obj.label,
-      font_size,
-      is_mono,
-      is_bold,
-      is_italic,
-    )
-  }
-  let mut content_width = label_dims.width
-  let mut content_height = label_dims.height
-
-  if obj.shape_type == Code {
-    content_width = content_width + font_size.to_double()
-    content_height = content_height + font_size.to_double()
-    return (content_width, content_height)
-  } else if obj.label != "" && obj.shape_type != Text {
-    content_width = content_width + D2_INNER_LABEL_PADDING
-    content_height = content_height + D2_INNER_LABEL_PADDING
-  }
-
-  if obj.shape_type == Text {
-    if content_width < D2_MIN_SHAPE_SIZE {
-      content_width = D2_MIN_SHAPE_SIZE
-    }
-    if content_height < D2_MIN_SHAPE_SIZE {
-      content_height = D2_MIN_SHAPE_SIZE
-    }
-    return (content_width, content_height)
-  }
-
-  if obj.shape_type == Image {
-    return (128.0, 128.0)
-  }
-
-  let base_padding = shape_default_padding(obj.shape_type)
-  let mut padding_x = base_padding.0
-  let mut padding_y = base_padding.1
-  if obj.icon is Some(_) &&
-    obj.shape_type != SqlTable &&
-    obj.shape_type != Class &&
-    obj.shape_type != Code &&
-    obj.shape_type != Text {
-    let label_height = label_dims.height + D2_INNER_LABEL_PADDING
-    padding_x = padding_x + label_height
-    padding_y = padding_y + label_height
-  }
-
-  let fitted = shape_dimensions_to_fit(
-    obj.shape_type,
-    content_width,
-    content_height,
-    padding_x,
-    padding_y,
-  )
-  let mut width = fitted.0
-  let mut height = fitted.1
-
-  if obj.shape_type == Circle || obj.shape_type == Square {
-    let side = if width > height { width } else { height }
-    width = side
-    height = side
-  } else if obj.shape_type == Person {
-    let fit = limit_aspect_ratio(width, height, D2_PERSON_AR_LIMIT)
-    width = fit.0
-    height = fit.1
-  } else if obj.shape_type == Oval {
-    let fit = limit_aspect_ratio(width, height, D2_OVAL_AR_LIMIT)
-    width = fit.0
-    height = fit.1
-  } else if obj.shape_type == C4Person {
-    let fit = limit_aspect_ratio(width, height, D2_C4_PERSON_AR_LIMIT)
-    width = fit.0
-    height = fit.1
-  }
-
-  (
-    clamp_positive(width, config.default_width),
-    clamp_positive(height, config.default_height),
-  )
 }
 
 ///|
@@ -503,7 +372,27 @@ fn build_elk_graph(
       obj, config, base_width0, base_height0,
     )
     let box = @graph.Box::new(0.0, 0.0, base_width, base_height)
-    let (margin, _) = object_layout_spacing(obj, box)
+    let mut max_child_width = 0.0
+    let mut max_child_height = 0.0
+    for child_id in obj.child_ids {
+      match object_by_id.get(child_id) {
+        Some(child) => {
+          let (child_width, child_height) = object_size(
+            child, config, object_by_id,
+          )
+          if child_width > max_child_width {
+            max_child_width = child_width
+          }
+          if child_height > max_child_height {
+            max_child_height = child_height
+          }
+        }
+        None => ()
+      }
+    }
+    let (margin, content_padding) = object_layout_spacing(
+      obj, box, max_child_width, max_child_height,
+    )
     let width = base_width + margin.left + margin.right
     let height = base_height + margin.top + margin.bottom
     node_size_by_id[obj.id] = (base_width, base_height)
@@ -517,7 +406,9 @@ fn build_elk_graph(
       "height": Json::number(height),
     }
 
-    if !obj.label.is_empty() {
+    if !obj.label.is_empty() &&
+      obj.shape_type != Class &&
+      obj.shape_type != SqlTable {
       node_json["labels"] = Json::array([
         Json::object({
           "text": Json::string(obj.label),
@@ -538,7 +429,7 @@ fn build_elk_graph(
       )
       node_json["layoutOptions"] = Json::object(
         make_container_layout_options(
-          config, direction, width, height, self_loop_spacing,
+          config, direction, width, height, self_loop_spacing, content_padding,
         ),
       )
     } else {
@@ -928,8 +819,10 @@ fn build_object_maps(
 ) -> (Map[String, @graph.ObjectInput], Map[String, String]) {
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
+  object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
+    object_by_id[obj.abs_id_syntax] = obj
   }
 
   let parent_id_by_child_id : Map[String, String] = Map([])
@@ -939,6 +832,10 @@ fn build_object_maps(
   for obj in graph.objects {
     for child_id in obj.child_ids {
       parent_id_by_child_id[child_id] = obj.id
+      match object_by_id.get(child_id) {
+        Some(child) => parent_id_by_child_id[child.id] = obj.id
+        None => ()
+      }
     }
   }
 
@@ -970,6 +867,7 @@ fn build_excluded_layout_node_ids(
   for obj in graph.objects {
     if is_sql_or_class_member_node(obj.id, parent_id_by_child_id, object_by_id) {
       excluded[obj.id] = true
+      excluded[obj.abs_id_syntax] = true
       continue
     }
     for near_root_id in constant_near_root_ids {
@@ -1074,14 +972,29 @@ fn apply_root_grid_positions_like_d2(
     }
   }
 
-  let child_boxes = match
-    @engine_api.estimate_root_grid_child_boxes(
-      graph.root,
-      root_child_ids,
-      child_size_by_id,
-    ) {
-    Some(v) => v
-    None => return
+  let child_boxes = if graph.root.id == "root" &&
+    graph.root.abs_id_syntax == "root" &&
+    graph.root.references.is_empty() {
+    match
+      @engine_api.estimate_root_grid_child_boxes(
+        graph.root,
+        root_child_ids,
+        child_size_by_id,
+      ) {
+      Some(v) => v
+      None => return
+    }
+  } else {
+    match
+      @engine_api.estimate_nested_grid_layout_like_d2(
+        graph.root,
+        root_child_ids,
+        child_size_by_id,
+        object_by_id,
+      ) {
+      Some((_, _, boxes)) => boxes
+      None => return
+    }
   }
 
   for child_id in root_child_ids {
@@ -1509,6 +1422,7 @@ fn near_bounding_box(
   near_key_by_id : Map[String, String],
   placed_near : Map[String, Bool],
 ) -> (Double, Double, Double, Double) {
+  let (object_by_id, parent_id_by_child_id) = build_object_maps(graph)
   let mut min_x = 1000000000000.0
   let mut min_y = 1000000000000.0
   let mut max_x = -1000000000000.0
@@ -1516,6 +1430,9 @@ fn near_bounding_box(
   let mut has_bounds = false
 
   for obj in graph.objects {
+    if is_sql_or_class_member_node(obj.id, parent_id_by_child_id, object_by_id) {
+      continue
+    }
     let box = match patch.nodes.get(obj.id) {
       Some(v) => v
       None => continue
@@ -2420,12 +2337,17 @@ fn outside_label_box(
     Some(v) => v
     None => return None
   }
-  let pos = default_label_position(
-    obj,
-    box,
-    label_width + D2_LABEL_PADDING * 2.0,
-    label_height + D2_LABEL_PADDING * 2.0,
-  )
+  let pos = match obj.label_position {
+    Some(position) =>
+      if position.has_prefix("OUTSIDE_TOP_") {
+        OutsideTop
+      } else if position.has_prefix("OUTSIDE_BOTTOM_") {
+        OutsideBottom
+      } else {
+        return None
+      }
+    None => default_label_position(obj, box, label_width, label_height)
+  }
   let (x, y) = match pos {
     OutsideTop =>
       (
@@ -2550,9 +2472,30 @@ fn make_container_layout_options(
   width : Double,
   height : Double,
   self_loop_spacing : Int,
+  content_padding : LayoutSpacing,
 ) -> Map[String, Json] {
   let spacing = layout_node_spacing(config, direction)
   let padding = layout_padding_value(config)
+  let top = if content_padding.top > padding.to_double() {
+    content_padding.top.ceil().to_int()
+  } else {
+    padding
+  }
+  let left = if content_padding.left > padding.to_double() {
+    content_padding.left.ceil().to_int()
+  } else {
+    padding
+  }
+  let bottom = if content_padding.bottom > padding.to_double() {
+    content_padding.bottom.ceil().to_int()
+  } else {
+    padding
+  }
+  let right = if content_padding.right > padding.to_double() {
+    content_padding.right.ceil().to_int()
+  } else {
+    padding
+  }
   {
     "elk.direction": Json::string(""),
     "elk.layered.crossingMinimization.forceNodeModelOrder": Json::boolean(true),
@@ -2572,7 +2515,7 @@ fn make_container_layout_options(
     ),
     "elk.contentAlignment": Json::string("H_CENTER V_CENTER"),
     "elk.padding": Json::string(
-      "[top=\{padding},left=\{padding},bottom=\{padding},right=\{padding}]",
+      "[top=\{top},left=\{left},bottom=\{bottom},right=\{right}]",
     ),
   }
 }
@@ -2879,21 +2822,21 @@ fn parse_edge_route(
       json_point_field(
         section_obj, "startPoint", section_base_x, section_base_y,
       ) {
-      Some(point) => push_unique_route_point(points, point)
+      Some(point) => points.push(point)
       None => ()
     }
 
     let bend_points = json_array_field(section_obj, "bendPoints")
     for bend_json in bend_points {
       match json_point_from_json(bend_json, section_base_x, section_base_y) {
-        Some(point) => push_unique_route_point(points, point)
+        Some(point) => points.push(point)
         None => ()
       }
     }
 
     match
       json_point_field(section_obj, "endPoint", section_base_x, section_base_y) {
-      Some(point) => push_unique_route_point(points, point)
+      Some(point) => points.push(point)
       None => ()
     }
   }
@@ -2971,16 +2914,6 @@ fn json_double_field(
       value
     }
     _ => default
-  }
-}
-
-///|
-fn push_unique_route_point(
-  points : Array[@graph.Point],
-  point : @graph.Point,
-) -> Unit {
-  if points.is_empty() || points[points.length() - 1] != point {
-    points.push(point)
   }
 }
 
@@ -3671,10 +3604,10 @@ fn trace_cylinder_border(
     hit in cubic_polyline_intersections(
       prev_point,
       segment_end,
-      @graph.Point::new(x0, top_y),
-      @graph.Point::new(x0, box.y),
-      @graph.Point::new(x0 + box.width * m, box.y),
-      @graph.Point::new(xmid, box.y),
+      d2_perimeter_point(x0, top_y),
+      d2_perimeter_point(x0, box.y),
+      d2_perimeter_point(x0 + box.width * m, box.y),
+      d2_perimeter_point(xmid, box.y),
       D2_CUBIC_TRACE_SAMPLES,
     ) {
     push_unique_point(arc_hits, hit)
@@ -3683,10 +3616,10 @@ fn trace_cylinder_border(
     hit in cubic_polyline_intersections(
       prev_point,
       segment_end,
-      @graph.Point::new(xmid, box.y),
-      @graph.Point::new(x1 - box.width * m, box.y),
-      @graph.Point::new(x1, box.y),
-      @graph.Point::new(x1, top_y),
+      d2_perimeter_point(xmid, box.y),
+      d2_perimeter_point(x1 - box.width * m, box.y),
+      d2_perimeter_point(x1, box.y),
+      d2_perimeter_point(x1, top_y),
       D2_CUBIC_TRACE_SAMPLES,
     ) {
     push_unique_point(arc_hits, hit)
@@ -3695,10 +3628,10 @@ fn trace_cylinder_border(
     hit in cubic_polyline_intersections(
       prev_point,
       segment_end,
-      @graph.Point::new(x1, bottom_y),
-      @graph.Point::new(x1, bottom),
-      @graph.Point::new(x1 - box.width * m, bottom),
-      @graph.Point::new(xmid, bottom),
+      d2_perimeter_point(x1, bottom_y),
+      d2_perimeter_point(x1, bottom),
+      d2_perimeter_point(x1 - box.width * m, bottom),
+      d2_perimeter_point(xmid, bottom),
       D2_CUBIC_TRACE_SAMPLES,
     ) {
     push_unique_point(arc_hits, hit)
@@ -3707,10 +3640,10 @@ fn trace_cylinder_border(
     hit in cubic_polyline_intersections(
       prev_point,
       segment_end,
-      @graph.Point::new(xmid, bottom),
-      @graph.Point::new(x0 + box.width * m, bottom),
-      @graph.Point::new(x0, bottom),
-      @graph.Point::new(x0, bottom_y),
+      d2_perimeter_point(xmid, bottom),
+      d2_perimeter_point(x0 + box.width * m, bottom),
+      d2_perimeter_point(x0, bottom),
+      d2_perimeter_point(x0, bottom_y),
       D2_CUBIC_TRACE_SAMPLES,
     ) {
     push_unique_point(arc_hits, hit)
@@ -3719,8 +3652,8 @@ fn trace_cylinder_border(
   let side_hits : Array[@graph.Point] = []
   match
     segment_segment_intersection(
-      @graph.Point::new(x0, top_y),
-      @graph.Point::new(x0, bottom_y),
+      d2_perimeter_point(x0, bottom_y),
+      d2_perimeter_point(x0, top_y),
       prev_point,
       segment_end,
     ) {
@@ -3729,8 +3662,8 @@ fn trace_cylinder_border(
   }
   match
     segment_segment_intersection(
-      @graph.Point::new(x1, top_y),
-      @graph.Point::new(x1, bottom_y),
+      d2_perimeter_point(x1, top_y),
+      d2_perimeter_point(x1, bottom_y),
       prev_point,
       segment_end,
     ) {
@@ -3780,8 +3713,9 @@ fn extended_trace_segment_end(
   } else {
     box.width
   }
-  let ux = vx / length
-  let uy = vy / length
+  let inverse_length = 1.0 / length
+  let ux = vx * inverse_length
+  let uy = vy * inverse_length
   @graph.Point::new(
     prev_point.x + ux * (length + scale_size),
     prev_point.y + uy * (length + scale_size),
@@ -3850,13 +3784,104 @@ fn shape_border_intersections(
       polygon_intersections(points, segment_start, segment_end)
     }
     Diamond => {
-      let points = [
-        d2_perimeter_point(box.x + box.width / 2.0, box.y),
-        d2_perimeter_point(box.x + box.width, box.y + box.height / 2.0),
-        d2_perimeter_point(box.x + box.width / 2.0, box.y + box.height),
-        d2_perimeter_point(box.x, box.y + box.height / 2.0),
-      ]
-      polygon_intersections(points, segment_start, segment_end)
+      let out : Array[@graph.Point] = []
+      let sx = box.width / 77.0
+      let sy = box.height / 76.9
+      fn p(
+        box : @graph.Box,
+        sx : Double,
+        sy : Double,
+        x : Double,
+        y : Double,
+      ) -> @graph.Point {
+        d2_perimeter_point(box.x + x * sx, box.y + y * sy)
+      }
+      let p0 = p(box, sx, sy, 38.5, 76.9)
+      let p1 = p(box, sx, sy, 37.8, 76.6)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p0,
+          p(box, sx, sy, 38.2, 76.9),
+          p(box, sx, sy, 38.0, 76.8),
+          p1,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p2 = p(box, sx, sy, 0.3, 39.2)
+      match segment_segment_intersection(p1, p2, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      let p3 = p(box, sx, sy, 0.3, 37.8)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p2,
+          p(box, sx, sy, -0.1, 38.8),
+          p(box, sx, sy, -0.1, 38.2),
+          p3,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p4 = p(box, sx, sy, 37.8, 0.3)
+      match segment_segment_intersection(p3, p4, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      let p5 = p(box, sx, sy, 39.2, 0.3)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p4,
+          p(box, sx, sy, 38.2, -0.1),
+          p(box, sx, sy, 38.8, -0.1),
+          p5,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p6 = p(box, sx, sy, 76.7, 37.8)
+      match segment_segment_intersection(p5, p6, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      let p7 = p(box, sx, sy, 76.7, 39.2)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p6,
+          p(box, sx, sy, 77.1, 38.2),
+          p(box, sx, sy, 77.1, 38.8),
+          p7,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p8 = p(box, sx, sy, 39.2, 76.6)
+      match segment_segment_intersection(p7, p8, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p8,
+          p(box, sx, sy, 39.0, 76.8),
+          p(box, sx, sy, 38.8, 76.9),
+          p0,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      out
     }
     Callout => {
       let tip_w = if box.width < 60.0 { box.width / 2.0 } else { 30.0 }
@@ -4455,6 +4480,230 @@ fn shape_border_intersections(
       }
       out
     }
+    C4Person => {
+      let out : Array[@graph.Point] = []
+      let kappa = 0.5522847498307936
+      let head_radius = box.width * D2_C4_HEAD_RADIUS_FACTOR
+      let body_top = box.y + head_radius + head_radius * D2_C4_BODY_TOP_FACTOR
+      let body_height = box.y + box.height - body_top
+      let corner = if box.width * 0.175 < body_height * 0.25 {
+        box.width * 0.175
+      } else {
+        body_height * 0.25
+      }
+      let left = box.x
+      let p0 = d2_perimeter_point(left, body_top + corner)
+      let p1 = d2_perimeter_point(p0.x + corner, p0.y - corner)
+      let p2 = d2_perimeter_point(p1.x + box.width - 2.0 * corner, p1.y)
+      let p3 = d2_perimeter_point(p2.x + corner, p2.y + corner)
+      let p4 = d2_perimeter_point(p3.x, p3.y + body_height - 2.0 * corner)
+      let p5 = d2_perimeter_point(p4.x - corner, p4.y + corner)
+      let p6 = d2_perimeter_point(p5.x - (box.width - 2.0 * corner), p5.y)
+      let p7 = d2_perimeter_point(p6.x - corner, p6.y - corner)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p0,
+          d2_perimeter_point(p0.x, p0.y - kappa * corner),
+          d2_perimeter_point(p0.x + kappa * corner, p0.y - corner),
+          p1,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      match segment_segment_intersection(p1, p2, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p2,
+          d2_perimeter_point(p2.x + kappa * corner, p2.y),
+          d2_perimeter_point(p2.x + corner, p2.y + kappa * corner),
+          p3,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      match segment_segment_intersection(p3, p4, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p4,
+          d2_perimeter_point(p4.x, p4.y + kappa * corner),
+          d2_perimeter_point(p4.x - kappa * corner, p4.y + corner),
+          p5,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      match segment_segment_intersection(p5, p6, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p6,
+          d2_perimeter_point(p6.x - kappa * corner, p6.y),
+          d2_perimeter_point(p6.x - corner, p6.y - kappa * corner),
+          p7,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      match segment_segment_intersection(p7, p0, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      for
+        hit in segment_ellipse_intersections(
+          segment_start,
+          segment_end,
+          box.x + box.width / 2.0,
+          box.y + head_radius,
+          head_radius,
+          head_radius,
+        ) {
+        push_unique_point(out, hit)
+      }
+      out
+    }
+    Person => {
+      let out : Array[@graph.Point] = []
+      let sx = box.width / 68.3
+      let sy = box.height / 77.4
+      fn absolute(
+        box : @graph.Box,
+        sx : Double,
+        sy : Double,
+        x : Double,
+        y : Double,
+      ) -> @graph.Point {
+        d2_perimeter_point(box.x + x * sx, box.y + y * sy)
+      }
+      fn relative(
+        current : @graph.Point,
+        sx : Double,
+        sy : Double,
+        x : Double,
+        y : Double,
+      ) -> @graph.Point {
+        d2_perimeter_point(current.x + x * sx, current.y + y * sy)
+      }
+      let p0 = absolute(box, sx, sy, 68.3, 77.4)
+      let p1 = absolute(box, sx, sy, 0.0, 77.4)
+      let p2 = relative(p1, sx, sy, 0.0, -1.1)
+      match segment_segment_intersection(p0, p1, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      match segment_segment_intersection(p1, p2, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p2,
+          relative(p2, sx, sy, 0.0, -13.2),
+          relative(p2, sx, sy, 7.5, -25.1),
+          relative(p2, sx, sy, 19.3, -30.8),
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p3 = relative(p2, sx, sy, 19.3, -30.8)
+      let p4 = absolute(box, sx, sy, 8.9, 25.2)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p3,
+          absolute(box, sx, sy, 12.8, 40.9),
+          absolute(box, sx, sy, 8.9, 33.4),
+          p4,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p5 = absolute(box, sx, sy, 34.1, 0.0)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p4,
+          absolute(box, sx, sy, 8.9, 11.3),
+          absolute(box, sx, sy, 20.2, 0.0),
+          p5,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p6 = relative(p5, sx, sy, 25.2, 25.2)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p5,
+          relative(p5, sx, sy, 13.9, 0.0),
+          relative(p5, sx, sy, 25.2, 11.3),
+          p6,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p7 = relative(p6, sx, sy, -10.4, 20.4)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p6,
+          relative(p6, sx, sy, 0.0, 8.2),
+          relative(p6, sx, sy, -3.8, 15.6),
+          p7,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p8 = relative(p7, sx, sy, 19.3, 30.8)
+      for
+        hit in cubic_polyline_intersections(
+          segment_start,
+          segment_end,
+          p7,
+          relative(p7, sx, sy, 11.8, 5.7),
+          relative(p7, sx, sy, 19.3, 17.6),
+          p8,
+          D2_CUBIC_TRACE_SAMPLES,
+        ) {
+        push_unique_point(out, hit)
+      }
+      let p9 = relative(p8, sx, sy, 0.0, 1.0)
+      match segment_segment_intersection(p8, p9, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      let p10 = d2_perimeter_point(box.x + box.width, p9.y)
+      match segment_segment_intersection(p9, p10, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      match segment_segment_intersection(p10, p0, segment_start, segment_end) {
+        Some(hit) => push_unique_point(out, hit)
+        None => ()
+      }
+      out
+    }
     Circle | Oval =>
       segment_ellipse_intersections(
         segment_start,
@@ -4831,7 +5080,41 @@ fn object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
   object_by_id : Map[String, @graph.ObjectInput],
+  inside_sequence? : Bool = false,
 ) -> (Double, Double) {
+  if obj.label == "" &&
+    obj.shape_type != Image &&
+    obj.shape_type != SqlTable &&
+    obj.shape_type != Class {
+    let (desired_width, desired_height) = match obj.box {
+      Some(box) => (box.width, box.height)
+      None => (0.0, 0.0)
+    }
+    if obj.shape_type == Circle || obj.shape_type == Square {
+      let side = if desired_width > 0.0 || desired_height > 0.0 {
+        if desired_width > desired_height {
+          desired_width
+        } else {
+          desired_height
+        }
+      } else {
+        100.0
+      }
+      return (side, side)
+    }
+    return (
+      if desired_width > 0.0 {
+        desired_width
+      } else {
+        100.0
+      },
+      if desired_height > 0.0 {
+        desired_height
+      } else {
+        100.0
+      },
+    )
+  }
   let estimate_auto_size = () => {
     if obj.shape_type == SqlTable {
       let (width, height) = estimate_sql_table_size(obj, object_by_id)
@@ -4846,7 +5129,7 @@ fn object_size(
         clamp_positive(height, config.default_height),
       )
     } else {
-      estimate_object_size(obj, config, object_by_id)
+      estimate_object_size(obj, config, object_by_id, inside_sequence~)
     }
   }
   match obj.box {
@@ -4854,6 +5137,21 @@ fn object_size(
       let (auto_width, auto_height) = estimate_auto_size()
       let width = if box.width > 0.0 { box.width } else { auto_width }
       let height = if box.height > 0.0 { box.height } else { auto_height }
+      let (width, height) = if obj.shape_type == Circle ||
+        obj.shape_type == Square {
+        let side = if width > height { width } else { height }
+        (side, side)
+      } else if box.width <= 0.0 || box.height <= 0.0 {
+        if obj.shape_type == Person {
+          limit_aspect_ratio(width, height, D2_PERSON_AR_LIMIT)
+        } else if obj.shape_type == Oval {
+          limit_aspect_ratio(width, height, D2_OVAL_AR_LIMIT)
+        } else {
+          (width, height)
+        }
+      } else {
+        (width, height)
+      }
       (
         clamp_positive(width, config.default_width),
         clamp_positive(height, config.default_height),
@@ -4878,12 +5176,18 @@ fn estimate_object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
   _object_by_id : Map[String, @graph.ObjectInput],
+  inside_sequence? : Bool = false,
 ) -> (Double, Double) {
+  let has_explicit_dimension = match obj.box {
+    Some(box) => box.width > 0.0 || box.height > 0.0
+    None => false
+  }
   let font_size = match obj.style.font_size {
     Some(value) => value.as_int().unwrap_or(16)
     None => 16
   }
-  let (label_width, label_height) = match object_label_dimensions(obj) {
+  let (label_width, label_height) = match
+    object_label_dimensions(obj, inside_sequence~) {
     Some((w, h)) => (w, h)
     None => (0.0, 0.0)
   }
@@ -4895,7 +5199,7 @@ fn estimate_object_size(
     content_height = content_height + font_size.to_double()
     // reference behavior: code shape size is measured text + 0.5em padding each side only.
     return (content_width, content_height)
-  } else if obj.label != "" && obj.shape_type != Text {
+  } else if !has_explicit_dimension && obj.label != "" && obj.shape_type != Text {
     content_width = content_width + D2_INNER_LABEL_PADDING
     content_height = content_height + D2_INNER_LABEL_PADDING
   }
@@ -5028,9 +5332,11 @@ fn estimate_class_size(
     row_font_size + D2_CLASS_HEADER_FONT_ADD,
   )
   let header_dims = header_measured.dimensions
+  let padded_header_width = header_dims.width + D2_INNER_LABEL_PADDING
+  let padded_header_height = header_dims.height + D2_INNER_LABEL_PADDING
 
-  let mut max_width = if header_dims.width > 12.0 {
-    header_dims.width
+  let mut max_width = if padded_header_width > 12.0 {
+    padded_header_width
   } else {
     12.0
   }
@@ -5071,18 +5377,18 @@ fn estimate_class_size(
         ).dimensions
       let row_height = row_dims.height + D2_CLASS_VERTICAL_PADDING
       let header_height_min = if 2.0 * row_height >
-        header_dims.height + D2_LABEL_PADDING * 2.0 {
+        padded_header_height + D2_LABEL_PADDING * 2.0 {
         2.0 * row_height
       } else if obj.shape_type == Class {
-        header_dims.height + D2_LABEL_PADDING * 2.0
+        padded_header_height + D2_LABEL_PADDING * 2.0
       } else {
         D2_LABEL_PADDING * 2.0
       }
       height = row_height * row_count.to_double() + header_height_min
     }
     None => {
-      let header_floor = if header_dims.height > 12.0 {
-        header_dims.height
+      let header_floor = if padded_header_height > 12.0 {
+        padded_header_height
       } else {
         12.0
       }
@@ -5346,68 +5652,121 @@ fn default_label_position(
 fn object_layout_spacing(
   obj : @graph.ObjectInput,
   box : @graph.Box,
+  max_child_width : Double,
+  max_child_height : Double,
 ) -> (LayoutSpacing, LayoutSpacing) {
   let mut margin_top = 0.0
-  let margin_left = 0.0
+  let mut margin_left = 0.0
   let mut margin_bottom = 0.0
   let mut margin_right = 0.0
   let mut padding_top = 0.0
-  let padding_left = 0.0
-  let padding_bottom = 0.0
-  let padding_right = 0.0
+  let mut padding_left = 0.0
+  let mut padding_bottom = 0.0
+  let mut padding_right = 0.0
 
-  if obj.label != "" {
+  if obj.label != "" &&
+    !obj.classes.contains("__diago_nested_layout_placeholder") {
     let font_size = match obj.style.font_size {
       Some(v) => v.as_int().unwrap_or(16)
       None => 16
     }
-    let is_bold = style_bool(obj.style.bold, false)
+    let is_bold = object_label_bold_like_d2(obj)
     let is_italic = style_bool(obj.style.italic, false)
-    let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+    let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
     let (measured_width, measured_height) = measure_object_label_dims(
       obj, font_size, is_mono, is_bold, is_italic,
     )
-    let label_width = if measured_width > 0.0 {
+    let margin_label_width = if measured_width > 0.0 {
       measured_width + D2_LABEL_PADDING
     } else {
       obj.label.length().to_double() * 7.0 + D2_LABEL_PADDING
     }
-    let label_height = if measured_height > 0.0 {
+    let margin_label_height = if measured_height > 0.0 {
       measured_height + D2_LABEL_PADDING
     } else {
       font_size.to_double() + D2_LABEL_PADDING
     }
-
-    match default_label_position(obj, box, label_width, label_height) {
-      OutsideTop => margin_top = label_height
-      OutsideBottom => margin_bottom = label_height
-      InsideTop => padding_top = label_height
-      InsideMiddle => ()
+    let padding_label_width = margin_label_width + D2_LABEL_PADDING
+    let padding_label_height = margin_label_height + D2_LABEL_PADDING
+    let position = obj.label_position.unwrap_or(
+      match default_label_position(obj, box, measured_width, measured_height) {
+        OutsideTop => "OUTSIDE_TOP_CENTER"
+        OutsideBottom => "OUTSIDE_BOTTOM_CENTER"
+        InsideTop => "INSIDE_TOP_CENTER"
+        InsideMiddle => "INSIDE_MIDDLE_CENTER"
+      },
+    )
+    if position.has_prefix("OUTSIDE_TOP_") {
+      margin_top = margin_label_height
+    } else if position.has_prefix("OUTSIDE_BOTTOM_") {
+      margin_bottom = margin_label_height
+    } else if position.has_prefix("OUTSIDE_LEFT_") {
+      margin_left = margin_label_width
+    } else if position.has_prefix("OUTSIDE_RIGHT_") {
+      margin_right = margin_label_width
+    } else if position.has_prefix("INSIDE_TOP_") {
+      padding_top = padding_label_height
+    } else if position.has_prefix("INSIDE_BOTTOM_") {
+      padding_bottom = padding_label_height
+    } else if position == "INSIDE_MIDDLE_LEFT" {
+      padding_left = padding_label_width
+    } else if position == "INSIDE_MIDDLE_RIGHT" {
+      padding_right = padding_label_width
     }
   }
 
   if obj.icon is Some(_) {
-    let icon_size = D2_MAX_ICON_SIZE + D2_LABEL_PADDING
-    let icon_pos = if !obj.child_ids.is_empty() ||
-      obj.shape_type == Class ||
-      obj.shape_type == SqlTable ||
-      obj.shape_type == Code {
+    let position = obj.icon_position.unwrap_or(
       if !obj.child_ids.is_empty() {
-        InsideTop
+        "INSIDE_TOP_LEFT"
+      } else if obj.shape_type == Class ||
+        obj.shape_type == SqlTable ||
+        obj.shape_type == Code {
+        "OUTSIDE_TOP_LEFT"
       } else {
-        OutsideTop
+        "INSIDE_MIDDLE_CENTER"
+      },
+    )
+    if position.has_prefix("OUTSIDE_TOP_") {
+      let icon_size = object_layout_icon_size(box, position) + D2_LABEL_PADDING
+      if icon_size > margin_top {
+        margin_top = icon_size
       }
-    } else {
-      InsideMiddle
-    }
-    match icon_pos {
-      OutsideTop => if icon_size > margin_top { margin_top = icon_size }
-      OutsideBottom =>
-        if icon_size > margin_bottom {
-          margin_bottom = icon_size
-        }
-      InsideTop => if icon_size > padding_top { padding_top = icon_size }
-      InsideMiddle => ()
+    } else if position.has_prefix("OUTSIDE_BOTTOM_") {
+      let icon_size = object_layout_icon_size(box, position) + D2_LABEL_PADDING
+      if icon_size > margin_bottom {
+        margin_bottom = icon_size
+      }
+    } else if position.has_prefix("OUTSIDE_LEFT_") {
+      let icon_size = object_layout_icon_size(box, position) + D2_LABEL_PADDING
+      if icon_size > margin_left {
+        margin_left = icon_size
+      }
+    } else if position.has_prefix("OUTSIDE_RIGHT_") {
+      let icon_size = object_layout_icon_size(box, position) + D2_LABEL_PADDING
+      if icon_size > margin_right {
+        margin_right = icon_size
+      }
+    } else if position.has_prefix("INSIDE_TOP_") {
+      let icon_size = D2_MAX_ICON_SIZE + D2_LABEL_PADDING * 2.0
+      if icon_size > padding_top {
+        padding_top = icon_size
+      }
+    } else if position.has_prefix("INSIDE_BOTTOM_") {
+      let icon_size = D2_MAX_ICON_SIZE + D2_LABEL_PADDING * 2.0
+      if icon_size > padding_bottom {
+        padding_bottom = icon_size
+      }
+    } else if position == "INSIDE_MIDDLE_LEFT" {
+      let icon_size = D2_MAX_ICON_SIZE + D2_LABEL_PADDING * 2.0
+      if icon_size > padding_left {
+        padding_left = icon_size
+      }
+    } else if position == "INSIDE_MIDDLE_RIGHT" {
+      let icon_size = D2_MAX_ICON_SIZE + D2_LABEL_PADDING * 2.0
+      if icon_size > padding_right {
+        padding_right = icon_size
+      }
     }
   }
 
@@ -5424,6 +5783,43 @@ fn object_layout_spacing(
     margin_top = margin_top + D2_MULTIPLE_OFFSET
   }
 
+  if !obj.child_ids.is_empty() {
+    let estimated_width = box.width +
+      margin_left +
+      margin_right +
+      max_child_width +
+      padding_left +
+      padding_right
+    let estimated_height = box.height +
+      margin_top +
+      margin_bottom +
+      max_child_height +
+      padding_top +
+      padding_bottom
+    let estimated_box = @graph.Box::new(
+      0.0, 0.0, estimated_width, estimated_height,
+    )
+    let inner_box = shape_inner_box_for_label(
+      obj, estimated_box, estimated_width, estimated_height,
+    )
+    let inner_top = inner_box.y.ceil()
+    let inner_left = inner_box.x.ceil()
+    let inner_bottom = (estimated_height - inner_box.y - inner_box.height).ceil()
+    let inner_right = (estimated_width - inner_box.x - inner_box.width).ceil()
+    if inner_top + padding_top > padding_top {
+      padding_top = inner_top + padding_top
+    }
+    if inner_left + padding_left > padding_left {
+      padding_left = inner_left + padding_left
+    }
+    if inner_bottom + padding_bottom > padding_bottom {
+      padding_bottom = inner_bottom + padding_bottom
+    }
+    if inner_right + padding_right > padding_right {
+      padding_right = inner_right + padding_right
+    }
+  }
+
   (
     {
       top: margin_top,
@@ -5438,6 +5834,52 @@ fn object_layout_spacing(
       right: padding_right,
     },
   )
+}
+
+///|
+fn object_layout_icon_size(box : @graph.Box, position : String) -> Double {
+  let min_dimension = if box.width < box.height {
+    box.width.to_int()
+  } else {
+    box.height.to_int()
+  }
+  let half_min_dimension = (min_dimension + 1) / 2
+  let mut size = if position == "INSIDE_MIDDLE_CENTER" {
+    half_min_dimension
+  } else {
+    let at_least_default = if half_min_dimension > 32 {
+      half_min_dimension
+    } else {
+      32
+    }
+    if min_dimension < at_least_default {
+      min_dimension
+    } else {
+      at_least_default
+    }
+  }
+  if size > D2_MAX_ICON_SIZE.to_int() {
+    size = D2_MAX_ICON_SIZE.to_int()
+  }
+  if !position.has_prefix("OUTSIDE_") {
+    let max_width = if box.width.to_int() > 10 {
+      box.width.to_int() - 10
+    } else {
+      0
+    }
+    let max_height = if box.height.to_int() > 10 {
+      box.height.to_int() - 10
+    } else {
+      0
+    }
+    if size > max_width {
+      size = max_width
+    }
+    if size > max_height {
+      size = max_height
+    }
+  }
+  size.to_double()
 }
 
 ///|
@@ -5494,6 +5936,37 @@ fn shape_inner_box_for_label(
   let mut width = box.width
   let mut height = box.height
   match obj.shape_type {
+    Circle => {
+      let radius = width / 2.0
+      let inset = (radius - radius * 2.0.sqrt() / 2.0).ceil()
+      x = x + inset
+      y = y + inset
+      width = width - inset * 2.0
+      height = height - inset * 2.0
+    }
+    Oval => {
+      let radius_x = width / 2.0
+      let radius_y = height / 2.0
+      let theta = Float::from_double(@math.atan2(radius_y, radius_x)).to_double()
+      let sin_theta = @math.sin(theta)
+      let cos_theta = @math.cos(theta)
+      let radius = radius_x *
+        radius_y /
+        (radius_x * sin_theta * (radius_x * sin_theta) +
+        radius_y * cos_theta * (radius_y * cos_theta)).sqrt()
+      let inset_x = (radius_x - cos_theta * radius).ceil()
+      let inset_y = (radius_y - sin_theta * radius).ceil()
+      x = x + inset_x
+      y = y + inset_y
+      width = width - inset_x * 2.0
+      height = height - inset_y * 2.0
+    }
+    Diamond => {
+      x = x + width / 4.0
+      y = y + height / 4.0
+      width = width / 2.0
+      height = height / 2.0
+    }
     Hexagon => {
       x = x + width / 6.0
       y = y + height / 6.0
@@ -5543,6 +6016,18 @@ fn shape_inner_box_for_label(
       x = x + D2_STORED_DATA_WEDGE_WIDTH
       width = width - 2.0 * D2_STORED_DATA_WEDGE_WIDTH
     }
+    Parallelogram => {
+      x = x + D2_PARALLELOGRAM_WEDGE_WIDTH
+      width = width - 2.0 * D2_PARALLELOGRAM_WEDGE_WIDTH
+    }
+    Step => {
+      x = x + D2_STEP_WEDGE_WIDTH
+      width = width - 2.0 * D2_STEP_WEDGE_WIDTH
+    }
+    Page =>
+      if height < 3.0 * D2_PAGE_CORNER_HEIGHT {
+        width = width - D2_PAGE_CORNER_WIDTH
+      }
     Document => height = height * D2_DOC_PATH_INNER_BOTTOM / D2_DOC_PATH_HEIGHT
     Package => {
       let top_h = if D2_PACKAGE_TOP_MAX_HEIGHT <
@@ -5583,7 +6068,10 @@ fn shape_inner_box_for_label(
 }
 
 ///|
-fn object_label_dimensions(obj : @graph.ObjectInput) -> (Double, Double)? {
+fn object_label_dimensions(
+  obj : @graph.ObjectInput,
+  inside_sequence? : Bool = false,
+) -> (Double, Double)? {
   if obj.label == "" {
     return None
   }
@@ -5598,9 +6086,9 @@ fn object_label_dimensions(obj : @graph.ObjectInput) -> (Double, Double)? {
     Some(v) => v.as_int().unwrap_or(16)
     None => 16
   }
-  let is_bold = style_bool(obj.style.bold, false)
+  let is_bold = object_label_bold_like_d2(obj, inside_sequence~)
   let is_italic = style_bool(obj.style.italic, false)
-  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font_family)
+  let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let (measured_width, measured_height) = measure_object_label_dims(
     obj, font_size, is_mono, is_bold, is_italic,
   )
@@ -5793,6 +6281,10 @@ fn measure_object_label_dims(
   is_bold : Bool,
   is_italic : Bool,
 ) -> (Double, Double) {
+  if obj.language == Some("latex") {
+    let dims = @text_metrics.measure_label_latex(obj.label)
+    return (dims.width, dims.height)
+  }
   if obj.shape_type == Code {
     let dims = @text_metrics.measure_label_code(
       obj.label,
@@ -5806,13 +6298,17 @@ fn measure_object_label_dims(
     let dims = @text_metrics.measure_label_markdown(obj.label, font_size)
     return (dims.width, dims.height)
   }
-  let dims = @text_metrics.measure_label(
-    obj.label,
-    font_size,
-    is_mono,
-    is_bold,
-    is_italic,
-  )
+  let dims = if style_is_hand_drawn(obj.style.font) {
+    @text_metrics.measure_label_hand_drawn(obj.label, font_size, is_bold)
+  } else {
+    @text_metrics.measure_label(
+      obj.label,
+      font_size,
+      is_mono,
+      is_bold,
+      is_italic,
+    )
+  }
   (dims.width, dims.height)
 }
 
@@ -5843,14 +6339,18 @@ fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
   }
   let is_bold = style_bool(edge.style.bold, false)
   let is_italic = style_bool(edge.style.italic, true)
-  let is_mono = style_is_mono(edge.style.font_family)
-  let dims = @text_metrics.measure_label(
-    edge.label,
-    font_size,
-    is_mono,
-    is_bold,
-    is_italic,
-  )
+  let is_mono = style_is_mono(edge.style.font)
+  let dims = if style_is_hand_drawn(edge.style.font) {
+    @text_metrics.measure_label_hand_drawn(edge.label, font_size, is_bold)
+  } else {
+    @text_metrics.measure_label(
+      edge.label,
+      font_size,
+      is_mono,
+      is_bold,
+      is_italic,
+    )
+  }
   let width = if dims.width > 0.0 {
     dims.width
   } else {
@@ -5873,11 +6373,40 @@ fn style_bool(value : @graph.StyleValue?, default : Bool) -> Bool {
 }
 
 ///|
+fn object_label_bold_like_d2(
+  obj : @graph.ObjectInput,
+  inside_sequence? : Bool = false,
+) -> Bool {
+  if inside_sequence || obj.shape_type == Class {
+    false
+  } else {
+    style_bool(obj.style.bold, false) ||
+    (
+      obj.child_ids.is_empty() &&
+      !obj.classes.contains("__diago_nested_layout_placeholder") &&
+      obj.shape_type != Text
+    )
+  }
+}
+
+///|
 fn style_is_mono(value : @graph.StyleValue?) -> Bool {
   match value {
     Some(v) =>
       match v.get_value().to_lower() {
         "mono" | "monospace" | "code" => true
+        _ => false
+      }
+    None => false
+  }
+}
+
+///|
+fn style_is_hand_drawn(value : @graph.StyleValue?) -> Bool {
+  match value {
+    Some(v) =>
+      match v.get_value().to_lower() {
+        "hand-drawn" | "handdrawn" | "sketch" => true
         _ => false
       }
     None => false
@@ -5928,6 +6457,23 @@ fn route_point_at_percent(
   }
 
   route[route.length() - 1]
+}
+
+///|
+fn d2_target_route_point_at_percent(
+  route : Array[@graph.Point],
+  percent : Double,
+) -> @graph.Point {
+  let target_route : Array[@graph.Point] = []
+  for point in route {
+    target_route.push(
+      @graph.Point::new(
+        truncate_float32((point.x * 1000.0).to_int().to_double() / 1000.0),
+        truncate_float32((point.y * 1000.0).to_int().to_double() / 1000.0),
+      ),
+    )
+  }
+  route_point_at_percent(target_route, percent)
 }
 
 ///|

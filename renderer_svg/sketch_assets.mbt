@@ -1,4 +1,4 @@
-// Generated from the reference sketch runtime sources.
+// Generated from D2 sketch renderer assets by renderer_svg/gen_sketch_assets.go. Do not edit by hand.
 
 ///|
 let sketch_runtime_source : String =
@@ -133,7 +133,7 @@ let sketch_runtime_source : String =
   #|        return !!result;
   #|    })();
   #|}
-  #|/*eslint-disable */ // This is a slightly modified version of rough.js for this project
+  #|/*eslint-disable */ // This is a slightly modified version of rough.js for D2
   #|//
   #|// rough.js is from https://github.com/rough-stuff/rough.
   #|// Attribution for this file is as follows:
@@ -411,7 +411,7 @@ let sketch_runtime_source : String =
   #|        this._position = [
   #|            0,
   #|            0
-  #|        ], this._first = null, this.bezierReflectionPoint = null, this.quadReflectionPoint = null, this.parsed = new a(t);
+  #|        ], this._first = null, this.bezierReflectionPoint = null, this.quadReflectionPoint = null, this.parsed = new a(t), Object.defineProperty(this, "segments", { value: this.parsed.segments, writable: true }), Object.defineProperty(this, "closed", { value: false, writable: true }), Object.defineProperty(this, "first", { value: null, writable: true }), Object.defineProperty(this, "position", { value: this._position, writable: true }), Object.defineProperty(this, "x", { value: 0, writable: true }), Object.defineProperty(this, "y", { value: 0, writable: true });
   #|    }
   #|    _create_class(o, [
   #|        {
@@ -473,7 +473,7 @@ let sketch_runtime_source : String =
   #|                this._position = [
   #|                    t,
   #|                    e
-  #|                ], this._first || (this._first = [
+  #|                ], this.position = this._position, this.x = t, this.y = e, this.first || (this.first = [
   #|                    t,
   #|                    e
   #|                ]);
@@ -2372,34 +2372,32 @@ let sketch_runtime_source : String =
 ///|
 let sketch_setup_source : String =
   #|var root = {
-  #|    ownerDocument: {
-  #|        createElementNS: function createElementNS(ns, tagName) {
-  #|            var children = [];
-  #|            var attrs = {};
-  #|            var style = {};
-  #|            return {
-  #|                style: style,
-  #|                tagName: tagName,
-  #|                attrs: attrs,
-  #|                setAttribute: function setAttribute(key, value) {
-  #|                    return attrs[key] = value;
-  #|                },
-  #|                appendChild: function appendChild(node) {
-  #|                    return children.push(node);
-  #|                },
-  #|                children: children
-  #|            };
-  #|        }
-  #|    }
+  #|  ownerDocument: {
+  #|    createElementNS: (ns, tagName) => {
+  #|      const children = [];
+  #|      const attrs = {};
+  #|      const style = {};
+  #|      return {
+  #|        style,
+  #|        tagName,
+  #|        attrs,
+  #|        setAttribute: (key, value) => (attrs[key] = value),
+  #|        appendChild: (node) => children.push(node),
+  #|        children,
+  #|      };
+  #|    },
+  #|  },
   #|};
-  #|var rc = rough.svg(root, {
-  #|    seed: 1
-  #|});
+  #|var rc = rough.svg(root, { seed: 1 });
   #|var node;
+  #|
+  #|if (typeof globalThis !== "undefined") {
+  #|  globalThis.rc = rc;
+  #|}
+  #|
   #|if (typeof globalThis !== "undefined") {
   #|    globalThis.rc = rc;
   #|}
-  #|
 
 ///|
 let sketch_streaks_pattern_template : String =

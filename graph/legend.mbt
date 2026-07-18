@@ -58,9 +58,19 @@ pub fn LegendPosition::to_position_string(self : LegendPosition) -> String {
 /// A single entry in the legend
 pub(all) enum LegendEntry {
   /// A shape entry with optional custom style
-  ShapeEntry(shape~ : ShapeType, label~ : String, style~ : StyleInput?)
+  ShapeEntry(
+    id~ : String,
+    shape~ : ShapeType,
+    label~ : String,
+    style~ : StyleInput?
+  )
   /// A connection/edge entry showing arrowheads
   ConnectionEntry(
+    src_id~ : String,
+    dst_id~ : String,
+    index~ : Int,
+    src_arrow_enabled~ : Bool,
+    dst_arrow_enabled~ : Bool,
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
@@ -78,8 +88,9 @@ pub fn LegendEntry::shape(
   shape : ShapeType,
   label : String,
   style : StyleInput?,
+  id? : String = label,
 ) -> LegendEntry {
-  ShapeEntry(shape~, label~, style~)
+  ShapeEntry(id~, shape~, label~, style~)
 }
 
 ///|
@@ -89,8 +100,23 @@ pub fn LegendEntry::connection(
   dst_arrow : ArrowheadType,
   label : String,
   style : StyleInput?,
+  src_id? : String = "src",
+  dst_id? : String = "dst",
+  index? : Int = 0,
+  src_arrow_enabled? : Bool = src_arrow != None,
+  dst_arrow_enabled? : Bool = dst_arrow != None,
 ) -> LegendEntry {
-  ConnectionEntry(src_arrow~, dst_arrow~, label~, style~)
+  ConnectionEntry(
+    src_id~,
+    dst_id~,
+    index~,
+    src_arrow_enabled~,
+    dst_arrow_enabled~,
+    src_arrow~,
+    dst_arrow~,
+    label~,
+    style~,
+  )
 }
 
 ///|

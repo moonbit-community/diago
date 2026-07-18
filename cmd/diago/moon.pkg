@@ -9,6 +9,7 @@ import {
   "Milky2018/diago/engine_dagre",
   "Milky2018/diago/engine_elk",
   "Milky2018/diago/renderer_svg",
+  "Milky2018/diago/themes",
   "Milky2018/diago/formatter",
   "moonbitlang/x/codec/base64",
   "moonbitlang/x/fs",

@@ -1,6 +1,8 @@
 import {
+  "Milky2018/diago/latex",
   "moonbit-community/cmark/cmark",
   "moonbitlang/core/math",
+  "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/debug",
 }
 

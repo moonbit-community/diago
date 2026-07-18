@@ -23,7 +23,12 @@ fn compile_graph_no_layout(
   if !errors.is_empty() {
     return Err("Parse errors: \{errors}")
   }
-  let ir = @ir.compile(ast) catch { e => return Err("IR error: \{e}") }
+  let ir = @ir.compile_with_imports(
+    ast,
+    @ir.ImportResolver::new(fn(_) { None }),
+  ) catch {
+    e => return Err("IR error: \{e}")
+  }
   let graph_input = @exporter.compile("test", ir) catch {
     e => return Err("Graph error: \{e}")
   }

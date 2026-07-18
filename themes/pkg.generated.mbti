@@ -38,6 +38,7 @@ pub struct ColorPalette {
 } derive(@debug.Debug)
 
 pub struct SpecialRules {
+  c4 : Bool
   mono : Bool
   no_corner_radius : Bool
   outer_container_double_border : Bool

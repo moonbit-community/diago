@@ -14,6 +14,8 @@ pub fn compile_with_imports(@ast.Map, ImportResolver) -> Map raise CompileError
 
 pub fn evaluate_filter(FilterContext, String, String) -> Bool
 
+pub fn filter_value_matches(String, String) -> Bool
+
 pub fn is_board_keyword(String) -> Bool
 
 pub fn is_double_glob(Array[String]) -> Bool

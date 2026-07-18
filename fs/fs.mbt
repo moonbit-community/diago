@@ -62,7 +62,8 @@ pub fn compile_file(
 ///|
 fn read_source_file(file_path : String) -> String raise @diago.DiagoError {
   @system_fs.read_file_to_string(file_path) catch {
-    e => raise @diago.IOError("Error reading file '\{file_path}': \{e}")
+    @system_fs.IOError(message) =>
+      raise @diago.IOError("Error reading file '\{file_path}': \{message}")
   }
 }
 

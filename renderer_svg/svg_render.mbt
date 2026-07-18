@@ -267,6 +267,99 @@ fn default_object_bold(obj : Shape) -> Bool {
 }
 
 ///|
+fn c4_object_fill_token(
+  obj : Shape,
+  raw : String,
+  theme : @themes.Theme,
+) -> String {
+  if !theme.rules.c4 {
+    return raw
+  }
+  if is_container(obj) {
+    if raw == "B4" || raw == "B5" || raw == "B6" || raw == "N7" {
+      return "transparent"
+    }
+    return raw
+  }
+  if obj.shape_type == Person || obj.shape_type == C4Person {
+    if raw == "B3" {
+      return "B2"
+    }
+    return raw
+  }
+  let depth = get_object_depth(obj.id)
+  if raw == "B6" && depth == 1 {
+    return "B6"
+  }
+  if raw == "B5" ||
+    raw == "B6" ||
+    raw == "AA4" ||
+    raw == "AA5" ||
+    raw == "AB4" ||
+    raw == "AB5" ||
+    raw == "N4" ||
+    raw == "N5" ||
+    raw == "N7" {
+    return if depth == 1 { "B6" } else { "B4" }
+  }
+  raw
+}
+
+///|
+fn c4_object_stroke_token(
+  obj : Shape,
+  raw : String,
+  theme : @themes.Theme,
+) -> String {
+  if !theme.rules.c4 || raw != "B1" {
+    return raw
+  }
+  if is_container(obj) {
+    return "AA2"
+  }
+  if obj.shape_type == Person || obj.shape_type == C4Person {
+    return "B1"
+  }
+  if get_object_depth(obj.id) == 1 {
+    "B5"
+  } else {
+    "B3"
+  }
+}
+
+///|
+fn object_label_visible(obj : Shape) -> Bool {
+  obj.label != "" && style_double(obj.style.opacity, 1.0) != 0.0
+}
+
+///|
+fn d2_svg_link_href(link : String) -> String {
+  let segments = @graph.split_syntax_path(link)
+  if segments.length() < 3 || segments[0] != "root" {
+    return link
+  }
+  let board_names : Array[String] = []
+  let mut i = 2
+  while i < segments.length() {
+    board_names.push(@graph.display_key_segment(segments[i]))
+    i += 2
+  }
+  if board_names.is_empty() {
+    "index.svg"
+  } else {
+    board_names.join("/") + ".svg"
+  }
+}
+
+///|
+fn clamped_shape_border_radius(radius : Double, box : Box) -> Double {
+  @cmp.maximum(
+    0.0,
+    @cmp.minimum(radius, @cmp.minimum(box.width, box.height) / 2.0),
+  )
+}
+
+///|
 fn has_outside_bottom_label(obj : Shape) -> Bool {
   obj.shape_type == Image || obj.shape_type == Person
 }
@@ -332,6 +425,7 @@ fn shape_inner_box_for_label(
   let mut width = box.width
   let mut height = box.height
   match obj.shape_type {
+    Circle | Oval => return ellipse_inner_box(box)
     Hexagon => {
       x = x + width / 6.0
       y = y + height / 6.0
@@ -424,6 +518,7 @@ fn shape_inner_box_for_icon(obj : Shape, box : Box) -> Box {
   let mut width = box.width
   let mut height = box.height
   match obj.shape_type {
+    Circle | Oval => return ellipse_inner_box(box)
     Hexagon => {
       x = x + width / 6.0
       y = y + height / 6.0
@@ -491,6 +586,26 @@ fn shape_inner_box_for_icon(obj : Shape, box : Box) -> Box {
 }
 
 ///|
+fn ellipse_inner_box(box : Box) -> Box {
+  let rx = box.width / 2.0
+  let ry = box.height / 2.0
+  let theta = Float::from_double(@math.atan2(ry, rx)).to_double()
+  let sin_theta = @math.sin(theta)
+  let cos_theta = @math.cos(theta)
+  let radius = rx *
+    ry /
+    (rx * sin_theta * (rx * sin_theta) + ry * cos_theta * (ry * cos_theta)).sqrt()
+  let inset_x = (rx - cos_theta * radius).ceil()
+  let inset_y = (ry - sin_theta * radius).ceil()
+  Box::new(
+    box.x + inset_x,
+    box.y + inset_y,
+    box.width - 2.0 * inset_x,
+    box.height - 2.0 * inset_y,
+  )
+}
+
+///|
 fn object_precomputed_label_dims(obj : Shape) -> (Double, Double)? {
   match (obj.label_width, obj.label_height) {
     (Some(width), Some(height)) =>
@@ -524,13 +639,60 @@ fn object_label_dims(
 }
 
 ///|
+fn d2_layout_engine(graph : Diagram) -> String {
+  match graph.config {
+    Some(config) => config.layout_engine.unwrap_or("dagre")
+    None => "dagre"
+  }
+}
+
+///|
+fn d2_effective_icon_position(obj : Shape, layout_engine : String) -> String {
+  match obj.icon_position {
+    Some(position) => position
+    None =>
+      if is_container(obj) {
+        if layout_engine == "elk" {
+          "INSIDE_TOP_LEFT"
+        } else {
+          "OUTSIDE_TOP_LEFT"
+        }
+      } else if obj.shape_type == Class ||
+        obj.shape_type == SqlTable ||
+        obj.language is Some(_) {
+        "OUTSIDE_TOP_LEFT"
+      } else {
+        D2_DEFAULT_ICON_POSITION
+      }
+  }
+}
+
+///|
+fn d2_effective_label_position(obj : Shape, layout_engine : String) -> String? {
+  match obj.label_position {
+    Some(position) => Some(position)
+    None =>
+      if is_container(obj) && obj.icon is Some(_) {
+        if layout_engine == "elk" {
+          Some("INSIDE_TOP_RIGHT")
+        } else {
+          Some("OUTSIDE_TOP_RIGHT")
+        }
+      } else {
+        None
+      }
+  }
+}
+
+///|
 fn plain_object_label_layout(
   obj : Shape,
   box : Box,
   label_width : Double,
   label_height : Double,
+  layout_engine : String,
 ) -> (Double, Double, Double) {
-  match obj.label_position {
+  match d2_effective_label_position(obj, layout_engine) {
     Some(position) => {
       let label_box = d2_box_for_label_position(
         obj, box, position, label_width, label_height,
@@ -552,24 +714,26 @@ fn plain_object_label_layout(
     (obj.grid_rows is Some(_) || obj.grid_columns is Some(_))
   match obj.label_box {
     Some(label_box) =>
-      (
-        label_box.x,
-        label_box.y,
-        if label_box.width > 0.0 {
-          label_box.width
-        } else {
-          label_width
-        },
-      )
-    None =>
       if is_container(obj) && !is_grid_container {
         let anchor_box = label_outside_anchor_box(obj, box)
         (
           anchor_box.x + (anchor_box.width - label_width) / 2.0,
-          anchor_box.y - LABEL_PADDING - label_height,
+          label_box.y,
           label_width,
         )
-      } else if is_grid_container {
+      } else {
+        (
+          label_box.x,
+          label_box.y,
+          if label_box.width > 0.0 {
+            label_box.width
+          } else {
+            label_width
+          },
+        )
+      }
+    None =>
+      if is_grid_container {
         (
           inner_box.x + (inner_box.width - label_width) / 2.0,
           inner_box.y + LABEL_PADDING,
@@ -599,16 +763,61 @@ fn plain_object_label_layout(
 }
 
 ///|
-fn markdown_label_layout(obj : Shape, box : Box) -> (Double, Double, Int, Int) {
-  let width_px = match object_precomputed_label_dims(obj) {
-    Some((width, _)) => width.ceil().to_int()
-    None => ceil_double(box.width).to_int()
+fn plain_object_label_bounds_layout(
+  obj : Shape,
+  box : Box,
+  label_width : Double,
+  label_height : Double,
+  layout_engine : String,
+) -> (Double, Double, Double) {
+  match d2_effective_label_position(obj, layout_engine) {
+    Some(position) => {
+      let label_tl = d2_point_on_box(
+        position,
+        box,
+        LABEL_PADDING,
+        label_width,
+        label_height,
+      )
+      let mut x = label_tl.x
+      let mut y = label_tl.y
+      if style_bool(obj.style.three_d, false) {
+        let offset = if obj.shape_type == Hexagon {
+          THREE_DEE_OFFSET / 2.0
+        } else {
+          THREE_DEE_OFFSET
+        }
+        if position.has_prefix("OUTSIDE_RIGHT_") {
+          x = x + offset
+        }
+        if position.has_prefix("OUTSIDE_TOP_") {
+          y = y - offset
+        }
+      }
+      return (x, y, label_width)
+    }
+    None =>
+      plain_object_label_layout(
+        obj, box, label_width, label_height, layout_engine,
+      )
   }
-  let height_px = match object_precomputed_label_dims(obj) {
-    Some((_, height)) => height.ceil().to_int()
-    None => ceil_double(box.height).to_int()
-  }
-  match obj.label_position {
+}
+
+///|
+fn markdown_label_layout(
+  obj : Shape,
+  box : Box,
+  layout_engine : String,
+  config : SvgConfig,
+) -> (Double, Double, Int, Int) {
+  let font_size = style_int(
+    obj.style.font_size,
+    default_object_font_size(obj, config),
+  )
+  let dims = @text_metrics.measure_label_markdown(obj.label, font_size)
+  let width_px = dims.width.ceil().to_int()
+  let height_px = dims.height.ceil().to_int()
+  match d2_effective_label_position(obj, layout_engine) {
     Some(position) => {
       let label_box = d2_box_for_label_position(
         obj,
@@ -628,10 +837,14 @@ fn markdown_label_layout(obj : Shape, box : Box) -> (Double, Double, Int, Int) {
     }
     None => ()
   }
-  let (x, y) = match obj.label_box {
-    Some(label_box) => (label_box.x, label_box.y)
-    None => (box.x, box.y)
-  }
+  let inner_box = shape_inner_box_for_label(
+    obj,
+    box,
+    width_px.to_double(),
+    height_px.to_double(),
+  )
+  let x = inner_box.x + (inner_box.width - width_px.to_double()) / 2.0
+  let y = inner_box.y + (inner_box.height - height_px.to_double()) / 2.0
   (x, y, width_px, height_px)
 }
 
@@ -690,7 +903,7 @@ fn d2_point_on_box(
   let mut y = box.y
   match position {
     "OUTSIDE_TOP_LEFT" => {
-      x = x + padding
+      x = x - padding
       y = y - padding - height
     }
     "OUTSIDE_TOP_CENTER" => {
@@ -852,23 +1065,13 @@ fn theme_token(value : String) -> String? {
 }
 
 ///|
-fn theme_css_var(token : String) -> String {
-  "var(--d2-\{token})"
-}
-
-///|
 fn resolve_theme_color(
   value : String,
   theme : @themes.Theme,
-  use_css_theme_vars : Bool,
+  _use_css_theme_vars : Bool,
 ) -> String {
   match theme_token(value) {
-    Some(token) =>
-      if use_css_theme_vars {
-        theme_css_var(token)
-      } else {
-        theme.resolve(token)
-      }
+    Some(token) => theme.resolve(token)
     None => value
   }
 }
@@ -1438,6 +1641,45 @@ fn d2_base_dimensions(
 }
 
 ///|
+fn d2_dimensions_with_legend(
+  left : Int,
+  top : Int,
+  width : Int,
+  height : Int,
+  padding : Double,
+  layout : @layout_svg.LegendLayout?,
+) -> (Int, Int, Int, Int) {
+  let adjusted_left = left
+  let mut adjusted_top = top
+  let mut adjusted_width = width
+  let mut adjusted_height = height
+  match layout {
+    Some(legend) => {
+      let legend_right = ceil_to_int(legend.x + legend.width)
+      if adjusted_left + adjusted_width < legend_right {
+        adjusted_width = legend_right -
+          adjusted_left +
+          floor_to_int(padding) / 2
+      }
+      let legend_top = floor_to_int(legend.y)
+      if legend_top < adjusted_top {
+        let diff_y = adjusted_top - legend_top
+        adjusted_top -= diff_y
+        adjusted_height += diff_y
+      }
+      let legend_bottom = ceil_to_int(legend.y + legend.height)
+      if adjusted_top + adjusted_height < legend_bottom {
+        adjusted_height = legend_bottom -
+          adjusted_top +
+          floor_to_int(padding) / 2
+      }
+    }
+    None => ()
+  }
+  (adjusted_left, adjusted_top, adjusted_width, adjusted_height)
+}
+
+///|
 priv struct RootCanvasMetrics {
   viewbox_x : Double
   viewbox_y : Double
@@ -1476,6 +1718,21 @@ fn style_fill_pattern_key(fill_pattern : @graph.StyleValue?) -> String? {
 }
 
 ///|
+fn effective_object_fill_pattern(obj : Shape, theme : @themes.Theme) -> String? {
+  match style_fill_pattern_key(obj.style.fill_pattern) {
+    Some(pattern) => Some(pattern)
+    None =>
+      if theme.rules.container_dots && is_container(obj) {
+        Some("dots")
+      } else if theme.rules.all_paper {
+        Some("paper")
+      } else {
+        None
+      }
+  }
+}
+
+///|
 fn pattern_def_id(pattern : String, diagram_hash : String) -> String {
   "\{pattern}-\{diagram_hash}"
 }
@@ -1483,20 +1740,6 @@ fn pattern_def_id(pattern : String, diagram_hash : String) -> String {
 ///|
 fn pattern_overlay_class(pattern : String) -> String {
   "\{pattern}-overlay"
-}
-
-///|
-fn resolve_fill_with_pattern(
-  base_fill : String,
-  fill_pattern : @graph.StyleValue?,
-  config : SvgConfig,
-  diagram_hash : String,
-) -> String {
-  let _ = config
-  match style_fill_pattern_key(fill_pattern) {
-    Some(pattern) => "url(#\{pattern_def_id(pattern, diagram_hash)})"
-    None => base_fill
-  }
 }
 
 ///|
@@ -1607,7 +1850,7 @@ fn positioned_tooltip_size(
   }
   let is_mono = obj.shape_type == Code ||
     theme.rules.mono ||
-    style_is_mono(obj.style.font_family)
+    style_is_mono(obj.style.font)
   let dims = @text_metrics.measure_text(
     obj.tooltip.unwrap_or(""),
     font_size,
@@ -1615,9 +1858,13 @@ fn positioned_tooltip_size(
     false,
     false,
   )
+  let markdown_dims = @text_metrics.measure_label_markdown(
+    obj.tooltip.unwrap_or(""),
+    font_size,
+  )
   (
     dims.dimensions.width.ceil().to_int() + 20,
-    dims.dimensions.height.ceil().to_int() + 20,
+    markdown_dims.height.ceil().to_int() + 20,
   )
 }
 
@@ -1779,9 +2026,15 @@ fn render_positioned_tooltip(
             tooltip_height.to_double(),
           )
       }
-      let md_html = @cmark_html.render(safe=false, strict=false, text) catch {
-        _ => @svg.escape_xml(text)
-      }
+      let md_html = normalize_markdown_xhtml(
+        @cmark_html.render(
+          safe=false,
+          strict=false,
+          @text_metrics.markdown_source_like_d2(text),
+        ) catch {
+          _ => @svg.escape_xml(text)
+        },
+      )
       let foreign = @xml_emit.Element::new("foreignObject")
         .attr("x", d2_fixed6(x + 10.0))
         .attr("y", d2_fixed6(y + 10.0))
@@ -1818,8 +2071,9 @@ fn render_object_appendix_icons(
   if !has_tooltip_icon && link_href is None && obj.tooltip_position is None {
     return elements
   }
-  let anchor_x = (box.x + box.width).ceil().to_int()
-  let anchor_y = box.y.ceil().to_int()
+  let appendix_anchor = d2_appendix_anchor(obj, box)
+  let anchor_x = appendix_anchor.x.ceil().to_int()
+  let anchor_y = appendix_anchor.y.ceil().to_int()
   let tooltip_slot_offset = 0
   let link_slot_offset = if has_tooltip_icon {
     APPENDIX_ICON_DIAMETER
@@ -1859,6 +2113,87 @@ fn render_object_appendix_icons(
     None => ()
   }
   elements
+}
+
+///|
+fn d2_appendix_anchor(obj : Shape, box : Box) -> @graph.Point {
+  if obj.shape_type != Person {
+    return @graph.Point::new(box.x + box.width, box.y)
+  }
+
+  // The appendix ray runs from the center to the top-right corner. For a
+  // person it intersects the right-hand head curve, whose source path is
+  // C 48 0, 59.3 11.3, 59.3 25.2 in the 68.3 x 77.4 coordinate space.
+  let line_start = @graph.Point::new(
+    box.x + box.width / 2.0,
+    box.y + box.height / 2.0,
+  )
+  let line_end = @graph.Point::new(box.x + box.width, box.y)
+  let sx = box.width / 68.3
+  let sy = box.height / 77.4
+  let path_point = fn(x : Double, y : Double) {
+    @graph.Point::new(
+      d2_path_chop_precision(box.x + x * sx),
+      d2_path_chop_precision(box.y + y * sy),
+    )
+  }
+  let p0 = path_point(34.1, 0.0)
+  let p1 = path_point(48.0, 0.0)
+  let p2 = path_point(59.3, 11.3)
+  let p3 = path_point(59.3, 25.2)
+  let mut lo = 0.0
+  let mut hi = 1.0
+  let mut flo = d2_cubic_line_value(line_start, line_end, p0, p1, p2, p3, lo)
+  for _ in 0..<50 {
+    let mid = (lo + hi) / 2.0
+    let fm = d2_cubic_line_value(line_start, line_end, p0, p1, p2, p3, mid)
+    if flo * fm <= 0.0 {
+      hi = mid
+    } else {
+      lo = mid
+      flo = fm
+    }
+  }
+  let point = d2_cubic_point(p0, p1, p2, p3, (lo + hi) / 2.0)
+  @graph.Point::new(
+    round_double(Float::from_double(point.x).to_double()),
+    round_double(Float::from_double(point.y).to_double()),
+  )
+}
+
+///|
+fn d2_cubic_point(
+  p0 : @graph.Point,
+  p1 : @graph.Point,
+  p2 : @graph.Point,
+  p3 : @graph.Point,
+  t : Double,
+) -> @graph.Point {
+  let u = 1.0 - t
+  let uu = u * u
+  let uuu = uu * u
+  let tt = t * t
+  let ttt = tt * t
+  @graph.Point::new(
+    uuu * p0.x + 3.0 * uu * t * p1.x + 3.0 * u * tt * p2.x + ttt * p3.x,
+    uuu * p0.y + 3.0 * uu * t * p1.y + 3.0 * u * tt * p2.y + ttt * p3.y,
+  )
+}
+
+///|
+fn d2_cubic_line_value(
+  line_start : @graph.Point,
+  line_end : @graph.Point,
+  p0 : @graph.Point,
+  p1 : @graph.Point,
+  p2 : @graph.Point,
+  p3 : @graph.Point,
+  t : Double,
+) -> Double {
+  let point = d2_cubic_point(p0, p1, p2, p3, t)
+  let dx = line_end.x - line_start.x
+  let dy = line_end.y - line_start.y
+  (point.x - line_start.x) * dy - (point.y - line_start.y) * dx
 }
 
 ///|
@@ -2166,6 +2501,9 @@ pub fn render_svg(
       )
     None => None
   }
+  // D2 keeps light-theme presentation attributes in the SVG and attaches
+  // token classes that the dark-theme media query overrides. CSS variables
+  // would change both the serialized structure and fallback rendering.
   let use_css_theme_vars = dark_theme is Some(_)
   // reference behavior: do not reserve extra height for custom interactive controls.
   let control_height = 0.0
@@ -2178,13 +2516,30 @@ pub fn render_svg(
   let max_x = base_max_x
   let max_y = base_max_y
   let bounds = (min_x, min_y, max_x, max_y)
+  let legend_layout = match graph.legend {
+    Some(legend) =>
+      @layout_svg.compute_legend_layout(
+        legend,
+        bounds,
+        @layout_svg.LegendLayoutConfig::new(config.font_size),
+      )
+    None => None
+  }
   // reference behavior: dimensions are based on BoundingBox + pad.
-  let (base_left, base_top, base_width, base_height) = d2_base_dimensions(
+  let (plain_left, plain_top, plain_width, plain_height) = d2_base_dimensions(
     min_x,
     min_y,
     max_x,
     max_y,
     config.padding + control_height,
+  )
+  let (base_left, base_top, base_width, base_height) = d2_dimensions_with_legend(
+    plain_left,
+    plain_top,
+    plain_width,
+    plain_height,
+    config.padding + control_height,
+    legend_layout,
   )
   let root_canvas = compute_root_canvas_metrics(
     graph, config, light_theme, use_css_theme_vars, base_left, base_top, base_width,
@@ -2213,6 +2568,7 @@ pub fn render_svg(
   )
   // Add fill patterns
   add_fill_patterns(emit_assets, graph, config, light_theme, use_css_theme_vars)
+  add_gradients(emit_assets, graph)
   // Add sketch runtime assets if needed
   add_sketch_assets(emit_assets, graph, config)
   let sketch_session = if needs_sketch {
@@ -2243,7 +2599,12 @@ pub fn render_svg(
   // reference behavior: render in one combined z-ordered stream of shapes+connections.
   // Shapes still use internal background/foreground passes when needed, but are
   // emitted at their sorted position in the global object order.
-  let sorted_objects = sort_render_objects(graph.shapes, graph.connections)
+  let sorted_objects = sort_render_objects(
+    graph.shapes,
+    graph.connections,
+    preserve_shape_order=graph.root.shape_type == SequenceDiagram,
+  )
+  let layout_engine = d2_layout_engine(graph)
   let connection_repeat_indices = d2_connection_repeat_indices(
     graph.connections,
   )
@@ -2264,6 +2625,7 @@ pub fn render_svg(
           config,
           light_theme,
           use_css_theme_vars,
+          layout_engine,
           pass=Background,
         )
         render_svg_object(
@@ -2276,6 +2638,7 @@ pub fn render_svg(
           config,
           light_theme,
           use_css_theme_vars,
+          layout_engine,
           pass=Foreground,
         )
       }
@@ -2296,10 +2659,19 @@ pub fn render_svg(
     }
   }
   // Render sequence diagram notes (using page shape)
-  for note in graph.sequence_notes {
-    let text = note.1
-    let box = note.2
-    render_svg_sequence_note(svg, box, text, config)
+  let mut has_materialized_sequence_notes = false
+  for shape in graph.shapes {
+    if shape.classes.contains("__diago_sequence_note") {
+      has_materialized_sequence_notes = true
+      break
+    }
+  }
+  if !has_materialized_sequence_notes {
+    for note in graph.sequence_notes {
+      let text = note.1
+      let box = note.2
+      render_svg_sequence_note(svg, box, text, config)
+    }
   }
   // Render sequence diagram fragments (combined fragments like alt, opt, loop)
   render_svg_sequence_fragments(svg, graph, config)
@@ -2309,17 +2681,9 @@ pub fn render_svg(
   // reference behavior: export only the active/base board in SVG output.
 
   // Render legend (always visible across layer/scenario/step switching)
-  match graph.legend {
-    Some(legend) =>
-      match
-        @layout_svg.compute_legend_layout(
-          legend,
-          bounds,
-          @layout_svg.LegendLayoutConfig::new(config.font_size),
-        ) {
-        Some(layout) => render_legend_svg(svg, layout, config)
-        None => ()
-      }
+  match legend_layout {
+    Some(layout) =>
+      render_legend_svg(svg, layout, scope_class, config, light_theme)
     None => ()
   }
 
@@ -2357,7 +2721,60 @@ fn edge_label_mask_def(
   sb.write_string(
     "<rect x=\"\{mx}\" y=\"\{my}\" width=\"\{mw}\" height=\"\{mh}\" fill=\"white\"></rect>\n",
   )
-  for edge in graph.connections {
+  let layout_engine = d2_layout_engine(graph)
+  for obj in graph.shapes {
+    match
+      (
+        d2_effective_label_position(obj, layout_engine),
+        obj.box,
+        object_precomputed_label_dims(obj),
+      ) {
+      (Some(position), Some(box), Some((label_width, label_height))) =>
+        if object_label_visible(obj) && d2_label_position_is_border(position) {
+          let (label_x, label_y, _) = plain_object_label_layout(
+            obj, box, label_width, label_height, layout_engine,
+          )
+          let stroke_width = style_double(
+            obj.style.stroke_width,
+            config.default_stroke_width,
+          )
+          let mut cutout_x = 0.0
+          let mut cutout_y = 0.0
+          let mut cutout_width = 0.0
+          let mut cutout_height = 0.0
+          if position.has_prefix("BORDER_TOP_") {
+            cutout_x = label_x - 2.0
+            cutout_y = box.y - stroke_width / 2.0
+            cutout_width = label_width + 4.0
+            cutout_height = stroke_width
+          } else if position.has_prefix("BORDER_BOTTOM_") {
+            cutout_x = label_x - 2.0
+            cutout_y = box.y + box.height - stroke_width / 2.0
+            cutout_width = label_width + 4.0
+            cutout_height = stroke_width
+          } else if position.has_prefix("BORDER_LEFT_") {
+            cutout_x = box.x - stroke_width / 2.0
+            cutout_y = label_y - 2.0
+            cutout_width = stroke_width
+            cutout_height = label_height + 4.0
+          } else if position.has_prefix("BORDER_RIGHT_") {
+            cutout_x = box.x + box.width - stroke_width / 2.0
+            cutout_y = label_y - 2.0
+            cutout_width = stroke_width
+            cutout_height = label_height + 4.0
+          }
+          if cutout_width > 0.0 && cutout_height > 0.0 {
+            sb.write_string(
+              "<rect x=\"\{d2_fixed6(cutout_x)}\" y=\"\{d2_fixed6(cutout_y)}\" width=\"\{d2_fixed6(cutout_width)}\" height=\"\{d2_fixed6(cutout_height)}\" fill=\"black\"></rect>\n",
+            )
+            cutout_count = cutout_count + 1
+          }
+        }
+      _ => ()
+    }
+  }
+  for render_obj in sort_render_objects([], graph.connections) {
+    guard render_obj is EdgeObj(edge) else { continue }
     if edge.label != "" {
       match edge.label_box {
         Some(label_box) => {
@@ -2424,10 +2841,12 @@ fn marker_dimensions(
   let (base_width, base_height, width_multiplier, height_multiplier) = match
     arrowhead {
     Triangle => (4.0, 4.0, 3.0, 4.0)
+    Arrow => (6.0, 4.0, 3.0, 4.0)
     Open => (7.0, 7.0, 3.0, 4.0)
     Line => (0.0, 0.0, 5.0, 8.0)
     Diamond => (11.0, 9.0, 5.5, 4.5)
-    Circle => (8.0, 8.0, 5.0, 5.0)
+    FilledDiamond => (11.0, 7.0, 5.5, 3.5)
+    Circle | FilledCircle => (8.0, 8.0, 5.0, 5.0)
     CfOne
     | CfMany
     | CfOneRequired
@@ -2446,22 +2865,28 @@ fn marker_dimensions(
 fn marker_body(
   arrowhead : ArrowheadType,
   is_target : Bool,
+  stroke_signature : String,
   stroke : String,
   stroke_width : Double,
   width : Double,
   height : Double,
   theme : @themes.Theme,
+  inline_theme : Bool,
 ) -> String {
   let stroke_width_css = if stroke_width.round() == stroke_width {
     stroke_width.to_int().to_string()
   } else {
     d2_fixed6(stroke_width)
   }
-  let connection_fill_class = match d2_theme_token(stroke, theme) {
+  let stroke_token = match d2_theme_token(stroke_signature, theme) {
+    Some(token) => Some(token)
+    None => d2_theme_token(stroke, theme)
+  }
+  let connection_fill_class = match stroke_token {
     Some(token) => "connection fill-\{token}"
     None => "connection"
   }
-  let connection_stroke_class = match d2_theme_token(stroke, theme) {
+  let connection_stroke_class = match stroke_token {
     Some(token) => "connection stroke-\{token}"
     None => "connection"
   }
@@ -2469,12 +2894,16 @@ fn marker_body(
     Some(token) => "fill-\{token}"
     None => ""
   }
+  let inline_stroke = inline_theme || stroke_token is None
+  let inline_bg = inline_theme || bg_fill_class == ""
+  let stroke_attr = if inline_stroke { stroke } else { "" }
+  let bg_attr = if inline_bg { "#FFFFFF" } else { "" }
   let stroke_and_bg_class = if bg_fill_class == "" {
     connection_stroke_class
   } else {
     "\{connection_stroke_class} \{bg_fill_class}"
   }
-  let bg_stroke_class = match d2_theme_token(stroke, theme) {
+  let bg_stroke_class = match stroke_token {
     Some(token) =>
       if bg_fill_class == "" {
         " stroke-\{token}"
@@ -2493,7 +2922,22 @@ fn marker_body(
       }
       @xml_emit.Element::new("polygon")
       .attr("points", points)
-      .attr("fill", stroke)
+      .attr_if("fill", stroke_attr)
+      .attr("class", connection_fill_class)
+      .attr("stroke-width", stroke_width_css)
+      .self_close()
+      .build()
+    }
+    Arrow => {
+      let inset = stroke_width * 1.5
+      let points = if is_target {
+        "\{d2_fixed6(0.0)},\{d2_fixed6(0.0)} \{d2_fixed6(width)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(0.0)},\{d2_fixed6(height)} \{d2_fixed6(inset)},\{d2_fixed6(height / 2.0)}"
+      } else {
+        "\{d2_fixed6(width)},\{d2_fixed6(0.0)} \{d2_fixed6(0.0)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(width)},\{d2_fixed6(height)} \{d2_fixed6(width - inset)},\{d2_fixed6(height / 2.0)}"
+      }
+      @xml_emit.Element::new("polygon")
+      .attr("points", points)
+      .attr_if("fill", stroke_attr)
       .attr("class", connection_fill_class)
       .attr("stroke-width", stroke_width_css)
       .self_close()
@@ -2508,8 +2952,8 @@ fn marker_body(
       }
       @xml_emit.Element::new("polygon")
       .attr("points", points)
-      .attr("fill", "#FFFFFF")
-      .attr("stroke", stroke)
+      .attr_if("fill", bg_attr)
+      .attr_if("stroke", stroke_attr)
       .attr("class", stroke_and_bg_class)
       .attr("stroke-width", stroke_width_css)
       .self_close()
@@ -2524,7 +2968,7 @@ fn marker_body(
       @xml_emit.Element::new("polyline")
       .attr("points", points)
       .attr("fill", "none")
-      .attr("stroke", stroke)
+      .attr_if("stroke", stroke_attr)
       .attr("class", connection_stroke_class)
       .attr("stroke-width", stroke_width_css)
       .self_close()
@@ -2538,9 +2982,19 @@ fn marker_body(
       }
       @xml_emit.Element::new("polygon")
       .attr("points", points)
-      .attr("stroke", stroke)
-      .attr("fill", "#FFFFFF")
+      .attr_if("stroke", stroke_attr)
+      .attr_if("fill", bg_attr)
       .attr("class", stroke_and_bg_class)
+      .attr("stroke-width", stroke_width_css)
+      .self_close()
+      .build()
+    }
+    FilledDiamond => {
+      let points = "\{d2_fixed6(0.0)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(width / 2.0)},\{d2_fixed6(0.0)} \{d2_fixed6(width)},\{d2_fixed6(height / 2.0)} \{d2_fixed6(width / 2.0)},\{d2_fixed6(height)}"
+      @xml_emit.Element::new("polygon")
+      .attr("points", points)
+      .attr_if("fill", stroke_attr)
+      .attr("class", connection_fill_class)
       .attr("stroke-width", stroke_width_css)
       .self_close()
       .build()
@@ -2557,9 +3011,26 @@ fn marker_body(
       .attr("r", d2_fixed6(inner_radius))
       .attr("cx", d2_fixed6(cx))
       .attr("cy", d2_fixed6(radius))
-      .attr("stroke", stroke)
-      .attr("fill", "#FFFFFF")
+      .attr_if("stroke", stroke_attr)
+      .attr_if("fill", bg_attr)
       .attr("class", bg_stroke_class)
+      .attr("stroke-width", stroke_width_css)
+      .self_close()
+      .build()
+    }
+    FilledCircle => {
+      let radius = width / 2.0
+      let cx = if is_target {
+        radius + stroke_width / 2.0
+      } else {
+        radius - stroke_width / 2.0
+      }
+      @xml_emit.Element::new("circle")
+      .attr("r", d2_fixed6(radius - stroke_width / 2.0))
+      .attr("cx", d2_fixed6(cx))
+      .attr("cy", d2_fixed6(radius))
+      .attr_if("fill", stroke_attr)
+      .attr("class", connection_fill_class)
       .attr("stroke-width", stroke_width_css)
       .self_close()
       .build()
@@ -2583,8 +3054,8 @@ fn marker_body(
           "d",
           "M\{d2_fixed6(offset)},\{d2_fixed6(0.0)} \{d2_fixed6(offset)},\{d2_fixed6(height)}",
         )
-        .attr("fill", "#FFFFFF")
-        .attr("stroke", stroke)
+        .attr_if("fill", bg_attr)
+        .attr_if("stroke", stroke_attr)
         .attr("class", stroke_and_bg_class)
         .attr("stroke-width", stroke_width_css)
         .self_close()
@@ -2594,8 +3065,8 @@ fn marker_body(
         .attr("r", d2_fixed6(offset / 2.0))
         .attr("cx", d2_fixed6(offset / 2.0 + 2.0))
         .attr("cy", d2_fixed6(height / 2.0))
-        .attr("stroke", stroke)
-        .attr("fill", "#FFFFFF")
+        .attr_if("stroke", stroke_attr)
+        .attr_if("fill", bg_attr)
         .attr("class", stroke_and_bg_class)
         .attr("stroke-width", stroke_width_css)
         .self_close()
@@ -2618,8 +3089,8 @@ fn marker_body(
       }
       @xml_emit.Element::new("g")
       .attr_if("transform", transform)
-      .attr("stroke", stroke)
-      .attr("fill", "#FFFFFF")
+      .attr_if("stroke", stroke_attr)
+      .attr_if("fill", bg_attr)
       .attr("class", stroke_and_bg_class)
       .attr("stroke-width", stroke_width_css)
       .child(modifier)
@@ -2634,9 +3105,11 @@ fn marker_def(
   id : String,
   arrowhead : ArrowheadType,
   is_target : Bool,
+  stroke_signature : String,
   stroke : String,
   stroke_width : Double,
   theme : @themes.Theme,
+  inline_theme : Bool,
 ) -> String {
   let (width_raw, height_raw) = marker_dimensions(arrowhead, stroke_width)
   if width_raw <= 0.0 || height_raw <= 0.0 {
@@ -2659,7 +3132,8 @@ fn marker_def(
     marker_width = width_raw * 1.1
   }
   let body = marker_body(
-    arrowhead, is_target, stroke, stroke_width, width_raw, marker_height, theme,
+    arrowhead, is_target, stroke_signature, stroke, stroke_width, width_raw, marker_height,
+    theme, inline_theme,
   )
   let sb = StringBuilder::new()
   sb.write_string("<marker")
@@ -2689,6 +3163,7 @@ fn marker_url_for_edge(
   stroke_render : String,
   stroke_width : Double,
   theme : @themes.Theme,
+  inline_theme : Bool,
 ) -> String {
   if arrowhead == None {
     return ""
@@ -2701,7 +3176,8 @@ fn marker_url_for_edge(
         diagram_hash, arrowhead, is_target, stroke_signature, stroke_width,
       )
       let def = marker_def(
-        id, arrowhead, is_target, stroke_render, stroke_width, theme,
+        id, arrowhead, is_target, stroke_signature, stroke_render, stroke_width,
+        theme, inline_theme,
       )
       if def != "" {
         svg.add(def)
@@ -2731,21 +3207,22 @@ fn add_fill_patterns(
     None => ()
   }
   for obj in graph.shapes {
-    match style_fill_pattern_key(obj.style.fill_pattern) {
+    match effective_object_fill_pattern(obj, theme) {
       Some(pattern) => patterns_used.add(pattern)
       None => ()
     }
   }
   // Add pattern definitions for each used pattern
-  let stroke_color = resolve_theme_color("N1", theme, use_css_theme_vars)
+  // D2's regular SVG fill-pattern assets use a fixed neutral ink color;
+  // they are not recolored by the active theme.
+  let stroke_color = "#0A0F25"
   let bg_color = resolve_theme_color("N7", theme, use_css_theme_vars)
-  let pattern_list : Array[String] = []
-  for pattern in patterns_used {
-    pattern_list.push(pattern)
-  }
   let overlay_rules : Array[String] = []
-  pattern_list.sort()
-  for pattern in pattern_list {
+  // D2 emits pattern assets in the declaration order from d2ast.FillPatterns.
+  for pattern in ["dots", "lines", "grain", "paper", "crosshatch"] {
+    if !patterns_used.contains(pattern) {
+      continue
+    }
     match pattern {
       "dots" =>
         assets.add_def(
@@ -2771,7 +3248,7 @@ fn add_fill_patterns(
             bg_color,
           ),
         )
-      "grain" =>
+      "grain" | "paper" =>
         assets.add_def(
           @svg.grain_pattern(
             pattern_def_id(pattern, assets.diagram_hash),
@@ -2792,11 +3269,124 @@ fn add_fill_patterns(
 }
 
 ///|
+fn d2_gradient_id(css_gradient : String) -> String {
+  let bytes = @utf8.encode(css_gradient)
+  "grad-" + @crypto.bytes_to_hex_string(@crypto.sha1(bytes))
+}
+
+///|
+fn d2_gradient_paint(value : String) -> String {
+  let trimmed = value.trim().to_owned()
+  if (
+      trimmed.has_prefix("linear-gradient(") ||
+      trimmed.has_prefix("radial-gradient(")
+    ) &&
+    trimmed.has_suffix(")") {
+    "url('#\{d2_gradient_id(trimmed)}')"
+  } else {
+    value
+  }
+}
+
+///|
+fn d2_fixed2(value : Double) -> String {
+  let rounded = (value * 100.0).round().to_int()
+  let integer = rounded / 100
+  let fraction = rounded % 100
+  if fraction < 10 {
+    "\{integer}.0\{fraction}"
+  } else {
+    "\{integer}.\{fraction}"
+  }
+}
+
+///|
+fn d2_gradient_definition(css_gradient : String) -> String? {
+  let trimmed = css_gradient.trim().to_owned()
+  let (tag, prefix_length) = if trimmed.has_prefix("linear-gradient(") &&
+    trimmed.has_suffix(")") {
+    ("linearGradient", "linear-gradient(".length())
+  } else if trimmed.has_prefix("radial-gradient(") && trimmed.has_suffix(")") {
+    ("radialGradient", "radial-gradient(".length())
+  } else {
+    return None
+  }
+  let params = trimmed[prefix_length:trimmed.length() - 1].to_owned()
+  let stops : Array[(String, String?)] = []
+  for raw in params.split(",") {
+    let fields = raw.trim().to_owned().split(" ").collect()
+    if fields.length() == 1 {
+      stops.push((fields[0].to_owned(), None))
+    } else if fields.length() == 2 {
+      stops.push((fields[0].to_owned(), Some(fields[1].to_owned())))
+    }
+  }
+  if stops.is_empty() {
+    return None
+  }
+  let gradient = @xml_emit.Element::new(tag).attr("id", d2_gradient_id(trimmed))
+  if tag == "linearGradient" {
+    ignore(
+      gradient
+      .attr("x1", "0%")
+      .attr("y1", "0%")
+      .attr("x2", "0%")
+      .attr("y2", "100%"),
+    )
+  }
+  let body = StringBuilder::new()
+  for i, stop in stops {
+    let offset = match stop.1 {
+      Some(position) => position
+      None =>
+        if stops.length() == 1 {
+          "0.00%"
+        } else {
+          let percent = i.to_double() / (stops.length() - 1).to_double() * 100.0
+          d2_fixed2(percent) + "%"
+        }
+    }
+    body.write_string(
+      @xml_emit.Element::new("stop")
+      .attr("offset", offset)
+      .attr("stop-color", stop.0)
+      .self_close()
+      .build(),
+    )
+  }
+  Some(gradient.raw(body.to_string()).build())
+}
+
+///|
+fn add_gradients(assets : SvgEmitAssets, graph : Diagram) -> Unit {
+  let seen : @hashset.HashSet[String] = HashSet([])
+  for obj in graph.shapes {
+    let values = [
+      style_string(obj.style.fill, ""),
+      style_string(obj.style.stroke, ""),
+      style_string(obj.style.font_color, ""),
+    ]
+    for value in values {
+      let trimmed = value.trim().to_owned()
+      if !seen.contains(trimmed) {
+        match d2_gradient_definition(trimmed) {
+          Some(definition) => {
+            seen.add(trimmed)
+            assets.add_body_prefix_def(definition)
+          }
+          None => ()
+        }
+      }
+    }
+  }
+}
+
+///|
 /// Add sketch filter if any object uses sketch mode
 fn add_shadow_filter(assets : SvgEmitAssets, graph : Diagram) -> Unit {
   for obj in graph.shapes {
     if style_bool(obj.style.shadow, false) {
-      assets.add_def(@svg.shadow_filter("shadow-filter"))
+      assets.add_body_prefix_def(@svg.shadow_filter("shadow-filter"))
       return
     }
   }
@@ -2844,11 +3434,31 @@ fn include_bounds(
 }
 
 ///|
+fn d2_target_label_bounds(
+  x : Double,
+  y : Double,
+  width : Double,
+  height : Double,
+) -> (Double, Double, Double, Double) {
+  // d2target.Diagram.BoundingBox truncates the label top-left toward zero,
+  // then adds the already-integer target label dimensions.
+  let left = x.to_int().to_double()
+  let top = y.to_int().to_double()
+  (
+    left,
+    top,
+    left + width.to_int().to_double(),
+    top + height.to_int().to_double(),
+  )
+}
+
+///|
 fn compute_graph_bounds(
   graph : Diagram,
   config : SvgConfig,
   theme : @themes.Theme,
 ) -> (Double, Double, Double, Double) {
+  let layout_engine = d2_layout_engine(graph)
   let mut bounds = (0.0, 0.0, 0.0, 0.0, true)
   let inline_child_ids : @hashset.HashSet[String] = HashSet([])
   for parent in graph.shapes {
@@ -2863,7 +3473,17 @@ fn compute_graph_bounds(
       continue
     }
     match obj.box {
-      Some(b) => {
+      Some(raw_box) => {
+        // d2exporter converts layout geometry to d2target.Shape before the
+        // renderer computes Diagram.BoundingBox. Go's float-to-int conversion
+        // truncates each box component toward zero, so bounds must use the
+        // same target geometry rather than the higher-precision layout box.
+        let b = @graph.Box::new(
+          raw_box.x.to_int().to_double(),
+          raw_box.y.to_int().to_double(),
+          raw_box.width.to_int().to_double(),
+          raw_box.height.to_int().to_double(),
+        )
         let stroke_width = style_double(
           obj.style.stroke_width,
           config.default_stroke_width,
@@ -2882,8 +3502,8 @@ fn compute_graph_bounds(
         )
 
         if obj.shape_type == C4Person {
-          let head_radius = b.width * 0.22
-          let head_center_y = b.height * 0.18
+          let head_radius = (b.width * 0.22).to_int().to_double()
+          let head_center_y = (b.height * 0.18).to_int().to_double()
           let head_top = b.y + head_center_y - head_radius
           bounds = include_bounds(
             bounds.0,
@@ -2983,17 +3603,102 @@ fn compute_graph_bounds(
           )
         }
 
-        match obj.icon_position {
-          Some(position) =>
-            if obj.icon is Some(_) && d2_icon_position_is_outside(position) {
-              let icon_size_int = d2_get_icon_size(b, position)
-              let icon_size = icon_size_int.to_double()
-              let icon_tl = d2_point_on_box(
-                position,
-                b,
-                LABEL_PADDING,
-                icon_size,
-                icon_size,
+        if obj.icon is Some(_) {
+          let position = d2_effective_icon_position(obj, layout_engine)
+          if d2_icon_position_is_outside(position) {
+            let icon_size_int = d2_get_icon_size(b, position)
+            let icon_size = icon_size_int.to_double()
+            if position.has_prefix("OUTSIDE_TOP_") {
+              bounds = include_bounds(
+                bounds.0,
+                bounds.1,
+                bounds.2,
+                bounds.3,
+                bounds.4,
+                b.x,
+                b.y - LABEL_PADDING - icon_size,
+                b.x + b.width,
+                b.y,
+              )
+            } else if position.has_prefix("OUTSIDE_BOTTOM_") {
+              bounds = include_bounds(
+                bounds.0,
+                bounds.1,
+                bounds.2,
+                bounds.3,
+                bounds.4,
+                b.x,
+                b.y,
+                b.x + b.width,
+                b.y + b.height + LABEL_PADDING + icon_size,
+              )
+            } else if position.has_prefix("OUTSIDE_LEFT_") {
+              bounds = include_bounds(
+                bounds.0,
+                bounds.1,
+                bounds.2,
+                bounds.3,
+                bounds.4,
+                b.x - LABEL_PADDING - icon_size,
+                b.y,
+                b.x,
+                b.y + b.height,
+              )
+            } else if position.has_prefix("OUTSIDE_RIGHT_") {
+              bounds = include_bounds(
+                bounds.0,
+                bounds.1,
+                bounds.2,
+                bounds.3,
+                bounds.4,
+                b.x,
+                b.y,
+                b.x + b.width + LABEL_PADDING + icon_size,
+                b.y + b.height,
+              )
+            }
+          }
+        }
+
+        if object_label_visible(obj) &&
+          obj.shape_type != Class &&
+          obj.shape_type != SqlTable {
+          if has_class(obj, "lang:latex") {
+            let dims = @text_metrics.measure_label_latex(obj.label)
+            let (label_x, label_y, label_w) = plain_object_label_bounds_layout(
+              obj,
+              b,
+              dims.width,
+              dims.height,
+              layout_engine,
+            )
+            let label_bounds = d2_target_label_bounds(
+              label_x,
+              label_y,
+              label_w,
+              dims.height,
+            )
+            bounds = include_bounds(
+              bounds.0,
+              bounds.1,
+              bounds.2,
+              bounds.3,
+              bounds.4,
+              label_bounds.0,
+              label_bounds.1,
+              label_bounds.2,
+              label_bounds.3,
+            )
+          } else if has_class(obj, "lang:markdown") {
+            let (label_x, label_y, label_w, label_h) = markdown_label_layout(
+              obj, b, layout_engine, config,
+            )
+            if label_w > 0 && label_h > 0 {
+              let label_bounds = d2_target_label_bounds(
+                label_x,
+                label_y,
+                label_w.to_double(),
+                label_h.to_double(),
               )
               bounds = include_bounds(
                 bounds.0,
@@ -3001,66 +3706,50 @@ fn compute_graph_bounds(
                 bounds.2,
                 bounds.3,
                 bounds.4,
-                icon_tl.x,
-                icon_tl.y,
-                icon_tl.x + icon_size,
-                icon_tl.y + icon_size,
+                label_bounds.0,
+                label_bounds.1,
+                label_bounds.2,
+                label_bounds.3,
               )
             }
-          None => ()
-        }
-
-        if obj.label != "" && has_class(obj, "lang:markdown") {
-          let (label_x, label_y, label_w, label_h) = markdown_label_layout(
-            obj, b,
-          )
-          if label_w > 0 && label_h > 0 {
+          } else {
+            let text_transform = if theme.rules.caps_lock {
+              "uppercase"
+            } else {
+              style_string(obj.style.text_transform, "")
+            }
+            let default_font_size = default_object_font_size(obj, config)
+            let font_size = match obj.style.font_size {
+              Some(v) => v.as_int().unwrap_or(default_font_size)
+              None => default_font_size
+            }
+            let is_bold = style_bool(obj.style.bold, default_object_bold(obj))
+            let is_italic = style_bool(obj.style.italic, false)
+            let is_mono = obj.shape_type == Code ||
+              theme.rules.mono ||
+              style_is_mono(obj.style.font)
+            let label_text = transform_label_text(obj.label, text_transform)
+            let (label_width, label_height) = object_label_dims(
+              obj, label_text, font_size, is_mono, is_bold, is_italic,
+            )
+            let (label_tl_x, label_tl_y, label_box_width) = plain_object_label_bounds_layout(
+              obj, b, label_width, label_height, layout_engine,
+            )
+            let label_bounds = d2_target_label_bounds(
+              label_tl_x, label_tl_y, label_box_width, label_height,
+            )
             bounds = include_bounds(
               bounds.0,
               bounds.1,
               bounds.2,
               bounds.3,
               bounds.4,
-              label_x,
-              label_y,
-              label_x + label_w.to_double(),
-              label_y + label_h.to_double(),
+              label_bounds.0,
+              label_bounds.1,
+              label_bounds.2,
+              label_bounds.3,
             )
           }
-        } else if obj.label != "" && !has_class(obj, "lang:latex") {
-          let text_transform = if theme.rules.caps_lock {
-            "uppercase"
-          } else {
-            style_string(obj.style.text_transform, "")
-          }
-          let default_font_size = default_object_font_size(obj, config)
-          let font_size = match obj.style.font_size {
-            Some(v) => v.as_int().unwrap_or(default_font_size)
-            None => default_font_size
-          }
-          let is_bold = style_bool(obj.style.bold, default_object_bold(obj))
-          let is_italic = style_bool(obj.style.italic, false)
-          let is_mono = obj.shape_type == Code ||
-            theme.rules.mono ||
-            style_is_mono(obj.style.font_family)
-          let label_text = transform_label_text(obj.label, text_transform)
-          let (label_width, label_height) = object_label_dims(
-            obj, label_text, font_size, is_mono, is_bold, is_italic,
-          )
-          let (label_tl_x, label_tl_y, label_box_width) = plain_object_label_layout(
-            obj, b, label_width, label_height,
-          )
-          bounds = include_bounds(
-            bounds.0,
-            bounds.1,
-            bounds.2,
-            bounds.3,
-            bounds.4,
-            label_tl_x,
-            label_tl_y,
-            label_tl_x + label_box_width,
-            label_tl_y + label_height,
-          )
         }
       }
       None => ()
@@ -3120,7 +3809,7 @@ fn compute_graph_bounds(
     }
 
     let font_size = style_int(edge.style.font_size, config.font_size)
-    let is_mono = theme.rules.mono || style_is_mono(edge.style.font_family)
+    let is_mono = theme.rules.mono || style_is_mono(edge.style.font)
     let is_bold = style_bool(edge.style.bold, false)
     match edge.src_arrowhead_label {
       Some(text) =>
@@ -3239,9 +3928,56 @@ fn render_object_z_index(obj : RenderObject) -> Int {
 }
 
 ///|
+fn d2_shape_export_order(shapes : Array[Shape]) -> Map[String, Int] {
+  let shape_by_id : Map[String, Shape] = Map([])
+  let child_ids : Map[String, Bool] = Map([])
+  for shape in shapes {
+    shape_by_id[shape.id] = shape
+    for child_id in shape.child_ids {
+      child_ids[child_id] = true
+    }
+  }
+  let queue : Array[String] = []
+  for shape in shapes {
+    if !child_ids.contains(shape.id) {
+      queue.push(shape.id)
+    }
+  }
+  let order : Map[String, Int] = Map([])
+  let mut cursor = 0
+  let mut next_order = 0
+  while cursor < queue.length() {
+    let id = queue[cursor]
+    cursor += 1
+    if order.contains(id) {
+      continue
+    }
+    order[id] = next_order
+    next_order += 1
+    match shape_by_id.get(id) {
+      Some(shape) =>
+        for child_id in shape.child_ids {
+          if shape_by_id.contains(child_id) && !order.contains(child_id) {
+            queue.push(child_id)
+          }
+        }
+      None => ()
+    }
+  }
+  for shape in shapes {
+    if !order.contains(shape.id) {
+      order[shape.id] = next_order
+      next_order += 1
+    }
+  }
+  order
+}
+
+///|
 fn sort_render_objects(
   shapes : Array[Shape],
   connections : Array[Connection],
+  preserve_shape_order? : Bool = false,
 ) -> Array[RenderObject] {
   // reference behavior: sort over the combined shape+connection stream:
   // 1) z-index asc
@@ -3249,11 +3985,23 @@ fn sort_render_objects(
   // 3) shape before connection for same z-index
   // 4) stable by original export order
   let items : Array[RenderObjectItem] = []
-  for shape in shapes {
-    items.push({ obj: ShapeObj(shape), original_index: items.length() })
+  let shape_order = if preserve_shape_order {
+    Map([])
+  } else {
+    d2_shape_export_order(shapes)
   }
-  for connection in connections {
-    items.push({ obj: EdgeObj(connection), original_index: items.length() })
+  for i, shape in shapes {
+    items.push({
+      obj: ShapeObj(shape),
+      original_index: if preserve_shape_order {
+        i
+      } else {
+        shape_order.get_or_default(shape.id, i)
+      },
+    })
+  }
+  for i, connection in connections {
+    items.push({ obj: EdgeObj(connection), original_index: shapes.length() + i })
   }
   items.sort_by(fn(a, b) {
     let z_a = render_object_z_index(a.obj)
@@ -3439,26 +4187,124 @@ fn shape_sql_constraints(obj : Shape) -> Array[String] {
 
 ///|
 fn include_object_wrapper_class(cls : String) -> Bool {
-  !cls.has_prefix("lang:")
+  !cls.has_prefix("lang:") &&
+  cls != "__diago_sequence_group" &&
+  cls != "__diago_sequence_note"
 }
 
 ///|
-fn render_svg_markdown_label(svg : @svg.Svg, obj : Shape, box : Box) -> Unit {
+fn normalize_markdown_xhtml(html : String) -> String {
+  let normalized = replace_all(
+    replace_all(replace_all(html, "<br>", "<br />"), "<hr>", "<hr />"),
+    "&nbsp;",
+    "&#160;",
+  )
+  let without_region = replace_all(
+    replace_all(
+      replace_all(
+        replace_all(normalized, "<div role=\"region\">\n", ""),
+        "<div role=\"region\">",
+        "",
+      ),
+      "</table>\n</div>",
+      "</table>",
+    ),
+    "</table></div>",
+    "</table>",
+  )
+  let with_head = replace_all(
+    without_region, "<table>\n<tr>", "<table>\n<thead>\n<tr>",
+  )
+  let row_parts : Array[StringView] = with_head.split("</tr>").collect()
+  if row_parts.length() <= 1 {
+    return with_head
+  }
+  let out = StringBuilder::new()
+  out.write_string(row_parts[0].to_owned())
+  out.write_string("</tr>\n</thead>\n<tbody>")
+  for i = 1; i < row_parts.length(); i = i + 1 {
+    out.write_string(row_parts[i].to_owned())
+    if i + 1 < row_parts.length() {
+      out.write_string("</tr>")
+    }
+  }
+  replace_all(out.to_string(), "</table>", "</tbody>\n</table>")
+}
+
+///|
+fn render_svg_markdown_label(
+  svg : @svg.Svg,
+  obj : Shape,
+  box : Box,
+  layout_engine : String,
+  config : SvgConfig,
+  theme : @themes.Theme,
+) -> Unit {
   if obj.label == "" {
     return
   }
-  let (x, y, width_px, height_px) = markdown_label_layout(obj, box)
+  let (x, y, width_px, height_px) = markdown_label_layout(
+    obj, box, layout_engine, config,
+  )
   if width_px <= 0 || height_px <= 0 {
     return
   }
-  let md_html = @cmark_html.render(safe=false, strict=false, obj.label) catch {
-    _ => obj.label
+  let md_html = normalize_markdown_xhtml(
+    @cmark_html.render(
+      safe=false,
+      strict=false,
+      @text_metrics.markdown_source_like_d2(obj.label),
+    ) catch {
+      _ => obj.label
+    },
+  )
+  let div_classes : Array[String] = [
+    "md",
+    if theme.rules.c4 && !is_container(obj) {
+      "color-N7"
+    } else {
+      "color-N1"
+    },
+  ]
+  if obj.shape_type != Text {
+    let raw_fill = c4_object_fill_token(
+      obj,
+      style_string(obj.style.fill, ""),
+      theme,
+    )
+    match d2_theme_token(raw_fill, theme) {
+      Some(token) => div_classes.push("fill-\{token}")
+      None => ()
+    }
   }
-  let div = @xml_emit.Element::new("div")
+  let font_size = style_int(
+    obj.style.font_size,
+    default_object_font_size(obj, config),
+  )
+  let div_styles : Array[String] = []
+  if obj.shape_type != Text {
+    match obj.style.fill {
+      Some(fill) => {
+        let raw_fill = c4_object_fill_token(obj, fill.value, theme)
+        if raw_fill != "" &&
+          raw_fill != "transparent" &&
+          d2_theme_token(raw_fill, theme) is None {
+          div_styles.push("background-color:\{raw_fill}")
+        }
+      }
+      None => ()
+    }
+  }
+  if font_size != config.font_size {
+    div_styles.push("font-size:\{font_size}px")
+  }
+  let mut div = @xml_emit.Element::new("div")
     .attr("xmlns", "http://www.w3.org/1999/xhtml")
-    .attr("class", "md color-N1")
-    .raw(md_html)
-    .build()
+    .attr("class", div_classes.join(" "))
+  if !div_styles.is_empty() {
+    div = div.attr("style", div_styles.join(";"))
+  }
+  let div = div.raw(md_html).build()
   let foreign = @xml_emit.Element::new("foreignObject")
     .attr(
       "requiredFeatures", "http://www.w3.org/TR/SVG11/feature#Extensibility",
@@ -3473,6 +4319,40 @@ fn render_svg_markdown_label(svg : @svg.Svg, obj : Shape, box : Box) -> Unit {
 }
 
 ///|
+fn render_svg_latex_label(
+  svg : @svg.Svg,
+  obj : Shape,
+  box : Box,
+  layout_engine : String,
+  theme : @themes.Theme,
+  use_css_theme_vars : Bool,
+) -> Unit raise @render_api.RenderError {
+  let output = match @latex.render(obj.label) {
+    Ok(output) => output
+    Err(error) => raise RenderFailed(error.to_string())
+  }
+  let label_width = output.width.to_double()
+  let label_height = output.height.to_double()
+  let (x, y, _) = plain_object_label_layout(
+    obj, box, label_width, label_height, layout_engine,
+  )
+  let stroke_signature = c4_object_stroke_token(
+    obj,
+    style_string(obj.style.stroke, "N1"),
+    theme,
+  )
+  let color = resolve_theme_color(stroke_signature, theme, use_css_theme_vars)
+  let mut group = @xml_emit.Element::new("g")
+    .attr("transform", "translate(\{d2_fixed6(x)} \{d2_fixed6(y)})")
+    .attr("color", color)
+  match d2_theme_token(stroke_signature, theme) {
+    Some(token) => group = group.attr("class", " color-\{token}")
+    None => ()
+  }
+  svg.add(group.raw(output.svg).build())
+}
+
+///|
 fn render_svg_object(
   svg : @svg.Svg,
   diagram_hash : String,
@@ -3483,6 +4363,7 @@ fn render_svg_object(
   config : SvgConfig,
   theme : @themes.Theme,
   use_css_theme_vars : Bool,
+  layout_engine : String,
   pass? : RenderPass = Foreground,
 ) -> Unit raise @render_api.RenderError {
   guard obj.box is Some(box) else { return }
@@ -3510,7 +4391,7 @@ fn render_svg_object(
     is_foreground
   }
   let link_href = match obj.link {
-    Some(v) => if v.trim() == "" { None } else { Some(v) }
+    Some(v) => if v.trim() == "" { None } else { Some(d2_svg_link_href(v)) }
     None => None
   }
   let has_link = link_href is Some(_)
@@ -3552,7 +4433,11 @@ fn render_svg_object(
     svg.add(d2_group_open(classes.join(" "), style=opacity_style))
     svg.add(
       d2_group_open(
-        "shape",
+        if has_class(obj, "__diago_sequence_group") {
+          "blend shape"
+        } else {
+          "shape"
+        },
         filter=shadow_filter,
         trailing_space_before_gt=true,
       ),
@@ -3562,23 +4447,33 @@ fn render_svg_object(
     object_pass_active &&
     sketch_session is Some(_)
   // Get style values
-  let raw_fill = style_string(obj.style.fill, "N7")
-  let fill_class_token = d2_theme_token(raw_fill, theme)
-  let base_fill = resolve_theme_color(raw_fill, theme, use_css_theme_vars)
-  // Apply fill pattern if specified
-  let fill = resolve_fill_with_pattern(
-    base_fill,
-    obj.style.fill_pattern,
-    config,
-    diagram_hash,
+  let raw_fill = c4_object_fill_token(
+    obj,
+    style_string(obj.style.fill, "N7"),
+    theme,
   )
-  let raw_stroke = style_string(obj.style.stroke, "N1")
+  let fill_class_token = d2_theme_token(raw_fill, theme)
+  let base_fill = d2_gradient_paint(
+    resolve_theme_color(raw_fill, theme, use_css_theme_vars),
+  )
+  // D2 keeps the base shape fill and emits a duplicate pattern overlay.
+  let fill = base_fill
+  let fill_pattern = effective_object_fill_pattern(obj, theme)
+  let raw_stroke = c4_object_stroke_token(
+    obj,
+    style_string(obj.style.stroke, "N1"),
+    theme,
+  )
   let stroke_class_token = d2_theme_token(raw_stroke, theme)
   let stroke = resolve_theme_color(raw_stroke, theme, use_css_theme_vars)
   let stroke_width = style_double(
     obj.style.stroke_width,
     config.default_stroke_width,
   )
+  let stroke_dash = match obj.style.stroke_dash {
+    Some(value) => value.as_double().unwrap_or(0.0)
+    None => if theme.rules.c4 && is_container(obj) { 5.0 } else { 0.0 }
+  }
   let side_fill = resolve_theme_color(
     darken_color_like_d2(raw_fill),
     theme,
@@ -3590,7 +4485,17 @@ fn render_svg_object(
   let border_radius = if theme.rules.no_corner_radius {
     0.0
   } else {
-    style_double(obj.style.border_radius, 0.0)
+    clamped_shape_border_radius(style_double(obj.style.border_radius, 0.0), box)
+  }
+  let border_label_mask = match
+    d2_effective_label_position(obj, layout_engine) {
+    Some(position) =>
+      if d2_label_position_is_border(position) {
+        "url(#\{diagram_hash})"
+      } else {
+        ""
+      }
+    None => ""
   }
   // Render shape based on type
   match shape_name {
@@ -3870,13 +4775,29 @@ fn render_svg_object(
         } else if is_multiple {
           let mbox = shifted_multiple_box(box)
           render_svg_cylinder(
-            svg, mbox, fill, stroke, stroke_width, theme, use_css_theme_vars, fill_class_token,
+            svg,
+            mbox,
+            fill,
+            stroke,
+            stroke_width,
+            theme,
+            use_css_theme_vars,
+            fill_class_token,
             stroke_class_token,
+            stroke_dash~,
           )
         }
         render_svg_cylinder(
-          svg, box, fill, stroke, stroke_width, theme, use_css_theme_vars, fill_class_token,
+          svg,
+          box,
+          fill,
+          stroke,
+          stroke_width,
+          theme,
+          use_css_theme_vars,
+          fill_class_token,
           stroke_class_token,
+          stroke_dash~,
         )
       }
     "diamond" =>
@@ -4030,12 +4951,12 @@ fn render_svg_object(
           let mbox = shifted_multiple_box(box)
           render_svg_person(
             svg, mbox, fill, stroke, stroke_width, theme, use_css_theme_vars, fill_class_token,
-            stroke_class_token,
+            stroke_class_token, stroke_dash,
           )
         }
         render_svg_person(
           svg, box, fill, stroke, stroke_width, theme, use_css_theme_vars, fill_class_token,
-          stroke_class_token,
+          stroke_class_token, stroke_dash,
         )
       }
     "c4_person" =>
@@ -4043,23 +4964,13 @@ fn render_svg_object(
         if is_multiple {
           let mbox = shifted_multiple_box(box)
           render_svg_c4_person(
-            svg,
-            mbox,
-            obj.label,
-            fill,
-            stroke,
-            stroke_width,
-            config,
+            svg, mbox, fill, stroke, stroke_width, theme, use_css_theme_vars, fill_class_token,
+            stroke_class_token, stroke_dash,
           )
         }
         render_svg_c4_person(
-          svg,
-          box,
-          obj.label,
-          fill,
-          stroke,
-          stroke_width,
-          config,
+          svg, box, fill, stroke, stroke_width, theme, use_css_theme_vars, fill_class_token,
+          stroke_class_token, stroke_dash,
         )
       }
     "c4_container" =>
@@ -4384,6 +5295,11 @@ fn render_svg_object(
             stroke_width,
             theme,
             use_css_theme_vars,
+            fill_class_token,
+            match fill_class_token {
+              Some(token) => darken_theme_color_token(token)
+              None => None
+            },
           )
         } else {
           if is_multiple {
@@ -4402,8 +5318,29 @@ fn render_svg_object(
                 !use_css_theme_vars,
                 fill_class_token~,
                 stroke_class_token~,
+                stroke_dash~,
               ),
             )
+            match fill_pattern {
+              Some(pattern) =>
+                svg.add(
+                  d2_shape_rect(
+                    mbox.x,
+                    mbox.y,
+                    mbox.width,
+                    mbox.height,
+                    "",
+                    "",
+                    stroke_width,
+                    border_radius,
+                    theme,
+                    !use_css_theme_vars,
+                    stroke_dash~,
+                    class_name=pattern_overlay_class(pattern),
+                  ),
+                )
+              None => ()
+            }
           }
           svg.add(
             d2_shape_rect(
@@ -4419,8 +5356,31 @@ fn render_svg_object(
               !use_css_theme_vars,
               fill_class_token~,
               stroke_class_token~,
+              stroke_dash~,
+              mask=border_label_mask,
             ),
           )
+          match fill_pattern {
+            Some(pattern) =>
+              svg.add(
+                d2_shape_rect(
+                  box.x,
+                  box.y,
+                  box.width,
+                  box.height,
+                  "",
+                  "",
+                  stroke_width,
+                  border_radius,
+                  theme,
+                  !use_css_theme_vars,
+                  stroke_dash~,
+                  mask=border_label_mask,
+                  class_name=pattern_overlay_class(pattern),
+                ),
+              )
+            None => ()
+          }
         }
       }
   }
@@ -4431,65 +5391,42 @@ fn render_svg_object(
     let needs_double_border = style_bool(obj.style.double_border, false) ||
       (theme.rules.outer_container_double_border && is_outer_container)
     if needs_double_border {
-      let inset = 4.0 // Gap between inner and outer border
-      svg.add(
-        d2_shape_rect(
-          box.x + inset,
-          box.y + inset,
-          box.width - inset * 2.0,
-          box.height - inset * 2.0,
-          "none",
-          stroke,
-          stroke_width,
-          border_radius,
-          theme,
-          !use_css_theme_vars,
-          fill_class_token=None,
-          stroke_class_token~,
-        ),
-      )
-    }
-    // Add container dots if theme rule is enabled
-    if theme.rules.container_dots && is_container(obj) {
-      let dot_r = 2.5
-      let dot_offset = 8.0
-      // Dots at each corner
-      svg.add(
-        @svg.circle(
-          box.x + dot_offset,
-          box.y + dot_offset,
-          dot_r,
-          fill=stroke,
-          stroke="none",
-        ),
-      )
-      svg.add(
-        @svg.circle(
-          box.x + box.width - dot_offset,
-          box.y + dot_offset,
-          dot_r,
-          fill=stroke,
-          stroke="none",
-        ),
-      )
-      svg.add(
-        @svg.circle(
-          box.x + dot_offset,
-          box.y + box.height - dot_offset,
-          dot_r,
-          fill=stroke,
-          stroke="none",
-        ),
-      )
-      svg.add(
-        @svg.circle(
-          box.x + box.width - dot_offset,
-          box.y + box.height - dot_offset,
-          dot_r,
-          fill=stroke,
-          stroke="none",
-        ),
-      )
+      let inset = 5.0
+      if shape_name == "circle" || shape_name == "oval" {
+        svg.add(
+          d2_shape_ellipse(
+            box.x + box.width / 2.0,
+            box.y + box.height / 2.0,
+            box.width / 2.0 - inset,
+            box.height / 2.0 - inset,
+            fill,
+            stroke,
+            stroke_width,
+            theme,
+            !use_css_theme_vars,
+            fill_class_token~,
+            stroke_class_token~,
+          ),
+        )
+      } else {
+        svg.add(
+          d2_shape_rect(
+            box.x + inset,
+            box.y + inset,
+            box.width - inset * 2.0,
+            box.height - inset * 2.0,
+            "transparent",
+            stroke,
+            stroke_width,
+            border_radius,
+            theme,
+            !use_css_theme_vars,
+            fill_class_token=None,
+            stroke_class_token~,
+            stroke_dash~,
+          ),
+        )
+      }
     }
   }
   if object_pass_active {
@@ -4500,7 +5437,7 @@ fn render_svg_object(
     // Check if icon is present (non-image shapes)
     let has_icon = obj.icon is Some(_) && obj.shape_type != Image
     if has_icon {
-      let icon_position = obj.icon_position.unwrap_or(D2_DEFAULT_ICON_POSITION)
+      let icon_position = d2_effective_icon_position(obj, layout_engine)
       let icon_box = if d2_icon_position_is_outside(icon_position) {
         box
       } else {
@@ -4528,17 +5465,13 @@ fn render_svg_object(
       )
     }
     // Render label
-    if obj.label != "" && has_class(obj, "lang:markdown") {
-      render_svg_markdown_label(svg, obj, box)
-    } else if obj.label != "" &&
-      !has_class(obj, "lang:latex") &&
-      !has_class(obj, "lang:markdown") {
-      let text_color = style_color(
-        obj.style.font_color,
-        "N1",
-        theme,
-        use_css_theme_vars,
+    if object_label_visible(obj) && has_class(obj, "lang:latex") {
+      render_svg_latex_label(
+        svg, obj, box, layout_engine, theme, use_css_theme_vars,
       )
+    } else if object_label_visible(obj) && has_class(obj, "lang:markdown") {
+      render_svg_markdown_label(svg, obj, box, layout_engine, config, theme)
+    } else if object_label_visible(obj) && !has_class(obj, "lang:markdown") {
       // Get text-transform if specified, or apply caps_lock rule
       let text_transform = if theme.rules.caps_lock {
         "uppercase"
@@ -4552,18 +5485,46 @@ fn render_svg_object(
       }
       let is_bold = style_bool(obj.style.bold, default_object_bold(obj))
       let is_italic = style_bool(obj.style.italic, false)
+      let text_color = style_color(
+        obj.style.font_color,
+        if is_italic {
+          "N2"
+        } else {
+          "N1"
+        },
+        theme,
+        use_css_theme_vars,
+      )
       let is_mono = obj.shape_type == Code ||
         theme.rules.mono ||
-        style_is_mono(obj.style.font_family)
+        style_is_mono(obj.style.font)
       let label_text = transform_label_text(obj.label, text_transform)
       let (label_width, label_height) = object_label_dims(
         obj, label_text, font_size, is_mono, is_bold, is_italic,
       )
       let (label_tl_x, label_tl_y, label_box_width) = plain_object_label_layout(
-        obj, box, label_width, label_height,
+        obj, box, label_width, label_height, layout_engine,
       )
       let label_x = label_tl_x + label_box_width / 2.0
       let label_baseline_y = label_tl_y + font_size.to_double()
+      if has_class(obj, "__diago_sequence_group") {
+        let label_background_classes : Array[String] = []
+        match fill_class_token {
+          Some(token) => label_background_classes.push("fill-\{token}")
+          None => ()
+        }
+        svg.add(
+          @xml_emit.Element::new("rect")
+          .attr("x", d2_fixed6(label_tl_x))
+          .attr("y", d2_fixed6(label_tl_y))
+          .attr("width", d2_fixed6(label_box_width))
+          .attr("height", d2_fixed6(label_height))
+          .attr("fill", fill)
+          .attr_if("class", label_background_classes.join(" "))
+          .self_close()
+          .build(),
+        )
+      }
       let font_class = d2_font_class_name(
         is_mono,
         is_bold,
@@ -4583,10 +5544,6 @@ fn render_svg_object(
           !use_css_theme_vars,
         ),
       )
-    }
-    // Close sketch filter group if opened
-    if use_sketch {
-      svg.close_group()
     }
   }
   append_object_title(svg, obj, object_pass_active)
@@ -4668,8 +5625,13 @@ fn render_svg_sql_table(
   theme : @themes.Theme,
   use_css_theme_vars : Bool,
 ) -> Unit {
-  let fill_token = d2_theme_token(style_string(style.fill, "N7"), theme)
-  let stroke_token = d2_theme_token(style_string(style.stroke, "N1"), theme)
+  let body_fill = stroke
+  let border_stroke = fill
+  let body_fill_token = d2_theme_token(style_string(style.stroke, "N7"), theme)
+  let border_stroke_token = d2_theme_token(
+    style_string(style.fill, "N1"),
+    theme,
+  )
   let row_count = children.length() + 1
   let row_height = if row_count > 0 {
     box.height / row_count.to_double()
@@ -4681,7 +5643,13 @@ fn render_svg_sql_table(
     None => SQL_TABLE_FONT_SIZE_L
   }
   let header_font_size = base_font_size + SQL_TABLE_HEADER_FONT_ADD
-  let header_text_color = style_color(None, "N7", theme, use_css_theme_vars)
+  let header_text_color = style_color(
+    style.font_color,
+    style_string(style.stroke, "N7"),
+    theme,
+    use_css_theme_vars,
+  )
+  let header_text_token = d2_theme_token(header_text_color, theme)
   let name_text_color = style_color(None, "B2", theme, use_css_theme_vars)
   let type_text_color = style_color(None, "N2", theme, use_css_theme_vars)
   let constraint_text_color = style_color(
@@ -4706,11 +5674,11 @@ fn render_svg_sql_table(
   match pass {
     Background => {
       let rect_classes : Array[String] = ["shape"]
-      match stroke_token {
+      match border_stroke_token {
         Some(token) => rect_classes.push("stroke-\{token}")
         None => ()
       }
-      match fill_token {
+      match body_fill_token {
         Some(token) => rect_classes.push("fill-\{token}")
         None => ()
       }
@@ -4725,15 +5693,15 @@ fn render_svg_sql_table(
         .attr("y", d2_fixed6(box.y))
         .attr("width", d2_fixed6(box.width))
         .attr("height", d2_fixed6(box.height))
-        .attr_if("stroke", stroke)
-        .attr_if("fill", fill)
+        .attr_if("stroke", border_stroke)
+        .attr_if("fill", body_fill)
         .attr("class", rect_classes.join(" "))
         .attr("style", "stroke-width:\{stroke_width_css};")
         .self_close()
         .build(),
       )
       let header_classes : Array[String] = ["class_header"]
-      match stroke_token {
+      match border_stroke_token {
         Some(token) => header_classes.push("fill-\{token}")
         None => ()
       }
@@ -4743,7 +5711,7 @@ fn render_svg_sql_table(
         .attr("y", d2_fixed6(box.y))
         .attr("width", d2_fixed6(box.width))
         .attr("height", d2_fixed6(row_height))
-        .attr_if("fill", stroke)
+        .attr_if("fill", border_stroke)
         .attr("class", header_classes.join(" "))
         .self_close()
         .build(),
@@ -4764,7 +5732,7 @@ fn render_svg_sql_table(
           theme,
           !use_css_theme_vars,
           text_anchor="start",
-          fill_class_token=Some("N7"),
+          fill_class_token=header_text_token,
         ),
       )
 
@@ -4824,7 +5792,7 @@ fn render_svg_sql_table(
           ),
         )
         row_top = row_top + row_height
-        let line_class = match stroke_token {
+        let line_class = match border_stroke_token {
           Some(token) => " stroke-\{token}"
           None => ""
         }
@@ -4834,7 +5802,7 @@ fn render_svg_sql_table(
           .attr("x2", d2_fixed6(box.x + box.width))
           .attr("y1", d2_fixed6(row_top))
           .attr("y2", d2_fixed6(row_top))
-          .attr_if("stroke", stroke)
+          .attr_if("stroke", border_stroke)
           .attr_if("class", line_class)
           .attr("style", "stroke-width:2")
           .self_close()
@@ -4973,13 +5941,19 @@ fn render_svg_class(
     label_dims.height + LABEL_PADDING * 2.0
   }
   let border_radius = style_double(style.border_radius, 0.0)
+  let stroke_dash = style_double(style.stroke_dash, 0.0)
   let visibility_color = style_color(None, "B2", theme, use_css_theme_vars)
   let visibility_token : String? = Some("B2")
-  let name_color = style_color(None, "N1", theme, use_css_theme_vars)
+  let name_color = fill
   let name_token = d2_theme_token(name_color, theme)
   let type_color = style_color(None, "AA2", theme, use_css_theme_vars)
   let type_token = d2_theme_token(type_color, theme)
-  let header_text_color = style_color(None, "N7", theme, use_css_theme_vars)
+  let header_text_color = style_color(
+    style.font_color,
+    stroke,
+    theme,
+    use_css_theme_vars,
+  )
   let header_text_token = d2_theme_token(header_text_color, theme)
   let visibility_x = box.x + CLASS_PREFIX_PADDING
   let name_x = visibility_x + CLASS_PREFIX_WIDTH
@@ -4992,15 +5966,16 @@ fn render_svg_class(
           box.y,
           box.width,
           box.height,
-          fill,
           stroke,
+          fill,
           stroke_width,
           border_radius,
           theme,
           !use_css_theme_vars,
+          stroke_dash~,
         ),
       )
-      let header_fill_token = d2_theme_token(stroke, theme)
+      let header_fill_token = d2_theme_token(fill, theme)
       let header_class = match header_fill_token {
         Some(token) => "class_header fill-\{token}"
         None => "class_header"
@@ -5012,7 +5987,7 @@ fn render_svg_class(
       header_rect.write_string(" width=\"\{d2_fixed6(box.width)}\"")
       header_rect.write_string(" height=\"\{d2_fixed6(header_height)}\"")
       if !use_css_theme_vars || header_fill_token is None {
-        header_rect.write_string(" fill=\"\{@svg.escape_xml(stroke)}\"")
+        header_rect.write_string(" fill=\"\{@svg.escape_xml(fill)}\"")
       }
       if header_class != "" {
         header_rect.write_string(" class=\"\{@svg.escape_xml(header_class)}\"")
@@ -5084,23 +6059,21 @@ fn render_svg_class(
             fill_class_token=name_token,
           ),
         )
-        if m.type_name != "" {
-          svg.add(
-            d2_text_element(
-              type_x,
-              text_y,
-              m.type_name,
-              base_font_size.to_double(),
-              type_color,
-              "text-mono",
-              base_font_size,
-              theme,
-              !use_css_theme_vars,
-              text_anchor="end",
-              fill_class_token=type_token,
-            ),
-          )
-        }
+        svg.add(
+          d2_text_element(
+            type_x,
+            text_y,
+            m.type_name,
+            base_font_size.to_double(),
+            type_color,
+            "text-mono",
+            base_font_size,
+            theme,
+            !use_css_theme_vars,
+            text_anchor="end",
+            fill_class_token=type_token,
+          ),
+        )
         row_top = row_top + row_height
       }
       let (sep_x1, sep_x2) = if border_radius > 0.0 && methods.is_empty() {
@@ -5167,23 +6140,21 @@ fn render_svg_class(
             fill_class_token=name_token,
           ),
         )
-        if m.type_name != "" {
-          svg.add(
-            d2_text_element(
-              type_x,
-              text_y,
-              m.type_name,
-              base_font_size.to_double(),
-              type_color,
-              "text-mono",
-              base_font_size,
-              theme,
-              !use_css_theme_vars,
-              text_anchor="end",
-              fill_class_token=type_token,
-            ),
-          )
-        }
+        svg.add(
+          d2_text_element(
+            type_x,
+            text_y,
+            m.type_name,
+            base_font_size.to_double(),
+            type_color,
+            "text-mono",
+            base_font_size,
+            theme,
+            !use_css_theme_vars,
+            text_anchor="end",
+            fill_class_token=type_token,
+          ),
+        )
         row_top = row_top + row_height
       }
     }
@@ -5244,18 +6215,27 @@ fn render_svg_code(
         for i, line in lines {
           let y_em = "\{d2_fixed6(1.0 + i.to_double() * 1.3)}em"
           let raw = code_line_svg_raw(line, language, code_bg.0 == "dark-code")
+          let has_leading_whitespace = match char_at(line, 0) {
+            Some(' ') | Some('\t') => true
+            _ => false
+          }
+          let has_newline_after = i + 1 < lines.length() ||
+            (i + 1 == lines.length() && label.has_suffix("\n"))
           let raw_with_newline = if code_bg.0 == "dark-code" {
-            let prefixed = if i > 0 {
+            // Chroma's line break and a line's leading whitespace occupy the
+            // same unstyled capture. Avoid emitting both captures for an
+            // indented continuation line.
+            let prefixed = if i > 0 && !has_leading_whitespace {
               "<tspan fill=\"#cdd6f4\"></tspan>" + raw
             } else {
               raw
             }
-            if i + 1 < lines.length() {
+            if has_newline_after && line != "" {
               prefixed + "<tspan fill=\"#cdd6f4\">\n</tspan>"
             } else {
               prefixed
             }
-          } else if i + 1 < lines.length() {
+          } else if has_newline_after {
             raw + "\n"
           } else {
             raw
@@ -5280,6 +6260,7 @@ priv enum CodeTokenKind {
   Text
   Comment
   Keyword
+  KeywordDeclaration
   KeywordType
   NameFunction
   NameBuiltin
@@ -5293,6 +6274,7 @@ priv enum CodeTokenKind {
   OperatorWord
   Punctuation
   Bracket
+  Error
 }
 
 ///|
@@ -5318,6 +6300,7 @@ priv enum CodeLanguage {
   Toml
   Html
   Xml
+  Css
   Markdown
   MoonBit
 } derive(Eq)
@@ -5358,7 +6341,15 @@ fn code_tokenize_line(
   language : CodeLanguage,
 ) -> Array[CodeToken] {
   if line.length() == 0 {
-    return []
+    // Chroma's Go lexer preserves an empty Text capture for blank lines.
+    return if language == Go { [CodeToken::new("", Text)] } else { [] }
+  }
+  if language == Unknown {
+    // Chroma's fallback lexer emits the complete line as one Text token.
+    return [CodeToken::new(line, Text)]
+  }
+  if language == Css {
+    return code_tokenize_css_line(line)
   }
   if language == Html || language == Xml {
     return code_tokenize_markup_line(line)
@@ -5472,12 +6463,20 @@ fn code_tokenize_markup_line(line : String) -> Array[CodeToken] {
   while i < line.length() {
     if code_starts_with_at(line, i, "<!--") {
       let end_index = code_find_substring_from(line, "-->", i + 4)
-      let end = match end_index {
-        Some(v) => v + 3
-        None => line.length()
+      out.push(CodeToken::new("<!--", Comment))
+      match end_index {
+        Some(v) => {
+          out.push(CodeToken::new(code_slice(line, i + 4, v), Comment))
+          out.push(CodeToken::new("-->", Comment))
+          i = v + 3
+        }
+        None => {
+          out.push(
+            CodeToken::new(code_slice(line, i + 4, line.length()), Comment),
+          )
+          i = line.length()
+        }
       }
-      out.push(CodeToken::new(code_slice(line, i, end), Comment))
-      i = end
       continue
     }
     match char_at(line, i) {
@@ -5489,6 +6488,10 @@ fn code_tokenize_markup_line(line : String) -> Array[CodeToken] {
           out.push(CodeToken::new("<", Punctuation))
           i = i + 1
         }
+        // Chroma's XML lexer has an empty whitespace capture between the
+        // opening delimiter and the tag name. It is invisible in the light
+        // theme but produces an empty styled tspan in the dark theme.
+        out.push(CodeToken::new("", Text))
         let tag_start = i
         i = code_consume_while(line, i, code_is_tag_ident_continue)
         if i > tag_start {
@@ -5508,6 +6511,7 @@ fn code_tokenize_markup_line(line : String) -> Array[CodeToken] {
             }
             Some('=') => {
               out.push(CodeToken::new("=", Operator))
+              out.push(CodeToken::new("", Text))
               i = i + 1
             }
             Some('"') | Some('\'') =>
@@ -5536,7 +6540,12 @@ fn code_tokenize_markup_line(line : String) -> Array[CodeToken] {
                 }
               }
             Some('/') => {
-              out.push(CodeToken::new("/", Punctuation))
+              out.push(CodeToken::new("/", Text))
+              out.push(CodeToken::new("", Text))
+              i = i + 1
+            }
+            Some('.') => {
+              out.push(CodeToken::new(".", Error))
               i = i + 1
             }
             Some(_) => {
@@ -5555,15 +6564,210 @@ fn code_tokenize_markup_line(line : String) -> Array[CodeToken] {
           }
         }
       }
-      Some(_) => {
-        let start = i
-        i = code_consume_until_char(line, i, '<')
-        out.push(CodeToken::new(code_slice(line, start, i), Text))
-      }
+      Some(_) =>
+        // Attribute continuation lines in a multiline tag do not carry the
+        // opening '<'. Chroma keeps lexing them as tag content.
+        if code_find_substring_from(line, "=", i) is Some(_) {
+          let start = i
+          i = code_consume_while(line, i, fn(ch) { ch == ' ' || ch == '\t' })
+          if i > start {
+            out.push(CodeToken::new(code_slice(line, start, i), Text))
+          }
+          let attr_start = i
+          i = code_consume_while(line, i, code_is_tag_ident_continue)
+          if i > attr_start {
+            out.push(
+              CodeToken::new(code_slice(line, attr_start, i), NameAttribute),
+            )
+          }
+          while i < line.length() {
+            match char_at(line, i) {
+              Some('=') => {
+                out.push(CodeToken::new("=", Operator))
+                out.push(CodeToken::new("", Text))
+                i = i + 1
+              }
+              Some('"') | Some('\'') =>
+                match code_string_bounds(line, i, Xml) {
+                  Some((end_index, _)) => {
+                    out.push(
+                      CodeToken::new(
+                        code_slice(line, i, end_index),
+                        LiteralString,
+                      ),
+                    )
+                    i = end_index
+                  }
+                  None => i = i + 1
+                }
+              Some('.') => {
+                out.push(CodeToken::new(".", Error))
+                i = i + 1
+              }
+              Some('/') => {
+                out.push(CodeToken::new("/", Text))
+                out.push(CodeToken::new("", Text))
+                i = i + 1
+              }
+              Some(c) if c == ' ' || c == '\t' => {
+                let whitespace_start = i
+                i = code_consume_while(line, i, fn(ch) {
+                  ch == ' ' || ch == '\t'
+                })
+                out.push(
+                  CodeToken::new(code_slice(line, whitespace_start, i), Text),
+                )
+              }
+              Some(c) => {
+                out.push(CodeToken::new(c.to_string(), Text))
+                i = i + 1
+              }
+              None => break
+            }
+          }
+        } else {
+          let start = i
+          i = code_consume_until_char(line, i, '<')
+          out.push(CodeToken::new(code_slice(line, start, i), Text))
+        }
       None => i = i + 1
     }
   }
   out
+}
+
+///|
+fn code_tokenize_css_line(line : String) -> Array[CodeToken] {
+  let out : Array[CodeToken] = []
+  let mut i = 0
+  let leading_start = i
+  i = code_consume_while(line, i, fn(ch) { ch == ' ' || ch == '\t' })
+  if i > leading_start {
+    out.push(CodeToken::new(code_slice(line, leading_start, i), Text))
+  }
+  if i >= line.length() {
+    return out
+  }
+  if char_at(line, i) == Some('.') {
+    out.push(CodeToken::new(".", Text))
+    i = i + 1
+    let class_start = i
+    i = code_consume_while(line, i, code_is_css_ident_continue)
+    out.push(CodeToken::new(code_slice(line, class_start, i), NameClass))
+    if char_at(line, i) == Some(':') {
+      out.push(CodeToken::new(":", Operator))
+      i = i + 1
+    }
+    code_push_css_text_tail(out, line, i)
+    return out
+  }
+  if char_at(line, i) == Some('@') {
+    out.push(CodeToken::new("@", Text))
+    i = i + 1
+    let keyword_start = i
+    i = code_consume_while(line, i, code_is_css_ident_continue)
+    out.push(CodeToken::new(code_slice(line, keyword_start, i), Keyword))
+    let keyword_space_start = i
+    i = code_consume_while(line, i, fn(ch) { ch == ' ' || ch == '\t' })
+    if i > keyword_space_start {
+      out.push(CodeToken::new(code_slice(line, keyword_space_start, i), Text))
+    }
+    if char_at(line, i) == Some('(') {
+      out.push(CodeToken::new("(", Operator))
+      i = i + 1
+    }
+    let feature_start = i
+    i = code_consume_while(line, i, code_is_css_ident_continue)
+    if i > feature_start {
+      out.push(CodeToken::new(code_slice(line, feature_start, i), NameTag))
+    }
+    if char_at(line, i) == Some(':') {
+      out.push(CodeToken::new(":", Operator))
+      i = i + 1
+    }
+    let space_start = i
+    i = code_consume_while(line, i, fn(ch) { ch == ' ' || ch == '\t' })
+    if i > space_start {
+      out.push(CodeToken::new(code_slice(line, space_start, i), Text))
+    }
+    let value_start = i
+    i = code_consume_while(line, i, code_is_css_ident_continue)
+    if i > value_start {
+      out.push(CodeToken::new(code_slice(line, value_start, i), NameTag))
+    }
+    if char_at(line, i) == Some(')') {
+      out.push(CodeToken::new(")", Operator))
+      i = i + 1
+    }
+    code_push_css_text_tail(out, line, i)
+    return out
+  }
+
+  let property_start = i
+  i = code_consume_while(line, i, code_is_css_ident_continue)
+  if i > property_start {
+    out.push(CodeToken::new(code_slice(line, property_start, i), Text))
+    // Chroma's CSS lexer emits an empty Text capture between a property name
+    // and its delimiter.
+    out.push(CodeToken::new("", Text))
+  }
+  if char_at(line, i) == Some(':') {
+    out.push(CodeToken::new(":", Text))
+    i = i + 1
+  }
+  while i < line.length() {
+    match char_at(line, i) {
+      Some(c) if c == ' ' || c == '\t' => {
+        let start = i
+        i = code_consume_while(line, i, fn(ch) { ch == ' ' || ch == '\t' })
+        out.push(CodeToken::new(code_slice(line, start, i), Text))
+      }
+      Some('"') | Some('\'') =>
+        match code_string_bounds(line, i, Css) {
+          Some((end_index, _)) => {
+            out.push(
+              CodeToken::new(code_slice(line, i, end_index), LiteralString),
+            )
+            i = end_index
+          }
+          None => i = i + 1
+        }
+      Some(c) => {
+        out.push(CodeToken::new(c.to_string(), Text))
+        i = i + 1
+      }
+      None => break
+    }
+  }
+  out
+}
+
+///|
+fn code_push_css_text_tail(
+  out : Array[CodeToken],
+  line : String,
+  start : Int,
+) -> Unit {
+  let mut i = start
+  while i < line.length() {
+    match char_at(line, i) {
+      Some(c) if c == ' ' || c == '\t' => {
+        let whitespace_start = i
+        i = code_consume_while(line, i, fn(ch) { ch == ' ' || ch == '\t' })
+        out.push(CodeToken::new(code_slice(line, whitespace_start, i), Text))
+      }
+      Some(c) => {
+        out.push(CodeToken::new(c.to_string(), Text))
+        i = i + 1
+      }
+      None => break
+    }
+  }
+}
+
+///|
+fn code_is_css_ident_continue(c : Char) -> Bool {
+  code_is_ident_continue(c) || c == '-'
 }
 
 ///|
@@ -5630,6 +6834,7 @@ fn code_language_from_tag(language : String?) -> CodeLanguage {
         "toml" => Toml
         "html" | "xhtml" => Html
         "xml" | "svg" => Xml
+        "css" => Css
         "markdown" | "md" => Markdown
         "moonbit" | "mbt" => MoonBit
         _ => Unknown
@@ -5654,6 +6859,9 @@ fn code_ident_kind(
   if code_is_operator_word(ident, language) {
     return OperatorWord
   }
+  if code_is_keyword_declaration(ident, language) {
+    return KeywordDeclaration
+  }
   if code_is_keyword(ident, language) {
     return Keyword
   }
@@ -5663,7 +6871,9 @@ fn code_ident_kind(
   if code_is_builtin(ident, language) {
     return NameBuiltin
   }
-  if next_non_space == Some('(') && !code_is_call_control_word(ident, language) {
+  if language != TypeScript &&
+    next_non_space == Some('(') &&
+    !code_is_call_control_word(ident, language) {
     return NameFunction
   }
   if language == Html || language == Xml {
@@ -5671,10 +6881,32 @@ fn code_ident_kind(
       return NameTag
     }
   }
-  if language != Go && code_is_probable_class_name(ident, language) {
+  if language != Go &&
+    language != TypeScript &&
+    code_is_probable_class_name(ident, language) {
     return NameClass
   }
   Text
+}
+
+///|
+fn code_is_keyword_declaration(word : String, language : CodeLanguage) -> Bool {
+  match language {
+    Go =>
+      match word {
+        "chan"
+        | "const"
+        | "func"
+        | "interface"
+        | "map"
+        | "struct"
+        | "type"
+        | "var" => true
+        _ => false
+      }
+    TypeScript => word == "function"
+    _ => false
+  }
 }
 
 ///|
@@ -6632,6 +7864,7 @@ fn code_token_fill(kind : CodeTokenKind, is_dark : Bool) -> String? {
       Bracket => Some("#89b4fa")
       Comment => Some("#6c7086")
       Keyword => Some("#cba6f7")
+      KeywordDeclaration => Some("#f38ba8")
       KeywordType => Some("#f38ba8")
       NameFunction => Some("#89b4fa")
       NameBuiltin => Some("#89dceb")
@@ -6642,13 +7875,14 @@ fn code_token_fill(kind : CodeTokenKind, is_dark : Bool) -> String? {
       LiteralStringEscape => Some("#89b4fa")
       LiteralNumber => Some("#fab387")
       Operator | OperatorWord => Some("#89dceb")
+      Error => Some("#f38ba8")
     }
   } else {
     match kind {
       Text | Punctuation => None
       Bracket => Some("#0550ae")
       Comment => Some("#999988")
-      Keyword => Some("#000000")
+      Keyword | KeywordDeclaration => Some("#000000")
       KeywordType => Some("#445588")
       NameFunction => Some("#990000")
       NameBuiltin => Some("#0086b3")
@@ -6659,6 +7893,7 @@ fn code_token_fill(kind : CodeTokenKind, is_dark : Bool) -> String? {
       LiteralStringEscape => Some("#dd1144")
       LiteralNumber => Some("#009999")
       Operator | OperatorWord => Some("#000000")
+      Error => Some("#a61717")
     }
   }
 }
@@ -6675,6 +7910,7 @@ fn code_token_class(kind : CodeTokenKind, is_dark : Bool) -> String? {
     match kind {
       Comment => Some("text-mono-italic")
       Keyword
+      | KeywordDeclaration
       | KeywordType
       | NameFunction
       | NameClass
@@ -6804,6 +8040,7 @@ fn d2_shape_path(
   inline_theme : Bool,
   fill_class_token : String?,
   stroke_class_token : String?,
+  stroke_dash? : Double = 0.0,
 ) -> String {
   let classes = StringBuilder::new()
   let stroke_token = match stroke_class_token {
@@ -6840,9 +8077,17 @@ fn d2_shape_path(
   if class_value != "" {
     sb.write_string(" class=\"\{@svg.escape_xml(class_value)}\"")
   }
-  sb.write_string(
-    " style=\"stroke-width:\{@svg.escape_xml(stroke_width_css)};\"",
-  )
+  let style = StringBuilder::new()
+  style.write_string("stroke-width:\{@svg.escape_xml(stroke_width_css)};")
+  if stroke_dash != 0.0 {
+    let (dash_size, gap_size) = d2_stroke_dash_attributes(
+      stroke_width, stroke_dash,
+    )
+    style.write_string(
+      "stroke-dasharray:\{d2_fixed6(dash_size)},\{d2_fixed6(gap_size)};",
+    )
+  }
+  sb.write_string(" style=\"\{style.to_string()}\"")
   sb.write_string(" />")
   sb.to_string()
 }
@@ -6858,6 +8103,7 @@ fn render_svg_cylinder(
   use_css_theme_vars : Bool,
   fill_class_token : String?,
   stroke_class_token : String?,
+  stroke_dash? : Double = 0.0,
 ) -> Unit {
   let arc_depth = 24.0
   let arc_height = if box.height < arc_depth * 2.0 {
@@ -6901,6 +8147,7 @@ fn render_svg_cylinder(
       !use_css_theme_vars,
       fill_class_token,
       stroke_class_token,
+      stroke_dash~,
     ),
   )
 
@@ -6922,6 +8169,7 @@ fn render_svg_cylinder(
       !use_css_theme_vars,
       fill_class_token,
       stroke_class_token,
+      stroke_dash~,
     ),
   )
 }
@@ -7191,6 +8439,7 @@ fn render_svg_person(
   use_css_theme_vars : Bool,
   fill_class_token : String?,
   stroke_class_token : String?,
+  stroke_dash : Double,
 ) -> Unit {
   // Ported from upstream reference lib/shape/shape_person.go (personPath) + lib/svg/path.go precision.
   let sx = box.width / 68.3
@@ -7303,6 +8552,7 @@ fn render_svg_person(
       !use_css_theme_vars,
       fill_class_token,
       stroke_class_token,
+      stroke_dash~,
     ),
   )
 }
@@ -8001,6 +9251,8 @@ fn render_svg_3d_rect(
   stroke_width : Double,
   theme : @themes.Theme,
   _use_css_theme_vars : Bool,
+  fill_class_token : String?,
+  side_fill_class_token : String?,
 ) -> Unit {
   // Ported from upstream reference d2renderers/d2svg/d2svg.go (render3DRect).
   let xi = round_double(box.x).to_int()
@@ -8037,12 +9289,20 @@ fn render_svg_3d_rect(
   svg.add(
     "<defs><mask id=\"\{mask_id}\" maskUnits=\"userSpaceOnUse\" x=\"\{mask_x}\" y=\"\{mask_y}\" width=\"\{mask_w}\" height=\"\{mask_h}\">\n<rect x=\"\{mask_x}\" y=\"\{mask_y}\" width=\"\{mask_w}\" height=\"\{mask_h}\" fill=\"white\"></rect>\n<path d=\"\{border_path_mask}\" style=\"\{border_style};stroke:#000;fill:none;opacity:1;\"/></mask></defs>",
   )
+  let main_fill_class = match fill_class_token {
+    Some(token) => " class=\" fill-\{@svg.escape_xml(token)}\""
+    None => ""
+  }
   svg.add(
-    "<rect x=\"\{d2_fixed6(xi.to_double())}\" y=\"\{d2_fixed6(yi.to_double())}\" width=\"\{d2_fixed6(wi.to_double())}\" height=\"\{d2_fixed6(hi.to_double())}\" mask=\"url(#\{mask_id})\" stroke=\"none\" fill=\"\{@svg.escape_xml(fill)}\" style=\"\{border_style}\" />",
+    "<rect x=\"\{d2_fixed6(xi.to_double())}\" y=\"\{d2_fixed6(yi.to_double())}\" width=\"\{d2_fixed6(wi.to_double())}\" height=\"\{d2_fixed6(hi.to_double())}\" mask=\"url(#\{mask_id})\" stroke=\"none\" fill=\"\{@svg.escape_xml(fill)}\"\{main_fill_class} style=\"\{border_style}\" />",
   )
   let side_points = "\{xi},\{yi} \{xi + offset},\{yi - offset} \{xi + wi + offset},\{yi - offset} \{xi + wi + offset},\{yi + hi - offset} \{xi + wi},\{yi + hi} \{xi + wi},\{yi}"
+  let side_fill_class = match side_fill_class_token {
+    Some(token) => " class=\" fill-\{@svg.escape_xml(token)}\""
+    None => ""
+  }
   svg.add(
-    "<polygon mask=\"url(#\{mask_id})\" points=\"\{side_points}\" fill=\"\{@svg.escape_xml(side_fill)}\" style=\"\{border_style}\" />",
+    "<polygon mask=\"url(#\{mask_id})\" points=\"\{side_points}\" fill=\"\{@svg.escape_xml(side_fill)}\"\{side_fill_class} style=\"\{border_style}\" />",
   )
   let stroke_class = match d2_theme_token(stroke, theme) {
     Some(token) => " class=\" stroke-\{token}\""
@@ -8463,10 +9723,12 @@ fn arrowhead_dimensions(
   }
   let (base_width, base_height, width_mul, height_mul) = match arrowhead {
     Triangle => (4.0, 4.0, 3.0, 4.0)
+    Arrow => (6.0, 4.0, 3.0, 4.0)
     Open => (7.0, 7.0, 3.0, 4.0)
     Line => (0.0, 0.0, 5.0, 8.0)
     Diamond => (11.0, 9.0, 5.5, 4.5)
-    Circle => (8.0, 8.0, 5.0, 5.0)
+    FilledDiamond => (11.0, 7.0, 5.5, 3.5)
+    Circle | FilledCircle => (8.0, 8.0, 5.0, 5.0)
     CfOne
     | CfMany
     | CfOneRequired
@@ -8556,7 +9818,7 @@ fn render_edge_arrowhead_label(
     return
   }
   let font_size = style_int(edge.style.font_size, config.font_size)
-  let is_mono = theme.rules.mono || style_is_mono(edge.style.font_family)
+  let is_mono = theme.rules.mono || style_is_mono(edge.style.font)
   let is_bold = style_bool(edge.style.bold, false)
   let dims = @text_metrics.measure_label(
     text, font_size, is_mono, is_bold, true,
@@ -8617,29 +9879,38 @@ fn render_svg_edge(
   } else {
     ""
   }
-  svg.add(
-    d2_group_open(
-      d2_connection_wrapper_class(d2_connection_abs_id(edge, repeat_index)),
-      style=wrapper_style,
-    ),
-  )
+  let wrapper_classes : Array[String] = [
+    d2_connection_wrapper_class(d2_connection_abs_id(edge, repeat_index)),
+  ]
+  for class_name in edge.classes {
+    wrapper_classes.push(class_name)
+  }
+  svg.add(d2_group_open(wrapper_classes.join(" "), style=wrapper_style))
   let use_sketch = sketch_enabled(edge.style.sketch, config) &&
     sketch_session is Some(_)
   // Get style values
-  let stroke_default = default_edge_stroke_token(edge)
-  let stroke_signature = style_string(edge.style.stroke, stroke_default)
-  let stroke = style_color(
-    edge.style.stroke,
-    stroke_default,
-    theme,
-    use_css_theme_vars,
-  )
+  let normal_stroke_default = default_edge_stroke_token(edge)
+  let raw_edge_stroke = style_string(edge.style.stroke, normal_stroke_default)
+  let stroke_signature = if theme.rules.c4 &&
+    raw_edge_stroke == normal_stroke_default {
+    "AA4"
+  } else {
+    raw_edge_stroke
+  }
+  let stroke = resolve_theme_color(stroke_signature, theme, use_css_theme_vars)
   let stroke_width = style_double(
     edge.style.stroke_width,
     config.default_stroke_width,
   )
-  let connection_border_radius = style_double(edge.style.border_radius, 10.0)
-  let stroke_dash = style_double(edge.style.stroke_dash, 0.0)
+  let connection_border_radius = if theme.rules.no_corner_radius {
+    0.0
+  } else {
+    style_double(edge.style.border_radius, 10.0)
+  }
+  let stroke_dash = match edge.style.stroke_dash {
+    Some(value) => value.as_double().unwrap_or(0.0)
+    None => if theme.rules.c4 { 5.0 } else { 0.0 }
+  }
   let (src_adj, dst_adj) = get_arrowhead_adjustments(
     edge,
     shapes,
@@ -8647,8 +9918,38 @@ fn render_svg_edge(
     config.default_stroke_width,
   )
   let path_data = d2_path_data(edge, src_adj, dst_adj, connection_border_radius)
-  render_edge_icon(svg, edge, stroke_width)
   if use_sketch {
+    // D2 emits the normal marker definitions even though sketch connections
+    // draw their arrowheads as rough paths and do not reference the markers.
+    ignore(
+      marker_url_for_edge(
+        svg,
+        diagram_hash,
+        edge_marker_ids,
+        edge.src_arrowhead,
+        false,
+        stroke_signature,
+        stroke,
+        stroke_width,
+        theme,
+        !use_css_theme_vars,
+      ),
+    )
+    ignore(
+      marker_url_for_edge(
+        svg,
+        diagram_hash,
+        edge_marker_ids,
+        edge.dst_arrowhead,
+        true,
+        stroke_signature,
+        stroke,
+        stroke_width,
+        theme,
+        !use_css_theme_vars,
+      ),
+    )
+    render_edge_icon(svg, edge, stroke_width)
     render_sketch_edge(
       svg,
       sketch_session.unwrap(),
@@ -8670,6 +9971,7 @@ fn render_svg_edge(
       stroke,
       stroke_width,
       theme,
+      !use_css_theme_vars,
     )
     let marker_end = marker_url_for_edge(
       svg,
@@ -8681,7 +9983,9 @@ fn render_svg_edge(
       stroke,
       stroke_width,
       theme,
+      !use_css_theme_vars,
     )
+    render_edge_icon(svg, edge, stroke_width)
     svg.add(
       d2_connection_path_element(
         path_data,
@@ -8717,7 +10021,7 @@ fn render_svg_edge(
           use_css_theme_vars,
         )
         let mut font_class = d2_font_class_name(
-          theme.rules.mono || style_is_mono(edge.style.font_family),
+          theme.rules.mono || style_is_mono(edge.style.font),
           style_bool(edge.style.bold, false),
           style_bool(edge.style.italic, true),
           style_bool(edge.style.underline, false),
@@ -8734,11 +10038,12 @@ fn render_svg_edge(
                 baseline_y,
                 edge.label,
                 label_box.height,
-                text_color,
+                "",
                 font_class,
                 label_font_size,
                 theme,
-                !use_css_theme_vars,
+                false,
+                fill_class_token=Some(""),
               ),
             )
             .build()
@@ -8798,50 +10103,104 @@ fn render_svg_edge(
 }
 
 ///|
-/// Render C4 Person shape - person icon with label below
+/// Render the two paths from upstream `shape_c4_person.go`.
 fn render_svg_c4_person(
   svg : @svg.Svg,
   box : Box,
-  label : String,
   fill : String,
   stroke : String,
   stroke_width : Double,
-  config : SvgConfig,
+  theme : @themes.Theme,
+  use_css_theme_vars : Bool,
+  fill_class_token : String?,
+  stroke_class_token : String?,
+  stroke_dash : Double,
 ) -> Unit {
-  let cx = box.x + box.width / 2.0
-  // Person icon takes top 60%, label takes bottom 40%
-  let icon_height = box.height * 0.6
-  let label_height = box.height * 0.4
-  // Head
-  let head_r = icon_height * 0.25
-  let head_cy = box.y + head_r + 5.0
-  svg.add(@svg.circle(cx, head_cy, head_r, fill~, stroke~, stroke_width~))
-  // Body (rounded rectangle representing torso)
-  let body_width = box.width * 0.5
-  let body_height = icon_height * 0.45
-  let body_top = head_cy + head_r + 5.0
+  let kappa = 0.5522847498307936
+  let head_radius = box.width * 0.22
+  let body_top = box.y + head_radius + head_radius * 0.8
+  let body_height = box.height - (body_top - box.y)
+  let corner_by_width = box.width * 0.175
+  let corner_by_height = body_height * 0.25
+  let corner = if corner_by_width < corner_by_height {
+    corner_by_width
+  } else {
+    corner_by_height
+  }
+  let left = box.x
+  let p0x = d2_path_chop_precision(left)
+  let p0y = d2_path_chop_precision(body_top + corner)
+  let p1x = d2_path_chop_precision(p0x + corner)
+  let p1y = d2_path_chop_precision(p0y - corner)
+  let p2x = d2_path_chop_precision(p1x + box.width - 2.0 * corner)
+  let p2y = p1y
+  let p3x = d2_path_chop_precision(p2x + corner)
+  let p3y = d2_path_chop_precision(p2y + corner)
+  let p4x = p3x
+  let p4y = d2_path_chop_precision(p3y + body_height - 2.0 * corner)
+  let p5x = d2_path_chop_precision(p4x - corner)
+  let p5y = d2_path_chop_precision(p4y + corner)
+  let p6x = d2_path_chop_precision(p5x - (box.width - 2.0 * corner))
+  let p6y = p5y
+  let p7x = d2_path_chop_precision(p6x - corner)
+  let p7y = d2_path_chop_precision(p6y - corner)
+  let body : Array[String] = []
+  body.push("M \{p0x} \{p0y}")
+  body.push(
+    "C \{d2_path_number(p0x)} \{d2_path_number(p0y - kappa * corner)} \{d2_path_number(p0x + kappa * corner)} \{d2_path_number(p0y - corner)} \{p1x} \{p1y}",
+  )
+  body.push("H \{p2x}")
+  body.push(
+    "C \{d2_path_number(p2x + kappa * corner)} \{p2y} \{d2_path_number(p2x + corner)} \{d2_path_number(p2y + kappa * corner)} \{p3x} \{p3y}",
+  )
+  body.push("V \{p4y}")
+  body.push(
+    "C \{p4x} \{d2_path_number(p4y + kappa * corner)} \{d2_path_number(p4x - kappa * corner)} \{d2_path_number(p4y + corner)} \{p5x} \{p5y}",
+  )
+  body.push("H \{p6x}")
+  body.push(
+    "C \{d2_path_number(p6x - kappa * corner)} \{p6y} \{d2_path_number(p6x - corner)} \{d2_path_number(p6y - kappa * corner)} \{p7x} \{p7y} Z",
+  )
   svg.add(
-    @svg.rect(
-      cx - body_width / 2.0,
-      body_top,
-      body_width,
-      body_height,
-      fill~,
-      stroke~,
-      stroke_width~,
-      rx=Some(8.0),
-      ry=Some(8.0),
+    d2_shape_path(
+      body.join(" "),
+      fill,
+      stroke,
+      stroke_width,
+      theme,
+      !use_css_theme_vars,
+      fill_class_token,
+      stroke_class_token,
+      stroke_dash~,
     ),
   )
-  // Label below the icon
-  let label_y = box.y + icon_height + label_height / 2.0
+  let cx = box.x + box.width / 2.0
+  let cy = box.y + head_radius
+  let head : Array[String] = []
+  head.push("M \{d2_path_number(cx)} \{d2_path_number(cy - head_radius)}")
+  head.push(
+    "C \{d2_path_number(cx + kappa * head_radius)} \{d2_path_number(cy - head_radius)} \{d2_path_number(cx + head_radius)} \{d2_path_number(cy - kappa * head_radius)} \{d2_path_number(cx + head_radius)} \{d2_path_number(cy)}",
+  )
+  head.push(
+    "C \{d2_path_number(cx + head_radius)} \{d2_path_number(cy + kappa * head_radius)} \{d2_path_number(cx + kappa * head_radius)} \{d2_path_number(cy + head_radius)} \{d2_path_number(cx)} \{d2_path_number(cy + head_radius)}",
+  )
+  head.push(
+    "C \{d2_path_number(cx - kappa * head_radius)} \{d2_path_number(cy + head_radius)} \{d2_path_number(cx - head_radius)} \{d2_path_number(cy + kappa * head_radius)} \{d2_path_number(cx - head_radius)} \{d2_path_number(cy)}",
+  )
+  head.push(
+    "C \{d2_path_number(cx - head_radius)} \{d2_path_number(cy - kappa * head_radius)} \{d2_path_number(cx - kappa * head_radius)} \{d2_path_number(cy - head_radius)} \{d2_path_number(cx)} \{d2_path_number(cy - head_radius)}",
+  )
   svg.add(
-    @svg.text(
-      cx,
-      label_y,
-      label,
-      font_family=config.font_family,
-      font_size=config.font_size,
+    d2_shape_path(
+      head.join(" "),
+      fill,
+      stroke,
+      stroke_width,
+      theme,
+      !use_css_theme_vars,
+      fill_class_token,
+      stroke_class_token,
+      stroke_dash~,
     ),
   )
 }

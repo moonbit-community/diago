@@ -297,6 +297,7 @@ pub struct EdgeModel {
   src_id_syntax : String
   dst_id_syntax : String
   references : Array[EdgeReference]
+  classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
   src_arrowhead : ArrowheadType
@@ -340,6 +341,7 @@ pub fn EdgeModel::new(
     src_id_syntax,
     dst_id_syntax,
     references: [],
+    classes: [],
     src_arrow,
     dst_arrow,
     src_arrowhead: if src_arrow {

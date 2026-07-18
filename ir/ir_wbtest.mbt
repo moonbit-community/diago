@@ -30,6 +30,316 @@ test "compile simple key" {
 }
 
 ///|
+test "leading underscores compile fields into parent object scopes" {
+  let source =
+    #|root_child: {
+    #|  nested: {
+    #|    _.sibling
+    #|    _._.top
+    #|  }
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("root_child") is Some(root_child) else {
+    fail("expected root_child")
+  }
+  guard root_child.map() is Some(root_child_map) else {
+    fail("expected root_child map")
+  }
+  assert_true(root_child_map.has_field("nested"))
+  assert_true(root_child_map.has_field("sibling"))
+  assert_true(ir.has_field("top"))
+  guard root_child_map.get_field("nested") is Some(nested) else {
+    fail("expected nested")
+  }
+  guard nested.map() is Some(nested_map) else { fail("expected nested map") }
+  assert_false(nested_map.has_field("_"))
+}
+
+///|
+test "leading underscores resolve edge scopes and asymmetric endpoints" {
+  let source =
+    #|container: {
+    #|  local
+    #|  _.outside -> local
+    #|  (_.outside -> local)[0]: updated
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.edges.length(), 1)
+  let edge = ir.edges[0]
+  @debug.assert_eq(edge.id.src_path, ["outside"])
+  @debug.assert_eq(edge.id.dst_path, ["container", "local"])
+  @debug.assert_eq(
+    edge.primary.map(fn(value) { value.to_string() }),
+    Some("updated"),
+  )
+  assert_true(ir.has_field("outside"))
+  guard ir.get_field("container") is Some(container) else {
+    fail("expected container")
+  }
+  guard container.map() is Some(container_map) else {
+    fail("expected container map")
+  }
+  assert_true(container_map.has_field("local"))
+  assert_false(container_map.has_field("_"))
+}
+
+///|
+test "import-aware compiler preserves leading underscore scope semantics" {
+  let source =
+    #|christmas: { presents }
+    #|birthdays: {
+    #|  presents
+    #|  _.christmas.presents -> presents: regift
+    #|  _.christmas.style.fill: "#ACE1AF"
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let resolver = ImportResolver::new(fn(_path) { None })
+  let ir = compile_with_imports(ast, resolver)
+  assert_false(ir.get_field("birthdays").unwrap().map().unwrap().has_field("_"))
+  guard ir.get_field("christmas") is Some(christmas) else {
+    fail("expected christmas")
+  }
+  guard christmas.map() is Some(christmas_map) else {
+    fail("expected christmas map")
+  }
+  guard christmas_map.get_field("style") is Some(style) else {
+    fail("expected style")
+  }
+  guard style.map() is Some(style_map) else { fail("expected style map") }
+  @debug.assert_eq(
+    style_map.get_field("fill").unwrap().primary.unwrap().to_string(),
+    "#ACE1AF",
+  )
+  @debug.assert_eq(ir.edges.length(), 1)
+  @debug.assert_eq(ir.edges[0].id.src_path, ["christmas", "presents"])
+  @debug.assert_eq(ir.edges[0].id.dst_path, ["birthdays", "presents"])
+}
+
+///|
+test "suspend globs remove only targets declared before the operation" {
+  let source =
+    #|a -> b
+    #|c
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|d
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["d"])
+  @debug.assert_eq(ir.edges.length(), 0)
+}
+
+///|
+test "unsuspending edges restores endpoints and ancestors without relabeling" {
+  let source =
+    #|a: { b }
+    #|c: { d; e }
+    #|a.b -> c.d: likes
+    #|a.b -> c.e: dislikes
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|(** -> **)[*]: unsuspend {
+    #|  &label: likes
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let mut unsuspend_key : @ast.Key? = None
+  for node in ast.nodes {
+    match node {
+      Key(key) =>
+        if key_suspension(key) == Some(false) {
+          unsuspend_key = Some(key)
+        }
+      _ => ()
+    }
+  }
+  guard unsuspend_key is Some(unsuspend_key) else {
+    fail("expected unsuspend key")
+  }
+  guard unsuspend_key.value is Some(BlockScalar(_, filter_map)) else {
+    fail("expected suspension block")
+  }
+  @debug.assert_eq(filter_map.nodes.length(), 1)
+  guard filter_map.nodes[0] is Key(filter_key) else {
+    fail("expected filter key")
+  }
+  @debug.assert_eq(filter_key.ampersand, true)
+  @debug.assert_eq(filter_key.not_ampersand, false)
+  @debug.assert_eq(key_suspension(unsuspend_key), Some(false))
+  @debug.assert_eq(collect_filters_from_value(unsuspend_key), [
+    (false, "label", "likes"),
+  ])
+  let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
+  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "c"])
+  @debug.assert_eq(ir.edges.length(), 1)
+  @debug.assert_eq(ir.edges[0].primary.unwrap().to_string(), "likes")
+  @debug.assert_eq(
+    ir.get_field("a").unwrap().map().unwrap().fields.map(fn(field) {
+      field.name
+    }),
+    ["b"],
+  )
+  @debug.assert_eq(
+    ir.get_field("c").unwrap().map().unwrap().fields.map(fn(field) {
+      field.name
+    }),
+    ["d"],
+  )
+}
+
+///|
+test "quoted suspension words remain ordinary labels" {
+  let source =
+    #|a: "suspend"
+    #|a -> a: "unsuspend"
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.fields[0].primary.unwrap().to_string(), "suspend")
+  @debug.assert_eq(ir.edges[0].primary.unwrap().to_string(), "unsuspend")
+}
+
+///|
+test "recursive edge suspension filters include nested edges with absolute endpoints" {
+  let source =
+    #|restaurants: {
+    #|  chip
+    #|  bk
+    #|  chip -> bk: competes
+    #|}
+    #|diners: { zack }
+    #|diners.zack -> restaurants.bk: likes
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|(** -> **)[*]: unsuspend {
+    #|  &dst: restaurants.bk
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
+  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), [
+    "restaurants", "diners",
+  ])
+  @debug.assert_eq(ir.edges.length(), 1)
+  guard ir.get_field("restaurants") is Some(restaurants) else {
+    fail("expected restaurants")
+  }
+  guard restaurants.map() is Some(restaurants_map) else {
+    fail("expected restaurants map")
+  }
+  @debug.assert_eq(restaurants_map.fields.map(fn(field) { field.name }), [
+    "chip", "bk",
+  ])
+  @debug.assert_eq(restaurants_map.edges.length(), 1)
+}
+
+///|
+test "glob blocks compile dotted properties and wildcard filters" {
+  let source =
+    #|x.link: https://google.com
+    #|y
+    #|*: {
+    #|  &link: *
+    #|  style.fill: red
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("x") is Some(x) else { fail("expected x") }
+  guard x.map() is Some(x_map) else { fail("expected x map") }
+  guard x_map.get_field("style") is Some(style) else { fail("expected style") }
+  guard style.map() is Some(style_map) else { fail("expected style map") }
+  guard style_map.get_field("fill") is Some(fill) else { fail("expected fill") }
+  @debug.assert_eq(
+    fill.primary.map(fn(value) { value.to_string() }),
+    Some("red"),
+  )
+  guard ir.get_field("y") is Some(y) else { fail("expected y") }
+  assert_true(y.map() is None)
+}
+
+///|
+test "nested globs apply inside each filtered match" {
+  let source =
+    #|conversation: {
+    #|  shape: sequence_diagram
+    #|  alice -> bob
+    #|}
+    #|**: {
+    #|  &shape: sequence_diagram
+    #|  **: { shape: person }
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("conversation") is Some(conversation) else {
+    fail("expected conversation")
+  }
+  guard conversation.map() is Some(conversation_map) else {
+    fail("expected conversation map")
+  }
+  for name in ["alice", "bob"] {
+    guard conversation_map.get_field(name) is Some(actor) else {
+      fail("expected actor")
+    }
+    guard actor.map() is Some(actor_map) else { fail("expected actor map") }
+    guard actor_map.get_field("shape") is Some(shape) else {
+      fail("expected shape")
+    }
+    @debug.assert_eq(
+      shape.primary.map(fn(value) { value.to_string() }),
+      Some("person"),
+    )
+  }
+}
+
+///|
+test "edge glob endpoint filters update only matching edges" {
+  let source =
+    #|(** -> **)[*]: {
+    #|  &src: a
+    #|  &dst: c
+    #|  style.stroke: yellow
+    #|}
+    #|a -> b
+    #|a -> c
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.edges.length(), 2)
+  for edge in ir.edges {
+    let expected = if edge.id.dst_path == ["c"] { Some("yellow") } else { None }
+    let actual = match edge.map {
+      Some(edge_map) =>
+        match edge_map.get_field("style") {
+          Some(style) =>
+            match style.map() {
+              Some(style_map) =>
+                match style_map.get_field("stroke") {
+                  Some(stroke) =>
+                    match stroke.primary {
+                      Some(value) => Some(value.to_string())
+                      None => None
+                    }
+                  None => None
+                }
+              None => None
+            }
+          None => None
+        }
+      None => None
+    }
+    @debug.assert_eq(actual, expected)
+  }
+}
+
+///|
 test "compile key with value" {
   let (ast, _) = @parser.parse("x: hello")
   let ir = compile(ast)
@@ -304,6 +614,64 @@ test "compile array" {
 }
 
 ///|
+test "glob properties preserve array values" {
+  let source =
+    #|*.class: [text; blue]
+    #|x
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("x") is Some(x) else { fail("expected x") }
+  guard x.map() is Some(x_map) else { fail("expected x map") }
+  guard x_map.get_field("class") is Some(class_field) else {
+    fail("expected class")
+  }
+  guard class_field.array() is Some(classes) else {
+    fail("expected class array")
+  }
+  @debug.assert_eq(classes.values.length(), 2)
+}
+
+///|
+test "explicit empty array clears an earlier glob array" {
+  let source =
+    #|*.class: [text; blue]
+    #|x: {
+    #|  class: []
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("x") is Some(x) else { fail("expected x") }
+  guard x.map() is Some(x_map) else { fail("expected x map") }
+  guard x_map.get_field("class") is Some(class_field) else {
+    fail("expected class")
+  }
+  guard class_field.array() is Some(classes) else {
+    fail("expected class array")
+  }
+  @debug.assert_eq(classes.values.length(), 0)
+}
+
+///|
+test "later scalar glob replaces an earlier array glob" {
+  let source =
+    #|*.class: [text; blue]
+    #|1*.class: note
+    #|1x
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("1x") is Some(x) else { fail("expected 1x") }
+  guard x.map() is Some(x_map) else { fail("expected 1x map") }
+  guard x_map.get_field("class") is Some(class_field) else {
+    fail("expected class")
+  }
+  @debug.assert_eq(class_field.primary.unwrap().to_string(), "note")
+  assert_true(class_field.composite is None)
+}
+
+///|
 test "compile boolean values" {
   let (ast, _) = @parser.parse("x: true")
   let ir = compile(ast)
@@ -484,6 +852,38 @@ test "glob style.fill applies to all fields" {
 }
 
 ///|
+test "triple glob applies inside layer boards" {
+  let source =
+    #|***.style.fill: yellow
+    #|layers: {
+    #|  next: {
+    #|    a
+    #|  }
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  let target_names : Array[String] = []
+  for target in ir.glob_targets(["***"]) {
+    target_names.push(target.field.name)
+  }
+  @debug.assert_eq(target_names, ["a"])
+  guard ir.get_field("layers") is Some(layers) &&
+    layers.composite is Some(Map(layers_map)) &&
+    layers_map.get_field("next") is Some(next) &&
+    next.composite is Some(Map(next_map)) &&
+    next_map.get_field("a") is Some(a) &&
+    a.composite is Some(Map(a_map)) &&
+    a_map.get_field("style") is Some(style) &&
+    style.composite is Some(Map(style_map)) &&
+    style_map.get_field("fill") is Some(fill) &&
+    fill.primary is Some(value) else {
+    fail("expected layer object a to receive triple-glob fill")
+  }
+  @debug.assert_eq(value.to_string(), "yellow")
+}
+
+///|
 test "glob-created properties keep due_to_glob references" {
   let source =
     #|a
@@ -512,6 +912,57 @@ test "glob-created properties keep due_to_glob references" {
     fail("expected glob context")
   }
   @debug.assert_eq(context.key, Some(expected_key))
+}
+
+///|
+test "compile with imports applies globs declared before their matches" {
+  let source =
+    #|***.style.fill: lightblue
+    #|a
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
+  guard ir.get_field("a") is Some(a) else { fail("expected a") }
+  guard a.map() is Some(a_map) else { fail("expected a map") }
+  guard a_map.get_field("style") is Some(style) else { fail("expected style") }
+  guard style.map() is Some(style_map) else { fail("expected style map") }
+  guard style_map.get_field("fill") is Some(fill) else { fail("expected fill") }
+  guard fill.primary is Some(value) else { fail("expected fill value") }
+  @debug.assert_eq(value.to_string(), "lightblue")
+}
+
+///|
+test "compile with imports preserves edge glob endpoint filters" {
+  let source =
+    #|(** -> **)[*]: {
+    #|  &src: a
+    #|  &dst: c
+    #|  style.stroke: yellow
+    #|}
+    #|a -> b
+    #|a -> c
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
+  @debug.assert_eq(ir.edges.length(), 2)
+  for edge in ir.edges {
+    if edge.id.dst_path == ["b"] {
+      assert_true(edge.map is None)
+    } else {
+      guard edge.map is Some(edge_map) else { fail("expected edge map") }
+      guard edge_map.get_field("style") is Some(style) else {
+        fail("expected style")
+      }
+      guard style.map() is Some(style_map) else { fail("expected style map") }
+      guard style_map.get_field("stroke") is Some(stroke) else {
+        fail("expected stroke")
+      }
+      @debug.assert_eq(
+        stroke.primary.map(fn(value) { value.to_string() }),
+        Some("yellow"),
+      )
+    }
+  }
 }
 
 ///|
@@ -549,6 +1000,292 @@ test "double glob applies to nested fields" {
   }
   guard opacity.primary is Some(p) else { fail("opacity has no value") }
   @debug.assert_eq(p.to_string(), "0.5")
+}
+
+///|
+test "double glob edge endpoints select leaf fields only" {
+  let source =
+    #|zone A: {
+    #|  machine A
+    #|  machine B: {
+    #|    submachine A
+    #|    submachine B
+    #|  }
+    #|}
+    #|zone A.** -> load balancer
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.edges.length(), 3)
+  let sources = ir.edges.map(fn(edge) { edge.id.src_path.join(".") })
+  @debug.assert_eq(sources, [
+    "zone A.machine A", "zone A.machine B.submachine A", "zone A.machine B.submachine B",
+  ])
+}
+
+///|
+test "double glob suspension descends through reserved holders" {
+  let source =
+    #|vars: {
+    #|  d2-config: {
+    #|    theme-id: 303
+    #|  }
+    #|}
+    #|a
+    #|**: suspend
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("vars") is Some(vars) else { fail("expected vars holder") }
+  guard vars.map() is Some(vars_map) else { fail("expected vars map") }
+  assert_false(vars_map.has_field("d2-config"))
+}
+
+///|
+test "recursive edge glob preserves arrow-direction matching" {
+  let source =
+    #|a -> b
+    #|a <-> c
+    #|(** -> **)[*]: suspend
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.edges.length(), 1)
+  assert_true(ir.edges[0].id.src_arrow)
+  assert_true(ir.edges[0].id.dst_arrow)
+}
+
+///|
+test "suspending endpoints removes unmatched directed edges" {
+  let source =
+    #|a -> b
+    #|a <-> c
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|(** -> **)[*]: unsuspend {
+    #|  &src: a
+    #|}
+    #|(** -> **)[*]: unsuspend {
+    #|  &dst: b
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b"])
+  @debug.assert_eq(ir.edges.length(), 1)
+  assert_false(ir.edges[0].id.src_arrow)
+  assert_true(ir.edges[0].id.dst_arrow)
+}
+
+///|
+test "suspending nested endpoints removes unmatched directed edges" {
+  let source =
+    #|customer
+    #|sys.web
+    #|sys.spa
+    #|sys.mobile
+    #|sys.api
+    #|sys.database
+    #|sys.api: |md
+    #|  ## API
+    #|| {
+    #|  shape: rectangle
+    #|}
+    #|sys.database: |md
+    #|  ## Database
+    #|| {
+    #|  shape: rectangle
+    #|}
+    #|email
+    #|main
+    #|customer -> sys.web
+    #|sys.web -> sys.spa
+    #|customer -> sys.spa
+    #|customer -> sys.mobile
+    #|sys.spa -> sys.api
+    #|sys.mobile -> sys.api
+    #|sys.api -> main
+    #|customer -> email
+    #|sys.api -> email
+    #|sys.database <-> sys.api
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|(** -> **)[*]: unsuspend {
+    #|  &src: sys.api
+    #|}
+    #|(** -> **)[*]: unsuspend {
+    #|  &dst: sys.api
+    #|}
+    #|sys.label.near: bottom-center
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let ir = compile(ast)
+  guard ir.get_field("sys") is Some(sys) else { fail("expected sys") }
+  guard sys.map() is Some(sys_map) else { fail("expected sys map") }
+  @debug.assert_eq(sys_map.fields.map(fn(field) { field.name }), [
+    "spa", "mobile", "api", "label",
+  ])
+  @debug.assert_eq(ir.edges.length(), 4)
+  for edge in ir.edges {
+    assert_false(edge.id.src_arrow)
+    assert_true(edge.id.dst_arrow)
+  }
+  let imported = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
+  guard imported.get_field("sys") is Some(imported_sys) else {
+    fail("expected imported sys")
+  }
+  guard imported_sys.map() is Some(imported_sys_map) else {
+    fail("expected imported sys map")
+  }
+  assert_false(imported_sys_map.has_field("database"))
+  @debug.assert_eq(imported.edges.length(), 4)
+}
+
+///|
+test "edge suspension globs respect later explicit declarations" {
+  let source =
+    #|a
+    #|b
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|**: unsuspend {
+    #|  &level: 0
+    #|}
+    #|(** -> **)[*]: unsuspend {
+    #|  &src.level: 0
+    #|  &dst.level: 0
+    #|}
+    #|a -> b
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  for
+    ir in [
+      compile(ast),
+      compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
+    ] {
+    @debug.assert_eq(ir.edges.length(), 1)
+    assert_false(ir.edges[0].id.src_arrow)
+    assert_true(ir.edges[0].id.dst_arrow)
+  }
+}
+
+///|
+test "edge suspension level filters restore existing root edges" {
+  let source =
+    #|root_a -> root_b
+    #|group: {
+    #|  child_a -> child_b
+    #|}
+    #|**: suspend
+    #|(** -> **)[*]: suspend
+    #|**: unsuspend {
+    #|  &level: 0
+    #|}
+    #|(** -> **)[*]: unsuspend {
+    #|  &src.level: 0
+    #|  &dst.level: 0
+    #|}
+    #|root_b -> root_c
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  for
+    ir in [
+      compile(ast),
+      compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
+    ] {
+    @debug.assert_eq(
+      ir.edges.map(fn(edge) {
+        (edge.id.src_path.join("."), edge.id.dst_path.join("."))
+      }),
+      [("root_a", "root_b"), ("root_b", "root_c")],
+    )
+    @debug.assert_eq(ir.fields.map(fn(field) { field.name }), [
+      "root_a", "root_b", "group", "root_c",
+    ])
+    guard ir.get_field("group") is Some(group) && group.map() is Some(group_map) else {
+      fail("expected root-level group")
+    }
+    assert_true(group_map.fields.is_empty())
+  }
+}
+
+///|
+test "recursive suspension globs do not suspend object properties" {
+  let source =
+    #|restaurants: {
+    #|  style.stroke-dash: 2
+    #|  child
+    #|}
+    #|**: suspend
+    #|*: unsuspend
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  for
+    ir in [
+      compile(ast),
+      compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
+    ] {
+    guard ir.get_field("restaurants") is Some(restaurants) &&
+      restaurants.map() is Some(restaurants_map) &&
+      restaurants_map.get_field("style") is Some(style) &&
+      style.map() is Some(style_map) &&
+      style_map.get_field("stroke-dash") is Some(stroke_dash) &&
+      stroke_dash.primary is Some(value) else {
+      fail("expected unsuspended object properties")
+    }
+    assert_eq(value.to_string(), "2")
+    assert_false(restaurants_map.has_field("child"))
+  }
+}
+
+///|
+test "filtered unsuspend restores every matching class array" {
+  let source =
+    #|a: { class: [customer-facing; one] }
+    #|b: { class: [two; customer-facing] }
+    #|c: { class: [other] }
+    #|d: { class: [customer-facing; three] }
+    #|**: suspend
+    #|**: unsuspend {
+    #|  &class: customer-facing
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  for
+    ir in [
+      compile(ast),
+      compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
+    ] {
+    @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b", "d"])
+  }
+}
+
+///|
+test "filtered unsuspend restores every matching spread-import class array" {
+  let source =
+    #|...@models
+    #|**: suspend
+    #|**: unsuspend {
+    #|  &class: customer-facing
+    #|}
+  let (ast, errors) = @parser.parse(source)
+  assert_true(errors.is_empty())
+  let resolver = ImportResolver::new(fn(path) {
+    if path == "models" || path == "models.d2" {
+      Some(
+        (
+          #|a: { class: [customer-facing; one] }
+          #|b: { class: [two; customer-facing] }
+          #|c: { class: [other] }
+          #|d: { class: [customer-facing; three] }
+        ),
+      )
+    } else {
+      None
+    }
+  })
+  let ir = compile_with_imports(ast, resolver)
+  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b", "d"])
 }
 
 ///|
