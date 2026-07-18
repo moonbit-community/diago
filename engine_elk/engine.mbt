@@ -624,6 +624,7 @@ fn apply_margin_adjustments_like_d2(
   let child_ids_by_id : Map[String, Array[String]] = Map([])
   for obj in graph.objects {
     child_ids_by_id[obj.id] = obj.child_ids
+    child_ids_by_id[obj.abs_id_syntax] = obj.child_ids
   }
 
   for obj in graph.objects {
@@ -667,7 +668,10 @@ fn apply_margin_adjustments_like_d2(
         }
       }
       box = @graph.Box::new(box.x + margin.left, box.y, box.width, box.height)
-      shift_descendant_boxes(
+      shift_descendants_like_d2(
+        graph,
+        edge_id_by_index,
+        routes_by_edge_id,
         node_box_by_id,
         child_ids_by_id,
         obj.id,
@@ -702,7 +706,10 @@ fn apply_margin_adjustments_like_d2(
           )
         }
       }
-      shift_descendant_boxes(
+      shift_descendants_like_d2(
+        graph,
+        edge_id_by_index,
+        routes_by_edge_id,
         node_box_by_id,
         child_ids_by_id,
         obj.id,
@@ -737,7 +744,10 @@ fn apply_margin_adjustments_like_d2(
         }
       }
       box = @graph.Box::new(box.x, box.y + margin.top, box.width, box.height)
-      shift_descendant_boxes(
+      shift_descendants_like_d2(
+        graph,
+        edge_id_by_index,
+        routes_by_edge_id,
         node_box_by_id,
         child_ids_by_id,
         obj.id,
@@ -772,7 +782,10 @@ fn apply_margin_adjustments_like_d2(
           )
         }
       }
-      shift_descendant_boxes(
+      shift_descendants_like_d2(
+        graph,
+        edge_id_by_index,
+        routes_by_edge_id,
         node_box_by_id,
         child_ids_by_id,
         obj.id,
@@ -787,18 +800,180 @@ fn apply_margin_adjustments_like_d2(
 }
 
 ///|
-fn shift_descendant_boxes(
-  node_box_by_id : Map[String, @graph.Box],
+fn collect_descendant_ids(
   child_ids_by_id : Map[String, Array[String]],
   parent_id : String,
-  dx : Double,
-  dy : Double,
+  descendant_ids : Map[String, Bool],
 ) -> Unit {
   let child_ids = match child_ids_by_id.get(parent_id) {
     Some(v) => v
     None => return
   }
   for child_id in child_ids {
+    descendant_ids[child_id] = true
+    collect_descendant_ids(child_ids_by_id, child_id, descendant_ids)
+  }
+}
+
+///|
+fn shift_route_start_like_d2(
+  route : Array[@graph.Point],
+  delta : Double,
+  horizontal : Bool,
+) -> Array[@graph.Point] {
+  if route.length() < 2 {
+    return shift_route(
+      route,
+      if horizontal {
+        delta
+      } else {
+        0.0
+      },
+      if horizontal {
+        0.0
+      } else {
+        delta
+      },
+    )
+  }
+  let start = route[0]
+  let next = route[1]
+  let start_position = if horizontal { start.x } else { start.y }
+  let next_position = if horizontal { next.x } else { next.y }
+  let shifted_start = if horizontal {
+    @graph.Point::new(start.x + delta, start.y)
+  } else {
+    @graph.Point::new(start.x, start.y + delta)
+  }
+  if (start_position < next_position) == (delta < 0.0) {
+    let shifted = route.copy()
+    shifted[0] = shifted_start
+    return shifted
+  }
+
+  let shifted_position = if horizontal {
+    shifted_start.x
+  } else {
+    shifted_start.y
+  }
+  let shifted : Array[@graph.Point] = [shifted_start]
+  for i = 1; i < route.length(); i = i + 1 {
+    let point = route[i]
+    let aligned = if horizontal {
+      point.y == shifted_start.y
+    } else {
+      point.x == shifted_start.x
+    }
+    let point_position = if horizontal { point.x } else { point.y }
+    let past_start = if delta > 0.0 {
+      point_position < shifted_position
+    } else {
+      point_position > shifted_position
+    }
+    if i < route.length() - 1 && aligned && past_start {
+      continue
+    }
+    shifted.push(point)
+    if !aligned {
+      for j = i + 1; j < route.length(); j = j + 1 {
+        shifted.push(route[j])
+      }
+      break
+    }
+  }
+  shifted
+}
+
+///|
+fn shift_route_end_like_d2(
+  route : Array[@graph.Point],
+  delta : Double,
+  horizontal : Bool,
+) -> Array[@graph.Point] {
+  if route.length() < 2 {
+    return shift_route(
+      route,
+      if horizontal {
+        delta
+      } else {
+        0.0
+      },
+      if horizontal {
+        0.0
+      } else {
+        delta
+      },
+    )
+  }
+  let last = route.length() - 1
+  let end = route[last]
+  let prev = route[last - 1]
+  let prev_position = if horizontal { prev.x } else { prev.y }
+  let end_position = if horizontal { end.x } else { end.y }
+  let shifted_end = if horizontal {
+    @graph.Point::new(end.x + delta, end.y)
+  } else {
+    @graph.Point::new(end.x, end.y + delta)
+  }
+  if (prev_position < end_position) == (delta > 0.0) {
+    let shifted = route.copy()
+    shifted[last] = shifted_end
+    return shifted
+  }
+
+  let shifted_position = if horizontal { shifted_end.x } else { shifted_end.y }
+  let remove : Array[Bool] = Array::make(route.length(), false)
+  for i = last - 1; i > 0; i = i - 1 {
+    let point = route[i]
+    let aligned = if horizontal {
+      point.y == shifted_end.y
+    } else {
+      point.x == shifted_end.x
+    }
+    if !aligned {
+      break
+    }
+    let point_position = if horizontal { point.x } else { point.y }
+    let past_end = if delta > 0.0 {
+      point_position < shifted_position
+    } else {
+      point_position > shifted_position
+    }
+    if past_end {
+      remove[i] = true
+    }
+  }
+  let shifted : Array[@graph.Point] = []
+  for i = 0; i < last; i = i + 1 {
+    if !remove[i] {
+      shifted.push(route[i])
+    }
+  }
+  shifted.push(shifted_end)
+  shifted
+}
+
+///|
+fn shift_descendants_like_d2(
+  graph : @graph.GraphInput,
+  edge_id_by_index : Map[Int, String],
+  routes_by_edge_id : Map[String, Array[@graph.Point]],
+  node_box_by_id : Map[String, @graph.Box],
+  child_ids_by_id : Map[String, Array[String]],
+  parent_id : String,
+  dx : Double,
+  dy : Double,
+) -> Unit {
+  let descendant_ids : Map[String, Bool] = Map([])
+  collect_descendant_ids(child_ids_by_id, parent_id, descendant_ids)
+  for obj in graph.objects {
+    if descendant_ids.contains(obj.id) ||
+      descendant_ids.contains(obj.abs_id_syntax) {
+      descendant_ids[obj.id] = true
+      descendant_ids[obj.abs_id_syntax] = true
+    }
+  }
+  for child_id, _ in descendant_ids {
     match node_box_by_id.get(child_id) {
       Some(child_box) =>
         node_box_by_id[child_id] = @graph.Box::new(
@@ -809,7 +984,49 @@ fn shift_descendant_boxes(
         )
       None => ()
     }
-    shift_descendant_boxes(node_box_by_id, child_ids_by_id, child_id, dx, dy)
+  }
+
+  for edge in graph.edges {
+    let src_descendant = descendant_ids.contains(edge.src_id)
+    let dst_descendant = descendant_ids.contains(edge.dst_id)
+    if !src_descendant && !dst_descendant {
+      continue
+    }
+    let edge_id = match edge_id_by_index.get(edge.index) {
+      Some(v) => v
+      None => continue
+    }
+    let route = match routes_by_edge_id.get(edge_id) {
+      Some(v) => v
+      None => continue
+    }
+    if src_descendant && dst_descendant {
+      routes_by_edge_id[edge_id] = shift_route(route, dx, dy)
+    } else if src_descendant {
+      routes_by_edge_id[edge_id] = if dx == 0.0 {
+        shift_route_start_like_d2(route, dy, false)
+      } else if dy == 0.0 {
+        shift_route_start_like_d2(route, dx, true)
+      } else {
+        let shifted = route.copy()
+        shifted[0] = @graph.Point::new(route[0].x + dx, route[0].y + dy)
+        shifted
+      }
+    } else {
+      routes_by_edge_id[edge_id] = if dx == 0.0 {
+        shift_route_end_like_d2(route, dy, false)
+      } else if dy == 0.0 {
+        shift_route_end_like_d2(route, dx, true)
+      } else {
+        let shifted = route.copy()
+        let last = route.length() - 1
+        shifted[last] = @graph.Point::new(
+          route[last].x + dx,
+          route[last].y + dy,
+        )
+        shifted
+      }
+    }
   }
 }
 

@@ -10,3 +10,4 @@ AGENTS.md
 CLAUDE.md
 _build/
 target
+__pycache__/

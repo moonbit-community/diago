@@ -171,6 +171,36 @@ test "ELK route parsing preserves duplicate section points like D2" {
 }
 
 ///|
+test "moving an edge start removes collinear points passed by the endpoint" {
+  let route = [
+    @graph.Point::new(0.0, 0.0),
+    @graph.Point::new(10.0, 0.0),
+    @graph.Point::new(20.0, 0.0),
+    @graph.Point::new(20.0, 10.0),
+  ]
+  @debug.assert_eq(shift_route_start_like_d2(route, 15.0, true), [
+    @graph.Point::new(15.0, 0.0),
+    @graph.Point::new(20.0, 0.0),
+    @graph.Point::new(20.0, 10.0),
+  ])
+}
+
+///|
+test "moving an edge end removes collinear points passed by the endpoint" {
+  let route = [
+    @graph.Point::new(0.0, 0.0),
+    @graph.Point::new(0.0, 10.0),
+    @graph.Point::new(0.0, 20.0),
+    @graph.Point::new(0.0, 30.0),
+  ]
+  @debug.assert_eq(shift_route_end_like_d2(route, -15.0, false), [
+    @graph.Point::new(0.0, 0.0),
+    @graph.Point::new(0.0, 10.0),
+    @graph.Point::new(0.0, 15.0),
+  ])
+}
+
+///|
 test "quoted class method syntax is excluded from ELK layout nodes" {
   let parent = @graph.ObjectInput::from_parts(
     "DebitCard",

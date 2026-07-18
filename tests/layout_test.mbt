@@ -3457,6 +3457,40 @@ test "constant near containers keep descendants and cross edges aligned in dagre
 }
 
 ///|
+test "elk centers equal-size left and right near images at the same height" {
+  let source =
+    #|a -> b
+    #|ding: Ding Liren {
+    #|  shape: image
+    #|  near: center-left
+    #|  width: 200
+    #|  height: 300
+    #|}
+    #|nepo: Ian Nepomniachtchi {
+    #|  shape: image
+    #|  near: center-right
+    #|  width: 200
+    #|  height: 300
+    #|}
+  let graph_input = compile_graph_no_layout(source).unwrap()
+  let input_ding = graph_input.find_object("ding").unwrap().get_box().unwrap()
+  let input_nepo = graph_input.find_object("nepo").unwrap().get_box().unwrap()
+  @debug.assert_eq(input_ding.height, input_nepo.height)
+  let elk = @engine_api.layout_with_engine(
+    @engine_elk.ElkEngine::new(),
+    graph_input,
+    @engine_api.LayoutConfig::new(),
+    Down,
+  ) catch {
+    e => fail("elk layout error: \{e}")
+  }
+  let ding = elk.find_object("ding").unwrap().get_box().unwrap()
+  let nepo = elk.find_object("nepo").unwrap().get_box().unwrap()
+  @debug.assert_eq(ding.height, nepo.height)
+  @debug.assert_eq(ding.y, nepo.y)
+}
+
+///|
 fn assert_constant_near_container_layout(
   graph : @graph.GraphInput,
   engine_name : String,

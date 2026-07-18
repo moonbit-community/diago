@@ -1492,7 +1492,7 @@ fn apply_constant_near_graphs_like_d2(
   let mut placed_graph = graph
   let placed_near_ids : Map[String, Bool] = Map([])
   for key_set in [0, 1, 2] {
-    let current_set_ids : Array[String] = []
+    let current_set_graphs : Array[(String, @graph.GraphInput)] = []
     for container_id in context.constant_near_order {
       let nested_graph = match
         context.constant_near_graphs_by_container_id.get(container_id) {
@@ -1532,10 +1532,11 @@ fn apply_constant_near_graphs_like_d2(
         x - box.x,
         y - box.y,
       )
-      placed_graph = inject_constant_near_graph_like_d2(placed_graph, shifted)
-      current_set_ids.push(container_id)
+      current_set_graphs.push((container_id, shifted))
     }
-    for container_id in current_set_ids {
+    for entry in current_set_graphs {
+      let (container_id, shifted) = entry
+      placed_graph = inject_constant_near_graph_like_d2(placed_graph, shifted)
       placed_near_ids[container_id] = true
     }
   }

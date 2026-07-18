@@ -48,19 +48,34 @@ Current strict results are:
 | Engine | Exact matches | Dependency blockers |
 | --- | ---: | ---: |
 | Dagre | 228 / 228 | 0 |
-| ELK | 221 / 228 | 7 |
+| ELK | 223 / 228 | 5 fixtures / 3 unique inputs |
 
-The seven ELK blockers are `static/bespoke-d2/c4-code.d2`,
-`static/bespoke-d2/classes-3.d2`, `static/bespoke-d2/wcc.d2`,
-`static/blog/sketch/animated.d2`, `static/d2/border-label.d2`,
-`static/d2/c4-legend.d2`, and `static/d2/c4-tags3.d2`. For each case, Diago
-and D2 send canonically identical input JSON to ELK, but `moon_elk` and D2's
-vendored elk.js return different layout JSON. These cases therefore require a
-`moon_elk` fix rather than renderer-side compensation in Diago.
+The five ELK blockers are `static/bespoke-d2/c4-code.d2`,
+`static/bespoke-d2/classes-3.d2`, `static/blog/sketch/animated.d2`,
+`static/d2/c4-legend.d2`, and `static/d2/c4-tags3.d2`. The three C4 fixtures
+send the same ELK input, so the five failures reduce to three unique layered
+layout inputs: C4, classes, and animated nested containers. For all three,
+Diago and D2 send canonically identical JSON to ELK, while `moon_elk` 0.2.0
+and D2's vendored elk.js return different node geometry and edge routes.
+
+The comparison was also repeated independently with `moon_elk`'s own
+`run_elkjs_moon_core_json_diff.py` runner, configured to load D2's vendored
+`d2layouts/d2elklayout/elk.js`. A control layered case matched; all three
+Diago inputs reported both geometry and edge-routing mismatches, beginning at
+the first top-level node's `x` coordinate. These cases require a `moon_elk`
+fix rather than renderer-side compensation in Diago.
+
+Two failures previously attributed to `moon_elk` were Diago defects and are
+now fixed. `border-label.d2` needed D2-compatible descendant edge-route shifts
+when removing ELK label margins. `wcc.d2` needed all constant-near objects in
+one placement group to be positioned before any of them are inserted into the
+main graph.
 
 ## Failure classification
 
-There are no remaining failure categories.
+There are no command, parser, compiler, or renderer failures in the official
+corpus. Strict SVG parity has one remaining category: raw `moon_elk` layered
+geometry and routing divergence on the three unique inputs listed above.
 
 ## Resolved bracket-list compatibility
 
@@ -127,6 +142,8 @@ Dagre, ELK, and Railway.
 - [#19: Support icon and link properties on D2 edges](https://github.com/moonbit-community/diago/issues/19) (resolved)
 - [#20: Support indexed edge overrides in scenarios](https://github.com/moonbit-community/diago/issues/20) (resolved)
 - [#21: Support D2 grid coordinate keys](https://github.com/moonbit-community/diago/issues/21) (resolved)
+- [#22: Enforce normalized SVG parity with D2 on Dagre and ELK](https://github.com/moonbit-community/diago/issues/22) (blocked by three `moon_elk` inputs)
+- [`moon_elk` #12: Three layered inputs diverge from D2's elk.js](https://github.com/moonbit-community/moon_elk/issues/12)
 
 ## Regression policy
 
