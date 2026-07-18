@@ -310,7 +310,7 @@ test "fmt default writes formatted output in place" {
   let formatted = @fs.read_file_to_string(path) catch {
     e => {
       cleanup_file(path)
-      fail("failed to read formatted file: \{e}")
+      fail("failed to read formatted file: \{to_repr(e)}")
       ""
     }
   }
@@ -327,7 +327,7 @@ test "fmt check reports unformatted files without writing" {
   let after = @fs.read_file_to_string(path) catch {
     e => {
       cleanup_file(path)
-      fail("failed to read check file: \{e}")
+      fail("failed to read check file: \{to_repr(e)}")
       ""
     }
   }
