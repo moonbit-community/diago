@@ -67,10 +67,12 @@ func glyphMetrics(face font.Face, r rune) (xMin, xMax int, advance fixed.Int26_6
 }
 
 func emitArrayIntFlat(name string, values []int, perLine int) {
-	fmt.Printf("let %s : Array[Int] = [\n", name)
+	fmt.Println("#inline(never)")
+	fmt.Printf("fn init_%s() -> Array[Int] {\n", name)
+	fmt.Println("  [")
 	for i, v := range values {
 		if i%perLine == 0 {
-			fmt.Print("  ")
+			fmt.Print("    ")
 		}
 		fmt.Printf("%d", v)
 		if i != len(values)-1 {
@@ -80,7 +82,11 @@ func emitArrayIntFlat(name string, values []int, perLine int) {
 			fmt.Print("\n")
 		}
 	}
-	fmt.Println("]")
+	fmt.Println("  ]")
+	fmt.Println("}")
+	fmt.Println()
+	fmt.Println("///|")
+	fmt.Printf("let %s : Array[Int] = init_%s()\n", name, name)
 }
 
 func emitArrayInt(name string, values []int) {
@@ -99,7 +105,8 @@ func emitSizeSpecificMetrics() {
 	fmt.Println()
 	for _, v := range variants {
 		fmt.Println("///|")
-		fmt.Printf("let glyph_x_mins_%s_by_size : Array[Array[Int]] = [\n", v.name)
+		name := "glyph_x_mins_" + v.name + "_by_size"
+		beginNestedArrayInitializer(name)
 		for _, size := range selectedSizes() {
 			face, _, err := loadFaceAtSize(v, size)
 			if err != nil {
@@ -115,11 +122,12 @@ func emitSizeSpecificMetrics() {
 			}
 			emitNestedArray(values)
 		}
-		fmt.Println("]")
+		endNestedArrayInitializer(name)
 		fmt.Println()
 
 		fmt.Println("///|")
-		fmt.Printf("let glyph_x_maxs_%s_by_size : Array[Array[Int]] = [\n", v.name)
+		name = "glyph_x_maxs_" + v.name + "_by_size"
+		beginNestedArrayInitializer(name)
 		for _, size := range selectedSizes() {
 			face, _, err := loadFaceAtSize(v, size)
 			if err != nil {
@@ -135,11 +143,12 @@ func emitSizeSpecificMetrics() {
 			}
 			emitNestedArray(values)
 		}
-		fmt.Println("]")
+		endNestedArrayInitializer(name)
 		fmt.Println()
 
 		fmt.Println("///|")
-		fmt.Printf("let glyph_advances_fixed_%s_by_size : Array[Array[Int]] = [\n", v.name)
+		name = "glyph_advances_fixed_" + v.name + "_by_size"
+		beginNestedArrayInitializer(name)
 		for _, size := range selectedSizes() {
 			face, _, err := loadFaceAtSize(v, size)
 			if err != nil {
@@ -155,11 +164,12 @@ func emitSizeSpecificMetrics() {
 			}
 			emitNestedArray(values)
 		}
-		fmt.Println("]")
+		endNestedArrayInitializer(name)
 		fmt.Println()
 
 		fmt.Println("///|")
-		fmt.Printf("let glyph_replacement_%s_by_size : Array[Array[Int]] = [\n", v.name)
+		name = "glyph_replacement_" + v.name + "_by_size"
+		beginNestedArrayInitializer(name)
 		for _, size := range selectedSizes() {
 			face, _, err := loadFaceAtSize(v, size)
 			if err != nil {
@@ -173,7 +183,7 @@ func emitSizeSpecificMetrics() {
 				emitNestedArray([]int{bounds.Min.X.Floor(), bounds.Max.X.Ceil(), int(advance)})
 			}
 		}
-		fmt.Println("]")
+		endNestedArrayInitializer(name)
 		fmt.Println()
 		for i, size := range selectedSizes() {
 			if !legacySizeSpecificName(v.name, size) {
@@ -187,6 +197,20 @@ func emitSizeSpecificMetrics() {
 			fmt.Printf("let glyph_advances_fixed_%s_sz%d : Array[Int] = glyph_advances_fixed_%s_by_size[%d]\n\n", v.name, size, v.name, i)
 		}
 	}
+}
+
+func beginNestedArrayInitializer(name string) {
+	fmt.Println("#inline(never)")
+	fmt.Printf("fn init_%s() -> Array[Array[Int]] {\n", name)
+	fmt.Println("  [")
+}
+
+func endNestedArrayInitializer(name string) {
+	fmt.Println("  ]")
+	fmt.Println("}")
+	fmt.Println()
+	fmt.Println("///|")
+	fmt.Printf("let %s : Array[Array[Int]] = init_%s()\n", name, name)
 }
 
 func legacySizeSpecificName(name string, size int) bool {

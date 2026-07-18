@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
-  createDiagoWasm,
   DiagoWasmErrorKind,
+  instantiateDiagoWasm,
 } from "../web/diago-wasm.js";
 
 const wasmPath = process.argv[2];
@@ -11,9 +11,14 @@ if (!wasmPath) {
 }
 
 const bytes = await readFile(wasmPath);
-const { instance } = await WebAssembly.instantiate(bytes);
+const module = await WebAssembly.compile(bytes);
+const diago = await instantiateDiagoWasm(module);
+const instance = await WebAssembly.instantiate(module, {
+  __moonbit_time_unstable: {
+    now: () => BigInt.asUintN(64, BigInt(Date.now())),
+  },
+});
 const exports = instance.exports;
-const diago = createDiagoWasm(instance);
 
 assert.ok(exports.memory instanceof WebAssembly.Memory);
 assert.equal(exports.abi_version(), 1);

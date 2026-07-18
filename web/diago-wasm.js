@@ -36,6 +36,16 @@ const REQUIRED_EXPORTS = [
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
+function withMoonBitHostImports(imports) {
+  return {
+    ...imports,
+    __moonbit_time_unstable: {
+      now: () => BigInt.asUintN(64, BigInt(Date.now())),
+      ...imports.__moonbit_time_unstable,
+    },
+  };
+}
+
 function getExports(wasm) {
   if (wasm instanceof WebAssembly.Instance) {
     return wasm.exports;
@@ -186,6 +196,9 @@ export async function instantiateDiagoWasm(source, imports = {}) {
     }
     bytes = await source.arrayBuffer();
   }
-  const instantiated = await WebAssembly.instantiate(bytes, imports);
+  const instantiated = await WebAssembly.instantiate(
+    bytes,
+    withMoonBitHostImports(imports),
+  );
   return createDiagoWasm(instantiated);
 }
