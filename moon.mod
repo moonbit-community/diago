@@ -13,7 +13,7 @@ import {
   "gmlewis/io@0.23.3",
   "gmlewis/zlib@0.21.3",
   "dowdiness/js_engine@0.5.0",
-  "Milky2018/moon_elk@0.2.0",
+  "Milky2018/moon_elk@0.2.1",
   "moonbit-community/moon_dagre@0.3.1",
   "moonbitlang/async@0.20.1",
 }
