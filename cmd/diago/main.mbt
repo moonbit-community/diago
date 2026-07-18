@@ -139,7 +139,7 @@ async fn main {
 }
 
 ///|
-fn write_compiled_output(
+async fn write_compiled_output(
   _output_mode : OutputMode,
   output_path : String?,
   output : String,
@@ -157,10 +157,9 @@ fn write_compiled_output(
 }
 
 ///|
-fn write_output(path : String, content : String) -> Result[Unit, String] {
-  @fs.write_string_to_file(path, content) catch {
-    @fs.IOError(message) =>
-      return Err("Error writing file '\{path}': \{message}")
+async fn write_output(path : String, content : String) -> Result[Unit, String] {
+  @fs.write_file(path, content, create_mode=CreateOrTruncate) catch {
+    error => return Err("Error writing file '\{path}': \{error}")
   }
   println("Written to \{path}")
   Ok(())
@@ -188,10 +187,9 @@ fn replace_extension(path : String, new_ext : String) -> String {
 }
 
 ///|
-fn collect_default_dump_input_sources() -> Result[Array[String], String] {
-  let entries = @fs.read_dir("examples") catch {
-    @fs.IOError(message) =>
-      return Err("Error reading directory 'examples': \{message}")
+async fn collect_default_dump_input_sources() -> Result[Array[String], String] {
+  let entries = @fs.readdir("examples") catch {
+    error => return Err("Error reading directory 'examples': \{error}")
   }
   let paths : Array[String] = []
   for entry in entries {
@@ -204,12 +202,12 @@ fn collect_default_dump_input_sources() -> Result[Array[String], String] {
 }
 
 ///|
-fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
+async fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
   if path.length() == 0 || path == "." {
     return Ok(())
   }
-  if @fs.path_exists(path) {
-    let exists_as_dir = @fs.is_dir(path) catch { _ => false }
+  if @fs.exists(path) {
+    let exists_as_dir = (@fs.kind(path) == @fs.Directory) catch { _ => false }
     if exists_as_dir {
       return Ok(())
     }
@@ -222,10 +220,10 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
       Err(e) => return Err(e)
     }
   }
-  @fs.create_dir(path) catch {
-    @fs.IOError(message) => {
-      let exists_as_dir = if @fs.path_exists(path) {
-        @fs.is_dir(path) catch {
+  @fs.mkdir(path) catch {
+    error => {
+      let exists_as_dir = if @fs.exists(path) {
+        (@fs.kind(path) == @fs.Directory) catch {
           _ => false
         }
       } else {
@@ -234,23 +232,25 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
       if exists_as_dir {
         return Ok(())
       }
-      return Err("Error creating directory '\{path}': \{message}")
+      return Err("Error creating directory '\{path}': \{error}")
     }
   }
   Ok(())
 }
 
 ///|
-fn dump_input_for_file(
+async fn dump_input_for_file(
   input_path : String,
   out_dir : String,
   dump_engine : DumpInputEngine,
 ) -> Result[String, String] {
-  let source = @fs.read_file_to_string(input_path) catch {
-    @fs.IOError(message) =>
-      return Err("Error reading file '\{input_path}': \{message}")
+  let source = @fs.read_file(input_path).text() catch {
+    error => return Err("Error reading file '\{input_path}': \{error}")
   }
-  let resolver = @diago_fs.import_resolver(base_path=get_dir_path(input_path))
+  let resolver = @diago_fs.import_resolver(
+    source,
+    base_path=get_dir_path(input_path),
+  )
   let compiled = match
     @compiler.compile_graph(
       "diagram",
@@ -310,9 +310,12 @@ fn dump_input_for_file(
   }
   let output_name = replace_extension(basename_string(input_path), ".json")
   let out_path = @path.Path(out_dir).join(Path(output_name)).to_string()
-  @fs.write_string_to_file(out_path, input_json.stringify(escape_slash=false)) catch {
-    @fs.IOError(message) =>
-      return Err("Error writing file '\{out_path}': \{message}")
+  @fs.write_file(
+    out_path,
+    input_json.stringify(escape_slash=false),
+    create_mode=CreateOrTruncate,
+  ) catch {
+    error => return Err("Error writing file '\{out_path}': \{error}")
   }
   Ok(out_path)
 }
@@ -479,7 +482,7 @@ fn list_themes() -> Unit {
 }
 
 ///|
-fn compile_source(
+async fn compile_source(
   source : String,
   output_mode : OutputMode,
   theme_name : String?,
@@ -528,7 +531,7 @@ fn compile_source(
 }
 
 ///|
-fn compile_source_with_warnings(
+async fn compile_source_with_warnings(
   source : String,
   output_mode : OutputMode,
   theme_name : String?,
@@ -587,7 +590,7 @@ fn compile_source_with_warnings(
 }
 
 ///|
-fn compile_diago_svg_with_warnings(
+async fn compile_diago_svg_with_warnings(
   source : String,
   theme_name : String?,
   base_path : String?,
@@ -656,7 +659,7 @@ fn combine_compilation_warning(first : String?, second : String?) -> String? {
 
 ///|
 /// Compile diago source to ASCII art
-fn compile_diago_ascii(
+async fn compile_diago_ascii(
   source : String,
   base_path : String?,
   layout_engine : LayoutEngineChoice,
@@ -676,7 +679,7 @@ fn compile_diago_ascii(
 
 ///|
 /// Compile diago source to Unicode box-drawing text
-fn compile_diago_unicode(
+async fn compile_diago_unicode(
   source : String,
   base_path : String?,
   layout_engine : LayoutEngineChoice,
@@ -695,7 +698,7 @@ fn compile_diago_unicode(
 }
 
 ///|
-fn compile_with_facade(
+async fn compile_with_facade(
   source : String,
   output_mode : OutputMode,
   theme_name : String?,
@@ -715,7 +718,7 @@ fn compile_with_facade(
   omit_version? : Bool? = None,
 ) -> Result[String, String] {
   let options = base_compile_options(
-      base_path, layout_engine, layout_explicit, target_spec,
+      source, base_path, layout_engine, layout_explicit, target_spec,
     )
     .with_output_mode(to_diago_output_mode(output_mode))
     .with_theme_name(theme_name)
@@ -737,14 +740,15 @@ fn compile_with_facade(
 }
 
 ///|
-fn base_compile_options(
+async fn base_compile_options(
+  source : String,
   base_path : String?,
   layout_engine : LayoutEngineChoice,
   layout_explicit : Bool,
   target_spec : String?,
 ) -> @diago_core.CompileOptions {
   let parse_options = @diago_core.ParseOptions::new().with_import_resolver(
-    Some(@diago_fs.import_resolver(base_path~)),
+    Some(@diago_fs.import_resolver(source, base_path~)),
   )
   @diago_core.CompileOptions::new()
   .with_layout_engine(to_diago_layout_engine(layout_engine, layout_explicit))

@@ -90,14 +90,14 @@ fn parse_render(
 }
 
 ///|
-fn cleanup_file(path : String) -> Unit {
-  @fs.remove_file(path) catch {
+async fn cleanup_file(path : String) -> Unit {
+  @fs.remove(path) catch {
     _ => ()
   }
 }
 
 ///|
-test "render default output path is input.svg" {
+async test "render default output path is input.svg" {
   let req = parse_render(["diago", "render", "demo.d2"], Map([]))
   @debug.assert_eq(req.input_path, Some("demo.d2"))
   @debug.assert_eq(req.output_path, Some("demo.svg"))
@@ -105,7 +105,7 @@ test "render default output path is input.svg" {
 }
 
 ///|
-test "render stdin only with --stdin" {
+async test "render stdin only with --stdin" {
   let req = parse_render(["diago", "render", "--stdin"], Map([]))
   assert_true(req.from_stdin)
   @debug.assert_eq(req.input_path, None)
@@ -113,25 +113,25 @@ test "render stdin only with --stdin" {
 }
 
 ///|
-test "render rejects positional input with --stdin" {
+async test "render rejects positional input with --stdin" {
   let err = parse_err(["diago", "render", "--stdin", "demo.d2"], Map([]))
   assert_true(err.contains("cannot be used with --stdin"))
 }
 
 ///|
-test "render rejects dash input shorthand" {
+async test "render rejects dash input shorthand" {
   let err = parse_err(["diago", "render", "-"], Map([]))
   assert_true(err.contains("Use --stdin instead"))
 }
 
 ///|
-test "validate rejects dash input shorthand" {
+async test "validate rejects dash input shorthand" {
   let err = parse_err(["diago", "validate", "-"], Map([]))
   assert_true(err.contains("Use --stdin instead"))
 }
 
 ///|
-test "render rejects duplicate output path sources" {
+async test "render rejects duplicate output path sources" {
   let err = parse_err(
     ["diago", "render", "demo.d2", "a.svg", "--output", "b.svg"],
     Map([]),
@@ -140,7 +140,7 @@ test "render rejects duplicate output path sources" {
 }
 
 ///|
-test "render format/output extension mismatch fails" {
+async test "render format/output extension mismatch fails" {
   let err = parse_err(
     ["diago", "render", "demo.d2", "--format", "ascii", "--output", "out.svg"],
     Map([]),
@@ -149,13 +149,13 @@ test "render format/output extension mismatch fails" {
 }
 
 ///|
-test "render watch cannot be combined with stdin" {
+async test "render watch cannot be combined with stdin" {
   let err = parse_err(["diago", "render", "--stdin", "--watch"], Map([]))
   assert_true(err.contains("--watch cannot be used with --stdin"))
 }
 
 ///|
-test "precedence: cli overrides env for layout" {
+async test "precedence: cli overrides env for layout" {
   let req = parse_render(["diago", "render", "demo.d2", "--layout", "dagre"], {
     "DIAGO_LAYOUT": "elk",
   })
@@ -164,7 +164,7 @@ test "precedence: cli overrides env for layout" {
 }
 
 ///|
-test "precedence: env overrides defaults for layout" {
+async test "precedence: env overrides defaults for layout" {
   let req = parse_render(["diago", "render", "demo.d2"], {
     "DIAGO_LAYOUT": "elk",
   })
@@ -173,7 +173,7 @@ test "precedence: env overrides defaults for layout" {
 }
 
 ///|
-test "render parses compatibility pad and center svg options" {
+async test "render parses compatibility pad and center svg options" {
   let req = parse_render(
     ["diago", "render", "demo.d2", "--pad", "24", "--center"],
     Map([]),
@@ -183,13 +183,13 @@ test "render parses compatibility pad and center svg options" {
 }
 
 ///|
-test "render parses compatibility sketch flag" {
+async test "render parses compatibility sketch flag" {
   let req = parse_render(["diago", "render", "demo.d2", "--sketch"], Map([]))
   @debug.assert_eq(req.sketch, Some(true))
 }
 
 ///|
-test "render parses typed theme override flags" {
+async test "render parses typed theme override flags" {
   let req = parse_render(
     [
       "diago", "render", "demo.d2", "--theme-overrides", "B1:red,N1=white", "--dark-theme-overrides",
@@ -206,44 +206,44 @@ test "render parses typed theme override flags" {
 }
 
 ///|
-test "only DIAGO_ env prefix is recognized" {
+async test "only DIAGO_ env prefix is recognized" {
   let req = parse_render(["diago", "render", "demo.d2"], { "D2_LAYOUT": "elk" })
   @debug.assert_eq(req.layout_engine, Dagre)
   assert_false(req.layout_explicit)
 }
 
 ///|
-test "legacy watch command returns migration hint" {
+async test "legacy watch command returns migration hint" {
   let err = parse_err(["diago", "watch", "demo.d2"], Map([]))
   assert_true(err.contains("render --watch"))
 }
 
 ///|
-test "legacy dump-input command returns migration hint" {
+async test "legacy dump-input command returns migration hint" {
   let err = parse_err(["diago", "dump-input"], Map([]))
   assert_true(err.contains("no longer a public CLI command"))
 }
 
 ///|
-test "legacy ascii flags return migration hint" {
+async test "legacy ascii flags return migration hint" {
   let err = parse_err(["diago", "render", "--ascii", "demo.d2"], Map([]))
   assert_true(err.contains("render --format ascii|unicode"))
 }
 
 ///|
-test "legacy global version flag returns migration hint" {
+async test "legacy global version flag returns migration hint" {
   let err = parse_err(["diago", "--version"], Map([]))
   assert_true(err.contains("Use: diago version"))
 }
 
 ///|
-test "legacy direct entry returns migration hint" {
+async test "legacy direct entry returns migration hint" {
   let err = parse_err(["diago", "demo.d2"], Map([]))
   assert_true(err.contains("Use: diago render"))
 }
 
 ///|
-test "precedence: env layout overrides invalid vars config layout-engine" {
+async test "precedence: env layout overrides invalid vars config layout-engine" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -278,7 +278,7 @@ test "precedence: env layout overrides invalid vars config layout-engine" {
 }
 
 ///|
-test "compile_source reports invalid target syntax" {
+async test "compile_source reports invalid target syntax" {
   let source =
     #|layers: {
     #|  core: {
@@ -301,13 +301,13 @@ test "compile_source reports invalid target syntax" {
 }
 
 ///|
-test "fmt default writes formatted output in place" {
+async test "fmt default writes formatted output in place" {
   let path = ".diago_cli_v2_fmt_in_place.d2"
   cleanup_file(path)
-  @fs.write_string_to_file(path, "a  ->  b\n")
+  @fs.write_file(path, "a  ->  b\n", create_mode=CreateOrTruncate)
   let result = execute_fmt({ check: false, files: [path] })
   assert_true(result is Ok(_))
-  let formatted = @fs.read_file_to_string(path) catch {
+  let formatted = @fs.read_file(path).text() catch {
     e => {
       cleanup_file(path)
       fail("failed to read formatted file: \{to_repr(e)}")
@@ -319,12 +319,12 @@ test "fmt default writes formatted output in place" {
 }
 
 ///|
-test "fmt check reports unformatted files without writing" {
+async test "fmt check reports unformatted files without writing" {
   let path = ".diago_cli_v2_fmt_check.d2"
   cleanup_file(path)
-  @fs.write_string_to_file(path, "a  ->  b\n")
+  @fs.write_file(path, "a  ->  b\n", create_mode=CreateOrTruncate)
   let result = execute_fmt({ check: true, files: [path] })
-  let after = @fs.read_file_to_string(path) catch {
+  let after = @fs.read_file(path).text() catch {
     e => {
       cleanup_file(path)
       fail("failed to read check file: \{to_repr(e)}")
@@ -340,10 +340,10 @@ test "fmt check reports unformatted files without writing" {
 }
 
 ///|
-test "validate reports parse failures" {
+async test "validate reports parse failures" {
   let path = ".diago_cli_v2_validate_invalid.d2"
   cleanup_file(path)
-  @fs.write_string_to_file(path, "a ->")
+  @fs.write_file(path, "a ->", create_mode=CreateOrTruncate)
   let result = execute_validate({ input_path: Some(path), from_stdin: false })
   cleanup_file(path)
   match result {

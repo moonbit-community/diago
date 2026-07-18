@@ -13,54 +13,67 @@
 // limitations under the License.
 
 ///|
-fn remove_test_path(path : String) -> Unit {
-  @system_fs.remove_file(path) catch {
+async fn remove_test_path(path : String) -> Unit {
+  @async_fs.remove(path) catch {
     _ => ()
   }
 }
 
 ///|
-fn remove_test_dir(path : String) -> Unit {
-  @system_fs.remove_dir(path) catch {
+async fn remove_test_dir(path : String) -> Unit {
+  @async_fs.rmdir(path) catch {
     _ => ()
   }
 }
 
 ///|
-fn prepare_import_fixture(dir : String) -> (String, String) raise {
+async fn prepare_import_fixture(dir : String) -> (String, String, String) {
   let main_path = dir + "/main.d2"
   let dep_path = dir + "/common.d2"
+  let nested_path = dir + "/nested.d2"
   remove_test_path(main_path)
   remove_test_path(dep_path)
+  remove_test_path(nested_path)
   remove_test_dir(dir)
-  @system_fs.create_dir(dir)
-  @system_fs.write_string_to_file(main_path, "common: @common")
-  @system_fs.write_string_to_file(dep_path, "server\ndatabase")
-  (main_path, dep_path)
+  @async_fs.mkdir(dir)
+  @async_fs.write_file(
+    main_path,
+    "common: @common",
+    create_mode=CreateOrTruncate,
+  )
+  @async_fs.write_file(
+    dep_path,
+    "server\ndatabase\nnested: @nested",
+    create_mode=CreateOrTruncate,
+  )
+  @async_fs.write_file(nested_path, "leaf", create_mode=CreateOrTruncate)
+  (main_path, dep_path, nested_path)
 }
 
 ///|
-fn clean_import_fixture(
+async fn clean_import_fixture(
   dir : String,
   main_path : String,
   dep_path : String,
+  nested_path : String,
 ) -> Unit {
   remove_test_path(main_path)
   remove_test_path(dep_path)
+  remove_test_path(nested_path)
   remove_test_dir(dir)
 }
 
 ///|
-test "filesystem resolver supports source-based facade calls" {
+async test "filesystem resolver supports source-based facade calls" {
   let dir = ".diago_fs_resolver_test"
-  let (main_path, dep_path) = prepare_import_fixture(dir)
+  let (main_path, dep_path, nested_path) = prepare_import_fixture(dir)
   let ir_map = @diago.parse(
     "common: @common",
     options=@diago.ParseOptions::new().with_import_resolver(
-      Some(import_resolver(base_path=Some(dir))),
+      Some(import_resolver("common: @common", base_path=Some(dir))),
     ),
   )
-  clean_import_fixture(dir, main_path, dep_path)
+  clean_import_fixture(dir, main_path, dep_path, nested_path)
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
   }
@@ -69,14 +82,21 @@ test "filesystem resolver supports source-based facade calls" {
   }
   assert_true(common_map.has_field("server"))
   assert_true(common_map.has_field("database"))
+  guard common_map.get_field("nested") is Some(nested) else {
+    fail("no nested field")
+  }
+  guard nested.composite is Some(Map(nested_map)) else {
+    fail("nested field has no map")
+  }
+  assert_true(nested_map.has_field("leaf"))
 }
 
 ///|
-test "parse_file resolves imports relative to the input file" {
+async test "parse_file resolves imports relative to the input file" {
   let dir = ".diago_fs_parse_file_test"
-  let (main_path, dep_path) = prepare_import_fixture(dir)
+  let (main_path, dep_path, nested_path) = prepare_import_fixture(dir)
   let ir_map = parse_file(main_path)
-  clean_import_fixture(dir, main_path, dep_path)
+  clean_import_fixture(dir, main_path, dep_path, nested_path)
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
   }
@@ -88,10 +108,10 @@ test "parse_file resolves imports relative to the input file" {
 }
 
 ///|
-test "compile_file returns rendered output" {
+async test "compile_file returns rendered output" {
   let dir = ".diago_fs_compile_file_test"
-  let (main_path, dep_path) = prepare_import_fixture(dir)
+  let (main_path, dep_path, nested_path) = prepare_import_fixture(dir)
   let svg = compile_file(main_path)
-  clean_import_fixture(dir, main_path, dep_path)
+  clean_import_fixture(dir, main_path, dep_path, nested_path)
   assert_true(svg.contains("<svg"))
 }

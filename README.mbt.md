@@ -56,10 +56,14 @@ Native applications can opt into local file access through the filesystem adapte
 
 ```moonbit nocheck
 ///|
-let svg = @diago_fs.compile_file("diagram.d2")
+async fn main {
+  let svg = @diago_fs.compile_file("diagram.d2")
+}
 ```
 
-`compile_file` and `parse_file` resolve imports relative to the input file while preserving a custom resolver supplied by the caller.
+`compile_file` and `parse_file` use `moonbitlang/async/fs`, resolve imports
+relative to the input file, and preserve a custom resolver supplied by the
+caller.
 
 ## CLI
 

@@ -16,8 +16,8 @@
 /// Regression tests for deterministic edge ordering across compilation stages.
 
 ///|
-test "edge order: architecture load_balancer fanout" {
-  let source = @fs.read_file_to_string("examples/architecture.d2")
+async test "edge order: architecture load_balancer fanout" {
+  let source = @fs.read_file("examples/architecture.d2").text()
   let (ast, errors) = @parser.parse(source)
   if !errors.is_empty() {
     fail("parse errors: \{errors}")

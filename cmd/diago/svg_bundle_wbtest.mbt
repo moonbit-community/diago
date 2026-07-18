@@ -13,12 +13,12 @@
 // limitations under the License.
 
 ///|
-test "bundle local image href to data uri" {
+async test "bundle local image href to data uri" {
   let icon_path = ".diago_bundle_test_icon.svg"
   remove_test_file(icon_path)
   let icon_svg =
     #|<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>
-  @fs.write_string_to_file(icon_path, icon_svg)
+  @fs.write_file(icon_path, icon_svg, create_mode=CreateOrTruncate)
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href=".diago_bundle_test_icon.svg" x="0" y="0" width="1" height="1"/></svg>
   let bundled = bundle_local_svg_images(svg, Some("."))
@@ -29,12 +29,12 @@ test "bundle local image href to data uri" {
 }
 
 ///|
-test "bundle updates href and xlink:href together" {
+async test "bundle updates href and xlink:href together" {
   let icon_path = ".diago_bundle_test_icon_xlink.svg"
   remove_test_file(icon_path)
   let icon_svg =
     #|<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>
-  @fs.write_string_to_file(icon_path, icon_svg)
+  @fs.write_file(icon_path, icon_svg, create_mode=CreateOrTruncate)
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href=".diago_bundle_test_icon_xlink.svg" xlink:href=".diago_bundle_test_icon_xlink.svg"/></svg>
   let bundled = bundle_local_svg_images(svg, Some("."))
@@ -45,7 +45,7 @@ test "bundle updates href and xlink:href together" {
 }
 
 ///|
-test "bundle keeps pre-bundled data uri unchanged" {
+async test "bundle keeps pre-bundled data uri unchanged" {
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/png;base64,AAAA"/></svg>
   let bundled = bundle_local_svg_images(svg, Some("."))
@@ -54,15 +54,15 @@ test "bundle keeps pre-bundled data uri unchanged" {
 }
 
 ///|
-test "bundle local image resolves relative paths from base path" {
+async test "bundle local image resolves relative paths from base path" {
   let dir = ".diago_bundle_nested"
   let icon_path = dir + "/test_svg.svg"
   let icon_svg =
     #|<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>
   remove_test_file(icon_path)
   remove_test_dir(dir)
-  @fs.create_dir(dir)
-  @fs.write_string_to_file(icon_path, icon_svg)
+  @fs.mkdir(dir)
+  @fs.write_file(icon_path, icon_svg, create_mode=CreateOrTruncate)
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="./test_svg.svg"/></svg>
   let bundled = bundle_local_svg_images(svg, Some(dir))
@@ -73,7 +73,7 @@ test "bundle local image resolves relative paths from base path" {
 }
 
 ///|
-test "bundle local image keeps svg and reports invalid relative base path" {
+async test "bundle local image keeps svg and reports invalid relative base path" {
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="./missing.svg"/></svg>
   let bundled = bundle_local_svg_images(svg, Some(".diago_missing_bundle_dir"))
@@ -191,7 +191,7 @@ async test "fetch remote image with async HTTP and redirects" {
 }
 
 ///|
-test "resolve remote image redirects" {
+async test "resolve remote image redirects" {
   @debug.assert_eq(
     resolve_remote_redirect(
       "https://example.com/assets/icon.svg?size=1", "../shared/icon.svg",
@@ -239,15 +239,15 @@ async test "bundle remote image preserves successful replacements when another f
 }
 
 ///|
-fn remove_test_file(path : String) -> Unit {
-  @fs.remove_file(path) catch {
+async fn remove_test_file(path : String) -> Unit {
+  @fs.remove(path) catch {
     _ => ()
   }
 }
 
 ///|
-fn remove_test_dir(path : String) -> Unit {
-  @fs.remove_dir(path) catch {
+async fn remove_test_dir(path : String) -> Unit {
+  @fs.rmdir(path) catch {
     _ => ()
   }
 }

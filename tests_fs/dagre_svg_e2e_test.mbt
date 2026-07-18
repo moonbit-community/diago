@@ -21,7 +21,7 @@
 ///    are aligned to committed reference Dagre SVGs (`examples/reference-dagre-output`)
 
 ///|
-test "examples: dagre svg e2e snapshots and reference semantic parity" {
+async test "examples: dagre svg e2e snapshots and reference semantic parity" {
   let dagre_example_names = e2e_example_names().unwrap()
   for name in dagre_example_names {
     let source = read_required_file("examples/" + name + ".d2").unwrap()
@@ -81,10 +81,9 @@ test "examples: dagre svg e2e snapshots and reference semantic parity" {
 }
 
 ///|
-fn e2e_example_names() -> Result[Array[String], String] {
-  let entries = @fs.read_dir("examples") catch {
-    @fs.IOError(message) =>
-      return Err("failed to read examples directory: \{message}")
+async fn e2e_example_names() -> Result[Array[String], String] {
+  let entries = @fs.readdir("examples") catch {
+    error => return Err("failed to read examples directory: \{error}")
   }
   let names : Array[String] = []
   for entry in entries {
@@ -468,9 +467,9 @@ fn snapshot_line_counts(snapshot : String) -> Map[String, Int] {
 }
 
 ///|
-fn read_required_file(path : String) -> Result[String, String] {
-  try @fs.read_file_to_string(path) catch {
-    @fs.IOError(message) => Err("failed to read '\{path}': \{message}")
+async fn read_required_file(path : String) -> Result[String, String] {
+  try @fs.read_file(path).text() catch {
+    error => Err("failed to read '\{path}': \{error}")
   } noraise {
     content => Ok(content)
   }

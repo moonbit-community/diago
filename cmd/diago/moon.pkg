@@ -12,7 +12,7 @@ import {
   "Milky2018/diago/themes",
   "Milky2018/diago/formatter",
   "moonbitlang/x/codec/base64",
-  "moonbitlang/x/fs",
+  "moonbitlang/async/fs",
   "moonbitlang/x/sys",
   "moonbitlang/x/path",
   "moonbitlang/core/argparse",

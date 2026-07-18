@@ -7,11 +7,11 @@ import {
 }
 
 // Values
-pub fn compile_file(String, options? : @diago.CompileOptions) -> String raise @diago.DiagoError
+pub async fn compile_file(String, options? : @diago.CompileOptions) -> String raise @diago.DiagoError
 
-pub fn import_resolver(base_path? : String?) -> @ir.ImportResolver
+pub async fn import_resolver(String, base_path? : String?) -> @ir.ImportResolver
 
-pub fn parse_file(String, options? : @diago.ParseOptions) -> @ir.Map raise @diago.DiagoError
+pub async fn parse_file(String, options? : @diago.ParseOptions) -> @ir.Map raise @diago.DiagoError
 
 // Errors
 

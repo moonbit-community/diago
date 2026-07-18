@@ -20,7 +20,7 @@
 /// 2) Diago outputs are strictly aligned to committed ELK references
 
 ///|
-test "examples: elk svg e2e snapshots and reference semantic parity" {
+async test "examples: elk svg e2e snapshots and reference semantic parity" {
   let elk_example_names = e2e_example_names().unwrap()
   for name in elk_example_names {
     let source = read_required_file("examples/" + name + ".d2").unwrap()
@@ -84,7 +84,7 @@ test "examples: elk svg e2e snapshots and reference semantic parity" {
 }
 
 ///|
-test "examples: elk ascii e2e snapshots" {
+async test "examples: elk ascii e2e snapshots" {
   let elk_example_names = e2e_example_names().unwrap()
   for name in elk_example_names {
     let source = read_required_file("examples/" + name + ".d2").unwrap()
@@ -111,7 +111,7 @@ test "examples: elk ascii e2e snapshots" {
 }
 
 ///|
-test "examples: elk unicode e2e snapshots" {
+async test "examples: elk unicode e2e snapshots" {
   let elk_example_names = e2e_example_names().unwrap()
   for name in elk_example_names {
     let source = read_required_file("examples/" + name + ".d2").unwrap()

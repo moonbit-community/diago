@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-fn compile_diagram_for_test(
+async fn compile_diagram_for_test(
   source : String,
   base_path : String?,
   layout_engine : LayoutEngineChoice,
@@ -21,7 +21,7 @@ fn compile_diagram_for_test(
   target_spec : String?,
 ) -> Result[@diagram.Diagram, String] {
   let options = base_compile_options(
-    base_path, layout_engine, layout_explicit, target_spec,
+    source, base_path, layout_engine, layout_explicit, target_spec,
   )
   try @diago_core.compile_diagram(source, options~) catch {
     err => Err(diago_error_message(err))
@@ -31,7 +31,7 @@ fn compile_diagram_for_test(
 }
 
 ///|
-test "vars config theme-id applies when cli theme absent" {
+async test "vars config theme-id applies when cli theme absent" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -44,7 +44,7 @@ test "vars config theme-id applies when cli theme absent" {
 }
 
 ///|
-test "cli theme overrides vars config theme-id" {
+async test "cli theme overrides vars config theme-id" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -65,7 +65,7 @@ test "cli theme overrides vars config theme-id" {
 }
 
 ///|
-test "vars config layout-engine applies when cli layout is not explicit" {
+async test "vars config layout-engine applies when cli layout is not explicit" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -82,7 +82,7 @@ test "vars config layout-engine applies when cli layout is not explicit" {
 }
 
 ///|
-test "cli layout overrides invalid vars config layout-engine" {
+async test "cli layout overrides invalid vars config layout-engine" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -101,7 +101,7 @@ test "cli layout overrides invalid vars config layout-engine" {
 }
 
 ///|
-test "extract vars config into diagram config" {
+async test "extract vars config into diagram config" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -128,7 +128,7 @@ test "extract vars config into diagram config" {
     #|  }
     #|}
     #|a -> b
-  let options = base_compile_options(None, Dagre, false, None)
+  let options = base_compile_options(source, None, Dagre, false, None)
   let diagram = @diago_core.compile_diagram(source, options~)
   match diagram.config {
     None => fail("expected diagram config")
@@ -155,7 +155,7 @@ test "extract vars config into diagram config" {
 }
 
 ///|
-test "vars config data arrays do not break svg rendering" {
+async test "vars config data arrays do not break svg rendering" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -170,7 +170,7 @@ test "vars config data arrays do not break svg rendering" {
 }
 
 ///|
-test "vars config no-xml-tag omits XML declaration" {
+async test "vars config no-xml-tag omits XML declaration" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -183,7 +183,7 @@ test "vars config no-xml-tag omits XML declaration" {
 }
 
 ///|
-test "theme-overrides applies to theme tokens in style" {
+async test "theme-overrides applies to theme tokens in style" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -202,7 +202,7 @@ test "theme-overrides applies to theme tokens in style" {
 }
 
 ///|
-test "invalid theme-overrides key fails config parsing" {
+async test "invalid theme-overrides key fails config parsing" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -219,7 +219,7 @@ test "invalid theme-overrides key fails config parsing" {
 }
 
 ///|
-test "invalid theme-overrides color fails config parsing" {
+async test "invalid theme-overrides color fails config parsing" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -241,7 +241,7 @@ test "invalid theme-overrides color fails config parsing" {
 }
 
 ///|
-test "dark-theme-id does not replace base light theme when theme-id is absent" {
+async test "dark-theme-id does not replace base light theme when theme-id is absent" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -254,7 +254,7 @@ test "dark-theme-id does not replace base light theme when theme-id is absent" {
 }
 
 ///|
-test "vars config pad is applied to svg config padding" {
+async test "vars config pad is applied to svg config padding" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -268,7 +268,7 @@ test "vars config pad is applied to svg config padding" {
 }
 
 ///|
-test "vars config center is applied to svg alignment" {
+async test "vars config center is applied to svg alignment" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -281,7 +281,7 @@ test "vars config center is applied to svg alignment" {
 }
 
 ///|
-test "cli center overrides vars config center=false" {
+async test "cli center overrides vars config center=false" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -303,7 +303,7 @@ test "cli center overrides vars config center=false" {
 }
 
 ///|
-test "vars config sketch is unsupported" {
+async test "vars config sketch is unsupported" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -319,7 +319,7 @@ test "vars config sketch is unsupported" {
 }
 
 ///|
-test "cli sketch true is unsupported and false remains a no-op" {
+async test "cli sketch true is unsupported and false remains a no-op" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -359,7 +359,7 @@ test "cli sketch true is unsupported and false remains a no-op" {
 }
 
 ///|
-test "vars config dark-theme-id emits dark media css" {
+async test "vars config dark-theme-id emits dark media css" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -373,7 +373,7 @@ test "vars config dark-theme-id emits dark media css" {
 }
 
 ///|
-test "target selection matches the reference board-only vs board-with-children semantics" {
+async test "target selection matches the reference board-only vs board-with-children semantics" {
   let source =
     #|layers: {
     #|  core: {
@@ -406,7 +406,7 @@ test "target selection matches the reference board-only vs board-with-children s
 }
 
 ///|
-test "salt namespaces SVG marker IDs" {
+async test "salt namespaces SVG marker IDs" {
   let source =
     #|vars: {
     #|  d2-config: {
@@ -420,12 +420,12 @@ test "salt namespaces SVG marker IDs" {
 }
 
 ///|
-test "local image assets are bundled even when remote bundling is disabled" {
+async test "local image assets are bundled even when remote bundling is disabled" {
   let icon_path = ".diago_bundle_compile_local.svg"
   let icon_svg =
     #|<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>
   remove_config_test_file(icon_path)
-  @fs.write_string_to_file(icon_path, icon_svg)
+  @fs.write_file(icon_path, icon_svg, create_mode=CreateOrTruncate)
   let source =
     #|photo: {
     #|  shape: image
@@ -438,13 +438,13 @@ test "local image assets are bundled even when remote bundling is disabled" {
 }
 
 ///|
-test "svg compile keeps output when local bundling reports an error" {
+async test "svg compile keeps output when local bundling reports an error" {
   let ok_icon_path = ".diago_bundle_compile_partial_ok.svg"
   let missing_icon_path = ".diago_bundle_compile_partial_missing.svg"
   let icon_svg =
     #|<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>
   remove_config_test_file(ok_icon_path)
-  @fs.write_string_to_file(ok_icon_path, icon_svg)
+  @fs.write_file(ok_icon_path, icon_svg, create_mode=CreateOrTruncate)
   let source =
     #|good: {
     #|  shape: image
@@ -475,7 +475,7 @@ test "svg compile keeps output when local bundling reports an error" {
 }
 
 ///|
-test "omit-version removes the version attribute" {
+async test "omit-version removes the version attribute" {
   let source_default =
     #|a -> b
   let default_svg = compile_source(
@@ -509,7 +509,7 @@ test "omit-version removes the version attribute" {
 }
 
 ///|
-test "invalid style keyword fails semantic validation" {
+async test "invalid style keyword fails semantic validation" {
   let source =
     #|a: {
     #|  style: {
@@ -523,7 +523,7 @@ test "invalid style keyword fails semantic validation" {
 }
 
 ///|
-test "url tooltip with link fails semantic validation" {
+async test "url tooltip with link fails semantic validation" {
   let source =
     #|a: {
     #|  link: https://example.com
@@ -536,14 +536,14 @@ test "url tooltip with link fails semantic validation" {
 }
 
 ///|
-fn remove_config_test_file(path : String) -> Unit {
-  @fs.remove_file(path) catch {
+async fn remove_config_test_file(path : String) -> Unit {
+  @fs.remove(path) catch {
     _ => ()
   }
 }
 
 ///|
-test "near ancestor and edge map non-reserved are rejected" {
+async test "near ancestor and edge map non-reserved are rejected" {
   let near_source =
     #|a: {
     #|  b: {
@@ -568,7 +568,7 @@ test "near ancestor and edge map non-reserved are rejected" {
 }
 
 ///|
-test "dagre rejects top/left fixed positioning like the reference" {
+async test "dagre rejects top/left fixed positioning like the reference" {
   let source =
     #|a: {
     #|  top: 120
@@ -587,7 +587,7 @@ test "dagre rejects top/left fixed positioning like the reference" {
 }
 
 ///|
-test "top/left must be non-negative integers" {
+async test "top/left must be non-negative integers" {
   let non_integer_top =
     #|a: {
     #|  top: abc
@@ -608,7 +608,7 @@ test "top/left must be non-negative integers" {
 }
 
 ///|
-test "top/left compatibility checks for hierarchy sequence and grid" {
+async test "top/left compatibility checks for hierarchy sequence and grid" {
   let hierarchy_source =
     #|x: {
     #|  shape: hierarchy
@@ -648,7 +648,7 @@ test "top/left compatibility checks for hierarchy sequence and grid" {
 }
 
 ///|
-test "format parser supports supported format names" {
+async test "format parser supports supported format names" {
   guard parse_stdout_format("svg") is Some(Svg) else {
     fail("svg should parse")
   }
@@ -664,7 +664,7 @@ test "format parser supports supported format names" {
 }
 
 ///|
-test "output mode can be inferred from output extension" {
+async test "output mode can be inferred from output extension" {
   guard infer_output_mode_from_path("diagram.svg") is Some(Svg) else {
     fail("svg extension should map to svg mode")
   }
@@ -680,7 +680,7 @@ test "output mode can be inferred from output extension" {
 }
 
 ///|
-test "layout parser supports dagre elk railway" {
+async test "layout parser supports dagre elk railway" {
   guard parse_layout_engine("dagre") is Some(Dagre) else {
     fail("dagre should parse")
   }
@@ -697,7 +697,7 @@ test "layout parser supports dagre elk railway" {
 }
 
 ///|
-test "ascii and unicode output modes render different text charsets" {
+async test "ascii and unicode output modes render different text charsets" {
   let source =
     #|a -> b
   let ascii_output = compile_source(
@@ -724,6 +724,6 @@ test "ascii and unicode output modes render different text charsets" {
 }
 
 ///|
-test "basename helper resolves file name for dump output paths" {
+async test "basename helper resolves file name for dump output paths" {
   @debug.assert_eq(basename_string("foo/bar/diagram.svg"), "diagram.svg")
 }

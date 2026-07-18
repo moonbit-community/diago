@@ -59,7 +59,7 @@ let test_remote_fetch_error_overrides : Map[String, String] = Map([])
 let test_remote_fetch_count : Map[String, Int] = Map([])
 
 ///|
-fn bundle_local_svg_images(
+async fn bundle_local_svg_images(
   svg : String,
   base_path : String?,
   cache_images? : Bool = false,
@@ -115,7 +115,7 @@ fn collect_remote_image_sources(svg : String) -> Array[String] {
 }
 
 ///|
-fn bundle_svg_images_in_scope(
+async fn bundle_svg_images_in_scope(
   svg : String,
   base_path : String?,
   scope : BundleScope,
@@ -158,7 +158,7 @@ fn bundle_svg_images_in_scope(
 }
 
 ///|
-fn bundle_image_tag(
+async fn bundle_image_tag(
   tag : String,
   base_path : String?,
   scope : BundleScope,
@@ -383,7 +383,7 @@ fn store_persistent_bundle_cache(
 }
 
 ///|
-fn build_image_data_uri(
+async fn build_image_data_uri(
   source : String,
   base_path : String?,
   remote_fetches : Map[String, Result[(Bytes, String), String]],
@@ -403,9 +403,8 @@ fn build_image_data_uri(
     )
   } else {
     let path = resolve_local_image_path(normalized, base_path)
-    let bytes = @fs.read_file_to_bytes(path) catch {
-      @fs.IOError(message) =>
-        return Err("failed to read image file '\{path}': \{message}")
+    let bytes = @fs.read_file(path).binary() catch {
+      error => return Err("failed to read image file '\{path}': \{error}")
     }
     (bytes, resolve_bundle_mime_type(path, bytes, ""))
   }
