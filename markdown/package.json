@@ -1,0 +1,95 @@
+{
+  "name": "diago",
+  "version": "0.2.5",
+  "description": "Render Diago diagrams in Markdown with markdown-it, remark, or VitePress",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./markdown-it": {
+      "types": "./dist/markdown-it.d.ts",
+      "import": "./dist/markdown-it.js"
+    },
+    "./remark": {
+      "types": "./dist/remark.d.ts",
+      "import": "./dist/remark.js"
+    },
+    "./vitepress": {
+      "types": "./dist/vitepress.d.ts",
+      "import": "./dist/vitepress.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:corpus": "npm run build && node scripts/test-corpus.mjs",
+    "test:package": "npm run build && node scripts/check-package.mjs",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "markdown-it": ">=14 <15",
+    "unified": ">=11 <12",
+    "vitepress": ">=1 <2"
+  },
+  "peerDependenciesMeta": {
+    "markdown-it": {
+      "optional": true
+    },
+    "unified": {
+      "optional": true
+    },
+    "vitepress": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/markdown-it": "14.1.2",
+    "@types/mdast": "4.0.4",
+    "@types/node": "20.19.43",
+    "@vue/server-renderer": "3.5.40",
+    "markdown-it": "14.3.0",
+    "remark": "15.0.1",
+    "remark-html": "16.0.1",
+    "typescript": "5.9.3",
+    "unified": "11.0.5",
+    "vitepress": "1.6.4",
+    "vue": "3.5.40"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonbit-community/diago.git",
+    "directory": "markdown"
+  },
+  "homepage": "https://github.com/moonbit-community/diago#readme",
+  "bugs": {
+    "url": "https://github.com/moonbit-community/diago/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "diago",
+    "d2",
+    "markdown",
+    "markdown-it",
+    "remark",
+    "vitepress",
+    "diagram",
+    "wasm"
+  ]
+}

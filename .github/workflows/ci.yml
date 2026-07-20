@@ -40,3 +40,57 @@ jobs:
 
       - name: Smoke test WASM
         run: node scripts/wasm_smoke.mjs _build/wasm/release/build/cmd/wasm/wasm.wasm
+
+  markdown:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: Set up Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: markdown/package-lock.json
+
+      - name: Install MoonBit dependencies
+        run: moon update
+
+      - name: Install npm dependencies
+        run: npm --prefix markdown ci
+
+      - name: Audit published dependencies
+        run: npm --prefix markdown audit --omit=dev --audit-level=high
+
+      - name: Type check package
+        run: npm --prefix markdown run check
+
+      - name: Test adapters
+        run: npm --prefix markdown test
+
+      - name: Test official corpus
+        if: matrix.node == 20
+        run: npm --prefix markdown run test:corpus
+
+      - name: Inspect and install package tarball
+        if: matrix.node == 20
+        run: npm --prefix markdown run test:package
+
+      - name: Test lowest supported host versions
+        if: matrix.node == 20
+        working-directory: markdown
+        run: |
+          npm install --no-save --package-lock=false \
+            markdown-it@14.0.0 unified@11.0.0 remark@15.0.0 vitepress@1.0.0
+          npm run check
+          npm test

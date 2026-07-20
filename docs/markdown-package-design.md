@@ -69,6 +69,7 @@ markdown/
 │       ├── wasm.js
 │       ├── fence.js
 │       ├── identity.js
+│       ├── options.js
 │       └── diagnostics.js
 ├── test/
 └── dist/
@@ -165,6 +166,7 @@ export type WasmErrorName =
   | 'target'
   | 'result_too_large'
   | 'unsupported_feature'
+  | 'unknown'
 ```
 
 `RenderRequest` deliberately matches Wasm request version 1, except callers do
@@ -468,8 +470,10 @@ Implementation is complete only when all of these pass:
    builds and the existing Wasm smoke test.
 2. JavaScript type checking, declaration generation, `node:test`, and package
    export tests pass on Node 20, 22, and 24.
-3. The 171 import-free, non-sketch, non-LaTeX official D2 fixtures render
-   successfully through the packaged Wasm with Dagre, ELK, and Railway.
+3. The 171 import-free, non-sketch, non-LaTeX official D2 fixtures compile
+   successfully through the packaged Wasm with Dagre, ELK, and Railway: 168
+   produce SVG and three library/template fixtures intentionally produce an
+   empty body.
 4. Normalized Dagre and ELK SVG for those 171 fixtures matches D2 exactly. The
    adapter's deterministic salt and version metadata are normalized only by the
    same parity rules already used by this repository.
@@ -495,8 +499,9 @@ Implementation is complete only when all of these pass:
     consumer fixtures at both the lowest and latest supported host versions.
 
 The observed 171/12/4 corpus split was measured against the release Wasm at
-commit `bcc51be`: 171 successful source-only fixtures, 12 `ir` failures caused
-by imports, and the four tracked unsupported sketch/LaTeX fixtures.
+commit `bcc51be`: 171 successful source-only fixtures (168 SVG and three empty
+templates), 12 `ir` failures caused by imports, and the four tracked unsupported
+sketch/LaTeX fixtures.
 
 ## Deliberate non-goals
 

@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta
+  http-equiv="Content-Security-Policy"
+  content="default-src 'none'; script-src 'none'; style-src 'none'; img-src 'self'; font-src 'self'"
+>
+<title>Diago strict CSP behavior</title>
+<!--
+  Manual browser fixture: the inline style below must be blocked by this CSP.
+  It documents that strict style-src is incompatible with current inline Diago
+  SVG; it is not a claim that CSP makes untrusted diagram input safe.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40">
+  <style>.diago-csp-shape { fill: red; }</style>
+  <rect class="diago-csp-shape" x="5" y="5" width="110" height="30" fill="blue" />
+</svg>

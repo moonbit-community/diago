@@ -11,3 +11,7 @@ CLAUDE.md
 _build/
 target
 __pycache__/
+markdown/node_modules/
+markdown/dist/
+markdown/*.tgz
+markdown/.vitepress/

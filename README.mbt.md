@@ -11,6 +11,7 @@ This repository contains:
 - A native filesystem adapter (`Milky2018/diago/fs`) for file loading and relative imports
 - A CLI (`cmd/diago`) with explicit subcommands (`render`, `fmt`, `validate`, `layout`, `themes`, `version`)
 - A WASM-based playground (`web/`) deployed via GitHub Pages
+- A Node.js Markdown package (`markdown/`) for markdown-it, remark, and VitePress
 - Multiple layout engines: `dagre`, `elk`, and `railway`
 
 ## Installation
@@ -64,6 +65,28 @@ async fn main {
 `compile_file` and `parse_file` use `moonbitlang/async/fs`, resolve imports
 relative to the input file, and preserve a custom resolver supplied by the
 caller.
+
+## Markdown package
+
+The `diago` npm package renders exact lowercase `diago` fences to inline SVG at
+build time. It is Node.js 20+ and ESM-only and bundles the matching Diago Wasm:
+
+```js
+import MarkdownIt from 'markdown-it'
+import diago from 'diago/markdown-it'
+
+const md = new MarkdownIt().use(diago)
+const html = md.render('```diago\na -> b\n```', {
+  path: 'docs/example.md',
+})
+```
+
+The package also exports `diago/remark` and `diago/vitepress`. Failed diagrams
+remain code fences and produce structured diagnostics. File imports, sketch,
+and LaTeX are not supported in Markdown fences. Only use the adapters with
+trusted project-authored Markdown: generated inline SVG is active HTML and is
+not sanitized by the package. See [`markdown/README.md`](markdown/README.md) for
+the complete interface and CSP notes.
 
 ## CLI
 
@@ -144,6 +167,10 @@ moon test --target all
 moon build cmd/diago --target native --release
 moon build cmd/wasm --target wasm --release
 node scripts/wasm_smoke.mjs _build/wasm/release/build/cmd/wasm/wasm.wasm
+npm ci --prefix markdown
+npm test --prefix markdown
+npm run test:corpus --prefix markdown
+npm run test:package --prefix markdown
 ```
 
 ## License

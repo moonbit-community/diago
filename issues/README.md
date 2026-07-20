@@ -11,6 +11,7 @@ No ready issues.
 | ID | Status | Priority | Type | Assignee | Blocked by | Blocks | Title |
 | --- | --- | ---: | --- | --- | --- | --- | --- |
 | [ISS-001](ISS-001.md) | deferred | 4 | chore | unassigned | none | none | Re-enable sketch and LaTeX with community renderers |
+| [ISS-013](ISS-013.md) | deferred | 4 | chore | unassigned | none | none | Move the VitePress test matrix past vulnerable Vite 5 |
 
 ## Dependency Graph
 
@@ -28,6 +29,7 @@ graph TD
   ISS_010["ISS-010: Specify markdown-it, remark, and VitePress adapter contracts"]
   ISS_011["ISS-011: Define npm release and compatibility policy"]
   ISS_012["ISS-012: Define the Markdown integration acceptance gates"]
+  ISS_013["ISS-013: Move the VitePress test matrix past vulnerable Vite 5"]
   ISS_003 --> ISS_007
   ISS_006 --> ISS_007
   ISS_005 --> ISS_008
