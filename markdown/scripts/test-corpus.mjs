@@ -98,7 +98,7 @@ for (const engine of ["dagre", "elk", "railway"]) {
           native,
           [
             "render",
-            "--stdin",
+            resolve(fixtureRoot, path),
             "--output",
             "-",
             "--layout",
@@ -108,7 +108,6 @@ for (const engine of ["dagre", "elk", "railway"]) {
             "--salt",
             salt,
           ],
-          { input: source },
         );
         assert.equal(
           nativeOutput.endsWith("\n") ? nativeOutput.slice(0, -1) : nativeOutput,
