@@ -31,15 +31,29 @@ moon run cmd/diago -- render diagram.txt
 
 The root package is supported on all MoonBit targets. It accepts source text and never reads the local filesystem implicitly:
 
-```moonbit nocheck
+```moonbit check
 ///|
-let svg = @diago.compile("a -> b")
-
-///|
-let ascii = @diago.compile(
-  "a -> b",
-  options=@diago.CompileOptions::new().with_output_mode(Ascii),
-)
+test {
+  let ascii = @diago.compile(
+    "a -> b",
+    options=@diago.CompileOptions::new().with_output_mode(Ascii),
+  )
+  inspect(
+    ascii,
+    content=(
+      #|+----+
+      #|| a  |
+      #||    |
+      #|+----+
+      #|   |  
+      #|+----+
+      #|| b  |
+      #||    |
+      #|+----+
+      #|
+    ),
+  )
+}
 ```
 
 Imports are explicit and backend-independent through `ParseOptions::with_import_resolver`.
