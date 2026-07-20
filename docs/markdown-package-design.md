@@ -388,13 +388,18 @@ export default defineConfig({
 ```
 
 The hook installs the shared markdown-it adapter and prefers VitePress's
-repository-relative page path as the document ID. Diagnostics remain available
-on the markdown environment. If `onDiagnostic` is absent, this adapter also
-writes one concise `file:line:column error [CODE] message` line to
-`console.error`; it does not set `process.exitCode` or abort the rest of the
-page. Sites that require a failing build provide a callback that throws.
+repository-relative page path as the document ID. Successful SVG is emitted as
+a trusted `v-html` value inside `<div class="diago">`. This prevents Vue's
+template compiler from rejecting the SVG's required `<style>` elements while
+still producing inline SVG during development, SSR, and production builds.
+This is an implementation detail of the single inline-SVG strategy, not a
+browser renderer or alternate embedding mode.
 
-The adapter does not change VitePress raw-HTML, Vue, routing, link, or sanitizer
+Diagnostics remain available on the markdown environment. If `onDiagnostic`
+is absent, this adapter also writes one concise `file:line:column error [CODE]
+message` line to `console.error`; it does not set `process.exitCode` or abort
+the rest of the page. Sites that require a failing build provide a callback
+that throws. The adapter does not change VitePress routing, link, or sanitizer
 behavior. Links inside generated SVG do not inherit VitePress link rewriting.
 
 ## Imports
@@ -497,6 +502,8 @@ Implementation is complete only when all of these pass:
     private entry points, and enforces the 18 MiB Wasm ceiling.
 11. The produced tarball installs into clean markdown-it, remark, and VitePress
     consumer fixtures at both the lowest and latest supported host versions.
+12. A real VitePress development server compiles a successful diagram without
+    Vue side-effect-tag errors, and the production build retains the inline SVG.
 
 The observed 171/12/4 corpus split was measured against the release Wasm at
 commit `bcc51be`: 171 successful source-only fixtures (168 SVG and three empty

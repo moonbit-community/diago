@@ -90,6 +90,10 @@ markdown: {
 }
 ```
 
+The adapter places the trusted SVG behind Vue's `v-html` boundary so embedded
+SVG `<style>` elements work in both `vitepress dev` and production builds. The
+rendered page still contains inline SVG, wrapped in `<div class="diago">`.
+
 ## Shared options
 
 All adapters accept:

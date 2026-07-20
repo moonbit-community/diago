@@ -2,6 +2,7 @@ import { getDefaultRenderer } from "./index.js";
 import { createFenceSession, isDiagoInfo } from "./internal/fence.js";
 import { resolveDocumentId } from "./internal/identity.js";
 import { normalizeAdapterOptions } from "./internal/options.js";
+import { VITEPRESS_RENDER_SVG } from "./internal/vitepress.js";
 
 /** @typedef {import("markdown-it").default} MarkdownIt */
 /** @typedef {import("markdown-it/lib/token.mjs").default} Token */
@@ -84,6 +85,18 @@ export default function markdownItDiago(md, options) {
     throw new Error("diago is already installed on this markdown-it instance");
   }
   const normalized = normalizeAdapterOptions(options, defaultRenderer);
+  const configuredRenderSvg =
+    options !== null && typeof options === "object"
+      ? Reflect.get(options, VITEPRESS_RENDER_SVG)
+      : undefined;
+  if (
+    configuredRenderSvg !== undefined &&
+    typeof configuredRenderSvg !== "function"
+  ) {
+    throw new TypeError("internal SVG renderer must be a function");
+  }
+  /** @type {(svg: string) => string} */
+  const renderSvg = configuredRenderSvg ?? ((svg) => svg);
   const fallback = md.renderer.rules.fence;
   if (fallback === undefined) {
     throw new Error("markdown-it does not provide a fence renderer");
@@ -125,7 +138,7 @@ export default function markdownItDiago(md, options) {
   md.renderer.rules.fence = (tokens, index, renderOptions, env, renderer) => {
     const meta = tokens[index].meta;
     const result = meta?.[RESULT];
-    if (result?.ok === true) return result.svg;
+    if (result?.ok === true) return renderSvg(result.svg);
     return fallback(tokens, index, renderOptions, env, renderer);
   };
 }

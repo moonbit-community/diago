@@ -1,4 +1,8 @@
 import markdownItDiago from "./markdown-it.js";
+import {
+  renderVitePressSvg,
+  VITEPRESS_RENDER_SVG,
+} from "./internal/vitepress.js";
 
 /** @typedef {import("./markdown-it.js").MarkdownItAdapterOptions} MarkdownItAdapterOptions */
 /** @typedef {import("./index.js").DiagoDiagnostic} DiagoDiagnostic */
@@ -22,6 +26,7 @@ export default function vitepressDiago(options = {}) {
   }
   const configured = {
     ...options,
+    [VITEPRESS_RENDER_SVG]: renderVitePressSvg,
     onDiagnostic: options.onDiagnostic ?? ((diagnostic) => {
       console.error(formatDiagnostic(diagnostic));
     }),
