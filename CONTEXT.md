@@ -16,13 +16,14 @@ body contains D2-compatible diagram source. It is recognized at every valid
 CommonMark nesting depth and carries no plugin configuration.
 _Avoid_: D2 fence, Mermaid fence
 
-**Markdown transformation result**:
-The transformed Markdown plus structured diagnostics; successful Diago fences
-become inline SVG, while failed Diago fences remain byte-for-byte unchanged.
-_Avoid_: Fail-fast result, partial Markdown without diagnostics
+**Fence compilation result**:
+The shared JavaScript result for one parsed Diago fence: either inline SVG or a
+structured diagnostic. Host adapters insert successful SVG and delegate a
+failed token or node without mutating it.
+_Avoid_: Source-to-source Markdown rewrite, fail-fast document result
 
 **Markdown integration suite**:
-An npm package under `markdown/` containing Node.js 20+ ESM adapters for
-markdown-it, remark, and VitePress. It owns a version-matched Diago Wasm binary
-shared by all adapters.
+The `diago` npm package under `markdown/`, containing Node.js 20+ ESM adapters
+for markdown-it, remark, and VitePress. It owns one version-matched Diago Wasm
+binary and one shared fence compiler used by every adapter.
 _Avoid_: MoonBit Markdown package, generic Vite plugin, VitePress-only plugin

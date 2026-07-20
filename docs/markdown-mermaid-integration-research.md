@@ -171,10 +171,10 @@ reimplement CommonMark's container-prefix and indentation rules, and replacing a
 quoted or list-indented fence with unprefixed SVG can move the result outside
 its original container. Mermaid CLI is an example of this tradeoff: its current
 Markdown converter uses a regular expression and contains a TODO considering a
-Markdown parser such as Remark instead. For Diago's source-to-source contract,
-supporting valid nested `diago` fences is therefore the conventional expectation,
-but the implementation must use a CommonMark-aware parser plus source ranges and
-must emit SVG with the original container context preserved.
+Markdown parser such as Remark instead. Diago therefore chooses parser-native
+fence tokens/nodes rather than a source-to-source rewrite: supporting valid
+nested `diago` fences is the conventional expectation, while the host parser
+retains the original container context.
 
 Source:
 
