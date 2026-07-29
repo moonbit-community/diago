@@ -9,6 +9,10 @@ test("playground loads the bundled CodeMirror editor", async () => {
   ]);
 
   assert.match(html, /import \{ createSourceEditor \} from '\.\/assets\/editor\.js'/);
+  assert.match(
+    html,
+    /import \{ formatRenderErrorMessage \} from '\.\/render-error\.js'/,
+  );
   assert.match(html, /<div id="editor" class="editor-host"><\/div>/);
   assert.doesNotMatch(html, /<textarea\b/);
   assert.match(editorBundle, /createSourceEditor/);

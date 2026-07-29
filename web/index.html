@@ -360,6 +360,7 @@
 
   <script type="module">
     import { instantiateDiagoWasm } from './diago-wasm.js';
+    import { formatRenderErrorMessage } from './render-error.js';
     import { createSourceEditor } from './assets/editor.js';
 
     // Example cache
@@ -1067,25 +1068,6 @@
           <p style="font-size: 0.8rem;">Please refresh the page and try again.</p>
         </div>
       `;
-    }
-
-    function formatRenderErrorMessage(result) {
-      const text = result.text.trim();
-      if (text.length === 0) {
-        return 'Failed to render diagram.';
-      }
-      if (result.error.name === 'parse') {
-        return 'Syntax error in diagram source.';
-      }
-      if (
-        result.error.name === 'ir' ||
-        result.error.name === 'graph' ||
-        result.error.name === 'config' ||
-        result.error.name === 'layout'
-      ) {
-        return 'Failed to layout diagram. Please check syntax and connections.';
-      }
-      return text;
     }
 
     function render() {
