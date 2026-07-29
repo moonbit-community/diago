@@ -19,7 +19,7 @@
 /// arena, calls `render`, and reads the UTF-8 result body from the same arena.
 
 ///|
-let abi_version_number : Int = 1
+let abi_version_number : Int = 2
 
 ///|
 let transfer_start : Int = 1048576

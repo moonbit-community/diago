@@ -20,11 +20,11 @@ fn read_test_result() -> String raise {
 
 ///|
 test "wasm ABI exposes one versioned render transaction" {
-  @debug.assert_eq(abi_version(), 1)
+  @debug.assert_eq(abi_version(), 2)
   @debug.assert_eq(transfer_ptr(), 1048576)
   @debug.assert_eq(transfer_capacity(), 15728640)
   let length = write_test_request(
-    "{\"version\":1,\"source\":\"a -> b\",\"output\":\"svg\",\"layout\":\"dagre\"}",
+    "{\"version\":2,\"source\":\"a -> b\",\"output\":\"svg\",\"layout\":\"dagre\"}",
   )
   @debug.assert_eq(render(length), status_ok)
   @debug.assert_eq(result_error_kind(), error_none)
@@ -34,7 +34,7 @@ test "wasm ABI exposes one versioned render transaction" {
 ///|
 test "wasm ABI returns structured parse errors" {
   let length = write_test_request(
-    "{\"version\":1,\"source\":\"a: {\",\"output\":\"svg\"}",
+    "{\"version\":2,\"source\":\"a: {\",\"output\":\"svg\"}",
   )
   @debug.assert_eq(render(length), status_error)
   @debug.assert_eq(result_error_kind(), error_parse)
@@ -44,7 +44,7 @@ test "wasm ABI returns structured parse errors" {
 ///|
 test "wasm ABI returns structured unsupported feature errors" {
   let length = write_test_request(
-    "{\"version\":1,\"source\":\"formula: |tex\\n  x^2\\n|\",\"output\":\"svg\"}",
+    "{\"version\":2,\"source\":\"formula: |tex\\n  x^2\\n|\",\"output\":\"svg\"}",
   )
   @debug.assert_eq(render(length), status_error)
   @debug.assert_eq(result_error_kind(), error_unsupported_feature)
@@ -64,17 +64,17 @@ test "wasm ABI validates request metadata without trapping" {
   @debug.assert_eq(render(invalid_json), status_error)
   @debug.assert_eq(result_error_kind(), error_invalid_json)
   let invalid_version = write_test_request(
-    "{\"version\":2,\"source\":\"a -> b\"}",
+    "{\"version\":1,\"source\":\"a -> b\"}",
   )
   @debug.assert_eq(render(invalid_version), status_error)
   @debug.assert_eq(result_error_kind(), error_unsupported_version)
   let invalid_layout = write_test_request(
-    "{\"version\":1,\"source\":\"a -> b\",\"layout\":\"unknown\"}",
+    "{\"version\":2,\"source\":\"a -> b\",\"layout\":\"unknown\"}",
   )
   @debug.assert_eq(render(invalid_layout), status_error)
   @debug.assert_eq(result_error_kind(), error_invalid_request)
   let unknown_field = write_test_request(
-    "{\"version\":1,\"source\":\"a -> b\",\"layuot\":\"dagre\"}",
+    "{\"version\":2,\"source\":\"a -> b\",\"layuot\":\"dagre\"}",
   )
   @debug.assert_eq(render(unknown_field), status_error)
   @debug.assert_eq(result_error_kind(), error_invalid_request)
@@ -84,9 +84,20 @@ test "wasm ABI validates request metadata without trapping" {
 ///|
 test "wasm ABI defaults layout to auto" {
   let length = write_test_request(
-    "{\"version\":1,\"source\":\"vars: { d2-config: { layout-engine: invalid } }\\na -> b\"}",
+    "{\"version\":2,\"source\":\"vars: { d2-config: { layout-engine: invalid } }\\na -> b\"}",
   )
   @debug.assert_eq(render(length), status_error)
   @debug.assert_eq(result_error_kind(), error_config)
   assert_true(read_test_result().contains("unsupported layout engine"))
+}
+
+///|
+test "wasm ABI returns syntax tokens for incomplete Unicode source" {
+  let length = write_test_request("\"🌙\": true\nnote: |md\n  **editing")
+  @debug.assert_eq(highlight(length), status_ok)
+  @debug.assert_eq(result_error_kind(), error_none)
+  @debug.assert_eq(
+    read_test_result(),
+    "[{\"from\":0,\"to\":3,\"kind\":\"string\"},{\"from\":3,\"to\":4,\"kind\":\"punctuation\"},{\"from\":5,\"to\":9,\"kind\":\"boolean\"},{\"from\":10,\"to\":14,\"kind\":\"identifier\"},{\"from\":14,\"to\":15,\"kind\":\"punctuation\"},{\"from\":16,\"to\":31,\"kind\":\"string\"}]",
+  )
 }

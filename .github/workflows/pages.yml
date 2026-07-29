@@ -31,6 +31,19 @@ jobs:
           moon version --all
           moon update
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build editor
+        run: |
+          npm ci --prefix web
+          npm test --prefix web
+          rm -rf web/node_modules
+
       - name: Build WASM
         run: |
           moon build cmd/wasm --target wasm --release

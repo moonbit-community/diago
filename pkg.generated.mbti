@@ -21,6 +21,8 @@ pub fn get_completion_items(String, Int, Int) -> Array[CompletionItem]
 
 pub fn get_ref_ranges(String, String, board_path? : Array[String], options? : ParseOptions) -> Array[@lexer.Range] raise DiagoError
 
+pub fn get_syntax_tokens(String) -> Array[SyntaxToken]
+
 pub fn parse(String, options? : ParseOptions) -> @ir.Map raise DiagoError
 
 // Errors
@@ -117,6 +119,23 @@ pub fn ParseOptions::with_import_resolver(Self, @ir.ImportResolver?) -> Self
 pub struct RoutePlugin((@graph.GraphInput) -> Result[@graph.GraphInput, String])
 pub fn RoutePlugin::new((@graph.GraphInput) -> Result[@graph.GraphInput, String]) -> Self
 pub fn RoutePlugin::run(Self, @graph.GraphInput) -> Result[@graph.GraphInput, String]
+
+pub struct SyntaxToken {
+  start : Int
+  end : Int
+  kind : SyntaxTokenKind
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SyntaxTokenKind {
+  Comment
+  String
+  Number
+  Boolean
+  Keyword
+  Identifier
+  Operator
+  Punctuation
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

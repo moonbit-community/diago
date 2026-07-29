@@ -1,4 +1,4 @@
-export const DIAGO_WASM_ABI_VERSION = 1;
+export const DIAGO_WASM_ABI_VERSION = 2;
 
 export const DiagoWasmErrorKind = Object.freeze({
   none: 0,
@@ -29,6 +29,7 @@ const REQUIRED_EXPORTS = [
   "transfer_ptr",
   "transfer_capacity",
   "render",
+  "highlight",
   "result_len",
   "result_error_kind",
   "result_required_len",
@@ -36,13 +37,52 @@ const REQUIRED_EXPORTS = [
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
+const SYNTAX_TOKEN_KINDS = new Set([
+  "comment",
+  "string",
+  "number",
+  "boolean",
+  "keyword",
+  "identifier",
+  "operator",
+  "punctuation",
+]);
 
-function withMoonBitHostImports(imports) {
+function createMoonBitHostImports(imports) {
+  let memory = null;
   return {
-    ...imports,
-    __moonbit_time_unstable: {
-      now: () => BigInt.asUintN(64, BigInt(Date.now())),
-      ...imports.__moonbit_time_unstable,
+    imports: {
+      ...imports,
+      __moonbit_time_unstable: {
+        now: () => BigInt.asUintN(64, BigInt(Date.now())),
+        ...imports.__moonbit_time_unstable,
+      },
+      wasi_snapshot_preview1: {
+        random_get(pointer, length) {
+          if (
+            !(memory instanceof WebAssembly.Memory) ||
+            !Number.isInteger(pointer) ||
+            !Number.isInteger(length) ||
+            pointer < 0 ||
+            length < 0 ||
+            pointer + length > memory.buffer.byteLength ||
+            globalThis.crypto?.getRandomValues === undefined
+          ) {
+            return 21;
+          }
+          const output = new Uint8Array(memory.buffer, pointer, length);
+          for (let offset = 0; offset < output.length; offset += 65536) {
+            globalThis.crypto.getRandomValues(
+              output.subarray(offset, Math.min(offset + 65536, output.length)),
+            );
+          }
+          return 0;
+        },
+        ...imports.wasi_snapshot_preview1,
+      },
+    },
+    setMemory(value) {
+      memory = value;
     },
   };
 }
@@ -94,6 +134,59 @@ function makeResult(status, body, errorKind, requiredLength) {
   };
 }
 
+function parseSyntaxTokens(text, source) {
+  let tokens;
+  try {
+    tokens = JSON.parse(text);
+  } catch (error) {
+    throw new Error("diago wasm returned invalid syntax token JSON", {
+      cause: error,
+    });
+  }
+  if (!Array.isArray(tokens)) {
+    throw new Error("diago wasm syntax token result must be an array");
+  }
+
+  const requestedOffsets = new Set([0]);
+  let previousEnd = 0;
+  for (const token of tokens) {
+    if (
+      token === null ||
+      typeof token !== "object" ||
+      !Number.isInteger(token.from) ||
+      !Number.isInteger(token.to) ||
+      token.from < previousEnd ||
+      token.to <= token.from ||
+      !SYNTAX_TOKEN_KINDS.has(token.kind)
+    ) {
+      throw new Error("diago wasm returned an invalid syntax token");
+    }
+    requestedOffsets.add(token.from);
+    requestedOffsets.add(token.to);
+    previousEnd = token.to;
+  }
+
+  const utf16Offsets = new Map([[0, 0]]);
+  let codePointOffset = 0;
+  let utf16Offset = 0;
+  for (const char of source) {
+    codePointOffset += 1;
+    utf16Offset += char.length;
+    if (requestedOffsets.has(codePointOffset)) {
+      utf16Offsets.set(codePointOffset, utf16Offset);
+    }
+  }
+  if (previousEnd > codePointOffset) {
+    throw new Error("diago wasm returned an out-of-bounds syntax token");
+  }
+
+  return tokens.map((token) => ({
+    from: utf16Offsets.get(token.from),
+    to: utf16Offsets.get(token.to),
+    kind: token.kind,
+  }));
+}
+
 export function createDiagoWasm(wasm) {
   const exports = getExports(wasm);
   validateExports(exports);
@@ -110,6 +203,60 @@ export function createDiagoWasm(wasm) {
     throw new Error("diago wasm exported an invalid transfer arena");
   }
 
+  function transact(requestBody, operation) {
+    if (requestBody.length > transferCapacity) {
+      const text =
+        `request body requires ${requestBody.length} bytes, ` +
+        `exceeding transfer capacity ${transferCapacity}`;
+      return makeResult(
+        1,
+        encoder.encode(text),
+        DiagoWasmErrorKind.request_length,
+        requestBody.length,
+      );
+    }
+
+    new Uint8Array(
+      exports.memory.buffer,
+      transferPtr,
+      requestBody.length,
+    ).set(requestBody);
+    const status = operation(requestBody.length);
+    const resultLength = exports.result_len();
+    const errorKind = exports.result_error_kind();
+    const requiredLength = exports.result_required_len();
+
+    if (status !== 0 && status !== 1) {
+      throw new Error(`diago wasm returned invalid status ${status}`);
+    }
+    if (
+      !Number.isInteger(resultLength) ||
+      resultLength < 0 ||
+      resultLength > transferCapacity
+    ) {
+      throw new Error(
+        `diago wasm returned invalid result length ${resultLength}`,
+      );
+    }
+    if (
+      !Number.isInteger(errorKind) ||
+      !Number.isInteger(requiredLength) ||
+      requiredLength < 0 ||
+      (status === 0) !== (errorKind === DiagoWasmErrorKind.none)
+    ) {
+      throw new Error("diago wasm returned inconsistent result metadata");
+    }
+
+    const body = new Uint8Array(
+      new Uint8Array(
+        exports.memory.buffer,
+        transferPtr,
+        resultLength,
+      ),
+    );
+    return makeResult(status, body, errorKind, requiredLength);
+  }
+
   return Object.freeze({
     abiVersion: DIAGO_WASM_ABI_VERSION,
     transferCapacity,
@@ -121,57 +268,21 @@ export function createDiagoWasm(wasm) {
           version: request?.version ?? DIAGO_WASM_ABI_VERSION,
         }),
       );
-      if (requestBody.length > transferCapacity) {
-        const text =
-          `request body requires ${requestBody.length} bytes, ` +
-          `exceeding transfer capacity ${transferCapacity}`;
-        return makeResult(
-          1,
-          encoder.encode(text),
-          DiagoWasmErrorKind.request_length,
-          requestBody.length,
-        );
-      }
+      return transact(requestBody, exports.render);
+    },
 
-      new Uint8Array(
-        exports.memory.buffer,
-        transferPtr,
-        requestBody.length,
-      ).set(requestBody);
-      const status = exports.render(requestBody.length);
-      const resultLength = exports.result_len();
-      const errorKind = exports.result_error_kind();
-      const requiredLength = exports.result_required_len();
-
-      if (status !== 0 && status !== 1) {
-        throw new Error(`diago wasm returned invalid status ${status}`);
+    highlight(source) {
+      if (typeof source !== "string") {
+        throw new TypeError("diago source must be a string");
       }
-      if (
-        !Number.isInteger(resultLength) ||
-        resultLength < 0 ||
-        resultLength > transferCapacity
-      ) {
-        throw new Error(
-          `diago wasm returned invalid result length ${resultLength}`,
-        );
+      const result = transact(encoder.encode(source), exports.highlight);
+      if (!result.ok) {
+        return { ...result, tokens: [] };
       }
-      if (
-        !Number.isInteger(errorKind) ||
-        !Number.isInteger(requiredLength) ||
-        requiredLength < 0 ||
-        (status === 0) !== (errorKind === DiagoWasmErrorKind.none)
-      ) {
-        throw new Error("diago wasm returned inconsistent result metadata");
-      }
-
-      const body = new Uint8Array(
-        new Uint8Array(
-          exports.memory.buffer,
-          transferPtr,
-          resultLength,
-        ),
-      );
-      return makeResult(status, body, errorKind, requiredLength);
+      return {
+        ...result,
+        tokens: parseSyntaxTokens(result.text, source),
+      };
     },
   });
 }
@@ -197,9 +308,8 @@ export async function instantiateDiagoWasm(source, imports = {}) {
     }
     bytes = await source.arrayBuffer();
   }
-  const instantiated = await WebAssembly.instantiate(
-    bytes,
-    withMoonBitHostImports(imports),
-  );
+  const host = createMoonBitHostImports(imports);
+  const instantiated = await WebAssembly.instantiate(bytes, host.imports);
+  host.setMemory(getExports(instantiated).memory);
   return createDiagoWasm(instantiated);
 }

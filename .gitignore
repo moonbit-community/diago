@@ -4,8 +4,11 @@ target/
 .moonagent/
 web/*.wasm
 web/examples
+web/assets/editor.js
+web/node_modules/
 TODO.md
 .playwright-mcp
+.playwright-cli/
 AGENTS.md
 CLAUDE.md
 _build/

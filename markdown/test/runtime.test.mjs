@@ -14,8 +14,8 @@ test("default renderer is shared and independent renderers reuse the ABI", async
   ]);
   assert.strictEqual(first, second);
   assert.notStrictEqual(first, independent);
-  assert.equal(first.abiVersion, 1);
-  assert.equal(independent.abiVersion, 1);
+  assert.equal(first.abiVersion, 2);
+  assert.equal(independent.abiVersion, 2);
   assert.ok(first.transferCapacity > 0);
 });
 

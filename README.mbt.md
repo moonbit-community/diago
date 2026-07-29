@@ -57,6 +57,9 @@ test {
 ```
 
 Imports are explicit and backend-independent through `ParseOptions::with_import_resolver`.
+Editors can call `get_syntax_tokens` on every target to obtain error-tolerant
+Unicode code-point ranges for comments, strings, literals, keywords,
+identifiers, operators, and punctuation.
 
 ### Unsupported D2 features
 
@@ -181,6 +184,8 @@ moon test --target all
 moon build cmd/diago --target native --release
 moon build cmd/wasm --target wasm --release
 node scripts/wasm_smoke.mjs _build/wasm/release/build/cmd/wasm/wasm.wasm
+npm ci --prefix web
+npm test --prefix web
 npm ci --prefix markdown
 npm test --prefix markdown
 npm run test:corpus --prefix markdown

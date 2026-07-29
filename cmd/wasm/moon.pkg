@@ -20,6 +20,7 @@ options(
         "transfer_ptr:transfer_ptr",
         "transfer_capacity:transfer_capacity",
         "render:render",
+        "highlight:highlight",
         "result_len:result_len",
         "result_error_kind:result_error_kind",
         "result_required_len:result_required_len",

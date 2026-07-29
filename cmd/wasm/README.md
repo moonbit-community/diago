@@ -1,7 +1,7 @@
 # Diago Wasm ABI
 
-The wasm1 browser adapter exposes one synchronous render transaction over an
-exported linear-memory transfer arena.
+The wasm1 browser adapter exposes synchronous render and syntax-highlighting
+transactions over an exported linear-memory transfer arena.
 
 ## Exports
 
@@ -10,21 +10,34 @@ exported linear-memory transfer arena.
 - `transfer_ptr() -> i32`
 - `transfer_capacity() -> i32`
 - `render(request_len: i32) -> i32`
+- `highlight(request_len: i32) -> i32`
 - `result_len() -> i32`
 - `result_error_kind() -> i32`
 - `result_required_len() -> i32`
 
-JavaScript writes a UTF-8 JSON request at `transfer_ptr`, calls `render`, then
-reads the UTF-8 result body from the same address. `render` returns `0` on
-success and `1` on failure.
+For rendering, JavaScript writes a UTF-8 JSON request at `transfer_ptr`, calls
+`render`, then reads the UTF-8 result body from the same address.
 
 The adapter is single-call-at-a-time and not reentrant.
 
-## Request version 1
+## Host imports
+
+The module requires these host functions:
+
+- `__moonbit_time_unstable.now() -> i64`, returning the current Unix time in
+  milliseconds
+- `wasi_snapshot_preview1.random_get(pointer: i32, length: i32) -> i32`,
+  filling the requested memory range with random bytes and returning a WASI
+  errno
+
+`web/diago-wasm.js` supplies both imports for browsers. Custom imports with the
+same module and function names override its defaults.
+
+## Render request version 2
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "source": "a -> b",
   "output": "svg",
   "layout": "auto",
@@ -51,6 +64,23 @@ the backend-independent MoonBit facade. LaTeX labels and sketch rendering are
 not supported. A request that enables `render.sketch`, or source containing
 `|tex`, `|latex`, `style.sketch: true`, or `vars.d2-config.sketch: true`, fails
 with error kind `19`.
+
+## Syntax highlighting
+
+For highlighting, JavaScript writes raw UTF-8 Diago source at `transfer_ptr`
+and calls `highlight`. The UTF-8 result body is a JSON array:
+
+```json
+[
+  { "from": 0, "to": 4, "kind": "identifier" },
+  { "from": 5, "to": 7, "kind": "operator" },
+  { "from": 8, "to": 14, "kind": "identifier" }
+]
+```
+
+Offsets count Unicode code points and ranges are half-open. The JavaScript
+adapter converts them to UTF-16 offsets before exposing them to browser
+editors. Highlighting is tolerant of incomplete and invalid source.
 
 ## Error kinds
 
@@ -86,8 +116,11 @@ const result = diago.render({
   output: "svg",
   layout: "dagre",
 });
+
+const highlighted = diago.highlight("a -> b");
 ```
 
 `result.body` is a copied `Uint8Array` containing the UTF-8 body.
 `result.text` is its decoded convenience view. Failures additionally contain
 `result.error.kind`, `result.error.name`, and `result.error.requiredLength`.
+Successful highlight results additionally contain `tokens`.

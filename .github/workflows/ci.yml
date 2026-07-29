@@ -41,6 +41,18 @@ jobs:
       - name: Smoke test WASM
         run: node scripts/wasm_smoke.mjs _build/wasm/release/build/cmd/wasm/wasm.wasm
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Test playground
+        run: |
+          npm ci --prefix web
+          npm test --prefix web
+
   markdown:
     runs-on: ubuntu-latest
     strategy:

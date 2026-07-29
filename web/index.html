@@ -81,21 +81,11 @@
       flex-direction: column;
       overflow: hidden;
     }
-    textarea {
+    .editor-host {
       flex: 1;
       background: #0f0f23;
-      color: #e0e0e0;
-      border: none;
-      padding: 1rem;
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-      font-size: 14px;
-      line-height: 1.6;
-      resize: none;
-      outline: none;
-      tab-size: 2;
-    }
-    textarea::placeholder {
-      color: #444;
+      min-height: 0;
+      overflow: hidden;
     }
     .preview-content {
       flex: 1;
@@ -324,12 +314,7 @@
         </select>
       </div>
       <div class="editor-wrapper">
-        <textarea id="editor" spellcheck="false" placeholder="# Enter diago diagram code here
-
-server: Web Server
-database: Database
-
-server -> database: queries"></textarea>
+        <div id="editor" class="editor-host"></div>
       </div>
     </div>
 
@@ -375,6 +360,7 @@ server -> database: queries"></textarea>
 
   <script type="module">
     import { instantiateDiagoWasm } from './diago-wasm.js';
+    import { createSourceEditor } from './assets/editor.js';
 
     // Example cache
     const exampleCache = {};
@@ -435,7 +421,7 @@ server -> database: queries"></textarea>
     }
 
     // DOM elements
-    const editor = document.getElementById('editor');
+    const editorHost = document.getElementById('editor');
     const preview = document.getElementById('preview');
     const errorBanner = document.getElementById('error-banner');
     const copyBtn = document.getElementById('copy-btn');
@@ -452,6 +438,16 @@ server -> database: queries"></textarea>
     const zoomInBtn = document.getElementById('zoom-in-btn');
     const zoomOutBtn = document.getElementById('zoom-out-btn');
     const zoomResetBtn = document.getElementById('zoom-reset-btn');
+    const editor = createSourceEditor({
+      parent: editorHost,
+      onChange() {
+        scheduleScriptUrlSync();
+        scheduleRender();
+      },
+      onBlur() {
+        scheduleScriptUrlSync(true);
+      },
+    });
 
     // Engine selection
     const ENGINE_STORAGE_KEY = 'diago.layout_engine';
@@ -495,9 +491,7 @@ server -> database: queries"></textarea>
       const key = exampleSelect.value;
       if (key) {
         const content = await loadExample(key);
-        editor.value = content;
-        scheduleScriptUrlSync();
-        render();
+        editor.setValue(content);
       }
     });
 
@@ -773,7 +767,7 @@ server -> database: queries"></textarea>
 
     function scheduleScriptUrlSync(force = false) {
       clearTimeout(urlSyncTimeout);
-      urlSyncPendingSource = editor.value;
+      urlSyncPendingSource = editor.getValue();
       const sourceLength = urlSyncPendingSource.length;
       const delay = force
         ? 0
@@ -785,7 +779,7 @@ server -> database: queries"></textarea>
 
     function scheduleRender() {
       clearTimeout(renderTimeout);
-      const sourceLength = editor.value.length;
+      const sourceLength = editor.getValue().length;
       updatePerfHint(sourceLength);
       const delay = sourceLength >= RENDER_LARGE_SOURCE_CHARS
         ? RENDER_DEBOUNCE_LARGE_MS
@@ -1014,16 +1008,7 @@ server -> database: queries"></textarea>
       updateExportButtons();
     });
 
-    // Auto-render on input (debounced)
-    editor.addEventListener('input', () => {
-      scheduleScriptUrlSync();
-      scheduleRender();
-    });
-
     // Ensure URL stays shareable after long edits without penalizing typing latency.
-    editor.addEventListener('blur', () => {
-      scheduleScriptUrlSync(true);
-    });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
         scheduleScriptUrlSync(true);
@@ -1062,6 +1047,7 @@ server -> database: queries"></textarea>
         statusEl.className = 'status loading';
 
         wasmRenderer = await instantiateDiagoWasm('./wasm.wasm');
+        editor.setHighlighter((source) => wasmRenderer.highlight(source));
         statusEl.textContent = 'Ready';
         statusEl.className = 'status ready';
         render();
@@ -1103,7 +1089,7 @@ server -> database: queries"></textarea>
     }
 
     function render() {
-      const source = editor.value;
+      const source = editor.getValue();
       updatePerfHint(source.length);
       errorBanner.style.display = 'none';
       lastRenderOk = false;
@@ -1164,31 +1150,18 @@ server -> database: queries"></textarea>
       }
     }
 
-    // Handle Tab key in editor
-    editor.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-        editor.selectionStart = editor.selectionEnd = start + 2;
-      }
-    });
-
     // Initialize
     async function init() {
-      editor.value = await loadExample('hello');
+      editor.setValue(await loadExample('hello'));
       exampleSelect.value = 'hello';
-      scheduleScriptUrlSync();
       loadWasm();
 
       // URL decoding must never block page bootstrap (WASM loading/editor interactivity).
       loadScriptFromUrl().then((scriptFromUrl) => {
         if (scriptFromUrl === null) return;
-        editor.value = scriptFromUrl;
+        editor.setValue(scriptFromUrl);
         exampleSelect.value = '';
         lastUrlSyncedSource = scriptFromUrl;
-        scheduleScriptUrlSync();
         if (wasmRenderer) {
           render();
         }

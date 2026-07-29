@@ -4,6 +4,8 @@ package "Milky2018/diago/cmd/wasm"
 // Values
 pub fn abi_version() -> Int
 
+pub fn highlight(Int) -> Int
+
 pub fn render(Int) -> Int
 
 pub fn result_error_kind() -> Int
