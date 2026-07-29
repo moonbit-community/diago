@@ -308,9 +308,9 @@ async test "fmt default writes formatted output in place" {
   let result = execute_fmt({ check: false, files: [path] })
   assert_true(result is Ok(_))
   let formatted = @fs.read_file(path).text() catch {
-    e => {
+    _ => {
       cleanup_file(path)
-      fail("failed to read formatted file: \{to_repr(e)}")
+      fail("failed to read formatted file")
       ""
     }
   }
@@ -325,9 +325,9 @@ async test "fmt check reports unformatted files without writing" {
   @fs.write_file(path, "a  ->  b\n", create_mode=CreateOrTruncate)
   let result = execute_fmt({ check: true, files: [path] })
   let after = @fs.read_file(path).text() catch {
-    e => {
+    _ => {
       cleanup_file(path)
-      fail("failed to read check file: \{to_repr(e)}")
+      fail("failed to read check file")
       ""
     }
   }
