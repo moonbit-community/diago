@@ -90,4 +90,3 @@ pub fn SvgShapeContext::new(@svg.Svg, @graph.Box, String, String, Double, String
 // Type aliases
 
 // Traits
-

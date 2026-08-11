@@ -22,4 +22,3 @@ pub impl @render_api.Renderer for UnicodeRenderer
 // Type aliases
 
 // Traits
-

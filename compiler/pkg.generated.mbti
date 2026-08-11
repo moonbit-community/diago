@@ -46,4 +46,3 @@ pub fn ParseOptions::with_import_resolver(Self, @ir.ImportResolver?) -> Self
 // Type aliases
 
 // Traits
-

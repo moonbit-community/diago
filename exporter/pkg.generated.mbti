@@ -26,4 +26,3 @@ pub impl Show for GraphCompileError
 // Type aliases
 
 // Traits
-

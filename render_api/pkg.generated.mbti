@@ -40,4 +40,3 @@ pub(open) trait Renderer {
   fn render(Self, @diagram.Diagram) -> String raise RenderError
   fn format_name(Self) -> String
 }
-

@@ -578,7 +578,7 @@ fn remote_proxy_url(url : String) -> String? {
 ///|
 fn first_non_empty_env(names : Array[String]) -> String? {
   for name in names {
-    match @sys.get_env_var(name) {
+    match @env.get_env_var(name) {
       Some(value) if value.trim() != "" => return Some(value.trim().to_owned())
       _ => ()
     }

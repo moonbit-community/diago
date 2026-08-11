@@ -15,4 +15,3 @@ pub fn layout(@graph.GraphInput, (@graph.ObjectInput) -> (Double, Double)) -> @g
 // Type aliases
 
 // Traits
-

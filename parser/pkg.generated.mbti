@@ -38,4 +38,3 @@ pub fn Parser::new(String, Array[@lexer.Token]) -> Self
 // Type aliases
 
 // Traits
-

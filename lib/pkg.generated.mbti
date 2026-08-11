@@ -84,4 +84,3 @@ pub fn RenderOptions::with_theme_overrides(Self, @diagram.ThemeOverrides?) -> Se
 // Type aliases
 
 // Traits
-
