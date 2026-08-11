@@ -36,4 +36,3 @@ pub fn ObjectId::value(Self) -> String
 // Type aliases
 
 // Traits
-

@@ -20,4 +20,3 @@ pub fn FormatConfig::new() -> Self
 // Type aliases
 
 // Traits
-

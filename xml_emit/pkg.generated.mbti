@@ -74,4 +74,3 @@ pub enum XmlNode {
 // Type aliases
 
 // Traits
-

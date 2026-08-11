@@ -13,4 +13,3 @@ pub fn utf8_cut_font(Bytes, String) -> Bytes?
 // Type aliases
 
 // Traits
-

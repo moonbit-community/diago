@@ -101,4 +101,3 @@ pub(all) struct VirtualNodeResult {
 // Type aliases
 
 // Traits
-

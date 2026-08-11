@@ -652,4 +652,3 @@ pub fn Waypoint::with_control(Double, Double, Double, Double) -> Self
 // Type aliases
 
 // Traits
-
