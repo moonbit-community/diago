@@ -153,8 +153,13 @@ test("VitePress builds a page with inline Diago SVG", async () => {
       resolve(root, ".vitepress/dist/index.html"),
       "utf8",
     );
+    const packageMetadata = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    );
     assert.match(html, /<div class="diago"><svg /);
-    assert.match(html, /data-d2-version="0\.3\.1"/);
+    assert.ok(
+      html.includes(`data-d2-version="${packageMetadata.version}"`),
+    );
     assert.match(html, /<style type="text\/css">/);
     assert.doesNotMatch(html, /v-html=/);
     assert.doesNotMatch(html, /language-diago/);
