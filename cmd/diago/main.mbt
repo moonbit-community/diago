@@ -120,8 +120,7 @@ fn parse_dump_input_engine(name : String) -> DumpInputEngine? {
 
 ///|
 async fn main {
-  let request = match
-    parse_cli_request(@sys.get_cli_args(), @sys.get_env_vars()) {
+  let request = match parse_cli_request(@env.args(), @env.get_env_vars()) {
     Ok(req) => req
     Err(err) => {
       println(err)
@@ -639,7 +638,7 @@ async fn compile_diago_svg_with_warnings(
 
 ///|
 fn bundle_cache_enabled() -> Bool {
-  match @sys.get_env_var("IMG_CACHE") {
+  match @env.get_env_var("IMG_CACHE") {
     Some(value) => value == "1"
     None => false
   }

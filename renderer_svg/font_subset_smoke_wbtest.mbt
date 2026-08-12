@@ -134,3 +134,13 @@ test "font subset->woff source sans regular smoke" {
 test "font subset->woff source code regular smoke" {
   inspect(subset_woff_ok(source_code_pro_regular_ttf_bytes), content="true")
 }
+
+///|
+test "font subset failures are reported" {
+  try d2_subset_font_data_url(b"", "abc") catch {
+    error =>
+      inspect(error, content="RenderFailed(failed to subset embedded font)")
+  } noraise {
+    _ => fail("expected font subsetting to fail")
+  }
+}

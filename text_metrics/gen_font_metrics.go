@@ -8,7 +8,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/golang/freetype/truetype"
@@ -66,31 +65,17 @@ func glyphMetrics(face font.Face, r rune) (xMin, xMax int, advance fixed.Int26_6
 	return int(b.Min.X), int(b.Max.X), adv
 }
 
-func emitArrayIntFlat(name string, values []int, perLine int) {
-	fmt.Println("#inline(never)")
-	fmt.Printf("fn init_%s() -> Array[Int] {\n", name)
-	fmt.Println("  [")
-	for i, v := range values {
-		if i%perLine == 0 {
-			fmt.Print("    ")
+func emitPackedI16(name string, values []int) {
+	fmt.Printf("let %s : Bytes = b\"", name)
+	for _, value := range values {
+		if value < -32768 || value > 32767 {
+			fmt.Fprintf(os.Stderr, "%s contains out-of-range i16 value %d\n", name, value)
+			os.Exit(1)
 		}
-		fmt.Printf("%d", v)
-		if i != len(values)-1 {
-			fmt.Print(", ")
-		}
-		if i%perLine == perLine-1 || i == len(values)-1 {
-			fmt.Print("\n")
-		}
+		bits := uint16(int16(value))
+		fmt.Printf("\\x%02x\\x%02x", byte(bits), byte(bits>>8))
 	}
-	fmt.Println("  ]")
-	fmt.Println("}")
-	fmt.Println()
-	fmt.Println("///|")
-	fmt.Printf("let %s : Array[Int] = init_%s()\n", name, name)
-}
-
-func emitArrayInt(name string, values []int) {
-	emitArrayIntFlat(name, values, 32)
+	fmt.Println("\"")
 }
 
 func selectedSizes() []int {
@@ -101,148 +86,59 @@ func emitSizeSpecificMetrics() {
 	fmt.Println("// Generated from upstream reference embedded fonts by text_metrics/gen_font_metrics.go --size-specific. Do not edit by hand.")
 	fmt.Println()
 	fmt.Println("///|")
-	emitArrayInt("size_specific_font_sizes", selectedSizes())
+	fmt.Print("let size_specific_font_sizes : Array[Int] = [")
+	for i, size := range selectedSizes() {
+		if i > 0 {
+			fmt.Print(", ")
+		}
+		fmt.Print(size)
+	}
+	fmt.Println("]")
 	fmt.Println()
 	for _, v := range variants {
-		fmt.Println("///|")
-		name := "glyph_x_mins_" + v.name + "_by_size"
-		beginNestedArrayInitializer(name)
+		xMins := make([]int, 0, len(selectedSizes())*256)
+		xMaxs := make([]int, 0, len(selectedSizes())*256)
+		advances := make([]int, 0, len(selectedSizes())*256)
+		replacements := make([]int, 0, len(selectedSizes())*3)
 		for _, size := range selectedSizes() {
 			face, _, err := loadFaceAtSize(v, size)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
-			values := make([]int, 256)
 			for cp := 0; cp < 256; cp++ {
-				bounds, _, ok := face.GlyphBounds(rune(cp))
+				bounds, advance, ok := face.GlyphBounds(rune(cp))
 				if ok {
-					values[cp] = bounds.Min.X.Floor()
+					xMins = append(xMins, bounds.Min.X.Floor())
+					xMaxs = append(xMaxs, bounds.Max.X.Ceil())
+					advances = append(advances, int(advance))
+				} else {
+					xMins = append(xMins, 0)
+					xMaxs = append(xMaxs, 0)
+					advances = append(advances, 0)
 				}
-			}
-			emitNestedArray(values)
-		}
-		endNestedArrayInitializer(name)
-		fmt.Println()
-
-		fmt.Println("///|")
-		name = "glyph_x_maxs_" + v.name + "_by_size"
-		beginNestedArrayInitializer(name)
-		for _, size := range selectedSizes() {
-			face, _, err := loadFaceAtSize(v, size)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			values := make([]int, 256)
-			for cp := 0; cp < 256; cp++ {
-				bounds, _, ok := face.GlyphBounds(rune(cp))
-				if ok {
-					values[cp] = bounds.Max.X.Ceil()
-				}
-			}
-			emitNestedArray(values)
-		}
-		endNestedArrayInitializer(name)
-		fmt.Println()
-
-		fmt.Println("///|")
-		name = "glyph_advances_fixed_" + v.name + "_by_size"
-		beginNestedArrayInitializer(name)
-		for _, size := range selectedSizes() {
-			face, _, err := loadFaceAtSize(v, size)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			values := make([]int, 256)
-			for cp := 0; cp < 256; cp++ {
-				_, advance, ok := face.GlyphBounds(rune(cp))
-				if ok {
-					values[cp] = int(advance)
-				}
-			}
-			emitNestedArray(values)
-		}
-		endNestedArrayInitializer(name)
-		fmt.Println()
-
-		fmt.Println("///|")
-		name = "glyph_replacement_" + v.name + "_by_size"
-		beginNestedArrayInitializer(name)
-		for _, size := range selectedSizes() {
-			face, _, err := loadFaceAtSize(v, size)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
 			}
 			bounds, advance, ok := face.GlyphBounds(replacement)
 			if !ok {
-				emitNestedArray([]int{0, 0, 0})
+				replacements = append(replacements, 0, 0, 0)
 			} else {
-				emitNestedArray([]int{bounds.Min.X.Floor(), bounds.Max.X.Ceil(), int(advance)})
+				replacements = append(replacements, bounds.Min.X.Floor(), bounds.Max.X.Ceil(), int(advance))
 			}
 		}
-		endNestedArrayInitializer(name)
-		fmt.Println()
-		for i, size := range selectedSizes() {
-			if !legacySizeSpecificName(v.name, size) {
-				continue
-			}
+		for _, table := range []struct {
+			name   string
+			values []int
+		}{
+			{"glyph_x_mins_" + v.name + "_by_size", xMins},
+			{"glyph_x_maxs_" + v.name + "_by_size", xMaxs},
+			{"glyph_advances_fixed_" + v.name + "_by_size", advances},
+			{"glyph_replacement_" + v.name + "_by_size", replacements},
+		} {
 			fmt.Println("///|")
-			fmt.Printf("let glyph_x_mins_%s_sz%d : Array[Int] = glyph_x_mins_%s_by_size[%d]\n\n", v.name, size, v.name, i)
-			fmt.Println("///|")
-			fmt.Printf("let glyph_x_maxs_%s_sz%d : Array[Int] = glyph_x_maxs_%s_by_size[%d]\n\n", v.name, size, v.name, i)
-			fmt.Println("///|")
-			fmt.Printf("let glyph_advances_fixed_%s_sz%d : Array[Int] = glyph_advances_fixed_%s_by_size[%d]\n\n", v.name, size, v.name, i)
-		}
-	}
-}
-
-func beginNestedArrayInitializer(name string) {
-	fmt.Println("#inline(never)")
-	fmt.Printf("fn init_%s() -> Array[Array[Int]] {\n", name)
-	fmt.Println("  [")
-}
-
-func endNestedArrayInitializer(name string) {
-	fmt.Println("  ]")
-	fmt.Println("}")
-	fmt.Println()
-	fmt.Println("///|")
-	fmt.Printf("let %s : Array[Array[Int]] = init_%s()\n", name, name)
-}
-
-func legacySizeSpecificName(name string, size int) bool {
-	switch name {
-	case "sans_regular":
-		return size == 20 || size == 24 || size == 28
-	case "sans_bold":
-		return size == 20 || size == 24 || size == 28 || size == 29 || size == 32
-	case "sans_semibold":
-		return size == 20 || size == 24 || size == 28 || size == 32
-	case "mono_regular":
-		return size == 20
-	default:
-		return false
-	}
-}
-
-func emitNestedArray(values []int) {
-	fmt.Println("  [")
-	for i, value := range values {
-		if i%32 == 0 {
-			fmt.Print("    ")
-		}
-		fmt.Print(strconv.Itoa(value))
-		if i != len(values)-1 {
-			fmt.Print(", ")
-		}
-		if i%32 == 31 || i == len(values)-1 {
+			emitPackedI16(table.name, table.values)
 			fmt.Println()
 		}
 	}
-	fmt.Println("  ],")
 }
 
 func loadFaceAtSize(v fontVariant, size int) (font.Face, int, error) {
@@ -307,11 +203,19 @@ func main() {
 			asciiAdvance[cp] = int(adv)
 		}
 
-		asciiKern := make([]int, 256*256)
 		for left := 0; left < 256; left++ {
 			for right := 0; right < 256; right++ {
 				k := face.Kern(rune(left), rune(right))
-				asciiKern[left*256+right] = int(k)
+				if k != 0 {
+					fmt.Fprintf(
+						os.Stderr,
+						"%s has non-zero kerning for U+%04X/U+%04X; add a sparse kerning encoding\n",
+						v.name,
+						left,
+						right,
+					)
+					os.Exit(1)
+				}
 			}
 		}
 
@@ -328,35 +232,29 @@ func main() {
 		}
 
 		fmt.Println("///|")
-		emitArrayInt("glyph_x_mins_"+v.name, asciiXMin)
+		emitPackedI16("glyph_x_mins_"+v.name, asciiXMin)
 		fmt.Println()
 		fmt.Println("///|")
-		emitArrayInt("glyph_x_maxs_"+v.name, asciiXMax)
+		emitPackedI16("glyph_x_maxs_"+v.name, asciiXMax)
 		fmt.Println()
 		fmt.Println("///|")
-		emitArrayInt("glyph_advances_fixed_"+v.name, asciiAdvance)
-		fmt.Println()
-		fmt.Println("///|")
-		emitArrayIntFlat("kernings_fixed_"+v.name, asciiKern, 16)
+		emitPackedI16("glyph_advances_fixed_"+v.name, asciiAdvance)
 		fmt.Println()
 
 		fmt.Println("///|")
-		emitArrayInt("glyph_x_mins_"+v.name+"_geo", geoXMin)
+		emitPackedI16("glyph_x_mins_"+v.name+"_geo", geoXMin)
 		fmt.Println()
 		fmt.Println("///|")
-		emitArrayInt("glyph_x_maxs_"+v.name+"_geo", geoXMax)
+		emitPackedI16("glyph_x_maxs_"+v.name+"_geo", geoXMax)
 		fmt.Println()
 		fmt.Println("///|")
-		emitArrayInt("glyph_advances_fixed_"+v.name+"_geo", geoAdvance)
+		emitPackedI16("glyph_advances_fixed_"+v.name+"_geo", geoAdvance)
 		fmt.Println()
 		replacementXMin, replacementXMax, replacementAdvance := glyphMetrics(face, replacement)
 		fmt.Println("///|")
-		fmt.Printf(
-			"let glyph_replacement_%s : Array[Int] = [%d, %d, %d]\n",
-			v.name,
-			replacementXMin,
-			replacementXMax,
-			int(replacementAdvance),
+		emitPackedI16(
+			"glyph_replacement_"+v.name,
+			[]int{replacementXMin, replacementXMax, int(replacementAdvance)},
 		)
 		fmt.Println()
 	}

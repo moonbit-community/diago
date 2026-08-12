@@ -321,25 +321,31 @@ fn d2_has_any_trigger(source : String, triggers : Array[String]) -> Bool {
 fn d2_subset_font_data_url(
   ttf_bytes : Bytes,
   corpus : String,
-  fallback_data_url : String,
-) -> String {
+) -> String raise @render_api.RenderError {
   let unique_corpus = d2_unique_chars(corpus)
   match @font_subset.utf8_cut_font(ttf_bytes, unique_corpus) {
     Some(subset_sfnt) =>
       if subset_sfnt.length() == 0 {
-        fallback_data_url
+        raise @render_api.render_failed(
+          "font subsetting produced an empty font",
+        )
       } else {
         match @font_subset.sfnt_to_woff(subset_sfnt) {
           Some(subset_woff) =>
             if subset_woff.length() == 0 {
-              fallback_data_url
+              raise @render_api.render_failed(
+                "font conversion produced an empty WOFF",
+              )
             } else {
               "data:application/font-woff;base64,\{@base64.encode(subset_woff)}"
             }
-          None => fallback_data_url
+          None =>
+            raise @render_api.render_failed(
+              "failed to convert font subset to WOFF",
+            )
         }
       }
-    None => fallback_data_url
+    None => raise @render_api.render_failed("failed to subset embedded font")
   }
 }
 
@@ -361,7 +367,7 @@ fn d2_embed_fonts_styles(
   diagram_hash : String,
   source : String,
   corpus : String,
-) -> String {
+) -> String raise @render_api.RenderError {
   let out = StringBuilder::new()
   let regular_text_triggers = [
     "class=\"text\"", "class=\"text ", "class=\"md\"", "class=\"md ",
@@ -375,53 +381,39 @@ fn d2_embed_fonts_styles(
   let mono_bold_triggers = ["class=\"text-mono-bold"]
   let mono_italic_triggers = ["class=\"text-mono-italic"]
   let regular_data = if d2_has_any_trigger(source, regular_text_triggers) {
-    d2_subset_font_data_url(
-      source_sans_pro_regular_ttf_bytes, corpus, source_sans_pro_regular_data,
-    )
+    d2_subset_font_data_url(source_sans_pro_regular_ttf_bytes, corpus)
   } else {
-    source_sans_pro_regular_data
+    ""
   }
   let semibold_data = if d2_has_any_trigger(source, markdown_triggers) {
-    d2_subset_font_data_url(
-      source_sans_pro_semibold_ttf_bytes, corpus, source_sans_pro_semibold_data,
-    )
+    d2_subset_font_data_url(source_sans_pro_semibold_ttf_bytes, corpus)
   } else {
-    source_sans_pro_semibold_data
+    ""
   }
   let bold_data = if d2_has_any_trigger(source, bold_triggers) {
-    d2_subset_font_data_url(
-      source_sans_pro_bold_ttf_bytes, corpus, source_sans_pro_bold_data,
-    )
+    d2_subset_font_data_url(source_sans_pro_bold_ttf_bytes, corpus)
   } else {
-    source_sans_pro_bold_data
+    ""
   }
   let italic_data = if d2_has_any_trigger(source, italic_triggers) {
-    d2_subset_font_data_url(
-      source_sans_pro_italic_ttf_bytes, corpus, source_sans_pro_italic_data,
-    )
+    d2_subset_font_data_url(source_sans_pro_italic_ttf_bytes, corpus)
   } else {
-    source_sans_pro_italic_data
+    ""
   }
   let mono_regular_data = if d2_has_any_trigger(source, mono_triggers) {
-    d2_subset_font_data_url(
-      source_code_pro_regular_ttf_bytes, corpus, source_code_pro_regular_data,
-    )
+    d2_subset_font_data_url(source_code_pro_regular_ttf_bytes, corpus)
   } else {
-    source_code_pro_regular_data
+    ""
   }
   let mono_bold_data = if d2_has_any_trigger(source, mono_bold_triggers) {
-    d2_subset_font_data_url(
-      source_code_pro_bold_ttf_bytes, corpus, source_code_pro_bold_data,
-    )
+    d2_subset_font_data_url(source_code_pro_bold_ttf_bytes, corpus)
   } else {
-    source_code_pro_bold_data
+    ""
   }
   let mono_italic_data = if d2_has_any_trigger(source, mono_italic_triggers) {
-    d2_subset_font_data_url(
-      source_code_pro_italic_ttf_bytes, corpus, source_code_pro_italic_data,
-    )
+    d2_subset_font_data_url(source_code_pro_italic_ttf_bytes, corpus)
   } else {
-    source_code_pro_italic_data
+    ""
   }
   append_on_trigger(
     out,
@@ -2272,7 +2264,7 @@ fn emit_svg_document(
   svg : @svg.Svg,
   config : SvgConfig,
   assets : SvgEmitAssets,
-) -> String {
+) -> String raise @render_api.RenderError {
   let outer_width = d2_ceil_to_int(svg.width())
   let outer_height = d2_ceil_to_int(svg.height())
   let inner_width = outer_width

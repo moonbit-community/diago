@@ -18,6 +18,7 @@ import {
   "moonbitlang/core/argparse",
   "moonbitlang/core/buffer",
   "moonbitlang/core/debug",
+  "moonbitlang/core/env",
   "moonbitlang/async",
   "moonbitlang/async/http",
   "moonbitlang/async/io",

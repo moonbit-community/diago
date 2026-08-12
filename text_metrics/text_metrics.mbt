@@ -119,19 +119,14 @@ priv struct GlyphMetrics {
 }
 
 ///|
-#warnings("-unused_field")
-priv struct GlyphScale {
-  metrics : GlyphMetrics
-  scale : Double
-  fixed_scale : Double
-}
-
-///|
-#warnings("-unused_value")
-fn GlyphScale::legacy_values(
-  self : GlyphScale,
-) -> (GlyphMetrics, Double, Double) {
-  (self.metrics, self.scale, self.fixed_scale)
+fn packed_i16_at(data : Bytes, index : Int) -> Int {
+  let offset = index * 2
+  let bits = data[offset].to_int() | (data[offset + 1].to_int() << 8)
+  if bits >= 0x8000 {
+    bits - 0x10000
+  } else {
+    bits
+  }
 }
 
 ///|
@@ -179,30 +174,35 @@ fn ceil_fixed(value : Int) -> Int {
 
 ///|
 fn lookup_kerning_fixed(
-  kind : FontKind,
-  left_codepoint : Int,
-  right_codepoint : Int,
-  font_size : Int,
+  _kind : FontKind,
+  _left_codepoint : Int,
+  _right_codepoint : Int,
+  _font_size : Int,
 ) -> Int {
-  if left_codepoint < 0 ||
-    left_codepoint >= 256 ||
-    right_codepoint < 0 ||
-    right_codepoint >= 256 {
-    0
-  } else {
-    let idx = left_codepoint * 256 + right_codepoint
-    let raw = match kind {
-      SansRegular => kernings_fixed_sans_regular[idx]
-      SansBold => kernings_fixed_sans_bold[idx]
-      SansSemibold => kernings_fixed_sans_semibold[idx]
-      SansItalic => kernings_fixed_sans_italic[idx]
-      MonoRegular => kernings_fixed_mono_regular[idx]
-      MonoBold => kernings_fixed_mono_bold[idx]
-      MonoItalic => kernings_fixed_mono_italic[idx]
-      HandRegular => kernings_fixed_hand_regular[idx]
-      HandBold => kernings_fixed_hand_bold[idx]
-    }
-    scale_font_unit(raw, font_size, font_units_per_em(kind))
+  0
+}
+
+///|
+fn packed_glyph_metrics(
+  x_mins : Bytes,
+  x_maxs : Bytes,
+  advances : Bytes,
+  index : Int,
+) -> GlyphMetrics {
+  {
+    x_min: packed_i16_at(x_mins, index),
+    x_max: packed_i16_at(x_maxs, index),
+    advance_fixed: packed_i16_at(advances, index),
+  }
+}
+
+///|
+fn packed_replacement_metrics(data : Bytes, index : Int) -> GlyphMetrics {
+  let offset = index * 3
+  {
+    x_min: packed_i16_at(data, offset),
+    x_max: packed_i16_at(data, offset + 1),
+    advance_fixed: packed_i16_at(data, offset + 2),
   }
 }
 
@@ -211,117 +211,99 @@ fn lookup_base_glyph_metrics(kind : FontKind, codepoint : Int) -> GlyphMetrics {
   if codepoint >= 0 && codepoint < 256 {
     match kind {
       SansRegular =>
-        {
-          x_min: glyph_x_mins_sans_regular[codepoint],
-          x_max: glyph_x_maxs_sans_regular[codepoint],
-          advance_fixed: glyph_advances_fixed_sans_regular[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_regular, glyph_x_maxs_sans_regular, glyph_advances_fixed_sans_regular,
+          codepoint,
+        )
       SansBold =>
-        {
-          x_min: glyph_x_mins_sans_bold[codepoint],
-          x_max: glyph_x_maxs_sans_bold[codepoint],
-          advance_fixed: glyph_advances_fixed_sans_bold[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_bold, glyph_x_maxs_sans_bold, glyph_advances_fixed_sans_bold,
+          codepoint,
+        )
       SansSemibold =>
-        {
-          x_min: glyph_x_mins_sans_semibold[codepoint],
-          x_max: glyph_x_maxs_sans_semibold[codepoint],
-          advance_fixed: glyph_advances_fixed_sans_semibold[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_semibold, glyph_x_maxs_sans_semibold, glyph_advances_fixed_sans_semibold,
+          codepoint,
+        )
       SansItalic =>
-        {
-          x_min: glyph_x_mins_sans_italic[codepoint],
-          x_max: glyph_x_maxs_sans_italic[codepoint],
-          advance_fixed: glyph_advances_fixed_sans_italic[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_italic, glyph_x_maxs_sans_italic, glyph_advances_fixed_sans_italic,
+          codepoint,
+        )
       MonoRegular =>
-        {
-          x_min: glyph_x_mins_mono_regular[codepoint],
-          x_max: glyph_x_maxs_mono_regular[codepoint],
-          advance_fixed: glyph_advances_fixed_mono_regular[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_mono_regular, glyph_x_maxs_mono_regular, glyph_advances_fixed_mono_regular,
+          codepoint,
+        )
       MonoBold =>
-        {
-          x_min: glyph_x_mins_mono_bold[codepoint],
-          x_max: glyph_x_maxs_mono_bold[codepoint],
-          advance_fixed: glyph_advances_fixed_mono_bold[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_mono_bold, glyph_x_maxs_mono_bold, glyph_advances_fixed_mono_bold,
+          codepoint,
+        )
       MonoItalic =>
-        {
-          x_min: glyph_x_mins_mono_italic[codepoint],
-          x_max: glyph_x_maxs_mono_italic[codepoint],
-          advance_fixed: glyph_advances_fixed_mono_italic[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_mono_italic, glyph_x_maxs_mono_italic, glyph_advances_fixed_mono_italic,
+          codepoint,
+        )
       HandRegular =>
-        {
-          x_min: glyph_x_mins_hand_regular[codepoint],
-          x_max: glyph_x_maxs_hand_regular[codepoint],
-          advance_fixed: glyph_advances_fixed_hand_regular[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_hand_regular, glyph_x_maxs_hand_regular, glyph_advances_fixed_hand_regular,
+          codepoint,
+        )
       HandBold =>
-        {
-          x_min: glyph_x_mins_hand_bold[codepoint],
-          x_max: glyph_x_maxs_hand_bold[codepoint],
-          advance_fixed: glyph_advances_fixed_hand_bold[codepoint],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_hand_bold, glyph_x_maxs_hand_bold, glyph_advances_fixed_hand_bold,
+          codepoint,
+        )
     }
   } else if codepoint >= GEO_START && codepoint <= GEO_END {
     let idx = codepoint - GEO_START
     match kind {
       SansRegular =>
-        {
-          x_min: glyph_x_mins_sans_regular_geo[idx],
-          x_max: glyph_x_maxs_sans_regular_geo[idx],
-          advance_fixed: glyph_advances_fixed_sans_regular_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_regular_geo, glyph_x_maxs_sans_regular_geo, glyph_advances_fixed_sans_regular_geo,
+          idx,
+        )
       SansBold =>
-        {
-          x_min: glyph_x_mins_sans_bold_geo[idx],
-          x_max: glyph_x_maxs_sans_bold_geo[idx],
-          advance_fixed: glyph_advances_fixed_sans_bold_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_bold_geo, glyph_x_maxs_sans_bold_geo, glyph_advances_fixed_sans_bold_geo,
+          idx,
+        )
       SansSemibold =>
-        {
-          x_min: glyph_x_mins_sans_semibold_geo[idx],
-          x_max: glyph_x_maxs_sans_semibold_geo[idx],
-          advance_fixed: glyph_advances_fixed_sans_semibold_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_semibold_geo, glyph_x_maxs_sans_semibold_geo, glyph_advances_fixed_sans_semibold_geo,
+          idx,
+        )
       SansItalic =>
-        {
-          x_min: glyph_x_mins_sans_italic_geo[idx],
-          x_max: glyph_x_maxs_sans_italic_geo[idx],
-          advance_fixed: glyph_advances_fixed_sans_italic_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_sans_italic_geo, glyph_x_maxs_sans_italic_geo, glyph_advances_fixed_sans_italic_geo,
+          idx,
+        )
       MonoRegular =>
-        {
-          x_min: glyph_x_mins_mono_regular_geo[idx],
-          x_max: glyph_x_maxs_mono_regular_geo[idx],
-          advance_fixed: glyph_advances_fixed_mono_regular_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_mono_regular_geo, glyph_x_maxs_mono_regular_geo, glyph_advances_fixed_mono_regular_geo,
+          idx,
+        )
       MonoBold =>
-        {
-          x_min: glyph_x_mins_mono_bold_geo[idx],
-          x_max: glyph_x_maxs_mono_bold_geo[idx],
-          advance_fixed: glyph_advances_fixed_mono_bold_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_mono_bold_geo, glyph_x_maxs_mono_bold_geo, glyph_advances_fixed_mono_bold_geo,
+          idx,
+        )
       MonoItalic =>
-        {
-          x_min: glyph_x_mins_mono_italic_geo[idx],
-          x_max: glyph_x_maxs_mono_italic_geo[idx],
-          advance_fixed: glyph_advances_fixed_mono_italic_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_mono_italic_geo, glyph_x_maxs_mono_italic_geo, glyph_advances_fixed_mono_italic_geo,
+          idx,
+        )
       HandRegular =>
-        {
-          x_min: glyph_x_mins_hand_regular_geo[idx],
-          x_max: glyph_x_maxs_hand_regular_geo[idx],
-          advance_fixed: glyph_advances_fixed_hand_regular_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_hand_regular_geo, glyph_x_maxs_hand_regular_geo, glyph_advances_fixed_hand_regular_geo,
+          idx,
+        )
       HandBold =>
-        {
-          x_min: glyph_x_mins_hand_bold_geo[idx],
-          x_max: glyph_x_maxs_hand_bold_geo[idx],
-          advance_fixed: glyph_advances_fixed_hand_bold_geo[idx],
-        }
+        packed_glyph_metrics(
+          glyph_x_mins_hand_bold_geo, glyph_x_maxs_hand_bold_geo, glyph_advances_fixed_hand_bold_geo,
+          idx,
+        )
     }
   } else {
     let replacement = match kind {
@@ -335,11 +317,7 @@ fn lookup_base_glyph_metrics(kind : FontKind, codepoint : Int) -> GlyphMetrics {
       HandRegular => glyph_replacement_hand_regular
       HandBold => glyph_replacement_hand_bold
     }
-    {
-      x_min: replacement[0],
-      x_max: replacement[1],
-      advance_fixed: replacement[2],
-    }
+    packed_replacement_metrics(replacement, 0)
   }
 }
 
@@ -351,63 +329,56 @@ fn scaled_glyph_metrics(
 ) -> GlyphMetrics {
   if codepoint >= 0 && codepoint < 256 {
     match size_specific_font_index(font_size) {
-      Some(index) =>
+      Some(size_index) => {
+        let index = size_index * 256 + codepoint
         return match kind {
           SansRegular =>
-            {
-              x_min: glyph_x_mins_sans_regular_by_size[index][codepoint],
-              x_max: glyph_x_maxs_sans_regular_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_sans_regular_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_sans_regular_by_size, glyph_x_maxs_sans_regular_by_size,
+              glyph_advances_fixed_sans_regular_by_size, index,
+            )
           SansBold =>
-            {
-              x_min: glyph_x_mins_sans_bold_by_size[index][codepoint],
-              x_max: glyph_x_maxs_sans_bold_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_sans_bold_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_sans_bold_by_size, glyph_x_maxs_sans_bold_by_size, glyph_advances_fixed_sans_bold_by_size,
+              index,
+            )
           SansSemibold =>
-            {
-              x_min: glyph_x_mins_sans_semibold_by_size[index][codepoint],
-              x_max: glyph_x_maxs_sans_semibold_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_sans_semibold_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_sans_semibold_by_size, glyph_x_maxs_sans_semibold_by_size,
+              glyph_advances_fixed_sans_semibold_by_size, index,
+            )
           SansItalic =>
-            {
-              x_min: glyph_x_mins_sans_italic_by_size[index][codepoint],
-              x_max: glyph_x_maxs_sans_italic_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_sans_italic_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_sans_italic_by_size, glyph_x_maxs_sans_italic_by_size,
+              glyph_advances_fixed_sans_italic_by_size, index,
+            )
           MonoRegular =>
-            {
-              x_min: glyph_x_mins_mono_regular_by_size[index][codepoint],
-              x_max: glyph_x_maxs_mono_regular_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_mono_regular_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_mono_regular_by_size, glyph_x_maxs_mono_regular_by_size,
+              glyph_advances_fixed_mono_regular_by_size, index,
+            )
           MonoBold =>
-            {
-              x_min: glyph_x_mins_mono_bold_by_size[index][codepoint],
-              x_max: glyph_x_maxs_mono_bold_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_mono_bold_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_mono_bold_by_size, glyph_x_maxs_mono_bold_by_size, glyph_advances_fixed_mono_bold_by_size,
+              index,
+            )
           MonoItalic =>
-            {
-              x_min: glyph_x_mins_mono_italic_by_size[index][codepoint],
-              x_max: glyph_x_maxs_mono_italic_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_mono_italic_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_mono_italic_by_size, glyph_x_maxs_mono_italic_by_size,
+              glyph_advances_fixed_mono_italic_by_size, index,
+            )
           HandRegular =>
-            {
-              x_min: glyph_x_mins_hand_regular_by_size[index][codepoint],
-              x_max: glyph_x_maxs_hand_regular_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_hand_regular_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_hand_regular_by_size, glyph_x_maxs_hand_regular_by_size,
+              glyph_advances_fixed_hand_regular_by_size, index,
+            )
           HandBold =>
-            {
-              x_min: glyph_x_mins_hand_bold_by_size[index][codepoint],
-              x_max: glyph_x_maxs_hand_bold_by_size[index][codepoint],
-              advance_fixed: glyph_advances_fixed_hand_bold_by_size[index][codepoint],
-            }
+            packed_glyph_metrics(
+              glyph_x_mins_hand_bold_by_size, glyph_x_maxs_hand_bold_by_size, glyph_advances_fixed_hand_bold_by_size,
+              index,
+            )
         }
+      }
       None => ()
     }
   }
@@ -416,21 +387,17 @@ fn scaled_glyph_metrics(
     match size_specific_font_index(font_size) {
       Some(index) => {
         let replacement = match kind {
-          SansRegular => glyph_replacement_sans_regular_by_size[index]
-          SansBold => glyph_replacement_sans_bold_by_size[index]
-          SansSemibold => glyph_replacement_sans_semibold_by_size[index]
-          SansItalic => glyph_replacement_sans_italic_by_size[index]
-          MonoRegular => glyph_replacement_mono_regular_by_size[index]
-          MonoBold => glyph_replacement_mono_bold_by_size[index]
-          MonoItalic => glyph_replacement_mono_italic_by_size[index]
-          HandRegular => glyph_replacement_hand_regular_by_size[index]
-          HandBold => glyph_replacement_hand_bold_by_size[index]
+          SansRegular => glyph_replacement_sans_regular_by_size
+          SansBold => glyph_replacement_sans_bold_by_size
+          SansSemibold => glyph_replacement_sans_semibold_by_size
+          SansItalic => glyph_replacement_sans_italic_by_size
+          MonoRegular => glyph_replacement_mono_regular_by_size
+          MonoBold => glyph_replacement_mono_bold_by_size
+          MonoItalic => glyph_replacement_mono_italic_by_size
+          HandRegular => glyph_replacement_hand_regular_by_size
+          HandBold => glyph_replacement_hand_bold_by_size
         }
-        return {
-          x_min: replacement[0],
-          x_max: replacement[1],
-          advance_fixed: replacement[2],
-        }
+        return packed_replacement_metrics(replacement, index)
       }
       None => ()
     }
@@ -452,175 +419,6 @@ fn size_specific_font_index(font_size : Int) -> Int? {
     }
   }
   None
-}
-
-///|
-#warnings("-unused_value")
-fn lookup_sized_glyph_metrics(
-  kind : FontKind,
-  codepoint : Int,
-  font_size : Int,
-  default_scale : Double,
-  default_fixed_scale : Double,
-) -> GlyphScale {
-  let base = {
-    metrics: lookup_base_glyph_metrics(kind, codepoint),
-    scale: default_scale,
-    fixed_scale: default_fixed_scale,
-  }
-  if codepoint < 0 || codepoint >= 256 {
-    base
-  } else {
-    match kind {
-      SansRegular =>
-        if font_size == 20 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_regular_sz20[codepoint],
-              x_max: glyph_x_maxs_sans_regular_sz20[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_regular_sz20[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 24 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_regular_sz24[codepoint],
-              x_max: glyph_x_maxs_sans_regular_sz24[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_regular_sz24[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 28 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_regular_sz28[codepoint],
-              x_max: glyph_x_maxs_sans_regular_sz28[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_regular_sz28[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else {
-          base
-        }
-      SansBold =>
-        if font_size == 20 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_bold_sz20[codepoint],
-              x_max: glyph_x_maxs_sans_bold_sz20[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_bold_sz20[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 24 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_bold_sz24[codepoint],
-              x_max: glyph_x_maxs_sans_bold_sz24[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_bold_sz24[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 28 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_bold_sz28[codepoint],
-              x_max: glyph_x_maxs_sans_bold_sz28[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_bold_sz28[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 29 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_bold_sz29[codepoint],
-              x_max: glyph_x_maxs_sans_bold_sz29[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_bold_sz29[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 32 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_bold_sz32[codepoint],
-              x_max: glyph_x_maxs_sans_bold_sz32[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_bold_sz32[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else {
-          base
-        }
-      SansSemibold =>
-        if font_size == 20 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_semibold_sz20[codepoint],
-              x_max: glyph_x_maxs_sans_semibold_sz20[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_semibold_sz20[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 24 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_semibold_sz24[codepoint],
-              x_max: glyph_x_maxs_sans_semibold_sz24[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_semibold_sz24[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 28 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_semibold_sz28[codepoint],
-              x_max: glyph_x_maxs_sans_semibold_sz28[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_semibold_sz28[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else if font_size == 32 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_sans_semibold_sz32[codepoint],
-              x_max: glyph_x_maxs_sans_semibold_sz32[codepoint],
-              advance_fixed: glyph_advances_fixed_sans_semibold_sz32[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else {
-          base
-        }
-      MonoRegular =>
-        if font_size == 20 {
-          {
-            metrics: {
-              x_min: glyph_x_mins_mono_regular_sz20[codepoint],
-              x_max: glyph_x_maxs_mono_regular_sz20[codepoint],
-              advance_fixed: glyph_advances_fixed_mono_regular_sz20[codepoint],
-            },
-            scale: 1.0,
-            fixed_scale: 1.0 / 64.0,
-          }
-        } else {
-          base
-        }
-      SansItalic | MonoBold | MonoItalic | HandRegular | HandBold => base
-    }
-  }
 }
 
 ///|
