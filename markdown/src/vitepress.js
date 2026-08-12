@@ -33,7 +33,9 @@ export default function vitepressDiago(options = {}) {
   };
   return (md) => {
     markdownItDiago(
-      /** @type {import("markdown-it").default} */ (/** @type {unknown} */ (md)),
+      /** @type {import("./markdown-it.js").MarkdownIt} */ (
+        /** @type {unknown} */ (md)
+      ),
       configured,
     );
   };

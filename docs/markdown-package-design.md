@@ -440,7 +440,7 @@ The detailed evidence is retained in the
 The initial compatibility contract is:
 
 - Node.js `>=20` ESM;
-- markdown-it `>=14 <15`;
+- markdown-it `>=14 <16`;
 - unified `>=11 <12`, tested through remark `>=15 <16`;
 - VitePress `>=1 <2`.
 

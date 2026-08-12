@@ -4,9 +4,10 @@ import { resolveDocumentId } from "./internal/identity.js";
 import { normalizeAdapterOptions } from "./internal/options.js";
 import { VITEPRESS_RENDER_SVG } from "./internal/vitepress.js";
 
-/** @typedef {import("markdown-it").default} MarkdownIt */
-/** @typedef {import("markdown-it/lib/token.mjs").default} Token */
+/** @typedef {InstanceType<typeof import("markdown-it", { with: { "resolution-mode": "import" } }).default>} MarkdownIt */
+/** @typedef {ReturnType<MarkdownIt["parse"]>[number]} Token */
 /** @typedef {import("./index.js").DiagoDiagnostic} DiagoDiagnostic */
+/** @typedef {ReturnType<ReturnType<typeof createFenceSession>["compile"]>} FenceResult */
 
 const defaultRenderer = await getDefaultRenderer();
 const INSTALLED = Symbol.for("diago.markdown-it.installed");
@@ -136,8 +137,10 @@ export default function markdownItDiago(md, options) {
   });
 
   md.renderer.rules.fence = (tokens, index, renderOptions, env, renderer) => {
-    const meta = tokens[index].meta;
-    const result = meta?.[RESULT];
+    const meta = /** @type {Record<PropertyKey, unknown>} */ (
+      tokens[index].meta ?? {}
+    );
+    const result = /** @type {FenceResult | undefined} */ (meta[RESULT]);
     if (result?.ok === true) return renderSvg(result.svg);
     return fallback(tokens, index, renderOptions, env, renderer);
   };

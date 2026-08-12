@@ -241,7 +241,7 @@ pub impl @engine_api.LayoutEngine for ElkEngine with fn layout(
     node_margin_by_id,
   ) = build_elk_graph(graph, config, direction)
 
-  let laid_out_json = @moon_elk_core.new_elk_engine().layout(graph=elk_graph) catch {
+  let laid_out_json = @moon_elk_layered.new_elk_engine().layout(graph=elk_graph) catch {
     e => raise @engine_api.unsupported("elk layout failed: \{e}")
   }
 
