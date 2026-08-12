@@ -154,7 +154,7 @@ test("VitePress builds a page with inline Diago SVG", async () => {
       "utf8",
     );
     assert.match(html, /<div class="diago"><svg /);
-    assert.match(html, /data-d2-version="0\.3\.0"/);
+    assert.match(html, /data-d2-version="0\.3\.1"/);
     assert.match(html, /<style type="text\/css">/);
     assert.doesNotMatch(html, /v-html=/);
     assert.doesNotMatch(html, /language-diago/);

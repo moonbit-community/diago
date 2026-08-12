@@ -17,7 +17,7 @@ class SvgParityTest(unittest.TestCase):
           </svg>
         </svg>"""
         diago = """<svg viewBox="0 0 10 10"
-          xmlns="http://www.w3.org/2000/svg" data-d2-version="0.3.0">
+          xmlns="http://www.w3.org/2000/svg" data-d2-version="0.3.1">
           <svg class="d2-svg d2-999">
             <style>.d2-999 .text{font-family:x}@font-face{
               src:url("data:application/font-woff;base64,BBBB")}</style>

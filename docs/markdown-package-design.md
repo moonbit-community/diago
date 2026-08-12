@@ -457,7 +457,7 @@ mismatch, missing export, or invalid transfer arena is a hard renderer
 initialization error; inconsistent transaction metadata or result encoding is a
 hard render-time integrity error.
 
-The current release Wasm is 16,809,470 bytes. CI records its size and enforces
+The current release Wasm is 6,068,707 bytes. CI records its size and enforces
 an 18 MiB raw ceiling (18,874,368 bytes). Raising the ceiling requires an
 explicit reviewed change. The package contains exactly one Wasm file, no base64
 copy, no `postinstall`, and no download step.
