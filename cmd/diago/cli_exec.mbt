@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-const CLI_VERSION : String = "0.3.1"
+const CLI_VERSION : String = "0.3.2"
 
 ///|
 async fn execute_cli_request(request : CliRequest) -> Result[Unit, String] {
