@@ -6,8 +6,6 @@ import {
   "moonbitlang/x@0.4.49",
   "Milky2018/xml@0.4.0",
   "moonbit-community/cmark@0.4.5",
-  "Milky2018/moon_swash@0.1.10",
-  "Milky2018/moon_cosmic@0.3.3",
   "Milky2018/moon_yazi@0.1.3",
   "gmlewis/flate@0.36.11",
   "gmlewis/io@0.23.14",
