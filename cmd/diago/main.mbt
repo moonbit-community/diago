@@ -175,7 +175,7 @@ fn replace_extension(path : String, new_ext : String) -> String {
   }
   if last_dot > 0 {
     // Build base string manually
-    let buf = StringBuilder::new()
+    let buf = StringBuilder()
     for j in 0..<last_dot {
       buf.write_char(path.code_unit_at(j).to_int().unsafe_to_char())
     }
@@ -206,7 +206,7 @@ async fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
     return Ok(())
   }
   if @fs.exists(path) {
-    let exists_as_dir = (@fs.kind(path) == @fs.Directory) catch { _ => false }
+    let exists_as_dir = (@fs.kind(path) == Directory) catch { _ => false }
     if exists_as_dir {
       return Ok(())
     }
@@ -222,7 +222,7 @@ async fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
   @fs.mkdir(path) catch {
     error => {
       let exists_as_dir = if @fs.exists(path) {
-        (@fs.kind(path) == @fs.Directory) catch {
+        (@fs.kind(path) == Directory) catch {
           _ => false
         }
       } else {
@@ -434,7 +434,7 @@ fn string_slice(s : String, start : Int, end : Int) -> String {
   if start < 0 || end < start || end > s.length() {
     return ""
   }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for i in start..<end {
     sb.write_char(s.code_unit_at(i).to_int().unsafe_to_char())
   }
@@ -574,7 +574,7 @@ async fn compile_source_with_warnings(
         compile_diago_ascii(
           source, base_path, layout_engine, layout_explicit, target_spec,
         ) {
-        Ok(output) => Ok({ output, warning: None })
+        Ok(output) => Ok({ output, warning: None, })
         Err(err) => Err(err)
       }
     Unicode =>
@@ -582,7 +582,7 @@ async fn compile_source_with_warnings(
         compile_diago_unicode(
           source, base_path, layout_engine, layout_explicit, target_spec,
         ) {
-        Ok(output) => Ok({ output, warning: None })
+        Ok(output) => Ok({ output, warning: None, })
         Err(err) => Err(err)
       }
   }
@@ -630,7 +630,7 @@ async fn compile_diago_svg_with_warnings(
     Ok(svg) => {
       let cache_images = bundle_cache_enabled()
       let local_result = bundle_local_svg_images(svg, base_path, cache_images~)
-      Ok({ output: local_result.svg, warning: local_result.error })
+      Ok({ output: local_result.svg, warning: local_result.error, })
     }
     Err(err) => Err(err)
   }

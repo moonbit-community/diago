@@ -341,7 +341,7 @@ fn init_low_lim_values(
     lim[node] = max_lim
   }
 
-  let dfs_num_ref : Ref[Int] = { val: 0 }
+  let dfs_num_ref : Ref[Int] = { val: 0, }
   if root != "" {
     dfs(root, children, low, lim, dfs_num_ref)
   }
@@ -356,7 +356,7 @@ fn init_low_lim_values(
       }
     }
   }
-  { low, lim }
+  { low, lim, }
 }
 
 ///|
@@ -613,5 +613,5 @@ fn build_layer_result(
       None => ()
     }
   }
-  { layers, layer_count, nodes_by_layer }
+  { layers, layer_count, nodes_by_layer, }
 }

@@ -20,7 +20,7 @@
 ///|
 /// Escape special XML characters in text content
 pub fn escape(s : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for c in s {
     match c {
       '<' => sb.write_string("&lt;")
@@ -55,7 +55,7 @@ fn d2_number(value : Double) -> String {
 /// Note: the sequence `]]>` is not allowed inside CDATA. We split it safely by
 /// closing and re-opening CDATA sections.
 pub fn cdata(content : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<![CDATA[")
   let mut i = 0
   while i < content.length() {
@@ -87,7 +87,7 @@ pub struct Element {
 ///|
 /// Create a new element builder
 pub fn Element::new(tag : String) -> Element {
-  { tag, attrs: [], content: "", children: [], self_closing: false }
+  { tag, attrs: [], content: "", children: [], self_closing: false, }
 }
 
 ///|
@@ -145,7 +145,7 @@ pub fn Element::attr_num_if(
 ///|
 /// Set text content (will be escaped)
 pub fn Element::text(self : Element, content : String) -> Element {
-  { ..self, content: escape(content) }
+  { ..self, content: escape(content), }
 }
 
 ///|
@@ -179,13 +179,13 @@ pub fn Element::children(self : Element, children : Array[String]) -> Element {
 ///|
 /// Mark as self-closing element (e.g., <br/>)
 pub fn Element::self_close(self : Element) -> Element {
-  { ..self, self_closing: true }
+  { ..self, self_closing: true, }
 }
 
 ///|
 /// Build the element to a string
 pub fn Element::build(self : Element) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_char('<')
   sb.write_string(self.tag)
   for attr in self.attrs {
@@ -213,7 +213,7 @@ pub fn Element::build(self : Element) -> String {
 ///|
 /// Build just the opening tag (for streaming/incremental building)
 pub fn Element::open_tag(self : Element) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_char('<')
   sb.write_string(self.tag)
   for attr in self.attrs {
@@ -296,7 +296,7 @@ pub struct Document {
 ///|
 /// Create a new XML document
 pub fn Document::new() -> Document {
-  { version: "1.0", encoding: "UTF-8", root: "", elements: [] }
+  { version: "1.0", encoding: "UTF-8", root: "", elements: [], }
 }
 
 ///|
@@ -326,7 +326,7 @@ pub fn Document::declaration(self : Document) -> String {
 ///|
 /// Build the complete document
 pub fn Document::build(self : Document) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string(self.declaration())
   sb.write_char('\n')
   for elem in self.elements {

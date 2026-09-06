@@ -65,6 +65,8 @@ pub struct SvgConfig {
   omit_version : Bool
 } derive(@debug.Debug)
 pub fn SvgConfig::new() -> Self
+#deprecated
+pub fn SvgConfig::to_repr(Self) -> @debug.Repr
 pub fn SvgConfig::with_padding(Self, Double) -> Self
 pub fn SvgConfig::with_render_options(Self, Int?, @diagram.ThemeOverrides?, @diagram.ThemeOverrides?, Bool, Bool, Double?, Bool, String?, Bool) -> Self
 pub fn SvgConfig::with_theme(Int) -> Self
@@ -73,7 +75,11 @@ pub fn SvgConfig::with_theme_name(String) -> Self
 pub struct SvgRenderer {
   _marker : Unit
 } derive(@debug.Debug)
+pub fn SvgRenderer::format_name(Self) -> String
 pub fn SvgRenderer::new() -> Self
+pub fn SvgRenderer::render(Self, @diagram.Diagram) -> String raise @render_api.RenderError
+#deprecated
+pub fn SvgRenderer::to_repr(Self) -> @debug.Repr
 pub impl @render_api.Renderer for SvgRenderer
 
 pub struct SvgShapeContext {

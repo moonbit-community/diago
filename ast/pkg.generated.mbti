@@ -41,13 +41,25 @@ pub(all) enum ArrayNode {
   Import(Import)
   Value(Value)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn ArrayNode::equal(Self, Self) -> Bool
+#deprecated
+pub fn ArrayNode::not_equal(Self, Self) -> Bool
 pub fn ArrayNode::range(Self) -> @lexer.Range
+#deprecated
+pub fn ArrayNode::to_repr(Self) -> @debug.Repr
 
 pub struct ArrayValue {
   range : @lexer.Range
   nodes : Array[ArrayNode]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn ArrayValue::equal(Self, Self) -> Bool
 pub fn ArrayValue::new(@lexer.Range, Array[ArrayNode]) -> Self
+#deprecated
+pub fn ArrayValue::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ArrayValue::to_repr(Self) -> @debug.Repr
 
 pub struct BlockString {
   range : @lexer.Range
@@ -55,13 +67,25 @@ pub struct BlockString {
   tag : String
   value : String
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn BlockString::equal(Self, Self) -> Bool
 pub fn BlockString::new(@lexer.Range, String, String, String) -> Self
+#deprecated
+pub fn BlockString::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn BlockString::to_repr(Self) -> @debug.Repr
 
 pub struct DoubleQuotedString {
   range : @lexer.Range
   value : Array[Interpolation]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn DoubleQuotedString::equal(Self, Self) -> Bool
 pub fn DoubleQuotedString::new(@lexer.Range, Array[Interpolation]) -> Self
+#deprecated
+pub fn DoubleQuotedString::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn DoubleQuotedString::to_repr(Self) -> @debug.Repr
 pub fn DoubleQuotedString::to_string(Self) -> String
 
 pub struct Edge {
@@ -71,14 +95,26 @@ pub struct Edge {
   dst : KeyPath
   dst_arrow : String
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Edge::equal(Self, Self) -> Bool
 pub fn Edge::new(@lexer.Range, KeyPath, KeyPath, String, String) -> Self
+#deprecated
+pub fn Edge::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Edge::to_repr(Self) -> @debug.Repr
 
 pub struct EdgeIndex {
   range : @lexer.Range
   index : Int?
   glob : Bool
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn EdgeIndex::equal(Self, Self) -> Bool
 pub fn EdgeIndex::new(@lexer.Range, Int?, Bool) -> Self
+#deprecated
+pub fn EdgeIndex::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn EdgeIndex::to_repr(Self) -> @debug.Repr
 
 pub struct Import {
   range : @lexer.Range
@@ -86,12 +122,24 @@ pub struct Import {
   pre : String
   path : Array[StringValue]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Import::equal(Self, Self) -> Bool
 pub fn Import::new(@lexer.Range, Bool, String, Array[StringValue]) -> Self
+#deprecated
+pub fn Import::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Import::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Interpolation {
   Text(String)
   Sub(Substitution)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Interpolation::equal(Self, Self) -> Bool
+#deprecated
+pub fn Interpolation::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Interpolation::to_repr(Self) -> @debug.Repr
 
 pub struct Key {
   range : @lexer.Range
@@ -104,22 +152,40 @@ pub struct Key {
   primary : Scalar?
   value : Value?
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Key::equal(Self, Self) -> Bool
 pub fn Key::new(@lexer.Range, Bool, Bool, KeyPath?, Array[Edge], EdgeIndex?, KeyPath?, Scalar?, Value?) -> Self
+#deprecated
+pub fn Key::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Key::to_repr(Self) -> @debug.Repr
 
 pub struct KeyPath {
   range : @lexer.Range
   path : Array[StringValue]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn KeyPath::equal(Self, Self) -> Bool
 pub fn KeyPath::has_glob(Self) -> Bool
 pub fn KeyPath::last(Self) -> StringValue?
 pub fn KeyPath::new(@lexer.Range, Array[StringValue]) -> Self
+#deprecated
+pub fn KeyPath::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn KeyPath::to_repr(Self) -> @debug.Repr
 pub fn KeyPath::to_strings(Self) -> Array[String]
 
 pub struct Map {
   range : @lexer.Range
   nodes : Array[MapNode]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Map::equal(Self, Self) -> Bool
 pub fn Map::new(@lexer.Range, Array[MapNode]) -> Self
+#deprecated
+pub fn Map::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Map::to_repr(Self) -> @debug.Repr
 
 pub(all) enum MapNode {
   Comment(@lexer.Range, String)
@@ -128,7 +194,13 @@ pub(all) enum MapNode {
   Import(Import)
   Key(Key)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn MapNode::equal(Self, Self) -> Bool
+#deprecated
+pub fn MapNode::not_equal(Self, Self) -> Bool
 pub fn MapNode::range(Self) -> @lexer.Range
+#deprecated
+pub fn MapNode::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Node {
   Map(Map)
@@ -149,8 +221,14 @@ pub(all) enum Node {
   Import(Import)
 } derive(Eq, @debug.Debug)
 pub fn Node::children(Self) -> Array[Self]
+#deprecated
+pub fn Node::equal(Self, Self) -> Bool
 pub fn Node::node_type(Self) -> String
+#deprecated
+pub fn Node::not_equal(Self, Self) -> Bool
 pub fn Node::range(Self) -> @lexer.Range
+#deprecated
+pub fn Node::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Scalar {
   Null(@lexer.Range)
@@ -158,7 +236,13 @@ pub(all) enum Scalar {
   Number(@lexer.Range, String)
   String(StringValue)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Scalar::equal(Self, Self) -> Bool
+#deprecated
+pub fn Scalar::not_equal(Self, Self) -> Bool
 pub fn Scalar::range(Self) -> @lexer.Range
+#deprecated
+pub fn Scalar::to_repr(Self) -> @debug.Repr
 
 pub(all) enum StringValue {
   Unquoted(UnquotedString)
@@ -167,21 +251,39 @@ pub(all) enum StringValue {
   Block(BlockString)
 } derive(Eq, @debug.Debug)
 pub fn StringValue::content(Self) -> String
+#deprecated
+pub fn StringValue::equal(Self, Self) -> Bool
+#deprecated
+pub fn StringValue::not_equal(Self, Self) -> Bool
 pub fn StringValue::range(Self) -> @lexer.Range
+#deprecated
+pub fn StringValue::to_repr(Self) -> @debug.Repr
 
 pub struct Substitution {
   range : @lexer.Range
   spread : Bool
   path : Array[StringValue]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Substitution::equal(Self, Self) -> Bool
 pub fn Substitution::new(@lexer.Range, Bool, Array[StringValue]) -> Self
+#deprecated
+pub fn Substitution::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Substitution::to_repr(Self) -> @debug.Repr
 
 pub struct UnquotedString {
   range : @lexer.Range
   value : Array[Interpolation]
   pattern : Array[String]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn UnquotedString::equal(Self, Self) -> Bool
 pub fn UnquotedString::new(@lexer.Range, Array[Interpolation], Array[String]) -> Self
+#deprecated
+pub fn UnquotedString::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn UnquotedString::to_repr(Self) -> @debug.Repr
 pub fn UnquotedString::to_string(Self) -> String
 
 pub(all) enum Value {
@@ -191,7 +293,13 @@ pub(all) enum Value {
   Import(Import)
   BlockScalar(Value, Map)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Value::equal(Self, Self) -> Bool
+#deprecated
+pub fn Value::not_equal(Self, Self) -> Bool
 pub fn Value::range(Self) -> @lexer.Range
+#deprecated
+pub fn Value::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

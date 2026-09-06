@@ -18,6 +18,8 @@ pub enum LegendEntryLayout {
   Custom(icon_x~ : Double, icon_y~ : Double, icon_size~ : Double, icon~ : String, label~ : String, label_x~ : Double, label_y~ : Double)
   Separator(x1~ : Double, x2~ : Double, y~ : Double)
 } derive(@debug.Debug)
+#deprecated
+pub fn LegendEntryLayout::to_repr(Self) -> @debug.Repr
 
 pub struct LegendLayout {
   x : Double
@@ -29,18 +31,24 @@ pub struct LegendLayout {
   title : TitleLayout?
   entries : Array[LegendEntryLayout]
 } derive(@debug.Debug)
+#deprecated
+pub fn LegendLayout::to_repr(Self) -> @debug.Repr
 
 pub struct LegendLayoutConfig {
   font_size : Int
   margin : Double
 } derive(@debug.Debug)
 pub fn LegendLayoutConfig::new(Int) -> Self
+#deprecated
+pub fn LegendLayoutConfig::to_repr(Self) -> @debug.Repr
 
 pub struct TitleLayout {
   x : Double
   y : Double
   text : String
 } derive(@debug.Debug)
+#deprecated
+pub fn TitleLayout::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

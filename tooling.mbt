@@ -437,8 +437,8 @@ fn shape_completion_items() -> Array[CompletionItem] {
 ///|
 fn boolean_completion_items() -> Array[CompletionItem] {
   [
-    { label: "true", kind: Value, detail: "boolean", insert_text: "true" },
-    { label: "false", kind: Value, detail: "boolean", insert_text: "false" },
+    { label: "true", kind: Value, detail: "boolean", insert_text: "true", },
+    { label: "false", kind: Value, detail: "boolean", insert_text: "false", },
   ]
 }
 
@@ -573,7 +573,7 @@ fn value_hint_completion_item(property : String) -> CompletionItem {
     "width" | "height" | "top" | "left" => "(pixels)"
     _ => "(value)"
   }
-  { label, kind: Value, detail: "value hint", insert_text: "" }
+  { label, kind: Value, detail: "value hint", insert_text: "", }
 }
 
 ///|
@@ -609,7 +609,7 @@ fn slice_string(s : String, start : Int, end : Int) -> String {
   } else {
     end
   }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for i in from..<to {
     sb.write_char(s.code_unit_at(i).to_int().unsafe_to_char())
   }

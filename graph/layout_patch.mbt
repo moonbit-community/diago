@@ -29,7 +29,7 @@ pub fn FragmentOperandLayout::new(
   condition : String?,
   separator_y : Double,
 ) -> FragmentOperandLayout {
-  { condition, separator_y }
+  { condition, separator_y, }
 }
 
 ///|
@@ -51,7 +51,7 @@ pub fn SequenceFragmentLayout::new(
   end_index : Int,
   operands : Array[FragmentOperandLayout],
 ) -> SequenceFragmentLayout {
-  { fragment_type, condition, bbox, start_index, end_index, operands }
+  { fragment_type, condition, bbox, start_index, end_index, operands, }
 }
 
 ///|

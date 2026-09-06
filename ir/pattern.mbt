@@ -270,7 +270,7 @@ fn string_substring(s : String, start : Int) -> String {
   if start >= s.length() {
     return ""
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i in start..<s.length() {
     let code = s.code_unit_at(i).to_int()
     buf.write_char(code.unsafe_to_char())
@@ -309,7 +309,7 @@ fn Map::glob_targets(self : Map, pattern : Array[String]) -> Array[GlobTarget] {
     self.collect_multi_glob_targets(targets, true, 0)
   } else {
     for field in self.single_glob(pattern) {
-      targets.push({ field, parent_map: self, level: 0 })
+      targets.push({ field, parent_map: self, level: 0, })
     }
   }
   targets
@@ -356,7 +356,7 @@ fn Map::collect_multi_glob_targets(
       }
       continue
     }
-    targets.push({ field, parent_map: self, level })
+    targets.push({ field, parent_map: self, level, })
     match child_map {
       Some(map) =>
         map.collect_multi_glob_targets(targets, include_boards, level + 1)
@@ -376,7 +376,7 @@ pub struct FilterContext {
 
 ///|
 pub fn FilterContext::new(field : Field, parent_map : Map) -> FilterContext {
-  { field, parent_map }
+  { field, parent_map, }
 }
 
 ///|
@@ -741,7 +741,7 @@ fn clone_irarray_for_properties(a : IRArray) -> IRArray {
   for v in a.values {
     values.push(clone_value_for_properties(v))
   }
-  { values, ast: a.ast, source_path: a.source_path, path: a.path }
+  { values, ast: a.ast, source_path: a.source_path, path: a.path, }
 }
 
 ///|

@@ -5,7 +5,7 @@ priv struct SketchSession {
 
 ///|
 fn SketchSession::new() -> SketchSession raise @render_api.RenderError {
-  let session = { disabled: () }
+  let session = { disabled: (), }
   ignore(session.disabled)
   raise UnsupportedFormat("sketch rendering is not supported")
 }
@@ -26,7 +26,7 @@ fn sketch_js_number(value : Double) -> String {
 
 ///|
 fn sketch_js_points(points : Array[(Double, Double)]) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   out.write_char('[')
   for i = 0; i < points.length(); i = i + 1 {
     if i > 0 {
@@ -298,7 +298,7 @@ fn sketch_path_element(
   fill_class_token : String?,
   stroke_class_token : String?,
 ) -> String {
-  let classes = StringBuilder::new()
+  let classes = StringBuilder()
   match class_name {
     Some(name) => if name != "" { classes.write_string(name) }
     None => ()

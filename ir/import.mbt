@@ -370,7 +370,7 @@ fn extract_filename(path : String) -> String {
     }
   }
   // Extract filename
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i in start..<last_dot {
     buf.write_char(path.code_unit_at(i).to_int().unsafe_to_char())
   }

@@ -55,9 +55,12 @@ pub fn Element::children(Self, Array[String]) -> Self
 pub fn Element::close_tag(Self) -> String
 pub fn Element::new(String) -> Self
 pub fn Element::open_tag(Self) -> String
+#deprecated
+pub fn Element::output(Self, &Logger) -> Unit
 pub fn Element::raw(Self, String) -> Self
 pub fn Element::self_close(Self) -> Self
 pub fn Element::text(Self, String) -> Self
+pub fn Element::to_string(Self) -> String
 pub impl Show for Element
 
 pub struct XmlElement {
@@ -65,11 +68,23 @@ pub struct XmlElement {
   attrs : Map[String, String]
   children : Array[XmlNode]
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn XmlElement::equal(Self, Self) -> Bool
+#deprecated
+pub fn XmlElement::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn XmlElement::to_repr(Self) -> @debug.Repr
 
 pub enum XmlNode {
   NodeElement(XmlElement)
   NodeText(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn XmlNode::equal(Self, Self) -> Bool
+#deprecated
+pub fn XmlNode::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn XmlNode::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

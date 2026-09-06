@@ -19,6 +19,15 @@ pub(all) suberror GraphCompileError {
   MissingObject(String)
   Semantic(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn GraphCompileError::equal(Self, Self) -> Bool
+#deprecated
+pub fn GraphCompileError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn GraphCompileError::output(Self, &Logger) -> Unit
+#deprecated
+pub fn GraphCompileError::to_repr(Self) -> @debug.Repr
+pub fn GraphCompileError::to_string(Self) -> String
 pub impl Show for GraphCompileError
 
 // Types and methods

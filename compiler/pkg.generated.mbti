@@ -27,6 +27,12 @@ pub(all) enum CompileError {
   GraphError(String)
   ConfigError(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn CompileError::equal(Self, Self) -> Bool
+#deprecated
+pub fn CompileError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn CompileError::to_repr(Self) -> @debug.Repr
 
 pub struct CompileResult {
   ir_map : @ir.Map

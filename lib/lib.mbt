@@ -561,10 +561,10 @@ fn select_target_board(
 ///|
 fn parse_target_selection(spec : String) -> Result[TargetSelection, String] {
   if spec == "*" {
-    return Ok({ path: [], no_children: false })
+    return Ok({ path: [], no_children: false, })
   }
   if spec.length() == 0 {
-    return Ok({ path: [], no_children: true })
+    return Ok({ path: [], no_children: true, })
   }
   let no_children = !spec.has_suffix(".*")
   let target = if no_children {
@@ -573,10 +573,10 @@ fn parse_target_selection(spec : String) -> Result[TargetSelection, String] {
     spec[:spec.length() - 2].to_owned()
   }
   if target.length() == 0 {
-    return Ok({ path: [], no_children })
+    return Ok({ path: [], no_children, })
   }
   match @parser.parse_key_path(target) {
-    Ok(key_path) => Ok({ path: key_path.to_strings(), no_children })
+    Ok(key_path) => Ok({ path: key_path.to_strings(), no_children, })
     Err(_) => Err("Invalid target: \{spec}")
   }
 }

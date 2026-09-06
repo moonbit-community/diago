@@ -125,7 +125,7 @@ async fn bundle_svg_images_in_scope(
   let cache : Array[(String, String)] = []
   let failed_cache : Array[(String, String)] = []
   let error_hrefs : Array[String] = []
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut cursor = 0
   while cursor < svg.length() {
     let image_start = match find_substring_from(svg, "<image", cursor) {
@@ -154,7 +154,7 @@ async fn bundle_svg_images_in_scope(
     }
     cursor = image_end + 1
   }
-  { svg: out.to_string(), error: bundle_scope_error(scope, error_hrefs) }
+  { svg: out.to_string(), error: bundle_scope_error(scope, error_hrefs), }
 }
 
 ///|
@@ -169,21 +169,21 @@ async fn bundle_image_tag(
 ) -> ImageTagBundleResult {
   let href_raw = match read_image_href(tag) {
     Some(value) => value
-    None => return { tag, error_href: None }
+    None => return { tag, error_href: None, }
   }
   let href = decode_xml_attr_entities(href_raw).trim().to_owned()
   if href == "" || href.has_prefix("data:") {
-    return { tag, error_href: None }
+    return { tag, error_href: None, }
   }
   let normalized = normalize_source_reference(href)
   let is_remote = is_http_source(normalized)
   match scope {
-    Local => if is_remote { return { tag, error_href: None } }
-    Remote => if !is_remote { return { tag, error_href: None } }
+    Local => if is_remote { return { tag, error_href: None, } }
+    Remote => if !is_remote { return { tag, error_href: None, } }
   }
   let key = bundle_cache_key(normalized, base_path)
   if lookup_bundle_failure_cache(failed_cache, key) is Some(_) {
-    return { tag, error_href: None }
+    return { tag, error_href: None, }
   }
   let data_uri = match lookup_bundle_cache(cache, key) {
     Some(uri) => Some(uri)
@@ -208,8 +208,8 @@ async fn bundle_image_tag(
       }
   }
   match data_uri {
-    Some(uri) => { tag: apply_bundled_href(tag, uri), error_href: None }
-    None => { tag, error_href: Some(normalized) }
+    Some(uri) => { tag: apply_bundled_href(tag, uri), error_href: None, }
+    None => { tag, error_href: Some(normalized), }
   }
 }
 
@@ -309,7 +309,7 @@ fn find_attr_span(tag : String, name : String) -> AttributeSpan? {
     let value_end = i
     i = i + 1
     if attr_name == name {
-      return Some({ value_start, value_end })
+      return Some({ value_start, value_end, })
     }
   }
   None
@@ -437,7 +437,7 @@ fn format_bundle_error_hrefs(error_hrefs : Array[String]) -> String {
   if error_hrefs.is_empty() {
     return "[]"
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   out.write_char('[')
   let mut first = true
   for href in error_hrefs {
@@ -959,7 +959,7 @@ fn find_substring_from(s : String, pattern : String, start : Int) -> Int? {
 
 ///|
 fn slice_string(s : String, start : Int, end_exclusive : Int) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   let mut i = start
   while i < end_exclusive {
     sb.write_char(char_at(s, i))

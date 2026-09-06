@@ -152,7 +152,7 @@ async fn compile_render_source(
         salt=request.salt,
         omit_version=request.omit_version,
       ) {
-      Ok(output) => { output, warning: None }
+      Ok(output) => { output, warning: None, }
       Err(err) => return Err(err)
     }
   }
@@ -214,7 +214,7 @@ async fn write_render_output(
 ///|
 async fn normalize_input_path(input_path : String) -> String {
   if @fs.exists(input_path) {
-    let is_dir = (@fs.kind(input_path) == @fs.Directory) catch { _ => false }
+    let is_dir = (@fs.kind(input_path) == Directory) catch { _ => false }
     if is_dir {
       @path.Path(input_path).join("index.d2").to_string()
     } else {

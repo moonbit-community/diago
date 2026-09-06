@@ -493,7 +493,7 @@ fn parse_validate_request(
     return Err("Error: '-' input is not supported. Use --stdin instead.")
   }
   let input_path = if from_stdin { None } else { Some(paths[0]) }
-  let request : ValidateRequest = { input_path, from_stdin }
+  let request : ValidateRequest = { input_path, from_stdin, }
   Ok(request)
 }
 

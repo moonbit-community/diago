@@ -90,7 +90,7 @@ fn CompileScopeFrame::new(
   parent : Map,
   child_syntax : @ast.StringValue,
 ) -> CompileScopeFrame {
-  { parent, child_syntax }
+  { parent, child_syntax, }
 }
 
 ///|
@@ -98,7 +98,7 @@ fn ResolvedPath::new(
   names : Array[String],
   syntax : Array[@ast.StringValue],
 ) -> ResolvedPath {
-  { names, syntax }
+  { names, syntax, }
 }
 
 ///|

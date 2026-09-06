@@ -22,7 +22,7 @@ struct FakeEngine {
 
 ///|
 fn FakeEngine::new() -> FakeEngine {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|
@@ -62,7 +62,7 @@ struct InvalidPatchEngine {
 
 ///|
 fn InvalidPatchEngine::new() -> InvalidPatchEngine {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|
@@ -276,7 +276,7 @@ struct RoundtripEngine {
 
 ///|
 fn RoundtripEngine::new() -> RoundtripEngine {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|

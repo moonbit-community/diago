@@ -91,7 +91,10 @@ fn route_points_from_graph(
 ) -> Array[RoutePoint] {
   let routes : Array[RoutePoint] = []
   for p in points {
-    routes.push({ x: p.x + x_offset.to_double(), y: p.y + y_offset.to_double() })
+    routes.push({
+      x: p.x + x_offset.to_double(),
+      y: p.y + y_offset.to_double(),
+    })
   }
   routes
 }
@@ -142,7 +145,7 @@ fn merge_routes(routes : Array[RoutePoint]) -> Array[RoutePoint] {
 fn calibrate_routes(ctx : RouteDrawContext, routes : Array[RoutePoint]) -> Unit {
   for i, p in routes {
     let (x, y) = calibrate_xy(ctx, p.x, p.y)
-    routes[i] = { x, y }
+    routes[i] = { x, y, }
   }
 }
 
@@ -175,7 +178,7 @@ fn force_horizontal_vertical_route(
     let dx = (curr.x - prev.x).abs()
     let dy = (curr.y - prev.y).abs()
     if dx > 0.5 && dy > 0.5 {
-      adjusted.push({ x: curr.x, y: prev.y })
+      adjusted.push({ x: curr.x, y: prev.y, })
     }
     adjusted.push(curr)
   }
@@ -196,8 +199,8 @@ fn get_connection_boundaries(
     dst_id,
     ctx.inline_child_shape_parent_ids,
   )
-  let mut from_boundary = { tl_x: 0, tl_y: 0, br_x: 0, br_y: 0 }
-  let mut to_boundary = { tl_x: 0, tl_y: 0, br_x: 0, br_y: 0 }
+  let mut from_boundary = { tl_x: 0, tl_y: 0, br_x: 0, br_y: 0, }
+  let mut to_boundary = { tl_x: 0, tl_y: 0, br_x: 0, br_y: 0, }
   for shape in ctx.diagram.shapes {
     if shape.id == boundary_src_id {
       match get_shape_boundary(ctx.shape_ctx, shape, ctx.diagram.connections) {
@@ -249,7 +252,7 @@ fn adjust_route_start_point(
         x += vector_x
         y += vector_y
       }
-      routes[0] = { x, y }
+      routes[0] = { x, y, }
     }
     return
   }
@@ -264,7 +267,7 @@ fn adjust_route_start_point(
     }
     if delta_x != 0.0 {
       let (x, y) = shift_point_until_empty(ctx, first.x, first.y, delta_x, 0.0)
-      routes[0] = { x, y }
+      routes[0] = { x, y, }
     }
   } else if (first.x - second.x).abs() < 0.1 {
     let delta_y = if second.y > first.y {
@@ -276,7 +279,7 @@ fn adjust_route_start_point(
     }
     if delta_y != 0.0 {
       let (x, y) = shift_point_until_empty(ctx, first.x, first.y, 0.0, delta_y)
-      routes[0] = { x, y }
+      routes[0] = { x, y, }
     }
   }
 }
@@ -308,7 +311,7 @@ fn adjust_route_end_point(
         x -= vector_x
         y -= vector_y
       }
-      routes[last_idx] = { x, y }
+      routes[last_idx] = { x, y, }
     }
     return routes
   }
@@ -323,7 +326,7 @@ fn adjust_route_end_point(
     }
     if delta_x != 0.0 {
       let (x, y) = shift_point_until_empty(ctx, last.x, last.y, delta_x, 0.0)
-      routes[last_idx] = { x, y }
+      routes[last_idx] = { x, y, }
     }
   } else if (last.x - second_last.x).abs() < 0.1 {
     let delta_y = if second_last.y > last.y {
@@ -335,7 +338,7 @@ fn adjust_route_end_point(
     }
     if delta_y != 0.0 {
       let (x, y) = shift_point_until_empty(ctx, last.x, last.y, 0.0, delta_y)
-      routes[last_idx] = { x, y }
+      routes[last_idx] = { x, y, }
     }
   }
   routes
@@ -750,7 +753,7 @@ fn calculate_best_label_position(
       max_line_len = line.length()
     }
   }
-  Some({ i: best_index, x: round_int(best_x) - max_line_len / 2, max_diff })
+  Some({ i: best_index, x: round_int(best_x) - max_line_len / 2, max_diff, })
 }
 
 ///|

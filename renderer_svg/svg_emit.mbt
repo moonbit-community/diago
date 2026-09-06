@@ -106,7 +106,7 @@ fn d2_fixed6(value : Double) -> String {
   }
   let frac_raw = frac_part.to_string()
   let pad = 6 - frac_raw.length()
-  let frac = StringBuilder::new()
+  let frac = StringBuilder()
   if pad > 0 {
     for _ in 0..<pad {
       frac.write_char('0')
@@ -190,7 +190,7 @@ fn d2_theme_scope_rules(
   theme : @themes.Theme,
   property : String,
 ) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for entry in d2_theme_color_pairs(theme) {
     sb.write_string(
       "\n\t\t.\{diagram_hash} .\{property}-\{entry.0}{\{property}:\{entry.1};}",
@@ -206,7 +206,7 @@ fn d2_markdown_theme_vars(theme : @themes.Theme) -> String {
 
 ///|
 fn d2_sketch_rules(diagram_hash : String, theme : @themes.Theme) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   let categories = [
     ("bright", "darken"),
     ("normal", "color-burn"),
@@ -263,7 +263,7 @@ fn d2_theme_stylesheet(
   dark_theme : @themes.Theme?,
   include_sketch_rules : Bool,
 ) -> String {
-  let base = StringBuilder::new()
+  let base = StringBuilder()
   for property in ["fill", "stroke", "background-color", "color"] {
     base.write_string(d2_theme_scope_rules(diagram_hash, light_theme, property))
   }
@@ -275,7 +275,7 @@ fn d2_theme_stylesheet(
   base.write_string(".light-code{display: block}.dark-code{display: none}")
   match dark_theme {
     Some(theme) => {
-      let dark = StringBuilder::new()
+      let dark = StringBuilder()
       for property in ["fill", "stroke", "background-color", "color"] {
         dark.write_string(d2_theme_scope_rules(diagram_hash, theme, property))
       }
@@ -352,7 +352,7 @@ fn d2_subset_font_data_url(
 ///|
 fn d2_unique_chars(text : String) -> String {
   let seen : Map[Char, Bool] = Map([])
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for ch in text.to_array() {
     if !seen.contains(ch) {
       seen[ch] = true
@@ -368,7 +368,7 @@ fn d2_embed_fonts_styles(
   source : String,
   corpus : String,
 ) -> String raise @render_api.RenderError {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let regular_text_triggers = [
     "class=\"text\"", "class=\"text ", "class=\"md\"", "class=\"md ",
   ]
@@ -495,7 +495,7 @@ fn d2_embed_fonts_styles(
 
 ///|
 fn d2_legend_corpus(legend : @graph.LegendInput) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   match legend.title {
     Some(title) =>
       if title == "" {
@@ -522,7 +522,7 @@ fn d2_shape_structured_corpus(
   shape : Shape,
   all_shapes : Array[Shape],
 ) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   match shape.shape_type {
     Class =>
       for child in object_children(shape, all_shapes) {
@@ -601,7 +601,7 @@ fn d2_append_graph_corpus(sb : StringBuilder, graph : Diagram) -> Unit {
 ///|
 #warnings("-unused_value")
 fn d2_diagram_corpus(graph : Diagram) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   d2_append_graph_corpus(sb, graph)
   sb.to_string()
 }
@@ -663,7 +663,7 @@ priv struct D2JsonField {
 
 ///|
 fn d2_json_field(key : String, value : String) -> D2JsonField {
-  { key, value }
+  { key, value, }
 }
 
 ///|
@@ -692,7 +692,7 @@ fn d2_json_bool(value : Bool) -> String {
 
 ///|
 fn d2_json_array(values : Array[String]) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_char('[')
   for i = 0; i < values.length(); i = i + 1 {
     if i > 0 {
@@ -715,7 +715,7 @@ fn d2_json_string_array(values : Array[String]) -> String {
 
 ///|
 fn d2_json_object(fields : Array[D2JsonField]) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_char('{')
   for i = 0; i < fields.length(); i = i + 1 {
     if i > 0 {
@@ -1500,7 +1500,7 @@ fn d2_hash_config_json(graph : Diagram) -> String? {
 ///|
 #warnings("-unused_value")
 fn d2_hash_diagram_bytes(graph : Diagram, config : SvgConfig) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let shapes_json : Array[String] = []
   for shape in graph.shapes {
     shapes_json.push(d2_hash_shape_json(shape, graph.shapes, config))
@@ -1611,7 +1611,7 @@ fn d2_contains_char(s : String, target : Char) -> Bool {
 
 ///|
 fn d2_escape_single_quoted_value(s : String) -> String {
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for r in s {
     match r {
       '\'' => b.write_char('\'')
@@ -1629,7 +1629,7 @@ fn d2_escape_single_quoted_value(s : String) -> String {
 
 ///|
 fn d2_escape_double_quoted_value(s : String) -> String {
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for r in s {
     match r {
       '"' | '\\' => b.write_char('\\')
@@ -1655,7 +1655,7 @@ fn d2_escape_unquoted_key_value(s : String) -> String {
   }
   let key_specials = "#;\n\\{}[]'\"|:.-<>*&()@&"
   let chars = s.to_array()
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for i, r in chars {
     match r {
       '\'' | '"' | '|' => if i == 0 { b.write_char('\\') } else { () }
@@ -1830,7 +1830,7 @@ fn emit_defs_block(defs : Array[String]) -> String {
   if defs.is_empty() {
     return ""
   }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<defs>")
   for def in defs {
     sb.write_string(def)
@@ -1888,7 +1888,7 @@ fn d2_text_element(
       }
   }
   let class_attr = @svg.escape_xml(classes.join(" "))
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<text")
   sb.write_string(" x=\"\{d2_fixed6(x)}\"")
   sb.write_string(" y=\"\{d2_fixed6(y)}\"")
@@ -1916,7 +1916,7 @@ fn d2_group_open(
   filter? : String = "",
   trailing_space_before_gt? : Bool = false,
 ) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<g")
   if class_name != "" {
     sb.write_string(" class=\"\{@svg.escape_xml(class_name)}\"")
@@ -1942,7 +1942,7 @@ fn d2_font_class_name(
   underline : Bool,
 ) -> String {
   let font_class = if is_mono { "text-mono" } else { "text" }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string(font_class)
   if is_bold {
     sb.write_string("-bold")
@@ -2030,7 +2030,7 @@ fn d2_connection_path_element(
   }
   let class_attr = @svg.escape_xml(classes.join(" "))
   let style_attr = @svg.escape_xml(styles.join(";") + ";")
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<path")
   sb.write_string(" d=\"\{@svg.escape_xml(d)}\"")
   if inline_theme || stroke_class_token is None {
@@ -2066,7 +2066,7 @@ fn d2_root_background_rect(
   theme : @themes.Theme,
   inline_theme : Bool,
 ) -> String {
-  let classes = StringBuilder::new()
+  let classes = StringBuilder()
   match class_name {
     Some(class_raw) => classes.write_string(class_raw)
     None => ()
@@ -2081,7 +2081,7 @@ fn d2_root_background_rect(
     None => ()
   }
   let class_value = classes.to_string()
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<rect")
   sb.write_string(" x=\"\{d2_fixed6(x)}\"")
   sb.write_string(" y=\"\{d2_fixed6(y)}\"")
@@ -2124,7 +2124,7 @@ fn d2_shape_rect(
   mask? : String = "",
   class_name? : String = "",
 ) -> String {
-  let classes = StringBuilder::new()
+  let classes = StringBuilder()
   if class_name != "" {
     classes.write_string(class_name)
   }
@@ -2149,7 +2149,7 @@ fn d2_shape_rect(
   } else {
     d2_fixed6(stroke_width)
   }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<rect")
   sb.write_string(" x=\"\{d2_fixed6(x)}\"")
   sb.write_string(" y=\"\{d2_fixed6(y)}\"")
@@ -2212,7 +2212,7 @@ fn d2_shape_ellipse(
   fill_class_token? : String? = None,
   stroke_class_token? : String? = None,
 ) -> String {
-  let classes = StringBuilder::new()
+  let classes = StringBuilder()
   classes.write_string("shape")
   let stroke_token = match stroke_class_token {
     Some(v) => Some(v)
@@ -2235,7 +2235,7 @@ fn d2_shape_ellipse(
   } else {
     d2_fixed6(stroke_width)
   }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<ellipse")
   sb.write_string(" rx=\"\{d2_fixed6(rx)}\"")
   sb.write_string(" ry=\"\{d2_fixed6(ry)}\"")
@@ -2317,7 +2317,7 @@ fn emit_svg_document(
     .attr_int("width", inner_width)
     .attr_int("height", inner_height)
     .attr("viewBox", inner_viewbox)
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   if svg.include_xml_declaration() {
     sb.write_string("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
   }

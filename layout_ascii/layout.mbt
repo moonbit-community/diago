@@ -143,7 +143,7 @@ fn get_short_id(id : String) -> String {
     }
   }
   if last_dot >= 0 && last_dot < id.length() - 1 {
-    let buf = StringBuilder::new()
+    let buf = StringBuilder()
     for i = last_dot + 1; i < id.length(); i = i + 1 {
       match id[i].to_char() {
         Some(c) => buf.write_char(c)
@@ -560,42 +560,42 @@ fn plan_edge(
       if dst.y > src.y {
         // Downward
         let x = dst_cx + offset
-        let start = { x, y: src_bottom }
-        let end = { x, y: dst_top }
+        let start = { x, y: src_bottom, }
+        let end = { x, y: dst_top, }
         points.push(start)
         points.push(end)
-        arrow = Some(({ x, y: dst_top }, Down))
+        arrow = Some(({ x, y: dst_top, }, Down))
       } else if src.y > dst.y {
         // Upward
         let x = dst_cx + offset
-        let start = { x, y: dst_bottom }
-        let end = { x, y: src_top }
+        let start = { x, y: dst_bottom, }
+        let end = { x, y: src_top, }
         points.push(start)
         points.push(end)
-        arrow = Some(({ x, y: src_top }, Up))
+        arrow = Some(({ x, y: src_top, }, Up))
       } else if dst.x > src.x {
         // Right
         let y = src.y + src.height / 2 + offset
-        let start = { x: src.x + src.width, y }
-        let end = { x: dst.x - 1, y }
+        let start = { x: src.x + src.width, y, }
+        let end = { x: dst.x - 1, y, }
         points.push(start)
         points.push(end)
-        arrow = Some(({ x: dst.x - 1, y }, Right))
+        arrow = Some(({ x: dst.x - 1, y, }, Right))
       } else {
         // Left
         let y = src.y + src.height / 2 + offset
-        let start = { x: src.x - 1, y }
-        let end = { x: dst.x + dst.width, y }
+        let start = { x: src.x - 1, y, }
+        let end = { x: dst.x + dst.width, y, }
         points.push(start)
         points.push(end)
-        arrow = Some(({ x: dst.x + dst.width, y }, Left))
+        arrow = Some(({ x: dst.x + dst.width, y, }, Left))
       }
       let label_pos = if edge.label != "" {
         match points {
           [p0, p1] =>
             if p0.x == p1.x {
               // Vertical: place label to the right of the line.
-              Some({ x: p0.x + 2, y: (p0.y + p1.y) / 2 })
+              Some({ x: p0.x + 2, y: (p0.y + p1.y) / 2, })
             } else if p0.y == p1.y {
               // Horizontal: place label above the line.
               Some({
@@ -628,7 +628,7 @@ fn truncate_string(s : String, max_len : Int) -> String {
   if s.length() <= max_len {
     return s
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let chars = s.to_array()
   for i = 0; i < max_len - 3; i = i + 1 {
     buf.write_char(chars[i])
@@ -702,7 +702,7 @@ fn plan_legend(legend : LegendInput, x : Int, y : Int) -> LegendPlan {
     }
     current_y = current_y + 1
   }
-  { x, y, width, height, title, rows, separators }
+  { x, y, width, height, title, rows, separators, }
 }
 
 ///|
@@ -837,5 +837,5 @@ pub fn plan(diagram : Diagram, config : AsciiLayoutConfig) -> AsciiPlan {
     }
     None => None
   }
-  { canvas_width, canvas_height, boxes, edges, legend }
+  { canvas_width, canvas_height, boxes, edges, legend, }
 }

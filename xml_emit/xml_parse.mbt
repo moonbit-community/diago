@@ -43,7 +43,7 @@ priv struct Parser {
 
 ///|
 fn Parser::new(s : String) -> Parser {
-  { s, pos: 0 }
+  { s, pos: 0, }
 }
 
 ///|
@@ -99,7 +99,7 @@ fn substring_range(s : String, start : Int, end_ : Int) -> String {
   if start >= end_ {
     return ""
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i in start..<end_ {
     buf.write_char(s.code_unit_at(i).to_int().unsafe_to_char())
   }
@@ -336,7 +336,7 @@ fn Parser::parse_element(self : Parser) -> XmlElement? {
   }
   self.skip_ws()
   if self.consume("/>") {
-    return Some({ name, attrs, children })
+    return Some({ name, attrs, children, })
   }
   if !self.consume(">") {
     return None
@@ -357,7 +357,7 @@ fn Parser::parse_element(self : Parser) -> XmlElement? {
       None => break
     }
   }
-  Some({ name, attrs, children })
+  Some({ name, attrs, children, })
 }
 
 ///|

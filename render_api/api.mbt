@@ -95,7 +95,7 @@ pub fn RenderConfig::with_padding(padding : Double) -> RenderConfig {
 ///|
 pub fn RenderConfig::dark() -> RenderConfig {
   let cfg = RenderConfig::new()
-  { ..cfg, dark_mode: true, background: "#1a1a2e", font_family: "monospace" }
+  { ..cfg, dark_mode: true, background: "#1a1a2e", font_family: "monospace", }
 }
 
 ///|

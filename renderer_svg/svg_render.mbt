@@ -1210,7 +1210,7 @@ fn hex_byte_string(v : Int) -> String {
   let clamped = if v < 0 { 0 } else if v > 255 { 255 } else { v }
   let hi = clamped / 16
   let lo = clamped % 16
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_char(hex_digit_char(hi))
   sb.write_char(hex_digit_char(lo))
   sb.to_string()
@@ -1584,7 +1584,7 @@ fn transform_label_text(text : String, text_transform : String) -> String {
     ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r'
   }
   fn capitalize_words(input : String) -> String {
-    let out = StringBuilder::new()
+    let out = StringBuilder()
     let mut at_word_start = true
     for ch in input {
       if is_whitespace(ch) {
@@ -1759,7 +1759,7 @@ fn non_empty_string(value : String?) -> String? {
 ///|
 fn d2_svg_base32(bytes : Bytes) -> String {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut acc = 0
   let mut bits = 0
   for b in bytes {
@@ -1785,7 +1785,7 @@ fn d2_svg_id(id : String) -> String {
 
 ///|
 fn tooltip_icon_svg(clip_id : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string(
     "<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n",
   )
@@ -1814,7 +1814,7 @@ fn tooltip_icon_svg(clip_id : String) -> String {
 
 ///|
 fn link_icon_svg(clip_id : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string(
     "<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n",
   )
@@ -2713,7 +2713,7 @@ fn edge_label_mask_def(
   mask_height : Int,
   config : SvgConfig,
 ) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   let mx = mask_x
   let my = mask_y
   let mw = mask_width
@@ -3139,7 +3139,7 @@ fn marker_def(
     arrowhead, is_target, stroke_signature, stroke, stroke_width, width_raw, marker_height,
     theme, inline_theme,
   )
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<marker")
   sb.write_string(" id=\"\{id}\"")
   sb.write_string(" markerWidth=\"\{d2_fixed6(marker_width)}\"")
@@ -3338,7 +3338,7 @@ fn d2_gradient_definition(css_gradient : String) -> String? {
       .attr("y2", "100%"),
     )
   }
-  let body = StringBuilder::new()
+  let body = StringBuilder()
   for i, stop in stops {
     let offset = match stop.1 {
       Some(position) => position
@@ -3979,7 +3979,10 @@ fn sort_render_objects(
     })
   }
   for i, connection in connections {
-    items.push({ obj: EdgeObj(connection), original_index: shapes.length() + i })
+    items.push({
+      obj: EdgeObj(connection),
+      original_index: shapes.length() + i,
+    })
   }
   items.sort_by(fn(a, b) {
     let z_a = render_object_z_index(a.obj)
@@ -4100,7 +4103,7 @@ fn is_inline_container_child(obj : Shape, all_objects : Array[Shape]) -> Bool {
     return false // No parent
   }
   // Get parent ID
-  let parent_id_buf = StringBuilder::new()
+  let parent_id_buf = StringBuilder()
   for i = 0; i < last_dot; i = i + 1 {
     match id[i].to_char() {
       Some(c) => parent_id_buf.write_char(c)
@@ -4197,7 +4200,7 @@ fn normalize_markdown_xhtml(html : String) -> String {
   if row_parts.length() <= 1 {
     return with_head
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   out.write_string(row_parts[0].to_owned())
   out.write_string("</tr>\n</thead>\n<tbody>")
   for i = 1; i < row_parts.length(); i = i + 1 {
@@ -4467,7 +4470,7 @@ fn render_svg_object(
     "image" =>
       // Image shape - render external image (foreground only)
       if is_foreground && obj.icon is Some(url) {
-        let image_elem = StringBuilder::new()
+        let image_elem = StringBuilder()
         image_elem.write_string("<image")
         image_elem.write_string(" href=\"\{@svg.escape_xml(url)}\"")
         image_elem.write_string(" x=\"\{d2_fixed6(box.x)}\"")
@@ -4480,7 +4483,7 @@ fn render_svg_object(
         if !use_css_theme_vars || fill_class_token is None {
           image_elem.write_string(" fill=\"\{@svg.escape_xml(fill)}\"")
         }
-        let image_class = StringBuilder::new()
+        let image_class = StringBuilder()
         match stroke_class_token {
           Some(token) => image_class.write_string(" stroke-\{token}")
           None => ()
@@ -5546,7 +5549,7 @@ fn strip_prefix(s : String, prefix : String) -> String? {
     return None
   }
   let start = prefix.length()
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i = start; i < s.length(); i = i + 1 {
     match s[i].to_char() {
       Some(c) => buf.write_char(c)
@@ -5806,7 +5809,7 @@ priv struct ClassMember {
 ///|
 fn trim_double_quotes(s : String) -> String {
   if s.length() >= 2 && s[0] == '"' && s[s.length() - 1] == '"' {
-    let out = StringBuilder::new()
+    let out = StringBuilder()
     for i = 1; i < s.length() - 1; i = i + 1 {
       match s[i].to_char() {
         Some(ch) => out.write_char(ch)
@@ -5827,13 +5830,13 @@ fn class_member_from_shape(child : Shape) -> ClassMember {
   if raw_name.length() > 0 {
     let first = raw_name[0]
     if first == '+' || first == '-' || first == '#' {
-      let vis_buf = StringBuilder::new()
+      let vis_buf = StringBuilder()
       match raw_name[0].to_char() {
         Some(ch) => vis_buf.write_char(ch)
         None => ()
       }
       visibility = vis_buf.to_string()
-      let name_buf = StringBuilder::new()
+      let name_buf = StringBuilder()
       for i = 1; i < raw_name.length(); i = i + 1 {
         match raw_name[i].to_char() {
           Some(ch) => name_buf.write_char(ch)
@@ -5855,7 +5858,7 @@ fn class_member_from_shape(child : Shape) -> ClassMember {
     raw_type
   }
   let underline = style_bool(child.style.underline, false)
-  { visibility, name, type_name, is_method, underline }
+  { visibility, name, type_name, is_method, underline, }
 }
 
 ///|
@@ -5942,7 +5945,7 @@ fn render_svg_class(
         Some(token) => "class_header fill-\{token}"
         None => "class_header"
       }
-      let header_rect = StringBuilder::new()
+      let header_rect = StringBuilder()
       header_rect.write_string("<rect")
       header_rect.write_string(" x=\"\{d2_fixed6(box.x)}\"")
       header_rect.write_string(" y=\"\{d2_fixed6(box.y)}\"")
@@ -5960,7 +5963,7 @@ fn render_svg_class(
     Foreground => {
       let header_text_top = box.y + (header_height - label_dims.height) / 2.0
       let name_y = header_text_top + base_font_size.to_double()
-      let header_text = StringBuilder::new()
+      let header_text = StringBuilder()
       header_text.write_string("<text")
       header_text.write_string(" x=\"\{d2_fixed6(box.x + box.width / 2.0)}\"")
       header_text.write_string(" y=\"\{d2_fixed6(name_y)}\"")
@@ -6048,7 +6051,7 @@ fn render_svg_class(
         Some(token) => " stroke-\{token}"
         None => ""
       }
-      let line = StringBuilder::new()
+      let line = StringBuilder()
       line.write_string("<line")
       line.write_string(" x1=\"\{d2_fixed6(sep_x1)}\"")
       line.write_string(" x2=\"\{d2_fixed6(sep_x2)}\"")
@@ -6275,7 +6278,7 @@ priv struct CodeToken {
 
 ///|
 fn CodeToken::new(text : String, kind : CodeTokenKind) -> CodeToken {
-  { text, kind }
+  { text, kind, }
 }
 
 ///|
@@ -6285,7 +6288,7 @@ fn code_line_svg_raw(
   is_dark : Bool,
 ) -> String {
   let normalized = code_language_from_tag(language)
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for token in code_tokenize_line(line, normalized) {
     code_write_span(
       sb,
@@ -7946,7 +7949,7 @@ fn code_prev_non_space_char(s : String, start : Int) -> Char? {
 
 ///|
 fn code_svg_escape(s : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for c in s {
     match c {
       '&' => sb.write_string("&amp;")
@@ -7963,7 +7966,7 @@ fn code_svg_escape(s : String) -> String {
 
 ///|
 fn code_slice(s : String, start : Int, end_exclusive : Int) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for i in start..<end_exclusive {
     match s[i].to_char() {
       Some(c) => sb.write_char(c)
@@ -7976,7 +7979,7 @@ fn code_slice(s : String, start : Int, end_exclusive : Int) -> String {
 ///|
 fn split_lines(s : String) -> Array[String] {
   let lines : Array[String] = []
-  let current = StringBuilder::new()
+  let current = StringBuilder()
   for c in s {
     if c == '\n' {
       lines.push(current.to_string())
@@ -8004,7 +8007,7 @@ fn d2_shape_path(
   stroke_class_token : String?,
   stroke_dash? : Double = 0.0,
 ) -> String {
-  let classes = StringBuilder::new()
+  let classes = StringBuilder()
   let stroke_token = match stroke_class_token {
     Some(v) => Some(v)
     None => d2_theme_token(stroke, theme)
@@ -8026,7 +8029,7 @@ fn d2_shape_path(
   } else {
     d2_fixed6(stroke_width)
   }
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string("<path")
   sb.write_string(" d=\"\{@svg.escape_xml(d)}\"")
   if inline_theme || stroke_token is None {
@@ -8039,7 +8042,7 @@ fn d2_shape_path(
   if class_value != "" {
     sb.write_string(" class=\"\{@svg.escape_xml(class_value)}\"")
   }
-  let style = StringBuilder::new()
+  let style = StringBuilder()
   style.write_string("stroke-width:\{@svg.escape_xml(stroke_width_css)};")
   if stroke_dash != 0.0 {
     let (dash_size, gap_size) = d2_stroke_dash_attributes(

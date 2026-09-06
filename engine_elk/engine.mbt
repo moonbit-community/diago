@@ -27,7 +27,7 @@ pub struct ElkEngine {
 
 ///|
 pub fn ElkEngine::new() -> ElkEngine {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|
@@ -5491,7 +5491,7 @@ priv struct ClassMemberInfo {
 ///|
 fn trim_double_quotes_for_class_member(s : String) -> String {
   if s.length() >= 2 && s[0] == '"' && s[s.length() - 1] == '"' {
-    let out = StringBuilder::new()
+    let out = StringBuilder()
     for i = 1; i < s.length() - 1; i = i + 1 {
       match s[i].to_char() {
         Some(ch) => out.write_char(ch)
@@ -5511,7 +5511,7 @@ fn class_member_info_from_object(child : @graph.ObjectInput) -> ClassMemberInfo 
   if raw_name.length() > 0 {
     let first = raw_name[0]
     if first == '+' || first == '-' || first == '#' {
-      let name_buf = StringBuilder::new()
+      let name_buf = StringBuilder()
       for i = 1; i < raw_name.length(); i = i + 1 {
         match raw_name[i].to_char() {
           Some(ch) => name_buf.write_char(ch)
@@ -5532,7 +5532,7 @@ fn class_member_info_from_object(child : @graph.ObjectInput) -> ClassMemberInfo 
   } else {
     raw_type
   }
-  { name, type_name }
+  { name, type_name, }
 }
 
 ///|
@@ -6428,7 +6428,7 @@ fn sql_table_constraint_abbr_from_object(obj : @graph.ObjectInput) -> String {
     let prefix = "sql_constraint:"
     for cls in obj.classes {
       if cls.has_prefix(prefix) {
-        let buf = StringBuilder::new()
+        let buf = StringBuilder()
         for i = prefix.length(); i < cls.length(); i = i + 1 {
           match cls[i].to_char() {
             Some(ch) => buf.write_char(ch)

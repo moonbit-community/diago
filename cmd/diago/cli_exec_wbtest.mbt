@@ -38,7 +38,7 @@ test "render output plan keeps warnings write-free for non-svg outputs" {
 
 ///|
 test "render output plan writes normally when no warning exists" {
-  let compiled : CompiledSourceResult = { output: "<svg/>", warning: None }
+  let compiled : CompiledSourceResult = { output: "<svg/>", warning: None, }
   match render_output_write_plan(Svg, compiled) {
     WriteOnly => ()
     _ => fail("expected svg output without warning to write normally")

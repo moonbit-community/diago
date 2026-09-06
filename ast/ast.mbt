@@ -184,7 +184,7 @@ pub struct Import {
 
 ///|
 pub fn Map::new(range : @lexer.Range, nodes : Array[MapNode]) -> Map {
-  { range, nodes }
+  { range, nodes, }
 }
 
 ///|
@@ -214,7 +214,7 @@ pub fn Key::new(
 
 ///|
 pub fn KeyPath::new(range : @lexer.Range, path : Array[StringValue]) -> KeyPath {
-  { range, path }
+  { range, path, }
 }
 
 ///|
@@ -225,7 +225,7 @@ pub fn Edge::new(
   src_arrow : String,
   dst_arrow : String,
 ) -> Edge {
-  { range, src, src_arrow, dst, dst_arrow }
+  { range, src, src_arrow, dst, dst_arrow, }
 }
 
 ///|
@@ -234,7 +234,7 @@ pub fn EdgeIndex::new(
   index : Int?,
   glob : Bool,
 ) -> EdgeIndex {
-  { range, index, glob }
+  { range, index, glob, }
 }
 
 ///|
@@ -242,7 +242,7 @@ pub fn ArrayValue::new(
   range : @lexer.Range,
   nodes : Array[ArrayNode],
 ) -> ArrayValue {
-  { range, nodes }
+  { range, nodes, }
 }
 
 ///|
@@ -251,7 +251,7 @@ pub fn UnquotedString::new(
   value : Array[Interpolation],
   pattern : Array[String],
 ) -> UnquotedString {
-  { range, value, pattern }
+  { range, value, pattern, }
 }
 
 ///|
@@ -259,7 +259,7 @@ pub fn DoubleQuotedString::new(
   range : @lexer.Range,
   value : Array[Interpolation],
 ) -> DoubleQuotedString {
-  { range, value }
+  { range, value, }
 }
 
 ///|
@@ -269,7 +269,7 @@ pub fn BlockString::new(
   tag : String,
   value : String,
 ) -> BlockString {
-  { range, quote, tag, value }
+  { range, quote, tag, value, }
 }
 
 ///|
@@ -278,7 +278,7 @@ pub fn Substitution::new(
   spread : Bool,
   path : Array[StringValue],
 ) -> Substitution {
-  { range, spread, path }
+  { range, spread, path, }
 }
 
 ///|
@@ -288,7 +288,7 @@ pub fn Import::new(
   pre : String,
   path : Array[StringValue],
 ) -> Import {
-  { range, spread, pre, path }
+  { range, spread, pre, path, }
 }
 
 ///|
@@ -537,7 +537,7 @@ pub fn StringValue::content(self : StringValue) -> String {
 
 ///|
 pub fn UnquotedString::to_string(self : UnquotedString) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for seg in self.value {
     match seg {
       Text(s) => buf.write_string(s)
@@ -559,7 +559,7 @@ pub fn UnquotedString::to_string(self : UnquotedString) -> String {
 
 ///|
 pub fn DoubleQuotedString::to_string(self : DoubleQuotedString) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for seg in self.value {
     match seg {
       Text(s) => buf.write_string(s)

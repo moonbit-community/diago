@@ -23,7 +23,7 @@ pub struct AsciiRenderer {
 
 ///|
 pub fn AsciiRenderer::new() -> AsciiRenderer {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|

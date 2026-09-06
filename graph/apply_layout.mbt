@@ -75,7 +75,7 @@ fn apply_route_to_edge(
     Some(b) => Some(b)
     None => edge.label_box
   }
-  { ..edge, route, bend_points, is_curve, label_box }
+  { ..edge, route, bend_points, is_curve, label_box, }
 }
 
 ///|

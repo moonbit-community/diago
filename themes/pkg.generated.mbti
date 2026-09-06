@@ -36,6 +36,8 @@ pub struct ColorPalette {
   ab4 : String
   ab5 : String
 } derive(@debug.Debug)
+#deprecated
+pub fn ColorPalette::to_repr(Self) -> @debug.Repr
 
 pub struct SpecialRules {
   c4 : Bool
@@ -47,6 +49,8 @@ pub struct SpecialRules {
   all_paper : Bool
 } derive(@debug.Debug)
 pub fn SpecialRules::default() -> Self
+#deprecated
+pub fn SpecialRules::to_repr(Self) -> @debug.Repr
 
 pub struct Theme {
   id : Int
@@ -66,6 +70,8 @@ pub fn Theme::is_dark(Self) -> Bool
 pub fn Theme::resolve(Self, String) -> String
 pub fn Theme::stroke_color(Self) -> String
 pub fn Theme::text_color(Self) -> String
+#deprecated
+pub fn Theme::to_repr(Self) -> @debug.Repr
 pub fn Theme::with_overrides(Self, @diagram.ThemeOverrides?) -> Self
 
 // Type aliases

@@ -19,6 +19,15 @@ pub(all) suberror RenderError {
   RenderFailed(String)
   InvalidDiagram(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn RenderError::equal(Self, Self) -> Bool
+#deprecated
+pub fn RenderError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn RenderError::output(Self, &Logger) -> Unit
+#deprecated
+pub fn RenderError::to_repr(Self) -> @debug.Repr
+pub fn RenderError::to_string(Self) -> String
 pub impl Show for RenderError
 
 // Types and methods
@@ -31,6 +40,8 @@ pub struct RenderConfig {
 } derive(@debug.Debug)
 pub fn RenderConfig::dark() -> Self
 pub fn RenderConfig::new() -> Self
+#deprecated
+pub fn RenderConfig::to_repr(Self) -> @debug.Repr
 pub fn RenderConfig::with_padding(Double) -> Self
 
 // Type aliases

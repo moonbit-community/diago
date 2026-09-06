@@ -132,7 +132,7 @@ fn run_hierarchy_layout_stage(
     patch, graph, object_by_id, parent_id_by_child_id, config,
   )
   sync_boxes_from_patch_railway(boxes, patch)
-  { patch, boxes: canonical_object_map(boxes) }
+  { patch, boxes: canonical_object_map(boxes), }
 }
 
 ///|
@@ -242,7 +242,7 @@ fn run_routing_stage(
     problem.config,
     problem.lane_by_edge,
   )
-  { patch: problem.patch, routing_passes, title_collision_score }
+  { patch: problem.patch, routing_passes, title_collision_score, }
 }
 
 ///|

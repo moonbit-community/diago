@@ -318,7 +318,7 @@ pub fn Node::last_primary_key(self : Node) -> @ast.Key? {
 
 ///|
 pub fn NodePath::root() -> NodePath {
-  { segments: [] }
+  { segments: [], }
 }
 
 ///|
@@ -450,7 +450,7 @@ fn field_name_matches(
 
 ///|
 pub fn Scalar::at(range : @lexer.Range, value : ScalarValue) -> Scalar {
-  { value, range, ast: None, source_path: None, path: None }
+  { value, range, ast: None, source_path: None, path: None, }
 }
 
 ///|
@@ -459,7 +459,7 @@ pub fn Scalar::from_ast(
   value : ScalarValue,
   source_path? : String? = None,
 ) -> Scalar {
-  { value, range: ast.range(), ast: Some(ast), source_path, path: None }
+  { value, range: ast.range(), ast: Some(ast), source_path, path: None, }
 }
 
 ///|
@@ -550,7 +550,7 @@ pub fn Field::simple(
 
 ///|
 pub fn IRArray::new(values : Array[Value]) -> IRArray {
-  { values, ast: None, source_path: None, path: None }
+  { values, ast: None, source_path: None, path: None, }
 }
 
 ///|
@@ -559,7 +559,7 @@ pub fn IRArray::from_ast(
   values : Array[Value],
   source_path? : String? = None,
 ) -> IRArray {
-  { values, ast: Some(ArrayValue(ast)), source_path, path: None }
+  { values, ast: Some(ArrayValue(ast)), source_path, path: None, }
 }
 
 ///|
@@ -569,7 +569,7 @@ pub fn Edge::new(
   map : Map?,
   references : Array[EdgeReference],
 ) -> Edge {
-  { id, primary, map, references, import_ast: None, path: None }
+  { id, primary, map, references, import_ast: None, path: None, }
 }
 
 ///|
@@ -681,7 +681,7 @@ pub fn RefContext::new(
   scope : @ast.Map?,
   source_path? : String? = None,
 ) -> RefContext {
-  { edge, key, scope, source_path }
+  { edge, key, scope, source_path, }
 }
 
 ///|
@@ -1126,7 +1126,7 @@ fn reindex_array(array : IRArray, path : NodePath) -> IRArray {
   for i, value in array.values {
     values.push(reindex_value(value, path.append(ArrayItemStep(i))))
   }
-  { values, ast: array.ast, source_path: array.source_path, path: Some(path) }
+  { values, ast: array.ast, source_path: array.source_path, path: Some(path), }
 }
 
 ///|
@@ -1163,7 +1163,7 @@ fn copy_array_detached(array : IRArray) -> IRArray {
   for value in array.values {
     values.push(copy_value_detached(value))
   }
-  { values, ast: array.ast, source_path: array.source_path, path: None }
+  { values, ast: array.ast, source_path: array.source_path, path: None, }
 }
 
 ///|

@@ -77,7 +77,7 @@ pub fn compile(
       raise MissingEdgeEndpoint(edge_index=edge.index, endpoint_id=dst_id)
     }
   }
-  { graph: canonicalize_graph(graph), object_ids, edge_indices }
+  { graph: canonicalize_graph(graph), object_ids, edge_indices, }
 }
 
 ///|

@@ -15,7 +15,12 @@ import {
 pub struct RailwayEngine {
   _marker : Unit
 } derive(@debug.Debug)
+pub fn RailwayEngine::engine_name(Self) -> String
+pub fn RailwayEngine::features(Self) -> Array[@engine_api.LayoutFeature]
+pub fn RailwayEngine::layout(Self, @graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> @graph.LayoutPatch raise @engine_api.LayoutError
 pub fn RailwayEngine::new() -> Self
+#deprecated
+pub fn RailwayEngine::to_repr(Self) -> @debug.Repr
 pub impl @engine_api.LayoutEngine for RailwayEngine
 
 // Type aliases

@@ -34,7 +34,7 @@ pub struct LegendLayoutConfig {
 
 ///|
 pub fn LegendLayoutConfig::new(font_size : Int) -> LegendLayoutConfig {
-  { font_size, margin: 20.0 }
+  { font_size, margin: 20.0, }
 }
 
 ///|
@@ -197,7 +197,7 @@ pub fn compute_legend_layout(
   let fill = "#ffffff"
   let stroke = "#DEE1EB"
   let title_text = legend.title.unwrap_or("Legend")
-  let title = Some({ x: x + 20.0, y: y + 34.0, text: title_text })
+  let title = Some({ x: x + 20.0, y: y + 34.0, text: title_text, })
   let mut current_y = y + 54.0
   let entries : Array[LegendEntryLayout] = []
   let mut emitted_separator = false
@@ -291,5 +291,5 @@ pub fn compute_legend_layout(
       Separator => ()
     }
   }
-  Some({ x, y, width, height, fill, stroke, title, entries })
+  Some({ x, y, width, height, fill, stroke, title, entries, })
 }

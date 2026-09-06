@@ -40,7 +40,7 @@ pub fn Lexer::new(source : String) -> Lexer {
 ///|
 pub fn Lexer::with_path(path : String, source : String) -> Lexer {
   let chars = source.to_array()
-  { path, chars, pos: 0, line: 0, column: 0, tokens: [], errors: [] }
+  { path, chars, pos: 0, line: 0, column: 0, tokens: [], errors: [], }
 }
 
 ///|
@@ -109,7 +109,7 @@ fn Lexer::advance(self : Lexer) -> Char {
 
 ///|
 fn Lexer::slice_source(self : Lexer, start : Int, end : Int) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i = start; i < end; i = i + 1 {
     if i < self.chars.length() {
       buf.write_char(self.chars[i])
@@ -130,7 +130,7 @@ fn Lexer::add_token(self : Lexer, kind : TokenKind, start : Position) -> Unit {
 ///|
 fn Lexer::add_error(self : Lexer, message : String, start : Position) -> Unit {
   let end = self.current_position()
-  self.errors.push({ message, range: Range::with_path(self.path, start, end) })
+  self.errors.push({ message, range: Range::with_path(self.path, start, end), })
 }
 
 ///|
@@ -403,7 +403,7 @@ fn Lexer::scan_triple_quoted_block_comment(
 
 ///|
 fn Lexer::scan_number(self : Lexer, start : Position, first : Char) -> Unit {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_char(first)
   // Integer part
   while !self.is_at_end() && is_digit(self.peek()) {
@@ -431,7 +431,7 @@ fn Lexer::scan_number(self : Lexer, start : Position, first : Char) -> Unit {
 
 ///|
 fn Lexer::scan_identifier(self : Lexer, start : Position, first : Char) -> Unit {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_char(first)
   if first == '\\' && !self.is_at_end() && self.peek() != '\n' {
     buf.write_char(self.advance())
@@ -588,7 +588,7 @@ fn trim_comment_common_indent(s : String) -> String {
 ///|
 fn substring_comment_by_offsets(s : String, start : Int, end : Int) -> String {
   let chars = s.to_array()
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut i = start
   while i < end && i < chars.length() {
     buf.write_char(chars[i])

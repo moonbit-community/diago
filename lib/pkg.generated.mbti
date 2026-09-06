@@ -38,6 +38,12 @@ pub(all) enum LayoutEngine {
   Elk
   Railway
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LayoutEngine::equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutEngine::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutEngine::to_repr(Self) -> @debug.Repr
 
 pub(all) enum LibError {
   LayoutError(String)
@@ -46,12 +52,24 @@ pub(all) enum LibError {
   TargetError(String)
   UnsupportedFeature(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LibError::equal(Self, Self) -> Bool
+#deprecated
+pub fn LibError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LibError::to_repr(Self) -> @debug.Repr
 
 pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn OutputMode::equal(Self, Self) -> Bool
+#deprecated
+pub fn OutputMode::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn OutputMode::to_repr(Self) -> @debug.Repr
 
 pub struct RenderOptions {
   output_mode : OutputMode

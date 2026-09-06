@@ -73,6 +73,8 @@ pub fn CharSet::t_left(Self) -> Char
 pub fn CharSet::t_right(Self) -> Char
 pub fn CharSet::t_up(Self) -> Char
 pub fn CharSet::tilde(Self) -> Char
+#deprecated
+pub fn CharSet::to_repr(Self) -> @debug.Repr
 pub fn CharSet::top_left(Self) -> Char
 pub fn CharSet::top_left_arc(Self) -> Char
 pub fn CharSet::top_right(Self) -> Char
@@ -98,6 +100,8 @@ pub fn Grid::hline(Self, Int, Int, Int, Char) -> Unit
 pub fn Grid::is_in_bounds(Self, Int, Int) -> Bool
 pub fn Grid::line(Self, Int, Int, Int, Int, Char, Char, Char, Char) -> Unit
 pub fn Grid::new(Int, Int) -> Self
+#deprecated
+pub fn Grid::output(Self, &Logger) -> Unit
 pub fn Grid::rect(Self, Int, Int, Int, Int, Char, Char, Char) -> Unit
 pub fn Grid::rounded_rect(Self, Int, Int, Int, Int, CharSet) -> Unit
 pub fn Grid::set(Self, Int, Int, Char) -> Unit

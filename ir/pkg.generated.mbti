@@ -34,6 +34,15 @@ pub(all) suberror CompileError {
   InvalidSubstitution(String)
   ImportError(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn CompileError::equal(Self, Self) -> Bool
+#deprecated
+pub fn CompileError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn CompileError::output(Self, &Logger) -> Unit
+#deprecated
+pub fn CompileError::to_repr(Self) -> @debug.Repr
+pub fn CompileError::to_string(Self) -> String
 pub impl Show for CompileError
 
 // Types and methods
@@ -41,6 +50,12 @@ pub(all) enum Composite {
   Array(IRArray)
   Map(Map)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Composite::equal(Self, Self) -> Bool
+#deprecated
+pub fn Composite::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Composite::to_repr(Self) -> @debug.Repr
 
 pub struct Edge {
   id : EdgeID
@@ -52,13 +67,19 @@ pub struct Edge {
 } derive(Eq, @debug.Debug)
 pub fn Edge::ast(Self) -> @ast.Node?
 pub fn Edge::copy(Self) -> Self
+#deprecated
+pub fn Edge::equal(Self, Self) -> Bool
 pub fn Edge::import_ast(Self) -> @ast.Node?
 pub fn Edge::last_primary_key(Self) -> @ast.Key?
 pub fn Edge::last_primary_ref(Self) -> Reference?
 pub fn Edge::last_ref(Self) -> Reference?
 pub fn Edge::new(EdgeID, Scalar?, Map?, Array[EdgeReference]) -> Self
+#deprecated
+pub fn Edge::not_equal(Self, Self) -> Bool
 pub fn Edge::parent(Self, Map) -> Node?
 pub fn Edge::path(Self) -> NodePath?
+#deprecated
+pub fn Edge::to_repr(Self) -> @debug.Repr
 
 pub struct EdgeID {
   src_path : Array[String]
@@ -72,9 +93,15 @@ pub struct EdgeID {
 } derive(Eq, @debug.Debug)
 pub fn EdgeID::copy(Self) -> Self
 pub fn EdgeID::dst_path_syntax(Self) -> Array[@ast.StringValue]
+#deprecated
+pub fn EdgeID::equal(Self, Self) -> Bool
 pub fn EdgeID::matches(Self, Self) -> Bool
 pub fn EdgeID::new(Array[String], Array[String], Bool, Bool, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
+#deprecated
+pub fn EdgeID::not_equal(Self, Self) -> Bool
 pub fn EdgeID::src_path_syntax(Self) -> Array[@ast.StringValue]
+#deprecated
+pub fn EdgeID::to_repr(Self) -> @debug.Repr
 pub fn EdgeID::with_glob(Array[String], Array[String], Bool, Bool, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
 pub fn EdgeID::with_index(Array[String], Array[String], Bool, Bool, Int, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
 
@@ -89,8 +116,14 @@ pub struct EdgeReference {
 } derive(Eq, @debug.Debug)
 pub fn EdgeReference::ast(Self) -> @ast.Node?
 pub fn EdgeReference::context(Self) -> RefContext?
+#deprecated
+pub fn EdgeReference::equal(Self, Self) -> Bool
 pub fn EdgeReference::from_ast(@ast.Edge, Int, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
 pub fn EdgeReference::new(@lexer.Range, Int, Bool) -> Self
+#deprecated
+pub fn EdgeReference::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn EdgeReference::to_repr(Self) -> @debug.Repr
 
 pub struct Field {
   name : String
@@ -104,6 +137,8 @@ pub struct Field {
 pub fn Field::array(Self) -> IRArray?
 pub fn Field::ast(Self) -> @ast.Node?
 pub fn Field::copy(Self) -> Self
+#deprecated
+pub fn Field::equal(Self, Self) -> Bool
 pub fn Field::has_composite(Self) -> Bool
 pub fn Field::has_primary(Self) -> Bool
 pub fn Field::import_ast(Self) -> @ast.Node?
@@ -116,9 +151,13 @@ pub fn Field::map(Self) -> Map?
 pub fn Field::name_is_unquoted(Self) -> Bool
 pub fn Field::name_syntax(Self) -> @ast.StringValue?
 pub fn Field::new(String, Scalar?, Composite?, Array[FieldReference], name_syntax? : @ast.StringValue?) -> Self
+#deprecated
+pub fn Field::not_equal(Self, Self) -> Bool
 pub fn Field::parent(Self, Map) -> Node?
 pub fn Field::path(Self) -> NodePath?
 pub fn Field::simple(String, name_syntax? : @ast.StringValue?) -> Self
+#deprecated
+pub fn Field::to_repr(Self) -> @debug.Repr
 
 pub struct FieldReference {
   range : @lexer.Range
@@ -133,8 +172,14 @@ pub struct FieldReference {
 } derive(Eq, @debug.Debug)
 pub fn FieldReference::ast(Self) -> @ast.Node?
 pub fn FieldReference::context(Self) -> RefContext?
+#deprecated
+pub fn FieldReference::equal(Self, Self) -> Bool
 pub fn FieldReference::from_ast(@ast.StringValue, @ast.KeyPath, Int, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
 pub fn FieldReference::new(@lexer.Range, String, Int, Bool) -> Self
+#deprecated
+pub fn FieldReference::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn FieldReference::to_repr(Self) -> @debug.Repr
 
 pub struct FilterContext {
   field : Field
@@ -150,11 +195,17 @@ pub struct IRArray {
 } derive(Eq, @debug.Debug)
 pub fn IRArray::ast(Self) -> @ast.Node?
 pub fn IRArray::copy(Self) -> Self
+#deprecated
+pub fn IRArray::equal(Self, Self) -> Bool
 pub fn IRArray::from_ast(@ast.ArrayValue, Array[Value], source_path? : String?) -> Self
 pub fn IRArray::new(Array[Value]) -> Self
+#deprecated
+pub fn IRArray::not_equal(Self, Self) -> Bool
 pub fn IRArray::parent(Self, Map) -> Node?
 pub fn IRArray::path(Self) -> NodePath?
 pub fn IRArray::source_path(Self) -> String?
+#deprecated
+pub fn IRArray::to_repr(Self) -> @debug.Repr
 
 pub struct ImportResolver((String) -> String?)
 pub fn ImportResolver::new((String) -> String?) -> Self
@@ -176,6 +227,8 @@ pub fn Map::delete_field(Self, String) -> Field?
 pub fn Map::double_glob(Self) -> Array[Field]
 pub fn Map::ensure_field(Self, String) -> Field
 pub fn Map::ensure_field_by_syntax(Self, @ast.StringValue) -> Field
+#deprecated
+pub fn Map::equal(Self, Self) -> Bool
 pub fn Map::find_edges(Self, EdgeID) -> Array[Edge]
 pub fn Map::from_ast(@ast.Map, source_path? : String?) -> Self
 pub fn Map::get_field(Self, String) -> Field?
@@ -185,12 +238,16 @@ pub fn Map::has_field(Self, String) -> Bool
 pub fn Map::import_ast(Self) -> @ast.Node?
 pub fn Map::multi_glob(Self, Array[String]) -> (Array[Field], Bool)
 pub fn Map::new() -> Self
+#deprecated
+pub fn Map::not_equal(Self, Self) -> Bool
 pub fn Map::overlay(Self, Self) -> Self
 pub fn Map::parent(Self, Self) -> Node?
 pub fn Map::path(Self) -> NodePath?
 pub fn Map::reindex_paths(Self) -> Self
 pub fn Map::single_glob(Self, Array[String]) -> Array[Field]
 pub fn Map::source_path(Self) -> String?
+#deprecated
+pub fn Map::to_repr(Self) -> @debug.Repr
 pub fn Map::triple_glob(Self) -> Array[Field]
 
 pub(all) enum Node {
@@ -205,20 +262,32 @@ pub(all) enum Node {
 pub fn Node::ast(Self) -> @ast.Node?
 pub fn Node::children(Self) -> Array[Self]
 pub fn Node::copy(Self) -> Self
+#deprecated
+pub fn Node::equal(Self, Self) -> Bool
 pub fn Node::import_ast(Self) -> @ast.Node?
 pub fn Node::last_primary_key(Self) -> @ast.Key?
 pub fn Node::last_primary_ref(Self) -> Reference?
 pub fn Node::last_ref(Self) -> Reference?
 pub fn Node::node_type(Self) -> String
+#deprecated
+pub fn Node::not_equal(Self, Self) -> Bool
 pub fn Node::parent(Self, Map) -> Self?
 pub fn Node::path(Self) -> NodePath?
+#deprecated
+pub fn Node::to_repr(Self) -> @debug.Repr
 
 pub struct NodePath {
   segments : Array[NodePathSegment]
 } derive(Eq, @debug.Debug)
 pub fn NodePath::append(Self, NodePathSegment) -> Self
+#deprecated
+pub fn NodePath::equal(Self, Self) -> Bool
+#deprecated
+pub fn NodePath::not_equal(Self, Self) -> Bool
 pub fn NodePath::parent(Self) -> Self?
 pub fn NodePath::root() -> Self
+#deprecated
+pub fn NodePath::to_repr(Self) -> @debug.Repr
 
 pub(all) enum NodePathSegment {
   FieldStep(String, Bool)
@@ -227,6 +296,12 @@ pub(all) enum NodePathSegment {
   CompositeStep
   ArrayItemStep(Int)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn NodePathSegment::equal(Self, Self) -> Bool
+#deprecated
+pub fn NodePathSegment::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn NodePathSegment::to_repr(Self) -> @debug.Repr
 
 pub struct RefContext {
   edge : @ast.Edge?
@@ -234,7 +309,13 @@ pub struct RefContext {
   scope : @ast.Map?
   source_path : String?
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn RefContext::equal(Self, Self) -> Bool
 pub fn RefContext::new(@ast.Edge?, @ast.Key?, @ast.Map?, source_path? : String?) -> Self
+#deprecated
+pub fn RefContext::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn RefContext::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Reference {
   FieldRef(FieldReference)
@@ -244,8 +325,14 @@ pub fn Reference::ast(Self) -> @ast.Node?
 pub fn Reference::context(Self) -> RefContext?
 pub fn Reference::due_to_glob(Self) -> Bool
 pub fn Reference::due_to_lazy_glob(Self) -> Bool
+#deprecated
+pub fn Reference::equal(Self, Self) -> Bool
+#deprecated
+pub fn Reference::not_equal(Self, Self) -> Bool
 pub fn Reference::primary(Self) -> Bool
 pub fn Reference::range(Self) -> @lexer.Range
+#deprecated
+pub fn Reference::to_repr(Self) -> @debug.Repr
 
 pub struct Scalar {
   value : ScalarValue
@@ -263,6 +350,8 @@ pub fn Scalar::at(@lexer.Range, ScalarValue) -> Self
 pub fn Scalar::block_string_tag(Self) -> String?
 pub fn Scalar::bool(Bool) -> Self
 pub fn Scalar::copy(Self) -> Self
+#deprecated
+pub fn Scalar::equal(Self, Self) -> Bool
 pub fn Scalar::from_ast(@ast.Node, ScalarValue, source_path? : String?) -> Self
 pub fn Scalar::get_range(Self) -> @lexer.Range
 pub fn Scalar::is_bool(Self) -> Bool
@@ -270,12 +359,16 @@ pub fn Scalar::is_null(Self) -> Bool
 pub fn Scalar::is_number(Self) -> Bool
 pub fn Scalar::is_string(Self) -> Bool
 pub fn Scalar::new(ScalarValue) -> Self
+#deprecated
+pub fn Scalar::not_equal(Self, Self) -> Bool
 pub fn Scalar::null() -> Self
 pub fn Scalar::number(String) -> Self
 pub fn Scalar::parent(Self, Map) -> Node?
 pub fn Scalar::path(Self) -> NodePath?
 pub fn Scalar::source_path(Self) -> String?
 pub fn Scalar::string(String) -> Self
+#deprecated
+pub fn Scalar::to_repr(Self) -> @debug.Repr
 pub fn Scalar::to_string(Self) -> String
 
 pub(all) enum ScalarValue {
@@ -284,6 +377,12 @@ pub(all) enum ScalarValue {
   Number(String)
   String(@ast.StringValue)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn ScalarValue::equal(Self, Self) -> Bool
+#deprecated
+pub fn ScalarValue::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ScalarValue::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Value {
   Scalar(Scalar)
@@ -293,6 +392,12 @@ pub(all) enum Value {
 pub fn Value::as_array(Self) -> IRArray?
 pub fn Value::as_map(Self) -> Map?
 pub fn Value::as_scalar(Self) -> Scalar?
+#deprecated
+pub fn Value::equal(Self, Self) -> Bool
+#deprecated
+pub fn Value::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Value::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

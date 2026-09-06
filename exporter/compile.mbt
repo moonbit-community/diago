@@ -410,17 +410,17 @@ priv struct Step {
 
 ///|
 fn Layer::new(name : String, graph : Graph) -> Layer {
-  { name, graph }
+  { name, graph, }
 }
 
 ///|
 fn Scenario::new(name : String, graph : Graph) -> Scenario {
-  { name, graph }
+  { name, graph, }
 }
 
 ///|
 fn Step::new(name : String, graph : Graph) -> Step {
-  { name, graph }
+  { name, graph, }
 }
 
 ///|
@@ -568,7 +568,7 @@ fn apply_text_transform_like_d2(label : String, style : Style) -> String {
     "uppercase" => label.to_upper()
     "lowercase" => label.to_lower()
     "capitalize" => {
-      let out = StringBuilder::new()
+      let out = StringBuilder()
       let mut at_word_start = true
       for ch in label {
         if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' {
@@ -2576,7 +2576,7 @@ fn d2_contains_char(s : String, target : Char) -> Bool {
 
 ///|
 fn d2_escape_single_quoted_value(s : String) -> String {
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for r in s {
     match r {
       '\'' => b.write_char('\'')
@@ -2594,7 +2594,7 @@ fn d2_escape_single_quoted_value(s : String) -> String {
 
 ///|
 fn d2_escape_double_quoted_value(s : String) -> String {
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for r in s {
     match r {
       '"' | '\\' => b.write_char('\\')
@@ -2620,7 +2620,7 @@ fn d2_escape_unquoted_key_value(s : String) -> String {
   }
   let key_specials = "#;\n\\{}[]'\"|:.-<>*&()@&"
   let chars = s.to_array()
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for i, r in chars {
     match r {
       '\'' | '"' | '|' => if i == 0 { b.write_char('\\') } else { () }
@@ -2715,7 +2715,7 @@ fn d2_format_key_segment(s : String) -> String {
 
 ///|
 fn join_path(prefix : String, path : Array[String]) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   if prefix.length() > 0 {
     buf.write_string(prefix)
   }
@@ -2732,7 +2732,7 @@ fn join_path(prefix : String, path : Array[String]) -> String {
 
 ///|
 fn join_path_syntax(prefix : String, path : Array[String]) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   if prefix.length() > 0 {
     buf.write_string(prefix)
   }
@@ -3598,7 +3598,7 @@ fn parent_abs_id_syntax_of(abs_id_syntax : String) -> String? {
   if segments.length() <= 1 {
     return None
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for i = 0; i < segments.length() - 1; i = i + 1 {
     if i > 0 {
       out.write_string(".")
@@ -4219,8 +4219,8 @@ fn parse_direction_keyword(raw : String) -> String? {
 ///|
 fn parse_point_string(s : String) -> Point? {
   // Strip whitespace and parentheses, then split on comma.
-  let left = StringBuilder::new()
-  let right = StringBuilder::new()
+  let left = StringBuilder()
+  let right = StringBuilder()
   let mut seen_comma = false
   for c in s {
     if c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '(' || c == ')' {

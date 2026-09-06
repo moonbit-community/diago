@@ -26,7 +26,7 @@ fn align4(n : Int) -> Int {
 
 ///|
 fn tag_string(data : Array[Byte], at : Int) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for i in 0..<4 {
     sb.write_char(data[at + i].to_int().unsafe_to_char())
   }

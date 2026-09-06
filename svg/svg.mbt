@@ -422,7 +422,7 @@ pub fn polygon(
 ///|
 /// Convert array of points to SVG points string
 fn points_to_string(points : Array[(Double, Double)]) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for i, pt in points {
     if i > 0 {
       sb.write_char(' ')
@@ -458,7 +458,7 @@ fn fixed6(value : Double) -> String {
   }
   let frac_raw = frac_part.to_string()
   let pad = 6 - frac_raw.length()
-  let frac = StringBuilder::new()
+  let frac = StringBuilder()
   if pad > 0 {
     for _ in 0..<pad {
       frac.write_char('0')
@@ -1157,7 +1157,7 @@ pub struct PathBuilder {
 
 ///|
 pub fn PathBuilder::new() -> PathBuilder {
-  { commands: [] }
+  { commands: [], }
 }
 
 ///|
