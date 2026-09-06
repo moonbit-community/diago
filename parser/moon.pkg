@@ -1,7 +1,6 @@
 import {
   "Milky2018/diago/lexer",
   "Milky2018/diago/ast",
-  "moonbitlang/core/strconv",
   "moonbitlang/core/string",
   "moonbitlang/core/debug",
 }
