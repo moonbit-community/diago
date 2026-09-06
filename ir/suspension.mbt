@@ -54,7 +54,7 @@ fn edge_suspension(edge : Edge) -> Bool? {
 
 ///|
 fn suspension_path_key(path : Array[String]) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for segment in path {
     out.write_string(segment.length().to_string())
     out.write_char(':')

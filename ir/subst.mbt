@@ -204,7 +204,7 @@ fn resolve_double_quoted_in_field(
   in_vars_map : Bool,
 ) -> Scalar raise CompileError {
   // reference behavior: substitutions in quotes always resolve to a string; composites are invalid.
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for seg in dqs.value {
     match seg {
       Text(s) => buf.write_string(s)
@@ -262,7 +262,7 @@ fn resolve_unquoted_in_field(
   }
 
   // Otherwise, treat it as a string with substitutions inside.
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut updated_composite = composite
   for seg in us.value {
     match seg {
@@ -394,7 +394,7 @@ fn resolve_edge_primary_and_map(
               _ => ()
             }
           } else {
-            let buf = StringBuilder::new()
+            let buf = StringBuilder()
             for seg in us.value {
               match seg {
                 Text(s) => buf.write_string(s)
@@ -540,7 +540,7 @@ fn resolve_unquoted_in_array(
       _ => false
     }
   } else {
-    let buf = StringBuilder::new()
+    let buf = StringBuilder()
     for seg in us.value {
       match seg {
         Text(s) => buf.write_string(s)
@@ -638,8 +638,8 @@ fn replace_substitutions_markdown(
   // Best-effort port of upstream reference lib/textmeasure/substitutions.go:
   // replace ${var} outside inline/fenced code spans.
   let chars = md_text.to_array()
-  let out = StringBuilder::new()
-  let seg = StringBuilder::new()
+  let out = StringBuilder()
+  let seg = StringBuilder()
   let mut in_fenced = false
   let mut in_inline = false
   let mut i = 0
@@ -692,7 +692,7 @@ fn replace_variables(
 
 ///|
 fn substitution_pattern(key : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_char('$')
   buf.write_char('{')
   buf.write_string(key)
@@ -802,7 +802,7 @@ fn sub_path_string(sub : @ast.Substitution) -> String {
 
 ///|
 fn join(parts : Array[String], sep : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i, s in parts {
     if i > 0 {
       buf.write_string(sep)
@@ -1077,5 +1077,5 @@ fn clone_array(a : IRArray) -> IRArray {
   for v in a.values {
     values.push(clone_value(v))
   }
-  { values, ast: a.ast, source_path: a.source_path, path: a.path }
+  { values, ast: a.ast, source_path: a.source_path, path: a.path, }
 }

@@ -25,8 +25,8 @@ test "layout default font is recursive and preserves explicit styles" {
     ..StyleInput::new(),
     font: Some(StyleValue::from_string("serif")),
   }
-  let explicit_root = { ..ObjectInput::new("root"), style: explicit_style }
-  let explicit_graph = { ..GraphInput::new("root"), root: explicit_root }.with_default_font(
+  let explicit_root = { ..ObjectInput::new("root"), style: explicit_style, }
+  let explicit_graph = { ..GraphInput::new("root"), root: explicit_root, }.with_default_font(
     "mono",
   )
   @debug.assert_eq(
@@ -38,18 +38,18 @@ test "layout default font is recursive and preserves explicit styles" {
 ///|
 test "theme caps lock is recursive and respects D2 exemptions" {
   let plain = ObjectInput::new("plain")
-  let code = { ..ObjectInput::new("code"), shape_type: Code }
-  let latex = { ..ObjectInput::new("latex"), language: Some("latex") }
+  let code = { ..ObjectInput::new("code"), shape_type: Code, }
+  let latex = { ..ObjectInput::new("latex"), language: Some("latex"), }
   let none_style = {
     ..StyleInput::new(),
     text_transform: Some(StyleValue::from_string("none")),
   }
-  let exempt = { ..ObjectInput::new("exempt"), style: none_style }
+  let exempt = { ..ObjectInput::new("exempt"), style: none_style, }
   let edge = EdgeInput::new(0, "plain", "code", false, true)
   let graph = {
     ..GraphInput::new("root"),
     objects: [plain, code, latex, exempt],
-    edges: [{ ..edge, label: "edge label" }],
+    edges: [{ ..edge, label: "edge label", }],
   }.with_caps_lock()
   @debug.assert_eq(graph.objects[0].label, "PLAIN")
   @debug.assert_eq(graph.objects[1].label, "code")

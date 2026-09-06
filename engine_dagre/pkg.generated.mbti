@@ -16,7 +16,12 @@ pub fn debug_build_dagre_input_json(@graph.GraphInput, @engine_api.LayoutConfig,
 pub struct DagreEngine {
   _marker : Unit
 } derive(@debug.Debug)
+pub fn DagreEngine::engine_name(Self) -> String
+pub fn DagreEngine::features(Self) -> Array[@engine_api.LayoutFeature]
+pub fn DagreEngine::layout(Self, @graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> @graph.LayoutPatch raise @engine_api.LayoutError
 pub fn DagreEngine::new() -> Self
+#deprecated
+pub fn DagreEngine::to_repr(Self) -> @debug.Repr
 pub impl @engine_api.LayoutEngine for DagreEngine
 
 // Type aliases

@@ -18,7 +18,13 @@ pub(all) suberror LayoutProblemError {
   UnknownPatchNode(String)
   UnknownPatchEdge(Int)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LayoutProblemError::equal(Self, Self) -> Bool
 pub fn LayoutProblemError::message(Self) -> String
+#deprecated
+pub fn LayoutProblemError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutProblemError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct LayoutProblem {
@@ -30,7 +36,22 @@ pub fn LayoutProblem::validate_patch(Self, @graph.LayoutPatch) -> Unit raise Lay
 pub struct ObjectId {
   // private fields
 } derive(Compare, Eq, Hash, @debug.Debug)
+pub fn ObjectId::compare(Self, Self) -> Int
+#deprecated
+pub fn ObjectId::equal(Self, Self) -> Bool
+#deprecated
+pub fn ObjectId::hash(Self) -> Int
+#deprecated
+pub fn ObjectId::hash_combine(Self, Hasher) -> Unit
 pub fn ObjectId::new(String) -> Self
+#deprecated
+pub fn ObjectId::not_equal(Self, Self) -> Bool
+pub fn ObjectId::op_ge(Self, Self) -> Bool
+pub fn ObjectId::op_gt(Self, Self) -> Bool
+pub fn ObjectId::op_le(Self, Self) -> Bool
+pub fn ObjectId::op_lt(Self, Self) -> Bool
+#deprecated
+pub fn ObjectId::to_repr(Self) -> @debug.Repr
 pub fn ObjectId::value(Self) -> String
 
 // Type aliases

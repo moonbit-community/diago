@@ -3,7 +3,7 @@ name = "Milky2018/diago"
 version = "0.3.2"
 
 import {
-  "moonbitlang/x@0.4.49",
+  "moonbitlang/x@0.5.1",
   "Milky2018/xml@0.4.0",
   "moonbit-community/cmark@0.4.5",
   "Milky2018/moon_yazi@0.1.3",
@@ -25,6 +25,4 @@ keywords = [ "graph" ]
 
 description = "A diagram toolkit for MoonBit with Dagre, ELK, and Railway layout engines, rendering SVG, ASCII, and Unicode outputs."
 
-options(
-  exclude: [ "examples" ],
-)
+warnings = "+unnecessary_annotation"

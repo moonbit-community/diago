@@ -39,12 +39,21 @@ pub(all) enum ArrowheadType {
   CfOneOptional
   CfManyOptional
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn ArrowheadType::equal(Self, Self) -> Bool
 pub fn ArrowheadType::from_string(String) -> Self
 pub fn ArrowheadType::is_crows_foot(Self) -> Bool
 pub fn ArrowheadType::marker_id(Self, Bool) -> String
 pub fn ArrowheadType::marker_url(Self, Bool) -> String
+#deprecated
+pub fn ArrowheadType::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ArrowheadType::output(Self, &Logger) -> Unit
 pub fn ArrowheadType::to_arrowhead_string(Self) -> String
 pub fn ArrowheadType::to_ascii(Self, Bool) -> String
+#deprecated
+pub fn ArrowheadType::to_repr(Self) -> @debug.Repr
+pub fn ArrowheadType::to_string(Self) -> String
 pub impl Show for ArrowheadType
 
 pub struct Box {
@@ -57,12 +66,21 @@ pub fn Box::bottom_left(Self) -> Point
 pub fn Box::bottom_right(Self) -> Point
 pub fn Box::center(Self) -> Point
 pub fn Box::contains(Self, Point) -> Bool
+#deprecated
+pub fn Box::equal(Self, Self) -> Bool
 pub fn Box::get_height(Self) -> Double
 pub fn Box::get_width(Self) -> Double
 pub fn Box::get_x(Self) -> Double
 pub fn Box::get_y(Self) -> Double
 pub fn Box::intersects(Self, Self) -> Bool
 pub fn Box::new(Double, Double, Double, Double) -> Self
+#deprecated
+pub fn Box::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Box::output(Self, &Logger) -> Unit
+#deprecated
+pub fn Box::to_repr(Self) -> @debug.Repr
+pub fn Box::to_string(Self) -> String
 pub fn Box::top_left(Self) -> Point
 pub fn Box::top_right(Self) -> Point
 pub fn Box::zero() -> Self
@@ -109,6 +127,8 @@ pub fn EdgeInput::get_src_id(Self) -> String
 pub fn EdgeInput::lookup_dst_id(Self) -> String
 pub fn EdgeInput::lookup_src_id(Self) -> String
 pub fn EdgeInput::new(Int, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
+#deprecated
+pub fn EdgeInput::to_repr(Self) -> @debug.Repr
 
 pub struct EdgeModel {
   index : Int
@@ -144,6 +164,8 @@ pub struct EdgeModel {
   dst_column_index : Int?
 } derive(@debug.Debug)
 pub fn EdgeModel::new(Int, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
+#deprecated
+pub fn EdgeModel::to_repr(Self) -> @debug.Repr
 pub fn EdgeModel::with_label(Self, String) -> Self
 pub fn EdgeModel::with_label_box(Self, Box?) -> Self
 pub fn EdgeModel::with_route(Self, Array[Point]) -> Self
@@ -158,28 +180,46 @@ pub struct EdgeReference {
   due_to_lazy_glob : Bool
 } derive(Eq, @debug.Debug)
 pub fn EdgeReference::contained_by(Self, String) -> Bool
+#deprecated
+pub fn EdgeReference::equal(Self, Self) -> Bool
 pub fn EdgeReference::new(@lexer.Range, Int, String?, String?, Bool, Bool, Bool) -> Self
+#deprecated
+pub fn EdgeReference::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn EdgeReference::to_repr(Self) -> @debug.Repr
 
 pub struct FragmentOperandInput {
   condition : String?
 } derive(@debug.Debug)
 pub fn FragmentOperandInput::new(String?) -> Self
+#deprecated
+pub fn FragmentOperandInput::to_repr(Self) -> @debug.Repr
 
 pub struct FragmentOperandLayout {
   condition : String?
   separator_y : Double
 } derive(@debug.Debug)
 pub fn FragmentOperandLayout::new(String?, Double) -> Self
+#deprecated
+pub fn FragmentOperandLayout::to_repr(Self) -> @debug.Repr
 
 pub struct FragmentOperandModel {
   condition : String?
   separator_y : Double
 } derive(@debug.Debug)
+#deprecated
+pub fn FragmentOperandModel::to_repr(Self) -> @debug.Repr
 
 pub(all) enum GraphDataValue {
   Text(String)
   StringArray(Array[String])
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn GraphDataValue::equal(Self, Self) -> Bool
+#deprecated
+pub fn GraphDataValue::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn GraphDataValue::to_repr(Self) -> @debug.Repr
 
 pub struct GraphInput {
   name : String
@@ -204,6 +244,8 @@ pub fn GraphInput::from_parts(String, ObjectInput, Array[ObjectInput], Array[Edg
 pub fn GraphInput::get_edges(Self) -> Array[EdgeInput]
 pub fn GraphInput::get_objects(Self) -> Array[ObjectInput]
 pub fn GraphInput::new(String) -> Self
+#deprecated
+pub fn GraphInput::to_repr(Self) -> @debug.Repr
 pub fn GraphInput::uses_latex_labels(Self) -> Bool
 pub fn GraphInput::uses_sketch_styles(Self) -> Bool
 pub fn GraphInput::with_caps_lock(Self) -> Self
@@ -227,6 +269,8 @@ pub struct GraphModel {
 pub fn GraphModel::add_edge(Self, EdgeModel) -> Self
 pub fn GraphModel::add_object(Self, ObjectModel) -> Self
 pub fn GraphModel::new(String) -> Self
+#deprecated
+pub fn GraphModel::to_repr(Self) -> @debug.Repr
 pub fn GraphModel::with_legend(Self, LegendModel?) -> Self
 
 pub struct LayerInput {
@@ -234,11 +278,15 @@ pub struct LayerInput {
   graph : GraphInput
 } derive(@debug.Debug)
 pub fn LayerInput::new(String, GraphInput) -> Self
+#deprecated
+pub fn LayerInput::to_repr(Self) -> @debug.Repr
 
 pub struct LayerModel {
   name : String
   graph : GraphModel
 } derive(@debug.Debug)
+#deprecated
+pub fn LayerModel::to_repr(Self) -> @debug.Repr
 
 pub struct LayoutPatch {
   nodes : Map[String, Box]
@@ -252,6 +300,8 @@ pub struct LayoutPatch {
   sequence_fragments : Array[SequenceFragmentLayout]
 } derive(@debug.Debug)
 pub fn LayoutPatch::new() -> Self
+#deprecated
+pub fn LayoutPatch::to_repr(Self) -> @debug.Repr
 
 pub struct Legend {
   title : String?
@@ -277,6 +327,8 @@ pub fn Legend::set_padding(Self, Double) -> Self
 pub fn Legend::set_position(Self, LegendPosition) -> Self
 pub fn Legend::set_stroke(Self, String) -> Self
 pub fn Legend::set_title(Self, String) -> Self
+#deprecated
+pub fn Legend::to_repr(Self) -> @debug.Repr
 pub fn Legend::with_position(LegendPosition) -> Self
 
 pub(all) enum LegendEntry {
@@ -289,6 +341,8 @@ pub fn LegendEntry::connection(ArrowheadType, ArrowheadType, String, StyleInput?
 pub fn LegendEntry::custom(String, String) -> Self
 pub fn LegendEntry::separator() -> Self
 pub fn LegendEntry::shape(ShapeType, String, StyleInput?, id? : String) -> Self
+#deprecated
+pub fn LegendEntry::to_repr(Self) -> @debug.Repr
 
 pub enum LegendEntryInput {
   ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : StyleInput?)
@@ -300,6 +354,8 @@ pub fn LegendEntryInput::connection(ArrowheadType, ArrowheadType, String, StyleI
 pub fn LegendEntryInput::custom(String, String) -> Self
 pub fn LegendEntryInput::separator() -> Self
 pub fn LegendEntryInput::shape(ShapeType, String, StyleInput?, id? : String) -> Self
+#deprecated
+pub fn LegendEntryInput::to_repr(Self) -> @debug.Repr
 
 pub struct LegendInput {
   title : String?
@@ -315,6 +371,8 @@ pub fn LegendInput::entry_count(Self) -> Int
 pub fn LegendInput::from_model(LegendModel) -> Self
 pub fn LegendInput::from_parts(String?, LegendPosition, Array[LegendEntryInput], String?, String?, Double, Double, Double) -> Self
 pub fn LegendInput::is_empty(Self) -> Bool
+#deprecated
+pub fn LegendInput::to_repr(Self) -> @debug.Repr
 
 pub struct LegendModel {
   title : String?
@@ -327,6 +385,8 @@ pub struct LegendModel {
   icon_size : Double
 } derive(@debug.Debug)
 pub fn LegendModel::new() -> Self
+#deprecated
+pub fn LegendModel::to_repr(Self) -> @debug.Repr
 
 pub(all) enum LegendPosition {
   TopLeft
@@ -335,8 +395,14 @@ pub(all) enum LegendPosition {
   BottomRight
   Hidden
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LegendPosition::equal(Self, Self) -> Bool
 pub fn LegendPosition::from_string(String) -> Self
+#deprecated
+pub fn LegendPosition::not_equal(Self, Self) -> Bool
 pub fn LegendPosition::to_position_string(Self) -> String
+#deprecated
+pub fn LegendPosition::to_repr(Self) -> @debug.Repr
 
 pub struct ObjectInput {
   id : String
@@ -379,6 +445,8 @@ pub fn ObjectInput::get_box(Self) -> Box?
 pub fn ObjectInput::get_label_box(Self) -> Box?
 pub fn ObjectInput::lookup_id(Self) -> String
 pub fn ObjectInput::new(String, id_val? : String, id_syntax? : String, abs_id_syntax? : String) -> Self
+#deprecated
+pub fn ObjectInput::to_repr(Self) -> @debug.Repr
 pub fn ObjectInput::with_direction(Self, String?) -> Self
 
 pub struct ObjectModel {
@@ -417,6 +485,8 @@ pub struct ObjectModel {
 } derive(@debug.Debug)
 pub fn ObjectModel::add_child(Self, Self) -> Self
 pub fn ObjectModel::new(String, id_val? : String, id_syntax? : String, abs_id_syntax? : String) -> Self
+#deprecated
+pub fn ObjectModel::to_repr(Self) -> @debug.Repr
 pub fn ObjectModel::with_box(Self, Box?) -> Self
 pub fn ObjectModel::with_label(Self, String) -> Self
 pub fn ObjectModel::with_label_box(Self, Box?) -> Self
@@ -432,7 +502,13 @@ pub struct ObjectReference {
   due_to_lazy_glob : Bool
 } derive(Eq, @debug.Debug)
 pub fn ObjectReference::contained_by(Self, String) -> Bool
+#deprecated
+pub fn ObjectReference::equal(Self, Self) -> Bool
 pub fn ObjectReference::new(@lexer.Range, Int, Bool, String?, String?, Bool, Bool, Bool) -> Self
+#deprecated
+pub fn ObjectReference::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ObjectReference::to_repr(Self) -> @debug.Repr
 
 pub struct Point {
   x : Double
@@ -440,11 +516,20 @@ pub struct Point {
 } derive(Eq, @debug.Debug)
 pub fn Point::add(Self, Self) -> Self
 pub fn Point::distance(Self, Self) -> Double
+#deprecated
+pub fn Point::equal(Self, Self) -> Bool
 pub fn Point::get_x(Self) -> Double
 pub fn Point::get_y(Self) -> Double
 pub fn Point::new(Double, Double) -> Self
+#deprecated
+pub fn Point::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Point::output(Self, &Logger) -> Unit
 pub fn Point::scale(Self, Double) -> Self
 pub fn Point::sub(Self, Self) -> Self
+#deprecated
+pub fn Point::to_repr(Self) -> @debug.Repr
+pub fn Point::to_string(Self) -> String
 pub fn Point::zero() -> Self
 pub impl Show for Point
 
@@ -463,6 +548,8 @@ pub fn Route::length(Self) -> Int
 pub fn Route::new() -> Self
 pub fn Route::start(Self) -> Waypoint?
 pub fn Route::to_points(Self) -> Array[Point]
+#deprecated
+pub fn Route::to_repr(Self) -> @debug.Repr
 pub fn Route::with_style(RouteStyle) -> Self
 
 pub(all) enum RouteStyle {
@@ -471,9 +558,15 @@ pub(all) enum RouteStyle {
   Elbow
   Orthogonal
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn RouteStyle::equal(Self, Self) -> Bool
 pub fn RouteStyle::from_string(String) -> Self
 pub fn RouteStyle::is_curved(Self) -> Bool
 pub fn RouteStyle::is_orthogonal(Self) -> Bool
+#deprecated
+pub fn RouteStyle::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn RouteStyle::to_repr(Self) -> @debug.Repr
 pub fn RouteStyle::to_route_string(Self) -> String
 
 pub struct ScenarioInput {
@@ -481,11 +574,15 @@ pub struct ScenarioInput {
   graph : GraphInput
 } derive(@debug.Debug)
 pub fn ScenarioInput::new(String, GraphInput) -> Self
+#deprecated
+pub fn ScenarioInput::to_repr(Self) -> @debug.Repr
 
 pub struct ScenarioModel {
   name : String
   graph : GraphModel
 } derive(@debug.Debug)
+#deprecated
+pub fn ScenarioModel::to_repr(Self) -> @debug.Repr
 
 pub struct SequenceFragmentInput {
   fragment_type : String
@@ -496,6 +593,8 @@ pub struct SequenceFragmentInput {
 } derive(@debug.Debug)
 pub fn SequenceFragmentInput::from_model(SequenceFragmentModel) -> Self
 pub fn SequenceFragmentInput::new(String, String?, Int, Int, Array[FragmentOperandInput]) -> Self
+#deprecated
+pub fn SequenceFragmentInput::to_repr(Self) -> @debug.Repr
 
 pub struct SequenceFragmentLayout {
   fragment_type : String
@@ -506,6 +605,8 @@ pub struct SequenceFragmentLayout {
   operands : Array[FragmentOperandLayout]
 } derive(@debug.Debug)
 pub fn SequenceFragmentLayout::new(String, String?, Box?, Int, Int, Array[FragmentOperandLayout]) -> Self
+#deprecated
+pub fn SequenceFragmentLayout::to_repr(Self) -> @debug.Repr
 
 pub struct SequenceFragmentModel {
   fragment_type : String
@@ -516,6 +617,8 @@ pub struct SequenceFragmentModel {
   operands : Array[FragmentOperandModel]
 } derive(@debug.Debug)
 pub fn SequenceFragmentModel::new(String, Int, Int) -> Self
+#deprecated
+pub fn SequenceFragmentModel::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ShapeType {
   Rectangle
@@ -546,11 +649,17 @@ pub(all) enum ShapeType {
   C4Container
 } derive(Eq, @debug.Debug)
 pub fn ShapeType::default_aspect_ratio(Self) -> Double
+#deprecated
+pub fn ShapeType::equal(Self, Self) -> Bool
 pub fn ShapeType::from_string(String) -> Self
 pub fn ShapeType::has_inside_label(Self) -> Bool
 pub fn ShapeType::is_3d_shape(Self) -> Bool
 pub fn ShapeType::is_container(Self) -> Bool
 pub fn ShapeType::is_text_only(Self) -> Bool
+#deprecated
+pub fn ShapeType::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ShapeType::to_repr(Self) -> @debug.Repr
 pub fn ShapeType::to_shape_string(Self) -> String
 
 pub struct StepInput {
@@ -558,11 +667,15 @@ pub struct StepInput {
   graph : GraphInput
 } derive(@debug.Debug)
 pub fn StepInput::new(String, GraphInput) -> Self
+#deprecated
+pub fn StepInput::to_repr(Self) -> @debug.Repr
 
 pub struct StepModel {
   name : String
   graph : GraphModel
 } derive(@debug.Debug)
+#deprecated
+pub fn StepModel::to_repr(Self) -> @debug.Repr
 
 pub struct StyleInput {
   opacity : StyleValue?
@@ -589,9 +702,15 @@ pub struct StyleInput {
   sketch : StyleValue?
   curved : StyleValue?
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn StyleInput::equal(Self, Self) -> Bool
 pub fn StyleInput::from_model(StyleModel) -> Self
 pub fn StyleInput::from_parts(StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?, StyleValue?) -> Self
 pub fn StyleInput::new() -> Self
+#deprecated
+pub fn StyleInput::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn StyleInput::to_repr(Self) -> @debug.Repr
 
 pub struct StyleModel {
   opacity : StyleValue?
@@ -618,7 +737,13 @@ pub struct StyleModel {
   sketch : StyleValue?
   curved : StyleValue?
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn StyleModel::equal(Self, Self) -> Bool
 pub fn StyleModel::new() -> Self
+#deprecated
+pub fn StyleModel::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn StyleModel::to_repr(Self) -> @debug.Repr
 
 pub struct StyleValue {
   value : String
@@ -627,6 +752,8 @@ pub struct StyleValue {
 pub fn StyleValue::as_bool(Self) -> Bool?
 pub fn StyleValue::as_double(Self) -> Double?
 pub fn StyleValue::as_int(Self) -> Int?
+#deprecated
+pub fn StyleValue::equal(Self, Self) -> Bool
 pub fn StyleValue::from_bool(Bool) -> Self
 pub fn StyleValue::from_bool_opt(Bool?) -> Self?
 pub fn StyleValue::from_double(Double) -> Self
@@ -638,7 +765,11 @@ pub fn StyleValue::from_string_opt(String?) -> Self?
 pub fn StyleValue::get_range(Self) -> @lexer.Range
 pub fn StyleValue::get_value(Self) -> String
 pub fn StyleValue::new(String, @lexer.Range) -> Self
+#deprecated
+pub fn StyleValue::not_equal(Self, Self) -> Bool
 pub fn StyleValue::synthetic(String) -> Self
+#deprecated
+pub fn StyleValue::to_repr(Self) -> @debug.Repr
 
 pub struct Waypoint {
   x : Double
@@ -647,6 +778,8 @@ pub struct Waypoint {
 } derive(@debug.Debug)
 pub fn Waypoint::new(Double, Double) -> Self
 pub fn Waypoint::to_point(Self) -> Point
+#deprecated
+pub fn Waypoint::to_repr(Self) -> @debug.Repr
 pub fn Waypoint::with_control(Double, Double, Double, Double) -> Self
 
 // Type aliases

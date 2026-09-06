@@ -85,7 +85,7 @@ test "diagram scope class follows diagram hash id instead of svg config font set
     font_family: "monospace",
     font_size: 24,
   }
-  let salted = { ..font_variant, salt: Some("salt") }
+  let salted = { ..font_variant, salt: Some("salt"), }
 
   @debug.assert_eq(diagram_scope_class(diagram, base), diagram.hash_id(None))
   @debug.assert_eq(

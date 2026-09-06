@@ -209,7 +209,7 @@ pub fn Legend::add_separator(self : Legend) -> Unit {
 
 ///|
 pub fn Legend::set_title(self : Legend, title : String) -> Legend {
-  { ..self, title: Some(title) }
+  { ..self, title: Some(title), }
 }
 
 ///|
@@ -219,12 +219,12 @@ pub fn Legend::set_position(self : Legend, position : LegendPosition) -> Legend 
 
 ///|
 pub fn Legend::set_fill(self : Legend, fill : String) -> Legend {
-  { ..self, fill: Some(fill) }
+  { ..self, fill: Some(fill), }
 }
 
 ///|
 pub fn Legend::set_stroke(self : Legend, stroke : String) -> Legend {
-  { ..self, stroke: Some(stroke) }
+  { ..self, stroke: Some(stroke), }
 }
 
 ///|

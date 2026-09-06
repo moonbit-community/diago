@@ -167,7 +167,7 @@ fn short_id(id : String) -> String {
 
 ///|
 fn string_slice(s : String, start : Int, end : Int) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   let mut i = start
   while i < end && i < s.length() {
     sb.write_char(s.code_unit_at(i).to_int().unsafe_to_char())

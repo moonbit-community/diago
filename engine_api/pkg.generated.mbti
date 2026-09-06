@@ -25,6 +25,15 @@ pub(all) suberror LayoutError {
   CycleDetected(String)
   Unsupported(String)
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LayoutError::equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutError::output(Self, &Logger) -> Unit
+#deprecated
+pub fn LayoutError::to_repr(Self) -> @debug.Repr
+pub fn LayoutError::to_string(Self) -> String
 pub impl Show for LayoutError
 
 // Types and methods
@@ -34,6 +43,15 @@ pub(all) enum Direction {
   Up
   Left
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Direction::equal(Self, Self) -> Bool
+#deprecated
+pub fn Direction::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Direction::output(Self, &Logger) -> Unit
+#deprecated
+pub fn Direction::to_repr(Self) -> @debug.Repr
+pub fn Direction::to_string(Self) -> String
 pub impl Show for Direction
 
 pub struct LayoutConfig {
@@ -45,6 +63,8 @@ pub struct LayoutConfig {
   edge_padding : Double
 } derive(@debug.Debug)
 pub fn LayoutConfig::new() -> Self
+#deprecated
+pub fn LayoutConfig::to_repr(Self) -> @debug.Repr
 pub fn LayoutConfig::with_spacing(Double, Double) -> Self
 
 pub(all) enum LayoutFeature {
@@ -53,6 +73,12 @@ pub(all) enum LayoutFeature {
   TopLeft
   DescendantEdges
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LayoutFeature::equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutFeature::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LayoutFeature::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

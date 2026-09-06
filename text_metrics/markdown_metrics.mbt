@@ -83,7 +83,7 @@ fn markdown_max_int(a : Int, b : Int) -> Int {
 
 ///|
 fn markdown_block_metrics_empty() -> MarkdownBlockMetrics {
-  { width: 0.0, height: 0.0, margin_top: 0.0, margin_bottom: 0.0 }
+  { width: 0.0, height: 0.0, margin_top: 0.0, margin_bottom: 0.0, }
 }
 
 ///|
@@ -242,7 +242,7 @@ fn markdown_combine_blocks(
     height = height + block.height
     width = markdown_max_double(width, block.width)
   }
-  { width, height, margin_top, margin_bottom }
+  { width, height, margin_top, margin_bottom, }
 }
 
 ///|
@@ -443,7 +443,7 @@ fn markdown_measure_block(
 ///|
 /// Measure a markdown label using compatibility block layout constants.
 pub fn markdown_source_like_d2(text : String) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut preceding_backslashes = 0
   for i = 0; i < text.length(); i = i + 1 {
     match text[i].to_char() {
@@ -473,9 +473,9 @@ pub fn markdown_source_like_d2(text : String) -> String {
 /// Measure a markdown label using compatibility block layout constants.
 pub fn measure_label_markdown(text : String, font_size : Int) -> TextDimensions {
   if text == "" {
-    return { width: 1.0, height: 1.0 }
+    return { width: 1.0, height: 1.0, }
   }
   let doc = @cmark.Doc::from_string(strict=false, markdown_source_like_d2(text))
   let metrics = markdown_measure_block(doc.block, font_size, 0, false)
-  { width: @math.ceil(metrics.width), height: @math.ceil(metrics.height) }
+  { width: @math.ceil(metrics.width), height: @math.ceil(metrics.height), }
 }

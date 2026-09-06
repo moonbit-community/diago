@@ -70,7 +70,7 @@ pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
       _ => ()
     }
   }
-  { reversed_edges: reversed, had_cycles: reversed.length() > 0 }
+  { reversed_edges: reversed, had_cycles: reversed.length() > 0, }
 }
 
 ///|

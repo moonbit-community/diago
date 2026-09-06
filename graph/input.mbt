@@ -219,7 +219,7 @@ fn StyleInput::with_default_font(
   if self.font is Some(_) {
     self
   } else {
-    { ..self, font: Some(StyleValue::from_string(font)) }
+    { ..self, font: Some(StyleValue::from_string(font)), }
   }
 }
 
@@ -232,10 +232,10 @@ pub fn GraphInput::with_default_font(
   font : String,
 ) -> GraphInput {
   let objects = self.objects.map(fn(obj) {
-    { ..obj, style: obj.style.with_default_font(font) }
+    { ..obj, style: obj.style.with_default_font(font), }
   })
   let edges = self.edges.map(fn(edge) {
-    { ..edge, style: edge.style.with_default_font(font) }
+    { ..edge, style: edge.style.with_default_font(font), }
   })
   let layers = self.layers.map(fn(layer) {
     LayerInput::new(layer.name, layer.graph.with_default_font(font))
@@ -248,7 +248,7 @@ pub fn GraphInput::with_default_font(
   })
   {
     ..self,
-    root: { ..self.root, style: self.root.style.with_default_font(font) },
+    root: { ..self.root, style: self.root.style.with_default_font(font), },
     objects,
     edges,
     layers,
@@ -272,7 +272,7 @@ fn ObjectInput::with_caps_lock(self : ObjectInput) -> ObjectInput {
     self.style.disables_text_transform() {
     self
   } else {
-    { ..self, label: self.label.to_upper() }
+    { ..self, label: self.label.to_upper(), }
   }
 }
 
@@ -281,7 +281,7 @@ fn EdgeInput::with_caps_lock(self : EdgeInput) -> EdgeInput {
   if self.style.disables_text_transform() {
     self
   } else {
-    { ..self, label: self.label.to_upper() }
+    { ..self, label: self.label.to_upper(), }
   }
 }
 
@@ -332,7 +332,7 @@ pub fn split_syntax_path(id : String) -> Array[String] {
     return []
   }
   let segments : Array[String] = []
-  let current = StringBuilder::new()
+  let current = StringBuilder()
   let mut quote : Char? = None
   let mut escaped = false
   for ch in id {
@@ -391,7 +391,7 @@ pub fn display_key_segment(segment : String) -> String {
   if (quote != '"' && quote != '\'') || segment[segment.length() - 1] != quote {
     return segment
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut escaped = false
   for i = 1; i < segment.length() - 1; i = i + 1 {
     match segment[i].to_char() {
@@ -439,7 +439,7 @@ pub struct LayerInput {
 
 ///|
 pub fn LayerInput::new(name : String, graph : GraphInput) -> LayerInput {
-  { name, graph }
+  { name, graph, }
 }
 
 ///|
@@ -450,7 +450,7 @@ pub struct ScenarioInput {
 
 ///|
 pub fn ScenarioInput::new(name : String, graph : GraphInput) -> ScenarioInput {
-  { name, graph }
+  { name, graph, }
 }
 
 ///|
@@ -461,7 +461,7 @@ pub struct StepInput {
 
 ///|
 pub fn StepInput::new(name : String, graph : GraphInput) -> StepInput {
-  { name, graph }
+  { name, graph, }
 }
 
 ///|
@@ -481,7 +481,7 @@ pub fn SequenceFragmentInput::new(
   end_index : Int,
   operands : Array[FragmentOperandInput],
 ) -> SequenceFragmentInput {
-  { fragment_type, condition, start_index, end_index, operands }
+  { fragment_type, condition, start_index, end_index, operands, }
 }
 
 ///|
@@ -922,14 +922,14 @@ pub struct StyleValue {
 
 ///|
 pub fn StyleValue::new(value : String, range : @lexer.Range) -> StyleValue {
-  { value, range }
+  { value, range, }
 }
 
 ///|
 /// Create a style value without a concrete source location.
 pub fn StyleValue::synthetic(value : String) -> StyleValue {
   let p = @lexer.Position::zero()
-  { value, range: @lexer.Range::new(p, p) }
+  { value, range: @lexer.Range::new(p, p), }
 }
 
 ///|
@@ -1221,7 +1221,7 @@ pub fn LegendInput::from_parts(
   entry_gap : Double,
   icon_size : Double,
 ) -> LegendInput {
-  { title, position, entries, fill, stroke, padding, entry_gap, icon_size }
+  { title, position, entries, fill, stroke, padding, entry_gap, icon_size, }
 }
 
 ///|
@@ -1436,7 +1436,7 @@ pub fn SequenceFragmentInput::from_model(
 ) -> SequenceFragmentInput {
   let operands : Array[FragmentOperandInput] = []
   for op in fragment.operands {
-    operands.push({ condition: op.condition })
+    operands.push({ condition: op.condition, })
   }
   {
     fragment_type: fragment.fragment_type,

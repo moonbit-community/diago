@@ -34,7 +34,7 @@ fn FenwickTree::new(size : Int) -> FenwickTree {
   for _ in 0..<=size {
     tree.push(0.0)
   }
-  { tree, size }
+  { tree, size, }
 }
 
 ///|

@@ -157,12 +157,12 @@ fn decode_render_request(json : Json) -> Result[WasmRenderRequest, WasmFailure] 
     .with_no_xml_tag(no_xml_tag)
     .with_salt(salt)
     .with_omit_version(omit_version)
-  Ok({ source, options })
+  Ok({ source, options, })
 }
 
 ///|
 fn[T] invalid_request(message : String) -> Result[T, WasmFailure] {
-  Err({ error_kind: error_invalid_request, message })
+  Err({ error_kind: error_invalid_request, message, })
 }
 
 ///|

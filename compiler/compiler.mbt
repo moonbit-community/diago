@@ -22,7 +22,7 @@ pub struct ParseOptions {
 
 ///|
 pub fn ParseOptions::new() -> ParseOptions {
-  { import_resolver: None }
+  { import_resolver: None, }
 }
 
 ///|
@@ -120,5 +120,5 @@ pub fn compile_graph(
     is_folder_only=base_graph_input.is_folder_only,
     data=graph_data_from_source_config(source_config),
   )
-  Ok({ ir_map, graph_input, source_config })
+  Ok({ ir_map, graph_input, source_config, })
 }

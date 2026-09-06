@@ -417,7 +417,7 @@ fn apply_reciprocal_port_offsets(
     let flow = edge_flow_direction(direction, src_level, dst_level)
     let sign = if flow == direction { -1 } else { 1 }
     let key = unordered_pair_key(edge.src_id, edge.dst_id)
-    let entry = { edge_index: edge.index, sign }
+    let entry = { edge_index: edge.index, sign, }
     match entries_by_pair.get(key) {
       Some(arr) => arr.push(entry)
       None => entries_by_pair[key] = [entry]
@@ -587,7 +587,7 @@ fn allocate_interval_tracks(intervals : Array[EdgeInterval]) -> Map[Int, Int] {
       }
     }
     track_by_edge[it.edge_index] = track
-    active.push(Reverse({ end: it.end, track }))
+    active.push(Reverse({ end: it.end, track, }))
   }
   track_by_edge
 }
@@ -679,7 +679,7 @@ fn allocate_span_lanes(spans : Array[EdgeSpan]) -> (Map[Int, Int], Int) {
       }
     }
     lane_by_edge[it.edge_index] = lane
-    active.push(Reverse({ end: it.end, lane }))
+    active.push(Reverse({ end: it.end, lane, }))
   }
   (lane_by_edge, next_lane)
 }
@@ -788,9 +788,9 @@ fn synthetic_segments(route : Array[@graph.Point]) -> Array[SyntheticSegment] {
       continue
     }
     if dx.abs() <= 1.0e-6 {
-      segs.push({ a, b, vertical: true })
+      segs.push({ a, b, vertical: true, })
     } else if dy.abs() <= 1.0e-6 {
-      segs.push({ a, b, vertical: false })
+      segs.push({ a, b, vertical: false, })
     }
   }
   segs
@@ -860,7 +860,7 @@ fn evaluate_lane_order(
       crossings = crossings + synthetic_route_crossings(ri, rj)
     }
   }
-  { crossings, displacement }
+  { crossings, displacement, }
 }
 
 ///|
@@ -1105,7 +1105,7 @@ fn plan_gap_lanes(
       shift_by_edge[edge.edge_index] = offset
     }
   }
-  { lane_by_edge, shift_by_edge }
+  { lane_by_edge, shift_by_edge, }
 }
 
 ///|
@@ -1138,7 +1138,7 @@ fn assign_rail_tracks(
     let flow = edge_flow_direction(direction, src_level, dst_level)
     let span = end - start
     if flow != direction {
-      back_edges.push({ start, end, edge_index: e.index })
+      back_edges.push({ start, end, edge_index: e.index, })
     } else if span > 1 {
       let src = match src_ports.get(e.index) {
         Some(v) => v
@@ -1150,9 +1150,9 @@ fn assign_rail_tracks(
       }
       let side = long_edge_lateral_side(direction, src, dst)
       match side {
-        -1 => forward_long_left.push({ start, end, edge_index: e.index })
-        1 => forward_long_right.push({ start, end, edge_index: e.index })
-        _ => forward_long_center.push({ start, end, edge_index: e.index })
+        -1 => forward_long_left.push({ start, end, edge_index: e.index, })
+        1 => forward_long_right.push({ start, end, edge_index: e.index, })
+        _ => forward_long_center.push({ start, end, edge_index: e.index, })
       }
     }
   }
@@ -1756,7 +1756,7 @@ fn axis_intervals_from_obstacles(
 ) -> Array[AxisInterval] {
   let intervals : Array[AxisInterval] = []
   for obstacle in obstacles {
-    intervals.push({ lo: obstacle.axis_lo, hi: obstacle.axis_hi })
+    intervals.push({ lo: obstacle.axis_lo, hi: obstacle.axis_hi, })
   }
   merge_axis_intervals(intervals)
 }
@@ -1969,7 +1969,7 @@ fn span_one_reserved_rail_intervals(
     let axis_lo = axis_lo0 - rail_clearance
     let axis_hi = axis_hi0 + rail_clearance
     if axis_hi > axis_lo {
-      intervals.push({ lo: axis_lo, hi: axis_hi })
+      intervals.push({ lo: axis_lo, hi: axis_hi, })
     }
   }
   merge_axis_intervals(intervals)
@@ -2036,7 +2036,7 @@ fn span_one_crossed_container_interior_intervals(
     let major_lo = major_lo0 - rail_clearance
     let major_hi = major_hi0 + rail_clearance
     if major_hi > major_lo {
-      intervals.push({ lo: major_lo, hi: major_hi })
+      intervals.push({ lo: major_lo, hi: major_hi, })
     }
   }
   merge_axis_intervals(intervals)
@@ -2098,12 +2098,12 @@ fn span_one_container_border_proximity_intervals(
     let top_lo = major_lo0 - rail_clearance
     let top_hi = major_lo0 + rail_clearance
     if top_hi > top_lo {
-      intervals.push({ lo: top_lo, hi: top_hi })
+      intervals.push({ lo: top_lo, hi: top_hi, })
     }
     let bottom_lo = major_hi0 - rail_clearance
     let bottom_hi = major_hi0 + rail_clearance
     if bottom_hi > bottom_lo {
-      intervals.push({ lo: bottom_lo, hi: bottom_hi })
+      intervals.push({ lo: bottom_lo, hi: bottom_hi, })
     }
   }
   merge_axis_intervals(intervals)
@@ -2254,12 +2254,12 @@ fn merge_axis_intervals(intervals : Array[AxisInterval]) -> Array[AxisInterval] 
     if interval.lo <= cur_hi + 1.0e-6 {
       cur_hi = @cmp.maximum(cur_hi, interval.hi)
     } else {
-      merged.push({ lo: cur_lo, hi: cur_hi })
+      merged.push({ lo: cur_lo, hi: cur_hi, })
       cur_lo = interval.lo
       cur_hi = interval.hi
     }
   }
-  merged.push({ lo: cur_lo, hi: cur_hi })
+  merged.push({ lo: cur_lo, hi: cur_hi, })
   merged
 }
 
@@ -2478,7 +2478,7 @@ fn reserve_gap_rail(
     span_hi : Double,
     rail : Double,
   ) -> Unit {
-    let item : GapRailReservation = { span_lo, span_hi, rail }
+    let item : GapRailReservation = { span_lo, span_hi, rail, }
     match gap_rail_reservations.val.get(gap_index) {
       Some(arr) => arr.push(item)
       None => gap_rail_reservations.val[gap_index] = [item]

@@ -23,7 +23,7 @@ pub struct FormatConfig {
 
 ///|
 pub fn FormatConfig::new() -> FormatConfig {
-  { indent: "  ", max_width: 80 }
+  { indent: "  ", max_width: 80, }
 }
 
 ///|
@@ -36,7 +36,7 @@ priv struct Printer {
 
 ///|
 pub fn format(ast : @ast.Map, config : FormatConfig) -> String {
-  let p = { sb: StringBuilder::new(), config, indent_level: 0, in_key: false }
+  let p = { sb: StringBuilder(), config, indent_level: 0, in_key: false, }
   p.format_map(ast, true)
   p.sb.to_string()
 }
@@ -569,7 +569,7 @@ fn Printer::format_import(self : Printer, imp : @ast.Import) -> Unit {
 
 ///|
 fn escape_single_quoted_value(s : String) -> String {
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for r in s {
     match r {
       '\'' => b.write_char('\'')
@@ -587,7 +587,7 @@ fn escape_single_quoted_value(s : String) -> String {
 
 ///|
 fn escape_double_quoted_value(s : String, in_key : Bool) -> String {
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for r in s {
     match r {
       '"' | '\\' => b.write_char('\\')
@@ -617,7 +617,7 @@ fn escape_unquoted_value(s : String, in_key : Bool) -> String {
   let key_specials = "#;\n\\{}[]'\"|:.-<>*&()@&"
   let value_specials = "#;\n\\{}[]'\"|$@"
   let chars = s.to_array()
-  let b = StringBuilder::new()
+  let b = StringBuilder()
   for i, r in chars {
     match r {
       '\'' | '"' | '|' => if i == 0 { b.write_char('\\') } else { () }
@@ -670,7 +670,7 @@ fn is_reserved_for_unquoted(s : String) -> Bool {
 ///|
 fn split_by_newline(s : String) -> Array[String] {
   let lines : Array[String] = []
-  let cur = StringBuilder::new()
+  let cur = StringBuilder()
   for c in s {
     if c == '\n' {
       lines.push(cur.to_string())

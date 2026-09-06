@@ -46,7 +46,7 @@ pub fn assign_coordinates(
 ) -> CoordinateResult {
   let layers = crossing_result.ordered_layers
   if layers.length() == 0 {
-    return { x_coords: Map([]), y_coords: Map([]) }
+    return { x_coords: Map([]), y_coords: Map([]), }
   }
   // Build position index for each node within its layer
   let pos : Map[String, Int] = Map([])
@@ -115,7 +115,7 @@ pub fn assign_coordinates(
     }
     y = y + max_height + spacing
   }
-  let result : CoordinateResult = { x_coords, y_coords }
+  let result : CoordinateResult = { x_coords, y_coords, }
   // Brandes-Köpf tuning: apply post-processing adjustments
   // 0. Center parents over their children to minimize zig-zag edges
   center_parents_over_children(
@@ -543,7 +543,7 @@ pub fn assign_coordinates_simple(
     }
     y = y + max_height + vertical_sep
   }
-  { x_coords, y_coords }
+  { x_coords, y_coords, }
 }
 
 // ============================================================================

@@ -85,7 +85,7 @@ pub struct Waypoint {
 ///|
 /// Create a simple waypoint
 pub fn Waypoint::new(x : Double, y : Double) -> Waypoint {
-  { x, y, control: None }
+  { x, y, control: None, }
 }
 
 ///|
@@ -96,7 +96,7 @@ pub fn Waypoint::with_control(
   cx : Double,
   cy : Double,
 ) -> Waypoint {
-  { x, y, control: Some((cx, cy)) }
+  { x, y, control: Some((cx, cy)), }
 }
 
 ///|
@@ -132,7 +132,7 @@ pub fn Route::new() -> Route {
 ///|
 /// Create a route with specified style
 pub fn Route::with_style(style : RouteStyle) -> Route {
-  { style, waypoints: [], src_arrowhead: None, dst_arrowhead: Triangle }
+  { style, waypoints: [], src_arrowhead: None, dst_arrowhead: Triangle, }
 }
 
 ///|
@@ -201,5 +201,5 @@ pub fn Route::from_points(
   for p in points {
     waypoints.push(Waypoint::new(p.x, p.y))
   }
-  { style, waypoints, src_arrowhead: src, dst_arrowhead: dst }
+  { style, waypoints, src_arrowhead: src, dst_arrowhead: dst, }
 }

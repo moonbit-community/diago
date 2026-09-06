@@ -23,7 +23,7 @@ pub struct SvgRenderer {
 
 ///|
 pub fn SvgRenderer::new() -> SvgRenderer {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|

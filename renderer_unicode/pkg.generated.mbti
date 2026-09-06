@@ -16,7 +16,11 @@ pub fn render(@diagram.Diagram) -> String
 pub struct UnicodeRenderer {
   _marker : Unit
 } derive(@debug.Debug)
+pub fn UnicodeRenderer::format_name(Self) -> String
 pub fn UnicodeRenderer::new() -> Self
+pub fn UnicodeRenderer::render(Self, @diagram.Diagram) -> String raise @render_api.RenderError
+#deprecated
+pub fn UnicodeRenderer::to_repr(Self) -> @debug.Repr
 pub impl @render_api.Renderer for UnicodeRenderer
 
 // Type aliases

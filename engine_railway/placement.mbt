@@ -158,7 +158,7 @@ fn place_nodes_dagre(
     boxes, levels, level_main_mins, level_main_maxs, level_cross_mins, level_cross_maxs,
     direction, config,
   )
-  { boxes, level_heights, rank_by_id }
+  { boxes, level_heights, rank_by_id, }
 }
 
 ///|
@@ -337,7 +337,7 @@ fn rank_by_layout_constraints(
       Some(b) => b
       None => continue
     }
-    physical_axis.push({ id: obj.id, key: major_axis_key(box, direction) })
+    physical_axis.push({ id: obj.id, key: major_axis_key(box, direction), })
   }
   let rank_cluster_threshold = @cmp.maximum(
     12.0,
@@ -593,7 +593,7 @@ fn optimize_levels_by_barycenter(
             order_by_id.get_or_default(id, 0).to_double() * 0.001
         }
         let parent_id = parent_id_by_child_id.get_or_default(id, id)
-        candidates.push({ id, barycenter: bary, parent_id, original_pos: i })
+        candidates.push({ id, barycenter: bary, parent_id, original_pos: i, })
       }
       candidates.sort_by(fn(a, b) {
         if a.barycenter < b.barycenter {
@@ -634,7 +634,7 @@ fn optimize_levels_by_barycenter(
             order_by_id.get_or_default(id, 0).to_double() * 0.001
         }
         let parent_id = parent_id_by_child_id.get_or_default(id, id)
-        candidates.push({ id, barycenter: bary, parent_id, original_pos: i })
+        candidates.push({ id, barycenter: bary, parent_id, original_pos: i, })
       }
       candidates.sort_by(fn(a, b) {
         if a.barycenter < b.barycenter {

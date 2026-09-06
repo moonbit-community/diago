@@ -97,7 +97,7 @@ fn new_utf8_font(reader : FileReader) -> Utf8FontFile {
     char_symbol_dictionary: Map([]),
     ascent: 0,
     descent: 0,
-    bbox: { x_min: 0, y_min: 0, x_max: 0, y_max: 0 },
+    bbox: { x_min: 0, y_min: 0, x_max: 0, y_max: 0, },
     cap_height: 0,
     stem_v: 0,
     italic_angle: 0,
@@ -142,7 +142,7 @@ fn write_u32_be(out : Array[Byte], v : Int) -> Unit {
 
 ///|
 fn bytes4_to_string(bs : Array[Byte]) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for b in bs {
     sb.write_char(b.to_int().unsafe_to_char())
   }
@@ -1326,7 +1326,7 @@ fn parse_sfnt_entries(data : Array[Byte]) -> Array[SfntTableEntry]? {
       return None
     }
     let tag = bytes4_to_string(data[rec:rec + 4].to_owned())
-    entries.push({ tag, tag_u32, check_sum, offset, length })
+    entries.push({ tag, tag_u32, check_sum, offset, length, })
   }
   Some(entries)
 }
@@ -1529,7 +1529,7 @@ pub fn utf8_cut_font(in_buf : Bytes, cutset : String) -> Bytes? {
   for i, cp in cps {
     runes[i] = cp
   }
-  let reader = FileReader::{ reader_position: 0, array: input }
+  let reader = FileReader::{ reader_position: 0, array: input, }
   let font = new_utf8_font(reader)
   match font.generate_cut_font(runes) {
     Some(out) => Some(Bytes::from_array(out[:]))

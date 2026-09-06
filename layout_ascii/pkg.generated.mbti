@@ -19,6 +19,12 @@ pub enum ArrowDir {
   Left
   Right
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn ArrowDir::equal(Self, Self) -> Bool
+#deprecated
+pub fn ArrowDir::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ArrowDir::to_repr(Self) -> @debug.Repr
 
 pub struct AsciiBox {
   id : String
@@ -31,6 +37,8 @@ pub struct AsciiBox {
   is_container : Bool
   children : Array[AsciiBox]
 } derive(@debug.Debug)
+#deprecated
+pub fn AsciiBox::to_repr(Self) -> @debug.Repr
 
 pub struct AsciiLayoutConfig {
   min_box_width : Int
@@ -43,6 +51,8 @@ pub struct AsciiLayoutConfig {
 } derive(@debug.Debug)
 pub fn AsciiLayoutConfig::from_parts(Int, Int, Int, Int, Int, Int, Int) -> Self
 pub fn AsciiLayoutConfig::new() -> Self
+#deprecated
+pub fn AsciiLayoutConfig::to_repr(Self) -> @debug.Repr
 
 pub struct AsciiPlan {
   canvas_width : Int
@@ -51,6 +61,8 @@ pub struct AsciiPlan {
   edges : Array[EdgePlan]
   legend : (@graph.LegendInput, LegendPlan)?
 } derive(@debug.Debug)
+#deprecated
+pub fn AsciiPlan::to_repr(Self) -> @debug.Repr
 
 pub struct EdgePlan {
   index : Int
@@ -60,11 +72,15 @@ pub struct EdgePlan {
   label : String
   label_pos : GridPoint?
 } derive(@debug.Debug)
+#deprecated
+pub fn EdgePlan::to_repr(Self) -> @debug.Repr
 
 pub struct GridPoint {
   x : Int
   y : Int
 } derive(@debug.Debug)
+#deprecated
+pub fn GridPoint::to_repr(Self) -> @debug.Repr
 
 pub struct LegendPlan {
   x : Int
@@ -75,6 +91,8 @@ pub struct LegendPlan {
   rows : Array[(Int, Int, String)]
   separators : Array[(Int, Int, Int)]
 } derive(@debug.Debug)
+#deprecated
+pub fn LegendPlan::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

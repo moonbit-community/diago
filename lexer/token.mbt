@@ -98,12 +98,12 @@ pub struct Token {
 
 ///|
 pub fn Position::new(line : Int, column : Int, offset : Int) -> Position {
-  { line, column, offset }
+  { line, column, offset, }
 }
 
 ///|
 pub fn Range::new(start : Position, end : Position) -> Range {
-  { path: "", start, end }
+  { path: "", start, end, }
 }
 
 ///|
@@ -112,25 +112,25 @@ pub fn Range::with_path(
   start : Position,
   end : Position,
 ) -> Range {
-  { path, start, end }
+  { path, start, end, }
 }
 
 ///|
 /// Create a range from the start of `a` to the end of `b`.
 pub fn Range::between(a : Range, b : Range) -> Range {
   let path = if a.path != "" { a.path } else { b.path }
-  { path, start: a.start, end: b.end }
+  { path, start: a.start, end: b.end, }
 }
 
 ///|
 pub fn Token::new(kind : TokenKind, range : Range, raw : String) -> Token {
-  { kind, range, raw }
+  { kind, range, raw, }
 }
 
 ///|
 /// Create a simple position at the origin
 pub fn Position::zero() -> Position {
-  { line: 0, column: 0, offset: 0 }
+  { line: 0, column: 0, offset: 0, }
 }
 
 ///|

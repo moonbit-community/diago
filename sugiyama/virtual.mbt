@@ -86,7 +86,7 @@ pub fn insert_virtual_nodes(
     layer_count: layer_result.layer_count,
     nodes_by_layer,
   }
-  { layer_assignment: new_layer_result, edge_virtual_nodes, virtual_nodes }
+  { layer_assignment: new_layer_result, edge_virtual_nodes, virtual_nodes, }
 }
 
 ///|
@@ -114,7 +114,7 @@ pub fn get_virtual_edge_index(node_id : String) -> Int? {
 /// Split a string by a delimiter character
 fn split_string(s : String, delim : Char) -> Array[String] {
   let parts : Array[String] = []
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     if c == delim {
       parts.push(buf.to_string())

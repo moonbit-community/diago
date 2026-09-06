@@ -69,8 +69,7 @@ pub async fn import_resolver(
 ///|
 fn import_full_path(import_path : String, base_path : String?) -> String {
   let full_path = match base_path {
-    Some(base) =>
-      @system_path.Path(base).join(@system_path.Path(import_path)).to_string()
+    Some(base) => @system_path.Path(base).join(Path(import_path)).to_string()
     None => import_path
   }
   if full_path.has_suffix(".d2") {
@@ -88,7 +87,7 @@ pub async fn parse_file(
 ) -> @ir.Map raise @diago.DiagoError {
   let source = read_source_file(file_path)
   let options = with_filesystem_resolver(options, source, parent_dir(file_path)) catch {
-    error => raise @diago.IOError("Error loading imports: \{error}")
+    error => raise IOError("Error loading imports: \{error}")
   }
   @diago.parse(source, options~)
 }
@@ -105,7 +104,7 @@ pub async fn compile_file(
     source,
     parent_dir(file_path),
   ) catch {
-    error => raise @diago.IOError("Error loading imports: \{error}")
+    error => raise IOError("Error loading imports: \{error}")
   }
   @diago.compile(source, options=options.with_parse_options(parse_options))
 }
@@ -113,7 +112,7 @@ pub async fn compile_file(
 ///|
 async fn read_source_file(file_path : String) -> String raise @diago.DiagoError {
   @async_fs.read_file(file_path).text() catch {
-    error => raise @diago.IOError("Error reading file '\{file_path}': \{error}")
+    error => raise IOError("Error reading file '\{file_path}': \{error}")
   }
 }
 

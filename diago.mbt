@@ -37,7 +37,7 @@ pub struct ParseOptions {
 
 ///|
 pub fn ParseOptions::new() -> ParseOptions {
-  { import_resolver: None }
+  { import_resolver: None, }
 }
 
 ///|

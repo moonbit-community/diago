@@ -129,7 +129,7 @@ pub fn LayoutConfig::with_spacing(
   vertical : Double,
 ) -> LayoutConfig {
   let config = LayoutConfig::new()
-  { ..config, horizontal_spacing: horizontal, vertical_spacing: vertical }
+  { ..config, horizontal_spacing: horizontal, vertical_spacing: vertical, }
 }
 
 ///|
@@ -934,7 +934,7 @@ fn prepare_layout_semantics(
 ) -> (@graph.GraphInput, GridSemanticContext) {
   let groups = collect_grid_semantic_groups(graph)
   if groups.is_empty() {
-    return (graph, { groups, child_ids: Map([]) })
+    return (graph, { groups, child_ids: Map([]), })
   }
   let pre_sized = apply_grid_semantic_parent_boxes(graph, groups, config)
   let child_ids : Map[String, Bool] = Map([])
@@ -943,7 +943,7 @@ fn prepare_layout_semantics(
       child_ids[id] = true
     }
   }
-  (detach_grid_children(pre_sized, groups), { groups, child_ids })
+  (detach_grid_children(pre_sized, groups), { groups, child_ids, })
 }
 
 ///|
@@ -1468,7 +1468,7 @@ fn grid_child_margin_like_d2(
     }
   }
 
-  { left, top, right, bottom }
+  { left, top, right, bottom, }
 }
 
 ///|
@@ -1659,7 +1659,7 @@ fn grid_semantic_padding_like_d2(
   if right < horizontal_padding {
     right = horizontal_padding
   }
-  { left, top, right, bottom }
+  { left, top, right, bottom, }
 }
 
 ///|
@@ -1743,7 +1743,7 @@ fn grid_container_spacing_padding_like_d2(
     }
   }
 
-  { left, top, right, bottom }
+  { left, top, right, bottom, }
 }
 
 ///|
@@ -2661,7 +2661,7 @@ fn restore_grid_semantics(
             layout_height: content_box.height,
             label_position: None,
             icon_position: None,
-            initial_margin: { left: 0.0, top: 0.0, right: 0.0, bottom: 0.0 },
+            initial_margin: { left: 0.0, top: 0.0, right: 0.0, bottom: 0.0, },
           }
       }
       let child = match laid_out_by_id.get(child_id) {
@@ -3533,7 +3533,7 @@ fn save_graph_order_like_d2(graph : @graph.GraphInput) -> GraphOrderContext {
     child_order_by_parent[obj.abs_id_syntax] = child_order
   }
 
-  { object_order, edge_order, child_order_by_parent }
+  { object_order, edge_order, child_order_by_parent, }
 }
 
 ///|

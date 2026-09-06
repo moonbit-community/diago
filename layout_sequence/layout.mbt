@@ -464,7 +464,7 @@ fn sequence_parent_abs_id_syntax_of(abs_id_syntax : String) -> String? {
   if segments.length() <= 1 {
     return None
   }
-  let parent = StringBuilder::new()
+  let parent = StringBuilder()
   for i = 0; i < segments.length() - 1; i = i + 1 {
     if i > 0 {
       parent.write_string(".")

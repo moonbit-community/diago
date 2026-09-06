@@ -305,7 +305,7 @@ async test "fmt default writes formatted output in place" {
   let path = ".diago_cli_v2_fmt_in_place.d2"
   cleanup_file(path)
   @fs.write_file(path, "a  ->  b\n", create_mode=CreateOrTruncate)
-  let result = execute_fmt({ check: false, files: [path] })
+  let result = execute_fmt({ check: false, files: [path], })
   assert_true(result is Ok(_))
   let formatted = @fs.read_file(path).text() catch {
     _ => {
@@ -323,7 +323,7 @@ async test "fmt check reports unformatted files without writing" {
   let path = ".diago_cli_v2_fmt_check.d2"
   cleanup_file(path)
   @fs.write_file(path, "a  ->  b\n", create_mode=CreateOrTruncate)
-  let result = execute_fmt({ check: true, files: [path] })
+  let result = execute_fmt({ check: true, files: [path], })
   let after = @fs.read_file(path).text() catch {
     _ => {
       cleanup_file(path)
@@ -344,7 +344,7 @@ async test "validate reports parse failures" {
   let path = ".diago_cli_v2_validate_invalid.d2"
   cleanup_file(path)
   @fs.write_file(path, "a ->", create_mode=CreateOrTruncate)
-  let result = execute_validate({ input_path: Some(path), from_stdin: false })
+  let result = execute_validate({ input_path: Some(path), from_stdin: false, })
   cleanup_file(path)
   match result {
     Ok(_) => fail("expected validate to fail for invalid source")

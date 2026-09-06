@@ -419,7 +419,7 @@ fn get_shape_boundary(
         }
       }
       w_c = adjust_width_for_label(w_c, shape.label)
-      Some({ tl_x: x1, tl_y: y1, br_x: x1 + w_c, br_y: y1 + h_c })
+      Some({ tl_x: x1, tl_y: y1, br_x: x1 + w_c, br_y: y1 + h_c, })
     }
     None => None
   }
@@ -1406,7 +1406,7 @@ fn classify_class_member(child : @diagram.Shape) -> ClassMember {
       field_type = trimmed
     }
   }
-  { display_name, field_type, is_method }
+  { display_name, field_type, is_method, }
 }
 
 ///|

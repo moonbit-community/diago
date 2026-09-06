@@ -17,6 +17,12 @@ pub struct LexError {
   message : String
   range : Range
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn LexError::equal(Self, Self) -> Bool
+#deprecated
+pub fn LexError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LexError::to_repr(Self) -> @debug.Repr
 
 type Lexer
 pub fn Lexer::new(String) -> Self
@@ -28,7 +34,13 @@ pub struct Position {
   column : Int
   offset : Int
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Position::equal(Self, Self) -> Bool
 pub fn Position::new(Int, Int, Int) -> Self
+#deprecated
+pub fn Position::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Position::to_repr(Self) -> @debug.Repr
 pub fn Position::zero() -> Self
 
 pub struct Range {
@@ -37,23 +49,41 @@ pub struct Range {
   end : Position
 } derive(Eq, @debug.Debug)
 pub fn Range::between(Self, Self) -> Self
+#deprecated
+pub fn Range::equal(Self, Self) -> Bool
 pub fn Range::new(Position, Position) -> Self
+#deprecated
+pub fn Range::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Range::to_repr(Self) -> @debug.Repr
 pub fn Range::with_path(String, Position, Position) -> Self
 
 pub enum StringType {
   SingleQuoted
   DoubleQuoted
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn StringType::equal(Self, Self) -> Bool
+#deprecated
+pub fn StringType::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn StringType::to_repr(Self) -> @debug.Repr
 
 pub struct Token {
   kind : TokenKind
   range : Range
   raw : String
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn Token::equal(Self, Self) -> Bool
 pub fn Token::is_arrow(Self) -> Bool
 pub fn Token::is_edge_op(Self) -> Bool
 pub fn Token::is_trivia(Self) -> Bool
 pub fn Token::new(TokenKind, Range, String) -> Self
+#deprecated
+pub fn Token::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Token::to_repr(Self) -> @debug.Repr
 
 pub enum TokenKind {
   Ident(String)
@@ -87,6 +117,12 @@ pub enum TokenKind {
   Newline
   Eof
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn TokenKind::equal(Self, Self) -> Bool
+#deprecated
+pub fn TokenKind::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn TokenKind::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

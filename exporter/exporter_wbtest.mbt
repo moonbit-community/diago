@@ -116,7 +116,7 @@ test "sequence descendants export as activations notes and groups" {
   guard graph.find_object("bob.remember this") is Some(note) else {
     fail("expected note")
   }
-  assert_eq(note.shape_type, @graph.ShapeType::Page)
+  assert_eq(note.shape_type, Page)
   guard graph.find_object("phase") is Some(group) else {
     fail("expected group")
   }
@@ -849,7 +849,7 @@ test "edge classes retain names and distinguish arrow from triangle" {
   @debug.assert_eq(graph.edges.length(), 1)
   let edge = graph.edges[0]
   @debug.assert_eq(edge.classes, ["arrow"])
-  @debug.assert_eq(edge.dst_arrowhead, @graph.Arrow)
+  @debug.assert_eq(edge.dst_arrowhead, Arrow)
   @debug.assert_eq(
     edge.style.stroke,
     Some(@graph.StyleValue::from_string("black")),
@@ -869,8 +869,8 @@ test "arrowhead filled style selects the effective marker shape" {
     "a <-> b: { source-arrowhead.shape: triangle; source-arrowhead.style.filled: false; target-arrowhead.shape: diamond; target-arrowhead.style.filled: true }",
   ).unwrap()
   @debug.assert_eq(graph.edges.length(), 1)
-  @debug.assert_eq(graph.edges[0].src_arrowhead, @graph.Open)
-  @debug.assert_eq(graph.edges[0].dst_arrowhead, @graph.FilledDiamond)
+  @debug.assert_eq(graph.edges[0].src_arrowhead, Open)
+  @debug.assert_eq(graph.edges[0].dst_arrowhead, FilledDiamond)
 }
 
 ///|

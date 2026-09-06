@@ -65,7 +65,7 @@ pub fn minimize_crossings(
       sweep_up(layers, lower_neighbors, original_order)
     }
   }
-  { ordered_layers: layers }
+  { ordered_layers: layers, }
 }
 
 ///|
@@ -335,7 +335,7 @@ pub fn minimize_crossings_with_virtual(
       sweep_up(layers, lower_neighbors, original_order)
     }
   }
-  { ordered_layers: layers }
+  { ordered_layers: layers, }
 }
 
 ///|

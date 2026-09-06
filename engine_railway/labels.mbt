@@ -215,7 +215,7 @@ priv struct ClassMemberInfo {
 ///|
 fn trim_double_quotes_for_class_member(s : String) -> String {
   if s.length() >= 2 && s[0] == '"' && s[s.length() - 1] == '"' {
-    let out = StringBuilder::new()
+    let out = StringBuilder()
     for i = 1; i < s.length() - 1; i = i + 1 {
       match s[i].to_char() {
         Some(ch) => out.write_char(ch)
@@ -235,7 +235,7 @@ fn class_member_info_from_object(child : @graph.ObjectInput) -> ClassMemberInfo 
   if raw_name.length() > 0 {
     let first = raw_name[0]
     if first == '+' || first == '-' || first == '#' {
-      let name_buf = StringBuilder::new()
+      let name_buf = StringBuilder()
       for i = 1; i < raw_name.length(); i = i + 1 {
         match raw_name[i].to_char() {
           Some(ch) => name_buf.write_char(ch)
@@ -256,7 +256,7 @@ fn class_member_info_from_object(child : @graph.ObjectInput) -> ClassMemberInfo 
   } else {
     raw_type
   }
-  { name, type_name }
+  { name, type_name, }
 }
 
 ///|
@@ -459,7 +459,7 @@ fn sql_table_constraint_abbr_from_object(obj : @graph.ObjectInput) -> String {
   if constraints.is_empty() {
     for cls in obj.classes {
       if cls.has_prefix(SQL_CONSTRAINT_PREFIX) {
-        let buf = StringBuilder::new()
+        let buf = StringBuilder()
         for i = SQL_CONSTRAINT_PREFIX.length(); i < cls.length(); i = i + 1 {
           match cls[i].to_char() {
             Some(ch) => buf.write_char(ch)
@@ -495,7 +495,7 @@ fn short_name_from_id(id : String) -> String {
   if last_dot < 0 || last_dot >= id.length() - 1 {
     id
   } else {
-    let out = StringBuilder::new()
+    let out = StringBuilder()
     for i = last_dot + 1; i < id.length(); i = i + 1 {
       match id[i].to_char() {
         Some(ch) => out.write_char(ch)
@@ -580,7 +580,7 @@ fn resolve_edge_label_collisions(
     }
     let major_span = if vertical { box.height } else { box.width }
     let bucket = (major_center / bucket_size + 0.5).to_int()
-    let interval = { edge_index, minor_start, minor_end, major_span }
+    let interval = { edge_index, minor_start, minor_end, major_span, }
     match grouped.get(bucket) {
       Some(items) => items.push(interval)
       None => grouped[bucket] = [interval]

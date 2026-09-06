@@ -23,7 +23,7 @@ pub struct UnicodeRenderer {
 
 ///|
 pub fn UnicodeRenderer::new() -> UnicodeRenderer {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|

@@ -36,12 +36,30 @@ pub struct MeasuredText {
   line_count : Int
   max_line_width : Double
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn MeasuredText::equal(Self, Self) -> Bool
+#deprecated
+pub fn MeasuredText::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn MeasuredText::output(Self, &Logger) -> Unit
+#deprecated
+pub fn MeasuredText::to_repr(Self) -> @debug.Repr
+pub fn MeasuredText::to_string(Self) -> String
 pub impl Show for MeasuredText
 
 pub struct TextDimensions {
   width : Double
   height : Double
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn TextDimensions::equal(Self, Self) -> Bool
+#deprecated
+pub fn TextDimensions::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn TextDimensions::output(Self, &Logger) -> Unit
+#deprecated
+pub fn TextDimensions::to_repr(Self) -> @debug.Repr
+pub fn TextDimensions::to_string(Self) -> String
 pub impl Show for TextDimensions
 
 // Type aliases

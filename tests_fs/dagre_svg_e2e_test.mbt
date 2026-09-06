@@ -498,7 +498,7 @@ fn normalize_svg_hashes(svg : String) -> String {
 
 ///|
 fn normalize_svg_wrapper_classes(svg : String) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut i = 0
   while i < svg.length() {
     if i + 2 <= svg.length() && slice_string(svg, i, i + 2) == "<g" {
@@ -544,7 +544,7 @@ fn replace_all_string(source : String, old : String, new : String) -> String {
   if old.length() == 0 {
     return source
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut cursor = 0
   while cursor < source.length() {
     let rest = slice_string(source, cursor, source.length())
@@ -663,7 +663,7 @@ fn normalize_image_href_payloads(svg : String) -> String {
   if parts.length() < 2 {
     return svg
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   out.write_string(parts[0].to_owned())
   for i in 1..<parts.length() {
     let part = parts[i].to_owned()
@@ -967,7 +967,7 @@ fn parse_attr_double(attrs : String, name : String) -> Double? {
 ///|
 fn parse_numbers(s : String) -> Array[Double] {
   let nums : Array[Double] = []
-  let mut sb = StringBuilder::new()
+  let mut sb = StringBuilder()
   for c in s {
     if is_number_char(c) {
       sb.write_char(c)
@@ -976,7 +976,7 @@ fn parse_numbers(s : String) -> Array[Double] {
         Some(v) => nums.push(v)
         None => ()
       }
-      sb = StringBuilder::new()
+      sb = StringBuilder()
     }
   }
   if sb.to_string().length() > 0 {
@@ -1080,7 +1080,7 @@ fn parse_double_safe(s : String) -> Double? {
 
 ///|
 fn slice_string(s : String, start : Int, end_exclusive : Int) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   for i in start..<end_exclusive {
     match s[i].to_char() {
       Some(c) => sb.write_char(c)
@@ -1123,7 +1123,7 @@ fn extract_text_counts(svg : String) -> Map[String, Int] {
 
 ///|
 fn strip_xml_tags(s : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   let mut in_tag = false
   for c in s {
     if c == '<' {
@@ -1139,7 +1139,7 @@ fn strip_xml_tags(s : String) -> String {
 
 ///|
 fn normalize_inline_text(s : String) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   let mut prev_space = false
   for c in s {
     if is_svg_whitespace(c) {

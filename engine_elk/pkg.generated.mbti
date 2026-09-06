@@ -16,7 +16,12 @@ pub fn debug_build_elk_input_json(@graph.GraphInput, @engine_api.LayoutConfig, @
 pub struct ElkEngine {
   _marker : Unit
 } derive(@debug.Debug)
+pub fn ElkEngine::engine_name(Self) -> String
+pub fn ElkEngine::features(Self) -> Array[@engine_api.LayoutFeature]
+pub fn ElkEngine::layout(Self, @graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> @graph.LayoutPatch raise @engine_api.LayoutError
 pub fn ElkEngine::new() -> Self
+#deprecated
+pub fn ElkEngine::to_repr(Self) -> @debug.Repr
 pub impl @engine_api.LayoutEngine for ElkEngine
 
 // Type aliases

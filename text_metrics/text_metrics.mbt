@@ -819,7 +819,7 @@ fn measure_text_with_mode(
   // The measured bounds are rounded up with `math.Ceil`.
   let width = @math.ceil(max_line_width)
   let height = @math.ceil(total_height)
-  { dimensions: { width, height }, line_count, max_line_width }
+  { dimensions: { width, height, }, line_count, max_line_width, }
 }
 
 ///|

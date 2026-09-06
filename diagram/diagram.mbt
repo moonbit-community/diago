@@ -300,7 +300,7 @@ pub fn Diagram::has_steps(self : Diagram) -> Bool {
 
 ///|
 pub fn Diagram::without_children(self : Diagram) -> Diagram {
-  { ..self, layers: [], scenarios: [], steps: [] }
+  { ..self, layers: [], scenarios: [], steps: [], }
 }
 
 ///|
@@ -467,7 +467,7 @@ pub fn Diagram::find_object(self : Diagram, id : String) -> Shape? {
 
 ///|
 pub fn Diagram::bytes(self : Diagram) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   out.write_string(diagram_shape_array_json(self.shapes))
   out.write_string(diagram_connection_array_json(self.connections))
   out.write_string(diagram_shape_json(self.root))
@@ -552,12 +552,12 @@ pub fn Diagram::with_render_hash_config(
   for board in self.steps {
     steps.push(board.with_render_hash_config(theme_id, dark_theme_id, sketch))
   }
-  { ..self, config: Some(updated_config), layers, scenarios, steps }
+  { ..self, config: Some(updated_config), layers, scenarios, steps, }
 }
 
 ///|
 pub fn Diagram::get_nested_corpus(self : Diagram) -> String {
-  let corpus = StringBuilder::new()
+  let corpus = StringBuilder()
   corpus.write_string(self.get_corpus())
   for board in self.layers {
     corpus.write_string(board.get_nested_corpus())
@@ -573,7 +573,7 @@ pub fn Diagram::get_nested_corpus(self : Diagram) -> String {
 
 ///|
 pub fn Diagram::get_corpus(self : Diagram) -> String {
-  let corpus = StringBuilder::new()
+  let corpus = StringBuilder()
   let mut appendix_count = 0
   let suppressed_shape_ids : Map[String, Bool] = Map([])
   for shape in self.shapes {
@@ -1036,7 +1036,7 @@ fn diagram_config_json(config : Config) -> String {
 
 ///|
 fn legend_corpus(legend : @graph.LegendInput) -> String {
-  let corpus = StringBuilder::new()
+  let corpus = StringBuilder()
   match legend.title {
     Some(title) =>
       if title == "" {
@@ -1081,7 +1081,7 @@ fn short_shape_name(shape : Shape) -> String {
 ///|
 fn trim_surrounding_double_quotes(s : String) -> String {
   if s.length() >= 2 && s[0] == '"' && s[s.length() - 1] == '"' {
-    let out = StringBuilder::new()
+    let out = StringBuilder()
     for i = 1; i < s.length() - 1; i = i + 1 {
       match s[i].to_char() {
         Some(ch) => out.write_char(ch)
@@ -1102,7 +1102,7 @@ fn split_class_member_visibility(raw_name : String) -> (String, Bool, String) {
   match raw_name[0].to_char() {
     Some(ch) =>
       if ch == '+' || ch == '-' || ch == '#' || ch == '~' {
-        let rest = StringBuilder::new()
+        let rest = StringBuilder()
         for i = 1; i < raw_name.length(); i = i + 1 {
           match raw_name[i].to_char() {
             Some(c) => rest.write_char(c)
@@ -1164,7 +1164,7 @@ fn sql_table_constraint_abbr(child : Shape) -> String {
 
 ///|
 fn shape_structured_corpus(shape : Shape, all_shapes : Array[Shape]) -> String {
-  let corpus = StringBuilder::new()
+  let corpus = StringBuilder()
   match shape.shape_type {
     Class =>
       for child in object_children(shape, all_shapes) {
@@ -1619,7 +1619,7 @@ fn append_sequence_lifeline_connections(
   for i = 0; i < connections.length(); i = i + 1 {
     let conn = connections[i]
     if conn.z_index < D2_SEQUENCE_MESSAGE_Z_INDEX {
-      connections[i] = { ..conn, z_index: D2_SEQUENCE_MESSAGE_Z_INDEX }
+      connections[i] = { ..conn, z_index: D2_SEQUENCE_MESSAGE_Z_INDEX, }
     }
   }
 
@@ -1878,7 +1878,7 @@ fn append_nested_sequence_lifeline_connections(
           }
         _ =>
           if connection.z_index < D2_SEQUENCE_MESSAGE_Z_INDEX {
-            { ..connection, z_index: D2_SEQUENCE_MESSAGE_Z_INDEX }
+            { ..connection, z_index: D2_SEQUENCE_MESSAGE_Z_INDEX, }
           } else {
             connection
           }
@@ -1988,7 +1988,7 @@ pub fn from_graph(graph : @graph.GraphInput, config : Config?) -> Diagram {
           None => break
         }
       }
-      { ..base_shape, id: render_id }
+      { ..base_shape, id: render_id, }
     } else {
       base_shape
     }
@@ -2002,9 +2002,9 @@ pub fn from_graph(graph : @graph.GraphInput, config : Config?) -> Diagram {
           z_index: 2,
         }
       } else if shape.classes.contains("__diago_sequence_group") {
-        { ..shape, z_index: 3 }
+        { ..shape, z_index: 3, }
       } else if shape.classes.contains("__diago_sequence_note") {
-        { ..shape, z_index: 5 }
+        { ..shape, z_index: 5, }
       } else {
         shape
       },

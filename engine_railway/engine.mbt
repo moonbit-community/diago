@@ -23,7 +23,7 @@ pub struct RailwayEngine {
 
 ///|
 pub fn RailwayEngine::new() -> RailwayEngine {
-  { _marker: () }
+  { _marker: (), }
 }
 
 ///|

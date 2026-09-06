@@ -108,6 +108,8 @@ pub fn Svg::open_group_with_filter(Self, String) -> Unit
 pub fn Svg::open_group_with_id(Self, String, String) -> Unit
 pub fn Svg::open_group_with_id_style(Self, String, String, String) -> Unit
 pub fn Svg::open_group_with_tooltip(Self, String) -> Unit
+#deprecated
+pub fn Svg::output(Self, &Logger) -> Unit
 pub fn Svg::root_attrs(Self) -> Array[(String, String)]
 pub fn Svg::scripts(Self) -> Array[String]
 pub fn Svg::set_include_xml_declaration(Self, Bool) -> Unit

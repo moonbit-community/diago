@@ -53,7 +53,7 @@ pub fn compute_container_ranks(
       ending[obj.lookup_id()] = max_rank
     }
   }
-  { starting_rank: starting, ending_rank: ending }
+  { starting_rank: starting, ending_rank: ending, }
 }
 
 ///|

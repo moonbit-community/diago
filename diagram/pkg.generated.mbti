@@ -31,11 +31,19 @@ pub struct Config {
 } derive(@debug.Debug)
 pub fn Config::from_parts(Bool?, Int?, Int?, ThemeOverrides?, ThemeOverrides?, Double?, Bool?, String?, Double?, Bool?, String?, Bool?, Map[String, ConfigDataValue]) -> Self
 pub fn Config::new() -> Self
+#deprecated
+pub fn Config::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ConfigDataValue {
   Text(String)
   StringArray(Array[String])
 } derive(Eq, @debug.Debug)
+#deprecated
+pub fn ConfigDataValue::equal(Self, Self) -> Bool
+#deprecated
+pub fn ConfigDataValue::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ConfigDataValue::to_repr(Self) -> @debug.Repr
 
 pub struct Connection {
   index : Int
@@ -73,6 +81,8 @@ pub struct Connection {
   dst_column_index : Int?
 } derive(@debug.Debug)
 pub fn Connection::legend_icon(String, String, Int, Bool, Bool, @graph.ArrowheadType, @graph.ArrowheadType, @graph.StyleInput) -> Self
+#deprecated
+pub fn Connection::to_repr(Self) -> @debug.Repr
 
 pub struct Diagram {
   name : String
@@ -105,6 +115,8 @@ pub fn Diagram::has_scenarios(Self) -> Bool
 pub fn Diagram::has_shape(Self, (Shape) -> Bool) -> Bool
 pub fn Diagram::has_steps(Self) -> Bool
 pub fn Diagram::hash_id(Self, String?) -> String
+#deprecated
+pub fn Diagram::to_repr(Self) -> @debug.Repr
 pub fn Diagram::with_render_hash_config(Self, Int, Int?, Bool) -> Self
 pub fn Diagram::without_children(Self) -> Self
 
@@ -142,6 +154,8 @@ pub fn Shape::center(Self) -> @graph.Point?
 pub fn Shape::get_box(Self) -> @graph.Box?
 pub fn Shape::get_id(Self) -> String
 pub fn Shape::legend_icon(String, @graph.ShapeType, @graph.StyleInput) -> Self
+#deprecated
+pub fn Shape::to_repr(Self) -> @debug.Repr
 
 pub struct ThemeOverrides {
   n1 : String?
@@ -164,10 +178,16 @@ pub struct ThemeOverrides {
   ab5 : String?
 } derive(Eq, @debug.Debug)
 pub fn ThemeOverrides::entries(Self) -> Array[(String, String)]
+#deprecated
+pub fn ThemeOverrides::equal(Self, Self) -> Bool
 pub fn ThemeOverrides::get(Self, String) -> String?
 pub fn ThemeOverrides::is_empty(Self) -> Bool
 pub fn ThemeOverrides::merge(Self, Self) -> Self
 pub fn ThemeOverrides::new() -> Self
+#deprecated
+pub fn ThemeOverrides::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ThemeOverrides::to_repr(Self) -> @debug.Repr
 pub fn ThemeOverrides::with_code(Self, String, String) -> Self
 
 // Type aliases

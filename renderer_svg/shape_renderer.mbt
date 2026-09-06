@@ -42,7 +42,7 @@ pub fn SvgShapeContext::new(
   label : String,
   config : SvgConfig,
 ) -> SvgShapeContext {
-  { svg, box_, fill, stroke, stroke_width, label, config }
+  { svg, box_, fill, stroke, stroke_width, label, config, }
 }
 
 ///|

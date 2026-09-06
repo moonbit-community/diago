@@ -3,7 +3,7 @@ test "nested grids size markdown children with markdown block metrics" {
   let markdown = @graph.ObjectInput::from_parts(
     "teleport.inp",
     "# Identity Native Proxy",
-    @graph.Text,
+    Text,
     @graph.StyleInput::new(),
     Some(@graph.Box::new(0.0, 0.0, 300.0, 0.0)),
     None,
@@ -33,7 +33,7 @@ test "nested grids size markdown children with markdown block metrics" {
   let parent = @graph.ObjectInput::from_parts(
     "teleport",
     "Teleport",
-    @graph.Rectangle,
+    Rectangle,
     @graph.StyleInput::new(),
     None,
     None,

@@ -23,12 +23,18 @@ pub struct AsciiConfig {
   scale : Double
 } derive(@debug.Debug)
 pub fn AsciiConfig::new() -> Self
+#deprecated
+pub fn AsciiConfig::to_repr(Self) -> @debug.Repr
 pub fn AsciiConfig::unicode() -> Self
 
 pub struct AsciiRenderer {
   _marker : Unit
 } derive(@debug.Debug)
+pub fn AsciiRenderer::format_name(Self) -> String
 pub fn AsciiRenderer::new() -> Self
+pub fn AsciiRenderer::render(Self, @diagram.Diagram) -> String raise @render_api.RenderError
+#deprecated
+pub fn AsciiRenderer::to_repr(Self) -> @debug.Repr
 pub impl @render_api.Renderer for AsciiRenderer
 
 // Type aliases

@@ -61,7 +61,7 @@ pub fn get_syntax_tokens(source : String) -> Array[SyntaxToken] {
       let block = block_strings[block_index]
       if token.range.start.offset >= block.start {
         if token.range.start.offset == block.start {
-          highlighted.push({ start: block.start, end: block.end, kind: String })
+          highlighted.push({ start: block.start, end: block.end, kind: String, })
         }
         if token.range.start.offset < block.end {
           continue
@@ -157,7 +157,7 @@ fn find_block_string_spans(
 ///|
 fn scan_block_string_span(chars : Array[Char], start : Int) -> BlockStringSpan {
   let mut cursor = start + 1
-  let quote = StringBuilder::new()
+  let quote = StringBuilder()
   while cursor < chars.length() {
     let char = chars[cursor]
     if is_block_string_tag_char_for_highlight(char) ||
@@ -196,7 +196,7 @@ fn scan_block_string_span(chars : Array[Char], start : Int) -> BlockStringSpan {
   } else {
     close_start + marker.length()
   }
-  { start, end }
+  { start, end, }
 }
 
 ///|

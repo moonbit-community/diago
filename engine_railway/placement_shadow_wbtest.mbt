@@ -54,7 +54,7 @@ fn placement_overlap_pairs(
   for id, box in patch.nodes {
     nodes.push((id, box))
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut has_any = false
   for i in 0..<nodes.length() {
     for j in (i + 1)..<nodes.length() {
