@@ -1,18 +1,18 @@
 name = "Milky2018/diago"
 
-version = "0.3.2"
+version = "0.3.3"
 
 import {
   "moonbitlang/x@0.5.1",
-  "Milky2018/xml@0.4.0",
-  "moonbit-community/cmark@0.4.5",
+  "Milky2018/xml@0.4.1",
+  "moonbit-community/cmark@0.4.8",
   "Milky2018/moon_yazi@0.1.3",
-  "gmlewis/flate@0.36.11",
-  "gmlewis/io@0.23.14",
-  "gmlewis/zlib@0.21.11",
+  "gmlewis/flate@0.36.13",
+  "gmlewis/io@0.23.16",
+  "gmlewis/zlib@0.21.13",
   "Milky2018/moon_elk@0.2.3",
   "moonbit-community/moon_dagre@0.3.1",
-  "moonbitlang/async@0.20.5",
+  "moonbitlang/async@0.21.2",
 }
 
 readme = "README.mbt.md"
