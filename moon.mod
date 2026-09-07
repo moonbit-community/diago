@@ -1,6 +1,6 @@
 name = "Milky2018/diago"
 
-version = "0.3.4"
+version = "0.3.5"
 
 import {
   "moonbitlang/x@0.5.1",
