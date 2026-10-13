@@ -117,7 +117,7 @@ fn IRArray::resolve_substitutions_with_stack(
 ///|
 fn resolve_field_primary_substitutions(
   m : Map,
-  field_index : Int,
+  field_index : Int32,
   vars_stack : Array[Map],
   in_vars_map : Bool,
 ) -> Bool raise CompileError {
@@ -150,7 +150,7 @@ fn resolve_field_primary_substitutions(
 ///|
 fn resolve_scalar_in_field(
   parent_map : Map,
-  field_index : Int,
+  field_index : Int32,
   field_name : String,
   primary : Scalar,
   composite : Composite?,
@@ -241,7 +241,7 @@ fn resolve_double_quoted_in_field(
 ///|
 fn resolve_unquoted_in_field(
   parent_map : Map,
-  field_index : Int,
+  field_index : Int32,
   field_name : String,
   range : @lexer.Range,
   us : @ast.UnquotedString,
@@ -301,7 +301,7 @@ fn resolve_unquoted_in_field(
 ///|
 fn resolve_single_sub_in_field(
   parent_map : Map,
-  field_index : Int,
+  field_index : Int32,
   field_name : String,
   _range : @lexer.Range,
   sub : @ast.Substitution,
@@ -461,7 +461,7 @@ fn resolve_edge_primary_and_map(
 ///|
 fn resolve_scalar_in_array(
   arr : IRArray,
-  index : Int,
+  index : Int32,
   scalar : Scalar,
   vars_stack : Array[Map],
 ) -> Bool raise CompileError {
@@ -497,7 +497,7 @@ fn resolve_scalar_in_array(
 ///|
 fn resolve_unquoted_in_array(
   arr : IRArray,
-  index : Int,
+  index : Int32,
   range : @lexer.Range,
   us : @ast.UnquotedString,
   vars_stack : Array[Map],
@@ -817,7 +817,11 @@ fn join(parts : Array[String], sep : String) -> String {
 // ============================================================================
 
 ///|
-fn expand_substitution(m : Map, resolved : Map, placeholder_index : Int) -> Int {
+fn expand_substitution(
+  m : Map,
+  resolved : Map,
+  placeholder_index : Int32,
+) -> Int32 {
   let mut insert_at = placeholder_index
   let mut inserted = 0
   for of in resolved.fields {
@@ -843,7 +847,7 @@ fn expand_substitution(m : Map, resolved : Map, placeholder_index : Int) -> Int 
 }
 
 ///|
-fn find_field_index(m : Map, name : String) -> Int? {
+fn find_field_index(m : Map, name : String) -> Int32? {
   let lower = name.to_lower()
   for i, f in m.fields {
     if f.name.to_lower() == lower {
@@ -854,7 +858,7 @@ fn find_field_index(m : Map, name : String) -> Int? {
 }
 
 ///|
-fn find_edge_index(m : Map, id : EdgeID) -> Int? {
+fn find_edge_index(m : Map, id : EdgeID) -> Int32? {
   for i, e in m.edges {
     if e.id.matches(id) {
       return Some(i)

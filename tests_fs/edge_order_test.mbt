@@ -32,5 +32,5 @@ async test "edge order: architecture load_balancer fanout" {
       outs.push(e.dst_id)
     }
   }
-  @debug.assert_eq(outs, ["web_tier.web1", "web_tier.web2", "web_tier.web3"])
+  assert_eq(outs, ["web_tier.web1", "web_tier.web2", "web_tier.web3"])
 }

@@ -12,10 +12,7 @@ import {
   "Milky2018/diago/renderer_unicode",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-  "moonbitlang/core/cmp",
-  "moonbitlang/core/math",
   "moonbitlang/core/string",
-  "moonbitlang/core/debug",
 } for "test"
 
 supported_targets = "+native"

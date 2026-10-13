@@ -186,7 +186,7 @@ fn render_connection_entry(
   svg : @svg.Svg,
   src_id : String,
   dst_id : String,
-  index : Int,
+  index : Int32,
   line_start_x : Double,
   _line_end_x : Double,
   line_y : Double,

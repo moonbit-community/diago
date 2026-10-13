@@ -31,7 +31,7 @@ pub struct TextDimensions {
 /// Text measurement result with line information
 pub struct MeasuredText {
   dimensions : TextDimensions
-  line_count : Int
+  line_count : Int32
   max_line_width : Double
 } derive(Eq, Debug)
 
@@ -113,13 +113,13 @@ fn select_font_kind(
 
 ///|
 priv struct GlyphMetrics {
-  x_min : Int
-  x_max : Int
-  advance_fixed : Int
+  x_min : Int32
+  x_max : Int32
+  advance_fixed : Int32
 }
 
 ///|
-fn packed_i16_at(data : Bytes, index : Int) -> Int {
+fn packed_i16_at(data : Bytes, index : Int32) -> Int32 {
   let offset = index * 2
   let bits = data[offset].to_int() | (data[offset + 1].to_int() << 8)
   if bits >= 0x8000 {
@@ -130,7 +130,7 @@ fn packed_i16_at(data : Bytes, index : Int) -> Int {
 }
 
 ///|
-fn font_units_per_em(kind : FontKind) -> Int {
+fn font_units_per_em(kind : FontKind) -> Int32 {
   match kind {
     SansRegular => FONT_UNITS_PER_EM_SANS_REGULAR
     SansBold => FONT_UNITS_PER_EM_SANS_BOLD
@@ -145,7 +145,11 @@ fn font_units_per_em(kind : FontKind) -> Int {
 }
 
 ///|
-fn scale_font_unit(value : Int, font_size : Int, units_per_em : Int) -> Int {
+fn scale_font_unit(
+  value : Int32,
+  font_size : Int32,
+  units_per_em : Int32,
+) -> Int32 {
   let scaled = value * font_size * 64
   if scaled >= 0 {
     (scaled + units_per_em / 2) / units_per_em
@@ -155,7 +159,7 @@ fn scale_font_unit(value : Int, font_size : Int, units_per_em : Int) -> Int {
 }
 
 ///|
-fn floor_fixed(value : Int) -> Int {
+fn floor_fixed(value : Int32) -> Int32 {
   if value >= 0 {
     value / 64
   } else {
@@ -164,7 +168,7 @@ fn floor_fixed(value : Int) -> Int {
 }
 
 ///|
-fn ceil_fixed(value : Int) -> Int {
+fn ceil_fixed(value : Int32) -> Int32 {
   if value >= 0 {
     (value + 63) / 64
   } else {
@@ -175,10 +179,10 @@ fn ceil_fixed(value : Int) -> Int {
 ///|
 fn lookup_kerning_fixed(
   _kind : FontKind,
-  _left_codepoint : Int,
-  _right_codepoint : Int,
-  _font_size : Int,
-) -> Int {
+  _left_codepoint : Int32,
+  _right_codepoint : Int32,
+  _font_size : Int32,
+) -> Int32 {
   0
 }
 
@@ -187,7 +191,7 @@ fn packed_glyph_metrics(
   x_mins : Bytes,
   x_maxs : Bytes,
   advances : Bytes,
-  index : Int,
+  index : Int32,
 ) -> GlyphMetrics {
   {
     x_min: packed_i16_at(x_mins, index),
@@ -197,7 +201,7 @@ fn packed_glyph_metrics(
 }
 
 ///|
-fn packed_replacement_metrics(data : Bytes, index : Int) -> GlyphMetrics {
+fn packed_replacement_metrics(data : Bytes, index : Int32) -> GlyphMetrics {
   let offset = index * 3
   {
     x_min: packed_i16_at(data, offset),
@@ -207,7 +211,10 @@ fn packed_replacement_metrics(data : Bytes, index : Int) -> GlyphMetrics {
 }
 
 ///|
-fn lookup_base_glyph_metrics(kind : FontKind, codepoint : Int) -> GlyphMetrics {
+fn lookup_base_glyph_metrics(
+  kind : FontKind,
+  codepoint : Int32,
+) -> GlyphMetrics {
   if codepoint >= 0 && codepoint < 256 {
     match kind {
       SansRegular =>
@@ -324,8 +331,8 @@ fn lookup_base_glyph_metrics(kind : FontKind, codepoint : Int) -> GlyphMetrics {
 ///|
 fn scaled_glyph_metrics(
   kind : FontKind,
-  codepoint : Int,
-  font_size : Int,
+  codepoint : Int32,
+  font_size : Int32,
 ) -> GlyphMetrics {
   if codepoint >= 0 && codepoint < 256 {
     match size_specific_font_index(font_size) {
@@ -412,7 +419,7 @@ fn scaled_glyph_metrics(
 }
 
 ///|
-fn size_specific_font_index(font_size : Int) -> Int? {
+fn size_specific_font_index(font_size : Int32) -> Int32? {
   for index, size in size_specific_font_sizes {
     if size == font_size {
       return Some(index)
@@ -422,7 +429,7 @@ fn size_specific_font_index(font_size : Int) -> Int? {
 }
 
 ///|
-fn line_height_for(font_size : Int, is_mono : Bool) -> Double {
+fn line_height_for(font_size : Int32, is_mono : Bool) -> Double {
   let mut height = font_size.to_double() * LINE_HEIGHT_FACTOR
   if is_mono {
     height = height * CODE_LINE_HEIGHT
@@ -431,13 +438,13 @@ fn line_height_for(font_size : Int, is_mono : Bool) -> Double {
 }
 
 ///|
-let hand_line_heights_by_size : Array[Int] = [
+let hand_line_heights_by_size : Array[Int32] = [
   2, 3, 11, 13, 16, 17, 18, 21, 23, 25, 27, 31, 36, 37, 38, 41, 44, 46, 50, 54, 61,
   69, 94, 107, 113, 125,
 ]
 
 ///|
-fn hand_line_height_for(font_size : Int) -> Double {
+fn hand_line_height_for(font_size : Int32) -> Double {
   match size_specific_font_index(font_size) {
     Some(index) => hand_line_heights_by_size[index].to_double()
     None => @math.ceil(font_size.to_double() * 1.25)
@@ -447,7 +454,7 @@ fn hand_line_height_for(font_size : Int) -> Double {
 ///|
 fn regular_text_height_like_reference(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   kind : FontKind,
 ) -> Double {
   let lines = text.split("\n")
@@ -474,9 +481,9 @@ fn regular_text_height_like_reference(
 }
 
 ///|
-fn decode_utf8_codepoints(text : String) -> Array[Int] {
+fn decode_utf8_codepoints(text : String) -> Array[Int32] {
   let bytes = @utf8.encode(text[:]).to_array()
-  let codepoints : Array[Int] = []
+  let codepoints : Array[Int32] = []
   let mut i = 0
   while i < bytes.length() {
     let b0 = bytes[i].to_int()
@@ -512,7 +519,7 @@ fn decode_utf8_codepoints(text : String) -> Array[Int] {
 }
 
 ///|
-fn is_d2_wide_codepoint(codepoint : Int) -> Bool {
+fn is_d2_wide_codepoint(codepoint : Int32) -> Bool {
   (codepoint >= 0x1100 && codepoint <= 0x115f) ||
   codepoint == 0x2329 ||
   codepoint == 0x232a ||
@@ -527,7 +534,7 @@ fn is_d2_wide_codepoint(codepoint : Int) -> Bool {
 }
 
 ///|
-fn is_d2_emoji_codepoint(codepoint : Int) -> Bool {
+fn is_d2_emoji_codepoint(codepoint : Int32) -> Bool {
   (codepoint >= 0x1f000 && codepoint <= 0x1faff) ||
   (codepoint >= 0x2600 && codepoint <= 0x27bf)
 }
@@ -535,8 +542,8 @@ fn is_d2_emoji_codepoint(codepoint : Int) -> Bool {
 ///|
 fn d2_replacement_cluster_width(
   kind : FontKind,
-  font_size : Int,
-  rune_count : Int,
+  font_size : Int32,
+  rune_count : Int32,
 ) -> Double {
   if rune_count <= 0 {
     return 0.0
@@ -557,7 +564,7 @@ fn d2_replacement_cluster_width(
 ///|
 fn d2_unicode_line_delta(
   line : String,
-  font_size : Int,
+  font_size : Int32,
   kind : FontKind,
 ) -> Double {
   let mono_kind = match kind {
@@ -572,10 +579,10 @@ fn d2_unicode_line_delta(
   let mut emoji_join_pending = false
 
   fn flush_emoji(
-    count : Int,
+    count : Int32,
     width : Double,
     kind : FontKind,
-    font_size : Int,
+    font_size : Int32,
   ) -> Double {
     if count > 0 {
       width * 2.0 - d2_replacement_cluster_width(kind, font_size, count)
@@ -614,7 +621,7 @@ fn d2_unicode_line_delta(
 ///|
 fn d2_scale_unicode_width(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   kind : FontKind,
   base_width : Double,
   raw_line_widths : Array[Double],
@@ -637,7 +644,7 @@ fn d2_scale_unicode_width(
 ///|
 fn measure_text_with_mode(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   kind : FontKind,
   bounds_with_dot : Bool,
   use_code_line_height : Bool,
@@ -832,7 +839,7 @@ fn measure_text_with_mode(
 /// 4. Consider font style: bold adds ~10% width, italic adds ~5%
 pub fn measure_text(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
@@ -845,7 +852,7 @@ pub fn measure_text(
 /// Measure text with D2's hand-drawn font used by sketch diagrams.
 pub fn measure_text_hand_drawn(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_bold : Bool,
 ) -> MeasuredText {
   let kind = if is_bold { HandBold } else { HandRegular }
@@ -860,7 +867,7 @@ pub fn measure_text_hand_drawn(
 /// line without changing the base line-height behavior.
 pub fn measure_text_with_dot_bounds(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
@@ -872,7 +879,7 @@ pub fn measure_text_with_dot_bounds(
 ///|
 fn measure_text_with_dot_bounds_kind(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   kind : FontKind,
 ) -> MeasuredText {
   measure_text_with_mode(text, font_size, kind, true, false)
@@ -882,7 +889,7 @@ fn measure_text_with_dot_bounds_kind(
 /// Measure code text using monospace font and CODE_LINE_HEIGHT semantics.
 pub fn measure_text_code(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_bold : Bool,
   is_italic : Bool,
 ) -> MeasuredText {
@@ -895,7 +902,10 @@ pub fn measure_text_code(
 ///
 /// This matches the reference's `ruler.Measure(SourceCodePro, ...)` behavior used by
 /// UML class sizing: monospace font, but without code-block line-height logic.
-pub fn measure_text_mono_plain(text : String, font_size : Int) -> MeasuredText {
+pub fn measure_text_mono_plain(
+  text : String,
+  font_size : Int32,
+) -> MeasuredText {
   measure_text_with_mode(text, font_size, MonoRegular, false, false)
 }
 
@@ -903,7 +913,7 @@ pub fn measure_text_mono_plain(text : String, font_size : Int) -> MeasuredText {
 /// Measure label width with padding
 pub fn measure_label(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
@@ -915,7 +925,7 @@ pub fn measure_label(
 /// Measure label dimensions with D2's hand-drawn font.
 pub fn measure_label_hand_drawn(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_bold : Bool,
 ) -> TextDimensions {
   measure_text_hand_drawn(text, font_size, is_bold).dimensions
@@ -925,7 +935,7 @@ pub fn measure_label_hand_drawn(
 /// Measure label dimensions for code snippets (language-tagged block strings).
 pub fn measure_label_code(
   text : String,
-  font_size : Int,
+  font_size : Int32,
   is_bold : Bool,
   is_italic : Bool,
 ) -> TextDimensions {
@@ -934,6 +944,6 @@ pub fn measure_label_code(
 
 ///|
 /// Measure edge label width
-pub fn measure_edge_label(text : String, font_size : Int) -> TextDimensions {
+pub fn measure_edge_label(text : String, font_size : Int32) -> TextDimensions {
   measure_label(text, font_size, false, false, false)
 }

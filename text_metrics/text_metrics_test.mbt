@@ -17,7 +17,7 @@ test "measure text width - short" {
   let dims = @text_metrics.measure_text("Hello", 16, false, false, false)
   assert_true(dims.dimensions.width >= 30.0)
   assert_true(dims.dimensions.height > 10.0)
-  @debug.assert_eq(dims.line_count, 0)
+  assert_eq(dims.line_count, 0)
 }
 
 ///|
@@ -26,7 +26,7 @@ test "measure text width - long" {
     "This is a longer text for testing", 16, false, false, false,
   )
   assert_true(dims.dimensions.width > 100.0)
-  @debug.assert_eq(dims.line_count, 0)
+  assert_eq(dims.line_count, 0)
 }
 
 ///|
@@ -62,8 +62,8 @@ test "measure text with newlines" {
   let dims = @text_metrics.measure_text(
     "Line 1\nLine 2\nLine 3", 14, false, false, false,
   )
-  @debug.assert_eq(dims.line_count, 2)
-  @debug.assert_eq(dims.dimensions.height, 46.0)
+  assert_eq(dims.line_count, 2)
+  assert_eq(dims.dimensions.height, 46.0)
 }
 
 ///|
@@ -72,22 +72,22 @@ test "measure two-line code uses precise first-line bounds" {
     "declare function getSmallPet(): Fish | Bird;\nconst works = (a > 1) || (b < 2)",
     16, false, false,
   )
-  @debug.assert_eq(measured.dimensions.width, 423.0)
-  @debug.assert_eq(measured.dimensions.height, 41.0)
+  assert_eq(measured.dimensions.width, 423.0)
+  assert_eq(measured.dimensions.height, 41.0)
 }
 
 ///|
 test "measure text with leading empty line" {
   let dims = @text_metrics.measure_text("\nLine 1", 14, false, false, false)
-  @debug.assert_eq(dims.line_count, 1)
-  @debug.assert_eq(dims.dimensions.height, 18.0)
+  assert_eq(dims.line_count, 1)
+  assert_eq(dims.dimensions.height, 18.0)
 }
 
 ///|
 test "measure text with trailing empty lines" {
   let dims = @text_metrics.measure_text("Line 1\n\n", 14, false, false, false)
-  @debug.assert_eq(dims.line_count, 2)
-  @debug.assert_eq(dims.dimensions.height, 18.0)
+  assert_eq(dims.line_count, 2)
+  assert_eq(dims.dimensions.height, 18.0)
 }
 
 ///|
@@ -111,13 +111,13 @@ test "measure label probe for empty nested grid parity" {
 ///|
 test "measure styled mono labels with D2 font faces" {
   let bold = @text_metrics.measure_text("x", 16, true, true, false)
-  @debug.assert_eq(bold.max_line_width, 9.0)
-  @debug.assert_eq(bold.dimensions.width, 9.0)
-  @debug.assert_eq(bold.dimensions.height, 21.0)
+  assert_eq(bold.max_line_width, 9.0)
+  assert_eq(bold.dimensions.width, 9.0)
+  assert_eq(bold.dimensions.height, 21.0)
   let italic = @text_metrics.measure_text("hi", 16, true, false, true)
-  @debug.assert_eq(italic.max_line_width, 17.59375)
-  @debug.assert_eq(italic.dimensions.width, 18.0)
-  @debug.assert_eq(italic.dimensions.height, 21.0)
+  assert_eq(italic.max_line_width, 17.59375)
+  assert_eq(italic.dimensions.width, 18.0)
+  assert_eq(italic.dimensions.height, 21.0)
 }
 
 ///|

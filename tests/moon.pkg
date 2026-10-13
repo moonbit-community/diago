@@ -10,8 +10,5 @@ import {
   "Milky2018/diago/engine_railway",
   "Milky2018/diago/renderer_svg",
   "Milky2018/diago/renderer_ascii",
-  "moonbitlang/core/cmp",
-  "moonbitlang/core/math",
-  "moonbitlang/core/string",
   "moonbitlang/core/debug",
 } for "test"

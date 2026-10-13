@@ -17,10 +17,10 @@ test "get_ref_ranges supports key references" {
   let source =
     #|a: 1
     #|a: 2
-  let ranges = try! get_ref_ranges(source, "a")
-  @debug.assert_eq(ranges.length(), 2)
-  @debug.assert_eq(ranges[0].start.line, 0)
-  @debug.assert_eq(ranges[1].start.line, 1)
+  let ranges = try! @diago.get_ref_ranges(source, "a")
+  assert_eq(ranges.length(), 2)
+  assert_eq(ranges[0].start.line, 0)
+  assert_eq(ranges[1].start.line, 1)
 }
 
 ///|
@@ -28,10 +28,10 @@ test "get_ref_ranges supports edge references" {
   let source =
     #|a -> b
     #|a -> b
-  let ranges = try! get_ref_ranges(source, "a -> b")
-  @debug.assert_eq(ranges.length(), 2)
-  @debug.assert_eq(ranges[0].start.line, 0)
-  @debug.assert_eq(ranges[1].start.line, 1)
+  let ranges = try! @diago.get_ref_ranges(source, "a -> b")
+  assert_eq(ranges.length(), 2)
+  assert_eq(ranges[0].start.line, 0)
+  assert_eq(ranges[1].start.line, 1)
 }
 
 ///|
@@ -42,38 +42,41 @@ test "get_board_path_at_position returns board path" {
     #|    service
     #|  }
     #|}
-  let path = get_board_path_at_position(source, 2, 6)
-  @debug.assert_eq(path.length(), 2)
-  @debug.assert_eq(path[0], "layers")
-  @debug.assert_eq(path[1], "core")
+  let path = @diago.get_board_path_at_position(source, 2, 6)
+  assert_eq(path.length(), 2)
+  assert_eq(path[0], "layers")
+  assert_eq(path[1], "core")
 }
 
 ///|
 test "get_completion_items suggests style keywords" {
-  let items = get_completion_items("a.style.", 0, 8)
+  let items = @diago.get_completion_items("a.style.", 0, 8)
   assert_true(has_completion_label(items, "opacity"))
 }
 
 ///|
 test "get_completion_items suggests shape values" {
-  let items = get_completion_items("a.shape:", 0, 8)
+  let items = @diago.get_completion_items("a.shape:", 0, 8)
   assert_true(has_completion_label(items, "rectangle"))
 }
 
 ///|
 test "get_completion_items suggests near positions" {
-  let items = get_completion_items("a.label.near:", 0, 13)
+  let items = @diago.get_completion_items("a.label.near:", 0, 13)
   assert_true(has_completion_label(items, "top-center"))
 }
 
 ///|
 test "get_completion_items provides numeric value hints" {
-  let items = get_completion_items("a.width:", 0, 8)
+  let items = @diago.get_completion_items("a.width:", 0, 8)
   assert_true(has_completion_label(items, "(pixels)"))
 }
 
 ///|
-fn has_completion_label(items : Array[CompletionItem], label : String) -> Bool {
+fn has_completion_label(
+  items : Array[@diago.CompletionItem],
+  label : String,
+) -> Bool {
   for item in items {
     if item.label == label {
       return true

@@ -31,15 +31,15 @@ pub(all) enum SyntaxTokenKind {
 /// `start` and `end` are zero-based Unicode code point offsets. The range is
 /// half-open: it includes `start` and excludes `end`.
 pub struct SyntaxToken {
-  start : Int
-  end : Int
+  start : Int32
+  end : Int32
   kind : SyntaxTokenKind
 } derive(Eq, Debug)
 
 ///|
 priv struct BlockStringSpan {
-  start : Int
-  end : Int
+  start : Int32
+  end : Int32
 }
 
 ///|
@@ -155,7 +155,10 @@ fn find_block_string_spans(
 }
 
 ///|
-fn scan_block_string_span(chars : Array[Char], start : Int) -> BlockStringSpan {
+fn scan_block_string_span(
+  chars : Array[Char],
+  start : Int32,
+) -> BlockStringSpan {
   let mut cursor = start + 1
   let quote = StringBuilder()
   while cursor < chars.length() {
@@ -215,7 +218,7 @@ fn is_block_string_space_for_highlight(char : Char) -> Bool {
 ///|
 fn chars_start_with(
   chars : Array[Char],
-  start : Int,
+  start : Int32,
   pattern : Array[Char],
 ) -> Bool {
   for index in 0..<pattern.length() {

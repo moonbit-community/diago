@@ -24,12 +24,12 @@
 /// Used to count inversions (crossings) in O(n log n)
 priv struct FenwickTree {
   tree : Array[Double]
-  size : Int
+  size : Int32
 }
 
 ///|
 /// Create a new Fenwick tree with given size
-fn FenwickTree::new(size : Int) -> FenwickTree {
+fn FenwickTree::new(size : Int32) -> FenwickTree {
   let tree : Array[Double] = []
   for _ in 0..<=size {
     tree.push(0.0)
@@ -39,7 +39,7 @@ fn FenwickTree::new(size : Int) -> FenwickTree {
 
 ///|
 /// Update value at index (1-indexed)
-fn FenwickTree::update(self : FenwickTree, idx : Int, delta : Double) -> Unit {
+fn FenwickTree::update(self : FenwickTree, idx : Int32, delta : Double) -> Unit {
   let mut i = idx
   while i <= self.size {
     self.tree[i] = self.tree[i] + delta
@@ -49,7 +49,7 @@ fn FenwickTree::update(self : FenwickTree, idx : Int, delta : Double) -> Unit {
 
 ///|
 /// Query prefix sum [1, idx] (1-indexed)
-fn FenwickTree::query(self : FenwickTree, idx : Int) -> Double {
+fn FenwickTree::query(self : FenwickTree, idx : Int32) -> Double {
   let mut sum = 0.0
   let mut i = idx
   while i > 0 {
@@ -61,7 +61,7 @@ fn FenwickTree::query(self : FenwickTree, idx : Int) -> Double {
 
 ///|
 /// Query range sum (idx, size] - elements strictly greater than idx
-fn FenwickTree::query_greater(self : FenwickTree, idx : Int) -> Double {
+fn FenwickTree::query_greater(self : FenwickTree, idx : Int32) -> Double {
   self.query(self.size) - self.query(idx)
 }
 
@@ -84,8 +84,8 @@ pub fn count_crossings_fenwick(
     return 0.0
   }
   // Build position maps
-  let north_pos : Map[String, Int] = Map([])
-  let south_pos : Map[String, Int] = Map([])
+  let north_pos : Map[String, Int32] = Map([])
+  let south_pos : Map[String, Int32] = Map([])
   for i, node in north_layer {
     north_pos[node] = i
   }
@@ -94,7 +94,7 @@ pub fn count_crossings_fenwick(
   }
   // Collect edges with their positions and weights
   // (north_position, south_position, weight)
-  let edge_entries : Array[(Int, Int, Double)] = []
+  let edge_entries : Array[(Int32, Int32, Double)] = []
   for edge in edges {
     let (north, south, weight) = edge
     match (north_pos.get(north), south_pos.get(south)) {
@@ -128,7 +128,7 @@ pub fn count_crossings_fast(
   north_layer : Array[String],
   south_layer : Array[String],
   edges : Array[(String, String)],
-) -> Int {
+) -> Int32 {
   // Convert to weighted edges (weight = 1.0)
   let weighted : Array[(String, String, Double)] = []
   for edge in edges {
@@ -143,7 +143,7 @@ pub fn count_crossings_fast(
 pub fn count_all_crossings(
   layers : Array[Array[String]],
   upper_neighbors : Map[String, Array[String]],
-) -> Int {
+) -> Int32 {
   let mut total = 0
   for i = 1; i < layers.length(); i = i + 1 {
     let north = layers[i - 1]
@@ -194,7 +194,7 @@ pub fn count_all_crossings_weighted(
 
 ///|
 /// Sort edges by north position (first element of tuple)
-fn sort_edges_by_north(edges : Array[(Int, Int, Double)]) -> Unit {
+fn sort_edges_by_north(edges : Array[(Int32, Int32, Double)]) -> Unit {
   // Insertion sort for stability
   let n = edges.length()
   for i = 1; i < n; i = i + 1 {

@@ -79,10 +79,10 @@ fn identity_graph() -> @graph.GraphInput {
 test "layout problem canonicalizes syntax-distinct identities" {
   let problem = @layout_core.compile(identity_graph())
   let graph = problem.graph()
-  @debug.assert_eq(graph.objects[0].id, "\"a.b\"")
-  @debug.assert_eq(graph.objects[1].id, "a.b")
-  @debug.assert_eq(graph.edges[0].src_id, "\"a.b\"")
-  @debug.assert_eq(graph.edges[0].dst_id, "a.b")
+  assert_eq(graph.objects[0].id, "\"a.b\"")
+  assert_eq(graph.objects[1].id, "a.b")
+  assert_eq(graph.edges[0].src_id, "\"a.b\"")
+  assert_eq(graph.edges[0].dst_id, "a.b")
 }
 
 ///|
@@ -92,7 +92,7 @@ test "layout problem rejects duplicate canonical identities" {
     @graph.ObjectInput::new("other", id_syntax="other", abs_id_syntax="a.b"),
   )
   try @layout_core.compile(graph) catch {
-    DuplicateObjectId(id) => @debug.assert_eq(id, "a.b")
+    DuplicateObjectId(id) => assert_eq(id, "a.b")
     error => fail("unexpected error: \{error.message()}")
   } noraise {
     _ => fail("expected duplicate object identity to fail")
@@ -115,8 +115,8 @@ test "layout problem rejects missing edge endpoints" {
   )
   try @layout_core.compile(graph) catch {
     MissingEdgeEndpoint(edge_index~, endpoint_id~) => {
-      @debug.assert_eq(edge_index, 1)
-      @debug.assert_eq(endpoint_id, "missing")
+      assert_eq(edge_index, 1)
+      assert_eq(endpoint_id, "missing")
     }
     error => fail("unexpected error: \{error.message()}")
   } noraise {
@@ -130,7 +130,7 @@ test "layout problem validates patch identities" {
   let patch = @graph.LayoutPatch::new()
   patch.nodes["unknown"] = @graph.Box::new(0.0, 0.0, 10.0, 10.0)
   try problem.validate_patch(patch) catch {
-    UnknownPatchNode(id) => @debug.assert_eq(id, "unknown")
+    UnknownPatchNode(id) => assert_eq(id, "unknown")
     error => fail("unexpected error: \{error.message()}")
   } noraise {
     _ => fail("expected unknown patch identity to fail")
@@ -144,9 +144,9 @@ test "layout object ids preserve canonical source syntax as map keys" {
   let values : Map[@layout_core.ObjectId, String] = Map([])
   values[quoted] = "quoted"
   values[nested] = "nested"
-  @debug.assert_eq(values.length(), 2)
-  @debug.assert_eq(values.get(quoted), Some("quoted"))
-  @debug.assert_eq(values.get(nested), Some("nested"))
-  @debug.assert_eq(quoted.value(), "\"a.b\"")
-  @debug.assert_eq(nested.value(), "a.b")
+  assert_eq(values.length(), 2)
+  assert_eq(values.get(quoted), Some("quoted"))
+  assert_eq(values.get(nested), Some("nested"))
+  assert_eq(quoted.value(), "\"a.b\"")
+  assert_eq(nested.value(), "a.b")
 }

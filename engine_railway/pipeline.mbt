@@ -41,7 +41,7 @@ priv enum RailwayPlacementAdapter {
 priv struct RailwayNodeLayout {
   boxes : Map[String, @graph.Box]
   level_heights : Array[Double]
-  rank_by_id : Map[String, Int]
+  rank_by_id : Map[String, Int32]
 }
 
 ///|
@@ -49,11 +49,11 @@ priv struct RailwayPlacementResult {
   layout_input : @graph.GraphInput
   object_by_id : Map[@layout_core.ObjectId, @graph.ObjectInput]
   parent_id_by_child_id : Map[@layout_core.ObjectId, @layout_core.ObjectId]
-  self_loop : @hashset.HashSet[Int]
-  id_to_idx : Map[@layout_core.ObjectId, Int]
+  self_loop : @hashset.HashSet[Int32]
+  id_to_idx : Map[@layout_core.ObjectId, Int32]
   boxes : Map[@layout_core.ObjectId, @graph.Box]
-  rank_by_id : Map[@layout_core.ObjectId, Int]
-  depths : Array[Int]
+  rank_by_id : Map[@layout_core.ObjectId, Int32]
+  depths : Array[Int32]
   level_heights : Array[Double]
 }
 
@@ -69,14 +69,14 @@ priv struct RailwayRoutingProblem {
   layout_input : @graph.GraphInput
   object_by_id : Map[@layout_core.ObjectId, @graph.ObjectInput]
   parent_id_by_child_id : Map[@layout_core.ObjectId, @layout_core.ObjectId]
-  self_loop : @hashset.HashSet[Int]
-  id_to_idx : Map[@layout_core.ObjectId, Int]
-  depths : Array[Int]
-  rail_tracks : Map[Int, Int]
-  shift_by_edge : Map[Int, Double]
-  lane_by_edge : Map[Int, Int]
-  src_ports : Map[Int, @graph.Point]
-  dst_ports : Map[Int, @graph.Point]
+  self_loop : @hashset.HashSet[Int32]
+  id_to_idx : Map[@layout_core.ObjectId, Int32]
+  depths : Array[Int32]
+  rail_tracks : Map[Int32, Int32]
+  shift_by_edge : Map[Int32, Double]
+  lane_by_edge : Map[Int32, Int32]
+  src_ports : Map[Int32, @graph.Point]
+  dst_ports : Map[Int32, @graph.Point]
   boxes : Map[@layout_core.ObjectId, @graph.Box]
   direction : @engine_api.Direction
   config : @engine_api.LayoutConfig
@@ -86,8 +86,8 @@ priv struct RailwayRoutingProblem {
 ///|
 priv struct RailwayRoutingResult {
   patch : @graph.LayoutPatch
-  routing_passes : Int
-  title_collision_score : Int
+  routing_passes : Int32
+  title_collision_score : Int32
 }
 
 ///|
@@ -137,9 +137,9 @@ fn raw_parent_map(
 ///|
 fn rank_array_for_layout(
   graph : @graph.GraphInput,
-  id_to_idx : Map[String, Int],
-  rank_by_id : Map[String, Int],
-) -> Array[Int] {
+  id_to_idx : Map[String, Int32],
+  rank_by_id : Map[String, Int32],
+) -> Array[Int32] {
   let depth = Array::make(graph.objects.length(), 0)
   for obj in graph.objects {
     let idx = match id_to_idx.get(obj.id) {

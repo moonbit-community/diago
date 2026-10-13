@@ -19,7 +19,7 @@
 
 ///|
 /// Get a theme by ID
-pub fn get_theme(id : Int) -> Theme {
+pub fn get_theme(id : Int32) -> Theme {
   match id {
     0 => neutral_default()
     1 => neutral_grey()

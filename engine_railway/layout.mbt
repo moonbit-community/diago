@@ -66,7 +66,7 @@ fn run_placement_stage_with_adapter(
   let plan = els_tarjan_plan(layout_input)
   let (self_loop, reversed_set) = dag_edge_index_sets(plan)
   let n = layout_input.objects.length()
-  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
+  let id_to_idx : Map[String, Int32] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx.set(layout_input.objects[i].id, i)
   }
@@ -247,9 +247,9 @@ fn run_routing_stage(
 
 ///|
 fn clone_edge_routes_railway(
-  routes : Map[Int, Array[@graph.Point]],
-) -> Map[Int, Array[@graph.Point]] {
-  let cloned : Map[Int, Array[@graph.Point]] = Map([])
+  routes : Map[Int32, Array[@graph.Point]],
+) -> Map[Int32, Array[@graph.Point]] {
+  let cloned : Map[Int32, Array[@graph.Point]] = Map([])
   for edge_index, route in routes {
     cloned[edge_index] = route.copy()
   }
@@ -258,8 +258,8 @@ fn clone_edge_routes_railway(
 
 ///|
 fn restore_edge_routes_railway(
-  routes : Map[Int, Array[@graph.Point]],
-  saved : Map[Int, Array[@graph.Point]],
+  routes : Map[Int32, Array[@graph.Point]],
+  saved : Map[Int32, Array[@graph.Point]],
 ) -> Unit {
   routes.clear()
   for edge_index, route in saved {
@@ -293,7 +293,7 @@ fn restore_node_label_boxes_railway(
 fn container_title_route_collision_score_railway(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
-) -> Int {
+) -> Int32 {
   let container_ids : Map[String, Bool] = Map([])
   for obj in graph.objects {
     if is_layout_container_candidate(obj) {
@@ -337,7 +337,7 @@ fn layout_hierarchy_railway(
   graph : @graph.GraphInput,
   object_by_id : Map[String, @graph.ObjectInput],
   parent_id_by_child_id : Map[String, String],
-  rank_by_id : Map[String, Int],
+  rank_by_id : Map[String, Int32],
   direction : @engine_api.Direction,
   config : @engine_api.LayoutConfig,
   container_padding : Double,
@@ -376,7 +376,7 @@ fn layout_hierarchy_railway(
 ///|
 fn levels_from_rank_only_railway(
   graph : @graph.GraphInput,
-  rank_by_id : Map[String, Int],
+  rank_by_id : Map[String, Int32],
 ) -> Array[Level] {
   let mut max_rank = 0
   for entry in rank_by_id {
@@ -425,7 +425,7 @@ fn route_edges_railway(
       if su < 0 || sv < 0 {
         3
       } else {
-        let span = Int::abs(depths[sv] - depths[su])
+        let span = Int32::abs(depths[sv] - depths[su])
         if span > 1 {
           0
         } else if span == 1 {
@@ -443,7 +443,7 @@ fn route_edges_railway(
       if su < 0 || sv < 0 {
         3
       } else {
-        let span = Int::abs(depths[sv] - depths[su])
+        let span = Int32::abs(depths[sv] - depths[su])
         if span > 1 {
           0
         } else if span == 1 {
@@ -464,7 +464,7 @@ fn route_edges_railway(
         if su < 0 || sv < 0 {
           0
         } else {
-          Int::abs(depths[sv] - depths[su])
+          Int32::abs(depths[sv] - depths[su])
         }
       }
       let b_span = if b_self {
@@ -475,7 +475,7 @@ fn route_edges_railway(
         if su < 0 || sv < 0 {
           0
         } else {
-          Int::abs(depths[sv] - depths[su])
+          Int32::abs(depths[sv] - depths[su])
         }
       }
       if a_span != b_span {

@@ -21,9 +21,9 @@
 /// Track which ranks each container spans
 pub(all) struct ContainerRanks {
   /// First rank containing a child
-  starting_rank : Map[String, Int]
+  starting_rank : Map[String, Int32]
   /// Last rank containing a child
-  ending_rank : Map[String, Int]
+  ending_rank : Map[String, Int32]
 }
 
 ///|
@@ -33,14 +33,14 @@ pub fn compute_container_ranks(
   layers : Array[Array[String]],
 ) -> ContainerRanks {
   // Build rank map for all nodes
-  let node_ranks : Map[String, Int] = Map([])
+  let node_ranks : Map[String, Int32] = Map([])
   for i, layer in layers {
     for node in layer {
       node_ranks[node] = i
     }
   }
-  let starting : Map[String, Int] = Map([])
-  let ending : Map[String, Int] = Map([])
+  let starting : Map[String, Int32] = Map([])
+  let ending : Map[String, Int32] = Map([])
   // Process each container object
   for obj in graph.objects {
     if graph.children_of(obj).length() == 0 {
@@ -61,8 +61,8 @@ pub fn compute_container_ranks(
 fn find_child_rank_range(
   graph : @graph.GraphInput,
   container : @graph.ObjectInput,
-  node_ranks : Map[String, Int],
-) -> (Int, Int) {
+  node_ranks : Map[String, Int32],
+) -> (Int32, Int32) {
   let mut min_rank = 1000000
   let mut max_rank = -1
   for child in graph.children_of(container) {
@@ -120,7 +120,7 @@ fn collect_containers_by_depth(
   graph : @graph.GraphInput,
 ) -> Array[@graph.ObjectInput] {
   let result : Array[@graph.ObjectInput] = []
-  let depths : Map[String, Int] = Map([])
+  let depths : Map[String, Int32] = Map([])
   // Calculate depth for each container
   for obj in graph.objects {
     if graph.children_of(obj).length() > 0 {
@@ -138,7 +138,7 @@ fn collect_containers_by_depth(
 fn calculate_container_depth(
   graph : @graph.GraphInput,
   container : @graph.ObjectInput,
-) -> Int {
+) -> Int32 {
   let mut max_child_depth = 0
   for child in graph.children_of(container) {
     if graph.children_of(child).length() > 0 {
@@ -155,7 +155,7 @@ fn calculate_container_depth(
 /// Sort containers by depth (insertion sort)
 fn sort_containers_by_depth(
   containers : Array[@graph.ObjectInput],
-  depths : Map[String, Int],
+  depths : Map[String, Int32],
 ) -> Unit {
   let n = containers.length()
   for i = 1; i < n; i = i + 1 {

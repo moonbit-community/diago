@@ -56,8 +56,8 @@ test "constant near place shifts left for outside-right labels like the referenc
     outside_right, "top-left", 0.0, 0.0, 100.0, 80.0, 60.0, 40.0,
   )
   let (label_width, _) = object_label_dimensions(outside_right).unwrap()
-  @debug.assert_eq(adjusted_pos.0, plain_pos.0 - label_width)
-  @debug.assert_eq(adjusted_pos.1, plain_pos.1)
+  assert_eq(adjusted_pos.0, plain_pos.0 - label_width)
+  assert_eq(adjusted_pos.1, plain_pos.1)
 }
 
 ///|
@@ -71,14 +71,14 @@ test "constant near place shifts down for outside-top labels like the reference"
     outside_top, "bottom-right", 0.0, 0.0, 100.0, 80.0, 60.0, 40.0,
   )
   let (_, label_height) = object_label_dimensions(outside_top).unwrap()
-  @debug.assert_eq(adjusted_pos.0, plain_pos.0)
-  @debug.assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
+  assert_eq(adjusted_pos.0, plain_pos.0)
+  assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
 }
 
 ///|
 test "outside icon layout margin uses the rendered icon size" {
   let box = @graph.Box::new(0.0, 0.0, 123.0, 118.0)
-  @debug.assert_eq(
+  assert_eq(
     object_layout_icon_size(box, "OUTSIDE_TOP_RIGHT") + D2_LABEL_PADDING,
     64.0,
   )
@@ -95,10 +95,7 @@ test "edge labels use D2 target route precision before midpoint rounding" {
     @graph.Point::new(253.58333333333334, 836.0),
   ]
   let center = d2_target_route_point_at_percent(route, 0.5)
-  @debug.assert_eq(
-    d2_path_chop_precision_for_trace(center.x - 31.0 / 2.0),
-    334.0,
-  )
+  assert_eq(d2_path_chop_precision_for_trace(center.x - 31.0 / 2.0), 334.0)
 }
 
 ///|
@@ -133,16 +130,16 @@ test "person with only an explicit width preserves the reference aspect ratio" {
     @engine_api.LayoutConfig::new(),
     object_by_id,
   )
-  @debug.assert_eq(width, 130.0)
-  @debug.assert_eq(height, 87.0)
+  assert_eq(width, 130.0)
+  assert_eq(height, 87.0)
 }
 
 ///|
 test "elk edge ids preserve quoted syntax path segments" {
   let quoted = @graph.EdgeInput::new(0, "\"a.b\"", "c", false, true)
   let nested = @graph.EdgeInput::new(1, "a.b", "c", false, true)
-  @debug.assert_eq(d2_edge_abs_id(quoted, 0), "(\"a.b\" -> c)[0]")
-  @debug.assert_eq(d2_edge_abs_id(nested, 0), "(a.b -> c)[0]")
+  assert_eq(d2_edge_abs_id(quoted, 0), "(\"a.b\" -> c)[0]")
+  assert_eq(d2_edge_abs_id(nested, 0), "(a.b -> c)[0]")
   assert_true(
     d2_edge_abs_id(quoted, 0) != d2_edge_abs_id(nested, 0),
     msg="quoted-dot and nested edges need distinct ELK ids",
@@ -163,11 +160,11 @@ test "ELK route parsing preserves duplicate section points like D2" {
     "sections": Json::array([Json::object(section)]),
   }
   let route = parse_edge_route(edge, 100.0, 200.0)
-  @debug.assert_eq(route.length(), 4)
-  @debug.assert_eq(route[0], @graph.Point::new(110.0, 220.0))
-  @debug.assert_eq(route[1], @graph.Point::new(130.0, 220.0))
-  @debug.assert_eq(route[2], @graph.Point::new(130.0, 220.0))
-  @debug.assert_eq(route[3], @graph.Point::new(130.0, 240.0))
+  assert_eq(route.length(), 4)
+  assert_eq(route[0], @graph.Point::new(110.0, 220.0))
+  assert_eq(route[1], @graph.Point::new(130.0, 220.0))
+  assert_eq(route[2], @graph.Point::new(130.0, 220.0))
+  assert_eq(route[3], @graph.Point::new(130.0, 240.0))
 }
 
 ///|
@@ -178,7 +175,7 @@ test "moving an edge start removes collinear points passed by the endpoint" {
     @graph.Point::new(20.0, 0.0),
     @graph.Point::new(20.0, 10.0),
   ]
-  @debug.assert_eq(shift_route_start_like_d2(route, 15.0, true), [
+  assert_eq(shift_route_start_like_d2(route, 15.0, true), [
     @graph.Point::new(15.0, 0.0),
     @graph.Point::new(20.0, 0.0),
     @graph.Point::new(20.0, 10.0),
@@ -193,7 +190,7 @@ test "moving an edge end removes collinear points passed by the endpoint" {
     @graph.Point::new(0.0, 20.0),
     @graph.Point::new(0.0, 30.0),
   ]
-  @debug.assert_eq(shift_route_end_like_d2(route, -15.0, false), [
+  assert_eq(shift_route_end_like_d2(route, -15.0, false), [
     @graph.Point::new(0.0, 0.0),
     @graph.Point::new(0.0, 10.0),
     @graph.Point::new(0.0, 15.0),

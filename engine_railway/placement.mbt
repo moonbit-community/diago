@@ -188,7 +188,7 @@ fn repack_levels_left_to_right(
     anchor = @cmp.minimum(anchor, cross)
   }
 
-  let degree_by_id : Map[String, Int] = Map([])
+  let degree_by_id : Map[String, Int32] = Map([])
   for edge in graph.edges {
     degree_by_id[edge.src_id] = degree_by_id.get_or_default(edge.src_id, 0) + 1
     degree_by_id[edge.dst_id] = degree_by_id.get_or_default(edge.dst_id, 0) + 1
@@ -296,7 +296,7 @@ priv struct OrderCandidate {
   id : String
   barycenter : Double
   parent_id : String
-  original_pos : Int
+  original_pos : Int32
 }
 
 ///|
@@ -307,9 +307,9 @@ fn rank_by_layout_constraints(
   config : @engine_api.LayoutConfig,
   dagre_node_id_by_object_id : Map[String, String],
   laid_out : @moon_dagre.Graph,
-) -> Map[String, Int] {
-  fn unique_rank_count(rank_by_id : Map[String, Int]) -> Int {
-    let unique_ranks : Array[Int] = []
+) -> Map[String, Int32] {
+  fn unique_rank_count(rank_by_id : Map[String, Int32]) -> Int32 {
+    let unique_ranks : Array[Int32] = []
     for entry in rank_by_id {
       let r = entry.1
       let mut found = false
@@ -326,9 +326,9 @@ fn rank_by_layout_constraints(
     unique_ranks.length()
   }
 
-  let rank_by_id : Map[String, Int] = Map([])
+  let rank_by_id : Map[String, Int32] = Map([])
   let physical_axis : Array[AxisSample] = []
-  let raw_rank_by_id : Map[String, Int] = Map([])
+  let raw_rank_by_id : Map[String, Int32] = Map([])
   for obj in graph.objects {
     if is_layout_container_candidate(obj) {
       continue
@@ -383,7 +383,7 @@ fn rank_by_layout_constraints(
     rank_by_id[entry.0] = entry.1
   }
 
-  let ranked_axis : Array[(Double, Int)] = []
+  let ranked_axis : Array[(Double, Int32)] = []
   for sample in physical_axis {
     ranked_axis.push((sample.key, rank_by_id.get_or_default(sample.id, 0)))
   }
@@ -392,7 +392,7 @@ fn rank_by_layout_constraints(
     if !is_layout_container_candidate(obj) {
       continue
     }
-    let child_ranks : Array[Int] = []
+    let child_ranks : Array[Int32] = []
     for child_id in obj.child_ids {
       if rank_by_id.contains(child_id) {
         child_ranks.push(rank_by_id.get_or_default(child_id, 0))
@@ -421,8 +421,8 @@ fn rank_by_layout_constraints(
 fn rank_by_axis_clustering(
   samples : Array[AxisSample],
   threshold : Double,
-) -> Map[String, Int] {
-  let rank_by_id : Map[String, Int] = Map([])
+) -> Map[String, Int32] {
+  let rank_by_id : Map[String, Int32] = Map([])
   if samples.is_empty() {
     return rank_by_id
   }
@@ -454,12 +454,12 @@ fn rank_by_axis_clustering(
 }
 
 ///|
-fn densify_rank_map(rank_by_id : Map[String, Int]) -> Map[String, Int] {
-  let dense : Map[String, Int] = Map([])
+fn densify_rank_map(rank_by_id : Map[String, Int32]) -> Map[String, Int32] {
+  let dense : Map[String, Int32] = Map([])
   if rank_by_id.is_empty() {
     return dense
   }
-  let unique_ranks : Array[Int] = []
+  let unique_ranks : Array[Int32] = []
   for entry in rank_by_id {
     let r = entry.1
     let mut found = false
@@ -474,7 +474,7 @@ fn densify_rank_map(rank_by_id : Map[String, Int]) -> Map[String, Int] {
     }
   }
   unique_ranks.sort()
-  let dense_by_raw : Map[Int, Int] = Map([])
+  let dense_by_raw : Map[Int32, Int32] = Map([])
   for i, raw in unique_ranks {
     dense_by_raw[raw] = i
   }
@@ -487,8 +487,8 @@ fn densify_rank_map(rank_by_id : Map[String, Int]) -> Map[String, Int] {
 ///|
 fn nearest_rank_by_axis(
   key : Double,
-  ranked_axis : Array[(Double, Int)],
-) -> Int {
+  ranked_axis : Array[(Double, Int32)],
+) -> Int32 {
   if ranked_axis.is_empty() {
     return 0
   }
@@ -524,11 +524,11 @@ fn build_parent_id_by_child_id(
 fn barycenter_toward_adjacent_rank(
   graph : @graph.GraphInput,
   node_id : String,
-  adjacent_rank : Int,
-  rank_by_id : Map[String, Int],
-  position_by_id : Map[String, Int],
+  adjacent_rank : Int32,
+  rank_by_id : Map[String, Int32],
+  position_by_id : Map[String, Int32],
 ) -> Double? {
-  let neighbors : Array[Int] = []
+  let neighbors : Array[Int32] = []
   for edge in graph.edges {
     if edge.src_id == node_id {
       if rank_by_id.get_or_default(edge.dst_id, -1000000) == adjacent_rank {
@@ -554,16 +554,16 @@ fn barycenter_toward_adjacent_rank(
 ///|
 fn optimize_levels_by_barycenter(
   graph : @graph.GraphInput,
-  rank_by_id : Map[String, Int],
+  rank_by_id : Map[String, Int32],
   levels : Array[Level],
-  order_by_id : Map[String, Int],
+  order_by_id : Map[String, Int32],
 ) -> Unit {
   let parent_id_by_child_id = build_parent_id_by_child_id(graph)
   if levels.length() <= 2 {
     return
   }
-  fn rebuild_positions(levels : Array[Level]) -> Map[String, Int] {
-    let pos : Map[String, Int] = Map([])
+  fn rebuild_positions(levels : Array[Level]) -> Map[String, Int32] {
+    let pos : Map[String, Int32] = Map([])
     for level in levels {
       for i, id in level {
         pos[id] = i
@@ -674,7 +674,7 @@ fn major_axis_key(
 ///|
 fn levels_from_rank_and_order(
   graph : @graph.GraphInput,
-  rank_by_id : Map[String, Int],
+  rank_by_id : Map[String, Int32],
   dagre_node_id_by_object_id : Map[String, String],
   laid_out : @moon_dagre.Graph,
 ) -> Array[Level] {
@@ -685,7 +685,7 @@ fn levels_from_rank_and_order(
     }
   }
   let levels : Array[Level] = Array::makei(max_rank + 1, _ => ([] : Level))
-  let order_by_id : Map[String, Int] = Map([])
+  let order_by_id : Map[String, Int32] = Map([])
   for obj in graph.objects {
     let dagre_id = dagre_node_id_by_object_id.get_or_default(obj.id, "")
     let order = if dagre_id == "" {
@@ -997,7 +997,7 @@ fn railway_round_double(v : Double) -> Double {
 }
 
 ///|
-fn railway_dagre_node_id(order : Int) -> String {
+fn railway_dagre_node_id(order : Int32) -> String {
   order.to_string()
 }
 

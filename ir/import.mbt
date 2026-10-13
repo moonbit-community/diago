@@ -53,7 +53,7 @@ fn compile_map_nodes_with_imports(
   scope_frames : Array[CompileScopeFrame],
   resolver : ImportResolver,
   import_stack : Array[String],
-  source_path? : String? = None,
+  source_path~ : String? = None,
 ) -> Unit raise CompileError {
   compile_map_non_glob_nodes_with_imports(
     ir,
@@ -83,7 +83,7 @@ fn compile_map_non_glob_nodes_with_imports(
   scope_frames : Array[CompileScopeFrame],
   resolver : ImportResolver,
   import_stack : Array[String],
-  source_path? : String? = None,
+  source_path~ : String? = None,
 ) -> Unit raise CompileError {
   for node in nodes {
     match node {
@@ -112,7 +112,7 @@ fn compile_map_glob_nodes_with_imports(
   scope_frames : Array[CompileScopeFrame],
   resolver : ImportResolver,
   import_stack : Array[String],
-  source_path? : String? = None,
+  source_path~ : String? = None,
 ) -> Unit raise CompileError {
   for node in nodes {
     match node {
@@ -924,7 +924,7 @@ fn compile_edges_with_imports(
     if src_paths.is_empty() || dst_paths.is_empty() {
       continue
     }
-    fn next_index_for_group(ir : Map, base_id : EdgeID) -> Int {
+    fn next_index_for_group(ir : Map, base_id : EdgeID) -> Int32 {
       let existing = ir.find_edges(base_id)
       let mut max_idx = -1
       for e in existing {

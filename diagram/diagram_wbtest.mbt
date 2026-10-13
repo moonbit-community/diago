@@ -3,11 +3,11 @@ fn test_object(
   id : String,
   label : String,
   shape_type : @graph.ShapeType,
-  child_ids? : Array[String] = [],
-  tooltip? : String? = None,
-  link? : String? = None,
-  language? : String? = None,
-  sql_constraints? : Array[String] = [],
+  child_ids~ : Array[String] = [],
+  tooltip~ : String? = None,
+  link~ : String? = None,
+  language~ : String? = None,
+  sql_constraints~ : Array[String] = [],
 ) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(
     id,
@@ -40,16 +40,16 @@ fn test_object(
 
 ///|
 fn test_edge(
-  index : Int,
+  index : Int32,
   src_id : String,
   dst_id : String,
   label : String,
-  src_label? : String? = None,
-  dst_label? : String? = None,
-  icon? : String? = None,
-  icon_position? : String? = None,
-  icon_border_radius? : Double? = None,
-  link? : String? = None,
+  src_label~ : String? = None,
+  dst_label~ : String? = None,
+  icon~ : String? = None,
+  icon_position~ : String? = None,
+  icon_border_radius~ : Double? = None,
+  link~ : String? = None,
 ) -> @graph.EdgeInput {
   @graph.EdgeInput::from_parts(
     index,
@@ -85,12 +85,12 @@ fn test_edge(
 ///|
 fn test_graph_input(
   name : String,
-  objects? : Array[@graph.ObjectInput] = [],
-  edges? : Array[@graph.EdgeInput] = [],
-  layers? : Array[@graph.LayerInput] = [],
-  scenarios? : Array[@graph.ScenarioInput] = [],
-  steps? : Array[@graph.StepInput] = [],
-  legend? : @graph.LegendInput? = None,
+  objects~ : Array[@graph.ObjectInput] = [],
+  edges~ : Array[@graph.EdgeInput] = [],
+  layers~ : Array[@graph.LayerInput] = [],
+  scenarios~ : Array[@graph.ScenarioInput] = [],
+  steps~ : Array[@graph.StepInput] = [],
+  legend~ : @graph.LegendInput? = None,
 ) -> @graph.GraphInput {
   @graph.GraphInput::from_parts(
     name,
@@ -111,13 +111,13 @@ fn test_graph_input(
 ///|
 fn test_diagram(
   name : String,
-  objects? : Array[@graph.ObjectInput] = [],
-  edges? : Array[@graph.EdgeInput] = [],
-  layers? : Array[@graph.LayerInput] = [],
-  scenarios? : Array[@graph.ScenarioInput] = [],
-  steps? : Array[@graph.StepInput] = [],
-  legend? : @graph.LegendInput? = None,
-  config? : Config? = None,
+  objects~ : Array[@graph.ObjectInput] = [],
+  edges~ : Array[@graph.EdgeInput] = [],
+  layers~ : Array[@graph.LayerInput] = [],
+  scenarios~ : Array[@graph.ScenarioInput] = [],
+  steps~ : Array[@graph.StepInput] = [],
+  legend~ : @graph.LegendInput? = None,
+  config~ : Config? = None,
 ) -> Diagram {
   from_graph(
     test_graph_input(
@@ -134,7 +134,7 @@ fn test_diagram(
 }
 
 ///|
-fn test_config(theme_id : Int) -> Config {
+fn test_config(theme_id : Int32) -> Config {
   Config::from_parts(
     None,
     Some(theme_id),
@@ -164,17 +164,17 @@ test "get_board supports explicit and shorthand nested paths" {
     @graph.LayerInput::new("layer-one", layer_graph),
   ])
 
-  @debug.assert_eq(
+  assert_eq(
     diagram
     .get_board(["layers", "layer-one", "scenarios", "scenario-one"])
     .unwrap().name,
     "scenario-one",
   )
-  @debug.assert_eq(
+  assert_eq(
     diagram.get_board(["layer-one", "scenario-one"]).unwrap().name,
     "scenario-one",
   )
-  @debug.assert_eq(diagram.get_board(["root"]).unwrap().name, "root")
+  assert_eq(diagram.get_board(["root"]).unwrap().name, "root")
 }
 
 ///|
@@ -189,14 +189,8 @@ test "has_shape recurses across nested boards" {
     @graph.LayerInput::new("layer-one", layer_graph),
   ])
 
-  @debug.assert_eq(
-    diagram.has_shape(fn(shape) { shape.id == "nested.service" }),
-    true,
-  )
-  @debug.assert_eq(
-    diagram.has_shape(fn(shape) { shape.id == "missing" }),
-    false,
-  )
+  assert_eq(diagram.has_shape(fn(shape) { shape.id == "nested.service" }), true)
+  assert_eq(diagram.has_shape(fn(shape) { shape.id == "missing" }), false)
 }
 
 ///|
@@ -269,10 +263,10 @@ test "connection icon and link survive diagram conversion and JSON serialization
     ),
   ])
   let edge = diagram.connections[0]
-  @debug.assert_eq(edge.icon, Some("https://example.com/icon.svg"))
-  @debug.assert_eq(edge.icon_position, Some("INSIDE_MIDDLE_CENTER"))
-  @debug.assert_eq(edge.icon_border_radius, Some(12.0))
-  @debug.assert_eq(edge.link, Some("https://example.com/docs"))
+  assert_eq(edge.icon, Some("https://example.com/icon.svg"))
+  assert_eq(edge.icon_position, Some("INSIDE_MIDDLE_CENTER"))
+  assert_eq(edge.icon_border_radius, Some(12.0))
+  assert_eq(edge.link, Some("https://example.com/docs"))
   let bytes = diagram.bytes()
   assert_true(bytes.contains("\"icon\":\"https://example.com/icon.svg\""))
   assert_true(bytes.contains("\"iconPosition\":\"INSIDE_MIDDLE_CENTER\""))
@@ -308,8 +302,8 @@ test "hash_id follows target config bytes and salt" {
     config=Some(test_config(4)),
   )
 
-  @debug.assert_eq(a.hash_id(None) == b.hash_id(None), false)
-  @debug.assert_eq(a.hash_id(None) == a.hash_id(Some("salt")), false)
+  assert_eq(a.hash_id(None) == b.hash_id(None), false)
+  assert_eq(a.hash_id(None) == a.hash_id(Some("salt")), false)
 }
 
 ///|
@@ -353,7 +347,7 @@ test "diagram bytes encode typed theme overrides like the target config json" {
     ),
   )
 
-  @debug.assert_eq(
+  assert_eq(
     diagram.bytes(),
     "[{\"id\":\"node\",\"semanticId\":\"node\",\"label\":\"Node\",\"shapeType\":\"rectangle\",\"style\":{},\"childIds\":[],\"zIndex\":0,\"classes\":[],\"sqlConstraints\":[]}][]{\"id\":\"root\",\"semanticId\":\"root\",\"label\":\"root\",\"shapeType\":\"rectangle\",\"style\":{},\"childIds\":[],\"zIndex\":0,\"classes\":[],\"sqlConstraints\":[]}{\"themeID\":3,\"themeOverrides\":{\"n1\":\"black\",\"b1\":\"red\",\"aa4\":\"#f0ff3a\"}}",
   )

@@ -19,8 +19,8 @@
 struct Parser {
   source : String
   tokens : Array[@lexer.Token]
-  mut pos : Int
-  mut depth : Int
+  mut pos : Int32
+  mut depth : Int32
   mut in_edge_group : Bool
   errors : ParseErrors
 } derive(Debug)
@@ -1419,7 +1419,11 @@ fn is_block_string_space(c : Char) -> Bool {
 }
 
 ///|
-fn starts_with_chars(hay : Array[Char], at : Int, needle : Array[Char]) -> Bool {
+fn starts_with_chars(
+  hay : Array[Char],
+  at : Int32,
+  needle : Array[Char],
+) -> Bool {
   let mut i = 0
   while i < needle.length() {
     if at + i >= hay.length() || hay[at + i] != needle[i] {
@@ -1431,7 +1435,7 @@ fn starts_with_chars(hay : Array[Char], at : Int, needle : Array[Char]) -> Bool 
 }
 
 ///|
-fn substring_by_offsets(s : String, start : Int, end : Int) -> String {
+fn substring_by_offsets(s : String, start : Int32, end : Int32) -> String {
   let chars = s.to_array()
   let buf = StringBuilder()
   let mut i = start
@@ -1638,7 +1642,7 @@ fn join_lines(lines : Array[String]) -> String {
 }
 
 ///|
-fn split_leading_indent(s : String, max_spaces : Int) -> (String, String) {
+fn split_leading_indent(s : String, max_spaces : Int32) -> (String, String) {
   let chars = s.to_array()
   let indent_buf = StringBuilder()
   let mut i = 0
@@ -1942,7 +1946,7 @@ fn Parser::parse_import(
 }
 
 ///|
-fn Parser::parse_import_pre(self : Parser) -> (String, Int) {
+fn Parser::parse_import_pre(self : Parser) -> (String, Int32) {
   if self.is_at_end() {
     return ("", 0)
   }
@@ -1976,7 +1980,7 @@ fn Parser::parse_import_pre(self : Parser) -> (String, Int) {
 ///|
 fn trim_import_first_segment(
   value : @ast.StringValue,
-  trim_chars : Int,
+  trim_chars : Int32,
 ) -> @ast.StringValue {
   if trim_chars <= 0 {
     return value

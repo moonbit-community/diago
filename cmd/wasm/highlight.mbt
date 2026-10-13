@@ -16,7 +16,7 @@
 /// Highlight one UTF-8 source body from the shared transfer arena.
 ///
 /// The result body is a JSON array of code-point ranges and token kind names.
-pub fn highlight(request_len : Int) -> Int {
+pub fn highlight(request_len : Int32) -> Int32 {
   reset_result_state()
   let source = match read_request(request_len) {
     Ok(text) => text

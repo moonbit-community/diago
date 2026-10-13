@@ -14,7 +14,7 @@
 
 ///|
 test "svg new creates document" {
-  let svg = Svg::new(800.0, 600.0)
+  let svg = @svg.Svg::new(800.0, 600.0)
   let s = svg.to_string()
   assert_true(s.contains("width=\"800\""))
   assert_true(s.contains("height=\"600\""))
@@ -23,7 +23,7 @@ test "svg new creates document" {
 
 ///|
 test "svg add element" {
-  let svg = Svg::new(100.0, 100.0)
+  let svg = @svg.Svg::new(100.0, 100.0)
   svg.add(
     @xml_emit.Element::new("rect")
     .attr_int("x", 0)
@@ -39,7 +39,7 @@ test "svg add element" {
 
 ///|
 test "svg add def" {
-  let svg = Svg::new(100.0, 100.0)
+  let svg = @svg.Svg::new(100.0, 100.0)
   svg.add_def(
     @xml_emit.Element::new("marker").attr("id", "test").self_close().build(),
   )
@@ -50,7 +50,7 @@ test "svg add def" {
 
 ///|
 test "svg group" {
-  let svg = Svg::new(100.0, 100.0)
+  let svg = @svg.Svg::new(100.0, 100.0)
   svg.open_group("translate(10,10)")
   svg.add(@xml_emit.Element::new("rect").self_close().build())
   svg.close_group()
@@ -61,7 +61,7 @@ test "svg group" {
 
 ///|
 test "rect builder" {
-  let r = rect(10.0, 20.0, 100.0, 50.0, fill="red", stroke="blue")
+  let r = @svg.rect(10.0, 20.0, 100.0, 50.0, fill="red", stroke="blue")
   assert_true(r.contains("x=\"10\""))
   assert_true(r.contains("y=\"20\""))
   assert_true(r.contains("width=\"100\""))
@@ -72,14 +72,14 @@ test "rect builder" {
 
 ///|
 test "rect with rounded corners" {
-  let r = rect(0.0, 0.0, 100.0, 50.0, rx=Some(5.0), ry=Some(5.0))
+  let r = @svg.rect(0.0, 0.0, 100.0, 50.0, rx=Some(5.0), ry=Some(5.0))
   assert_true(r.contains("rx=\"5\""))
   assert_true(r.contains("ry=\"5\""))
 }
 
 ///|
 test "ellipse builder" {
-  let e = ellipse(50.0, 50.0, 40.0, 30.0, fill="green")
+  let e = @svg.ellipse(50.0, 50.0, 40.0, 30.0, fill="green")
   assert_true(e.contains("cx=\"50\""))
   assert_true(e.contains("cy=\"50\""))
   assert_true(e.contains("rx=\"40\""))
@@ -89,7 +89,7 @@ test "ellipse builder" {
 
 ///|
 test "circle builder" {
-  let c = circle(100.0, 100.0, 50.0, fill="yellow")
+  let c = @svg.circle(100.0, 100.0, 50.0, fill="yellow")
   assert_true(c.contains("cx=\"100\""))
   assert_true(c.contains("cy=\"100\""))
   assert_true(c.contains("r=\"50\""))
@@ -97,7 +97,7 @@ test "circle builder" {
 
 ///|
 test "line builder" {
-  let l = line(0.0, 0.0, 100.0, 100.0, stroke="red", stroke_width=2.0)
+  let l = @svg.line(0.0, 0.0, 100.0, 100.0, stroke="red", stroke_width=2.0)
   assert_true(l.contains("x1=\"0\""))
   assert_true(l.contains("y1=\"0\""))
   assert_true(l.contains("x2=\"100\""))
@@ -107,26 +107,26 @@ test "line builder" {
 
 ///|
 test "polyline builder" {
-  let p = polyline([(0.0, 0.0), (50.0, 50.0), (100.0, 0.0)])
+  let p = @svg.polyline([(0.0, 0.0), (50.0, 50.0), (100.0, 0.0)])
   assert_true(p.contains("points=\"0,0 50,50 100,0\""))
 }
 
 ///|
 test "polygon builder" {
-  let p = polygon([(0.0, 0.0), (100.0, 0.0), (50.0, 100.0)], fill="blue")
+  let p = @svg.polygon([(0.0, 0.0), (100.0, 0.0), (50.0, 100.0)], fill="blue")
   assert_true(p.contains("points=\"0,0 100,0 50,100\""))
   assert_true(p.contains("fill=\"blue\""))
 }
 
 ///|
 test "path builder" {
-  let p = path("M 0 0 L 100 100", stroke="black")
+  let p = @svg.path("M 0 0 L 100 100", stroke="black")
   assert_true(p.contains("d=\"M 0 0 L 100 100\""))
 }
 
 ///|
 test "path with markers" {
-  let p = path(
+  let p = @svg.path(
     "M 0 0 L 100 100",
     marker_start="url(#start)",
     marker_end="url(#end)",
@@ -137,7 +137,7 @@ test "path with markers" {
 
 ///|
 test "text builder" {
-  let t = text(50.0, 50.0, "Hello", font_size=16)
+  let t = @svg.text(50.0, 50.0, "Hello", font_size=16)
   assert_true(t.contains("x=\"50\""))
   assert_true(t.contains("y=\"50\""))
   assert_true(t.contains(">Hello</text>"))
@@ -146,14 +146,14 @@ test "text builder" {
 
 ///|
 test "text escapes special characters" {
-  let t = text(0.0, 0.0, "<script>alert('xss')</script>")
+  let t = @svg.text(0.0, 0.0, "<script>alert('xss')</script>")
   assert_true(t.contains("&lt;script&gt;"))
   assert_true(t.contains("&#39;"))
 }
 
 ///|
 test "arrow marker" {
-  let m = arrow_marker("arrow", 10.0, "#333")
+  let m = @svg.arrow_marker("arrow", 10.0, "#333")
   assert_true(m.contains("id=\"arrow\""))
   assert_true(m.contains("markerWidth=\"10\""))
   assert_true(m.contains("fill=\"#333\""))
@@ -161,14 +161,14 @@ test "arrow marker" {
 
 ///|
 test "reverse arrow marker" {
-  let m = arrow_marker("arrow-rev", 10.0, "#333", reverse=true)
+  let m = @svg.arrow_marker("arrow-rev", 10.0, "#333", reverse=true)
   assert_true(m.contains("id=\"arrow-rev\""))
   assert_true(m.contains("refX=\"0\""))
 }
 
 ///|
 test "background" {
-  let bg = background("#ffffff")
+  let bg = @svg.background("#ffffff")
   assert_true(bg.contains("width=\"100%\""))
   assert_true(bg.contains("height=\"100%\""))
   assert_true(bg.contains("fill=\"#ffffff\""))
@@ -176,7 +176,7 @@ test "background" {
 
 ///|
 test "path builder fluent api" {
-  let d = PathBuilder::new()
+  let d = @svg.PathBuilder::new()
     .move_to(0.0, 0.0)
     .line_to(100.0, 0.0)
     .line_to(100.0, 100.0)
@@ -190,7 +190,7 @@ test "path builder fluent api" {
 
 ///|
 test "path builder arc" {
-  let d = PathBuilder::new()
+  let d = @svg.PathBuilder::new()
     .move_to(0.0, 50.0)
     .arc_to(50.0, 50.0, 100.0, 50.0)
     .build()
@@ -199,6 +199,6 @@ test "path builder arc" {
 
 ///|
 test "escape_xml" {
-  @debug.assert_eq(escape_xml("<>&\"'"), "&lt;&gt;&amp;&quot;&#39;")
-  @debug.assert_eq(escape_xml("normal text"), "normal text")
+  assert_eq(@svg.escape_xml("<>&\"'"), "&lt;&gt;&amp;&quot;&#39;")
+  assert_eq(@svg.escape_xml("normal text"), "normal text")
 }

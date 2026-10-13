@@ -8,7 +8,6 @@ import {
   "Milky2018/diago/text_metrics",
   "Milky2018/diago/themes",
   "Milky2018/diago/render_api",
-  "moonbitlang/core/json",
   "moonbitlang/core/cmp",
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/hashset",
@@ -16,5 +15,4 @@ import {
   "moonbitlang/x/codec/base64",
   "moonbitlang/x/crypto",
   "moonbit-community/cmark/cmark_html",
-  "moonbitlang/core/debug",
 }

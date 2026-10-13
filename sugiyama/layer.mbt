@@ -24,9 +24,9 @@
 /// Result of layer assignment
 pub(all) struct LayerAssignment {
   /// Map from node ID to layer number (0-indexed)
-  layers : Map[String, Int]
+  layers : Map[String, Int32]
   /// Number of layers
-  layer_count : Int
+  layer_count : Int32
   /// Nodes grouped by layer
   nodes_by_layer : Array[Array[String]]
 }
@@ -74,9 +74,9 @@ fn longest_path_layering(
   nodes : Array[String],
   adj : Map[String, Array[String]],
   pred : Map[String, Array[String]],
-) -> Map[String, Int] {
-  let layers : Map[String, Int] = Map([])
-  let in_degree : Map[String, Int] = Map([])
+) -> Map[String, Int32] {
+  let layers : Map[String, Int32] = Map([])
+  let in_degree : Map[String, Int32] = Map([])
   // Compute in-degrees
   for node in nodes {
     let preds = match pred.get(node) {
@@ -144,8 +144,8 @@ fn network_simplex(
   nodes : Array[String],
   adj : Map[String, Array[String]],
   pred : Map[String, Array[String]],
-  initial_layers : Map[String, Int],
-) -> Map[String, Int] {
+  initial_layers : Map[String, Int32],
+) -> Map[String, Int32] {
   // For network simplex, we need to:
   // 1. Build a feasible spanning tree
   // 2. Compute potentials (node layers)
@@ -154,7 +154,7 @@ fn network_simplex(
   // 5. Pivot until optimal
 
   // Copy initial layers
-  let layers : Map[String, Int] = Map([])
+  let layers : Map[String, Int32] = Map([])
   for node in nodes {
     match initial_layers.get(node) {
       Some(l) => layers[node] = l
@@ -255,7 +255,11 @@ fn build_spanning_tree(
 ///|
 /// Compute slack for an edge: layer(dst) - layer(src) - minlen
 /// minlen is typically 1 for hierarchical layouts
-fn compute_slack(src : String, dst : String, layers : Map[String, Int]) -> Int {
+fn compute_slack(
+  src : String,
+  dst : String,
+  layers : Map[String, Int32],
+) -> Int32 {
   let src_layer = match layers.get(src) {
     Some(l) => l
     None => 0
@@ -271,8 +275,8 @@ fn compute_slack(src : String, dst : String, layers : Map[String, Int]) -> Int {
 /// Tree structure for low/lim optimization
 /// Enables O(1) subtree membership testing
 priv struct TreeInfo {
-  low : Map[String, Int] // Lowest DFS number in subtree
-  lim : Map[String, Int] // Highest DFS number in subtree (DFS order of node)
+  low : Map[String, Int32] // Lowest DFS number in subtree
+  lim : Map[String, Int32] // Highest DFS number in subtree (DFS order of node)
 }
 
 ///|
@@ -284,8 +288,8 @@ fn init_low_lim_values(
 ) -> TreeInfo {
   // Build parent-child relationships from tree edges
   let children : Map[String, Array[String]] = Map([])
-  let low : Map[String, Int] = Map([])
-  let lim : Map[String, Int] = Map([])
+  let low : Map[String, Int32] = Map([])
+  let lim : Map[String, Int32] = Map([])
   // Initialize children arrays
   for node in nodes {
     children[node] = []
@@ -319,9 +323,9 @@ fn init_low_lim_values(
   fn dfs(
     node : String,
     children : Map[String, Array[String]],
-    low : Map[String, Int],
-    lim : Map[String, Int],
-    dfs_num : Ref[Int],
+    low : Map[String, Int32],
+    lim : Map[String, Int32],
+    dfs_num : Ref[Int32],
   ) {
     let my_low = dfs_num.val
     let mut max_lim = dfs_num.val
@@ -341,7 +345,7 @@ fn init_low_lim_values(
     lim[node] = max_lim
   }
 
-  let dfs_num_ref : Ref[Int] = { val: 0, }
+  let dfs_num_ref : Ref[Int32] = { val: 0, }
   if root != "" {
     dfs(root, children, low, lim, dfs_num_ref)
   }
@@ -390,10 +394,10 @@ fn compute_cut_values(
   nodes : Array[String],
   adj : Map[String, Array[String]],
   tree_edges : Array[(String, String)],
-) -> Array[Int] {
+) -> Array[Int32] {
   // Initialize low/lim values for O(1) subtree membership
   let tree_info = init_low_lim_values(nodes, tree_edges)
-  let cut_values : Array[Int] = []
+  let cut_values : Array[Int32] = []
   for edge in tree_edges {
     let (_src, dst) = edge
     // For tree edge (src, dst), we consider dst as the subtree root
@@ -474,7 +478,7 @@ fn compute_tail_component(
 
 ///|
 /// Find edge with negative cut value (leaving edge)
-fn find_leaving_edge(cut_values : Array[Int]) -> Int? {
+fn find_leaving_edge(cut_values : Array[Int32]) -> Int32? {
   for i, cv in cut_values {
     if cv < 0 {
       return Some(i)
@@ -490,8 +494,8 @@ fn find_entering_edge(
   nodes : Array[String],
   adj : Map[String, Array[String]],
   tree_edges : Array[(String, String)],
-  leave_idx : Int,
-  layers : Map[String, Int],
+  leave_idx : Int32,
+  layers : Map[String, Int32],
 ) -> (String, String)? {
   let (leave_src, leave_dst) = tree_edges[leave_idx]
   let tail_side = compute_tail_component(leave_src, leave_dst, tree_edges)
@@ -544,10 +548,10 @@ fn is_in_tree(
 /// This is the core operation of network simplex - swaps edges and adjusts ranks
 fn pivot(
   tree_edges : Array[(String, String)],
-  leave_idx : Int,
+  leave_idx : Int32,
   enter_src : String,
   enter_dst : String,
-  layers : Map[String, Int],
+  layers : Map[String, Int32],
 ) -> Unit {
   let (leave_src, leave_dst) = tree_edges[leave_idx]
   // Compute component to adjust (the tail side when leaving edge is removed)
@@ -569,7 +573,7 @@ fn pivot(
 
 ///|
 /// Normalize layers to start from 0
-fn normalize_layers(nodes : Array[String], layers : Map[String, Int]) -> Unit {
+fn normalize_layers(nodes : Array[String], layers : Map[String, Int32]) -> Unit {
   let mut min_layer = 1000000
   for node in nodes {
     match layers.get(node) {
@@ -591,7 +595,7 @@ fn normalize_layers(nodes : Array[String], layers : Map[String, Int]) -> Unit {
 /// Build the final layer result
 fn build_layer_result(
   nodes : Array[String],
-  layers : Map[String, Int],
+  layers : Map[String, Int32],
 ) -> LayerAssignment {
   // Find max layer
   let mut max_layer = 0

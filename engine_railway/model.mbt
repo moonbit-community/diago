@@ -263,7 +263,7 @@ fn is_grid_container_candidate(obj : @graph.ObjectInput) -> Bool {
 }
 
 ///|
-fn container_label_size_railway(level : Int) -> Int {
+fn container_label_size_railway(level : Int32) -> Int32 {
   if level <= 1 {
     28
   } else if level == 2 {
@@ -276,7 +276,7 @@ fn container_label_size_railway(level : Int) -> Int {
 }
 
 ///|
-fn object_depth_from_dotted_id(id : String) -> Int {
+fn object_depth_from_dotted_id(id : String) -> Int32 {
   let mut depth = 1
   for i = 0; i < id.length(); i = i + 1 {
     if id[i] == '.' {
@@ -379,8 +379,8 @@ fn get_longest_edge_chain_head_id(
   if children.is_empty() {
     return container.id
   }
-  let rank : Map[String, Int] = Map([])
-  let chain_length : Map[String, Int] = Map([])
+  let rank : Map[String, Int32] = Map([])
+  let chain_length : Map[String, Int32] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -469,7 +469,7 @@ fn get_longest_edge_chain_tail_id(
   if children.is_empty() {
     return container.id
   }
-  let rank : Map[String, Int] = Map([])
+  let rank : Map[String, Int32] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -579,7 +579,7 @@ fn fit_container_boxes_railway(
 fn object_depth_in_hierarchy(
   id : String,
   parent_id_by_child_id : Map[String, String],
-) -> Int {
+) -> Int32 {
   let mut depth = 0
   let mut current = id
   while true {

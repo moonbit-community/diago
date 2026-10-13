@@ -205,7 +205,7 @@ fn compile_map_nodes(
   ir : Map,
   scope_ast : @ast.Map,
   nodes : Array[@ast.MapNode],
-  source_path? : String? = None,
+  source_path~ : String? = None,
 ) -> Unit raise CompileError {
   compile_map_nodes_in_scope(ir, scope_ast, nodes, [], source_path)
 }
@@ -296,7 +296,7 @@ fn is_parent_segment(segment : @ast.StringValue) -> Bool {
 }
 
 ///|
-fn leading_parent_count(path : @ast.KeyPath) -> Int {
+fn leading_parent_count(path : @ast.KeyPath) -> Int32 {
   let mut count = 0
   for segment in path.path {
     if !is_parent_segment(segment) {
@@ -348,10 +348,10 @@ fn record_field_reference(
   elem : @ast.StringValue,
   key_path : @ast.KeyPath,
   context : RefContext,
-  key_path_index : Int,
+  key_path_index : Int32,
   primary : Bool,
-  due_to_glob? : Bool = false,
-  due_to_lazy_glob? : Bool = false,
+  due_to_glob~ : Bool = false,
+  due_to_lazy_glob~ : Bool = false,
 ) -> Field {
   let refs = f.references.copy()
   refs.push(
@@ -637,7 +637,7 @@ fn apply_nested_globs(
 /// Extract glob pattern and remaining path from key path
 /// Returns (pattern, remaining_path) where pattern is from the glob element
 /// and remaining_path is the rest of the key path after the glob
-fn extract_glob_and_path(key_path : @ast.KeyPath) -> (Array[String], Int) {
+fn extract_glob_and_path(key_path : @ast.KeyPath) -> (Array[String], Int32) {
   let path = key_path.path
   let mut glob_index = -1
   let mut pattern : Array[String] = []
@@ -663,7 +663,7 @@ fn extract_glob_and_path(key_path : @ast.KeyPath) -> (Array[String], Int) {
 /// Build nested properties map from remaining path and key value
 fn build_nested_properties(
   key_path : @ast.KeyPath,
-  glob_index : Int,
+  glob_index : Int32,
   key : @ast.Key,
   context : RefContext,
   source_path : String?,
@@ -833,7 +833,7 @@ fn edge_endpoint_paths(
 fn expand_edge_endpoint_paths(
   current_map : Map,
   segments : Array[@ast.StringValue],
-  index : Int,
+  index : Int32,
   current_path : ResolvedPath,
   out : Array[ResolvedPath],
 ) -> Unit {
@@ -940,7 +940,7 @@ fn expand_edge_endpoint_paths(
 fn expand_multi_glob_edge_endpoint_paths(
   current_map : Map,
   segments : Array[@ast.StringValue],
-  index : Int,
+  index : Int32,
   current_path : ResolvedPath,
   out : Array[ResolvedPath],
   include_boards : Bool,
@@ -1039,7 +1039,7 @@ fn string_path_equal(a : ResolvedPath, b : ResolvedPath) -> Bool {
 fn edge_path_after_parent_resolution(
   path : @ast.KeyPath,
   scope_frames : Array[CompileScopeFrame],
-  climb : Int,
+  climb : Int32,
 ) -> @ast.KeyPath {
   let resolved : Array[@ast.StringValue] = []
   let mut consumed = 0
@@ -1061,7 +1061,7 @@ fn edge_path_after_parent_resolution(
 fn parent_edge_scope(
   ir : Map,
   scope_frames : Array[CompileScopeFrame],
-  climb : Int,
+  climb : Int32,
 ) -> Map raise CompileError {
   if climb == 0 {
     return ir
@@ -1105,7 +1105,7 @@ fn compile_edges(
     if src_paths.is_empty() || dst_paths.is_empty() {
       continue
     }
-    fn next_index_for_group(ir : Map, base_id : EdgeID) -> Int {
+    fn next_index_for_group(ir : Map, base_id : EdgeID) -> Int32 {
       let existing = ir.find_edges(base_id)
       let mut max_idx = -1
       for e in existing {
@@ -1552,7 +1552,7 @@ fn append_field_references_for_path_at(
   path : ResolvedPath,
   key_path : @ast.KeyPath,
   context : RefContext,
-  index : Int,
+  index : Int32,
   due_to_glob : Bool,
 ) -> Unit {
   if index >= path.syntax.length() {

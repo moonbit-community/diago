@@ -631,8 +631,8 @@ fn d2_markdown_styles(diagram_hash : String) -> String {
 }
 
 ///|
-fn d2_fnv32a(text : String) -> Int {
-  let mut h : Int = -2128831035
+fn d2_fnv32a(text : String) -> Int32 {
+  let mut h : Int32 = -2128831035
   let bytes = @utf8.encode(text[:])
   for b in bytes {
     h = (h ^ b.to_int()) & 0xffffffff
@@ -642,7 +642,7 @@ fn d2_fnv32a(text : String) -> Int {
 }
 
 ///|
-fn d2_u32_decimal(v : Int) -> String {
+fn d2_u32_decimal(v : Int32) -> String {
   if v < 0 {
     Json::number(v.to_double() + 4294967296.0).stringify(escape_slash=false)
   } else {
@@ -677,7 +677,7 @@ fn d2_json_number(value : Double) -> String {
 }
 
 ///|
-fn d2_json_int(value : Int) -> String {
+fn d2_json_int(value : Int32) -> String {
   value.to_string()
 }
 
@@ -734,15 +734,15 @@ fn d2_json_object(fields : Array[D2JsonField]) -> String {
 ///|
 fn d2_json_text(
   label : String,
-  font_size : Int,
+  font_size : Int32,
   font_family : String,
   language : String,
   color : String,
   italic : Bool,
   bold : Bool,
   underline : Bool,
-  label_width : Int,
-  label_height : Int,
+  label_width : Int32,
+  label_height : Int32,
 ) -> String {
   d2_json_object([
     d2_json_field("label", d2_json_string(label)),
@@ -831,7 +831,10 @@ fn d2_hash_edge_font_family(edge : Connection, config : SvgConfig) -> String {
 }
 
 ///|
-fn d2_hash_shape_label_dims(shape : Shape, config : SvgConfig) -> (Int, Int) {
+fn d2_hash_shape_label_dims(
+  shape : Shape,
+  config : SvgConfig,
+) -> (Int32, Int32) {
   if shape.label == "" {
     return (0, 0)
   }
@@ -867,7 +870,10 @@ fn d2_hash_shape_label_dims(shape : Shape, config : SvgConfig) -> (Int, Int) {
 }
 
 ///|
-fn d2_hash_edge_label_dims(edge : Connection, config : SvgConfig) -> (Int, Int) {
+fn d2_hash_edge_label_dims(
+  edge : Connection,
+  config : SvgConfig,
+) -> (Int32, Int32) {
   if edge.label == "" {
     return (0, 0)
   }
@@ -1175,7 +1181,7 @@ fn d2_hash_shape_json(
 fn d2_hash_connection_json_with_repeat_index(
   edge : Connection,
   config : SvgConfig,
-  repeat_index : Int,
+  repeat_index : Int32,
 ) -> String {
   let fields : Array[D2JsonField] = []
   let stroke_default = d2_default_edge_stroke_token(edge)
@@ -1754,8 +1760,10 @@ fn d2_edge_repeat_key(edge : Connection) -> String {
 }
 
 ///|
-fn d2_connection_repeat_indices(connections : Array[Connection]) -> Array[Int] {
-  let indices : Array[Int] = []
+fn d2_connection_repeat_indices(
+  connections : Array[Connection],
+) -> Array[Int32] {
+  let indices : Array[Int32] = []
   for i = 0; i < connections.length(); i = i + 1 {
     let edge = connections[i]
     let key = d2_edge_repeat_key(edge)
@@ -1776,7 +1784,7 @@ fn d2_connection_repeat_indices(connections : Array[Connection]) -> Array[Int] {
 }
 
 ///|
-fn d2_connection_abs_id(edge : Connection, repeat_index : Int) -> String {
+fn d2_connection_abs_id(edge : Connection, repeat_index : Int32) -> String {
   let src_parts = d2_output_abs_id_parts(edge.src_syntax_id)
   let dst_parts = d2_output_abs_id_parts(edge.dst_syntax_id)
   let common : Array[String] = []
@@ -1872,11 +1880,11 @@ fn d2_text_element(
   line_height : Double,
   fill : String,
   font_class : String,
-  font_size : Int,
+  font_size : Int32,
   theme : @themes.Theme,
   inline_theme : Bool,
-  text_anchor? : String = "middle",
-  fill_class_token? : String? = None,
+  text_anchor~ : String = "middle",
+  fill_class_token~ : String? = None,
 ) -> String {
   let classes : Array[String] = [font_class]
   match fill_class_token {
@@ -1912,9 +1920,9 @@ fn d2_text_element(
 ///|
 fn d2_group_open(
   class_name : String,
-  style? : String = "",
-  filter? : String = "",
-  trailing_space_before_gt? : Bool = false,
+  style~ : String = "",
+  filter~ : String = "",
+  trailing_space_before_gt~ : Bool = false,
 ) -> String {
   let sb = StringBuilder()
   sb.write_string("<g")
@@ -1979,7 +1987,7 @@ fn d2_connection_path_element(
   animated : Bool,
   theme : @themes.Theme,
   inline_theme : Bool,
-  animation_direction? : String = "",
+  animation_direction~ : String = "",
 ) -> String {
   let classes : Array[String] = ["connection"]
   if animated {
@@ -2118,11 +2126,11 @@ fn d2_shape_rect(
   border_radius : Double,
   theme : @themes.Theme,
   inline_theme : Bool,
-  fill_class_token? : String? = None,
-  stroke_class_token? : String? = None,
-  stroke_dash? : Double = 0.0,
-  mask? : String = "",
-  class_name? : String = "",
+  fill_class_token~ : String? = None,
+  stroke_class_token~ : String? = None,
+  stroke_dash~ : Double = 0.0,
+  mask~ : String = "",
+  class_name~ : String = "",
 ) -> String {
   let classes = StringBuilder()
   if class_name != "" {
@@ -2187,7 +2195,7 @@ fn d2_shape_rect(
 }
 
 ///|
-fn d2_ceil_to_int(x : Double) -> Int {
+fn d2_ceil_to_int(x : Double) -> Int32 {
   let i = x.to_int()
   if i.to_double() == x {
     i
@@ -2209,8 +2217,8 @@ fn d2_shape_ellipse(
   stroke_width : Double,
   theme : @themes.Theme,
   inline_theme : Bool,
-  fill_class_token? : String? = None,
-  stroke_class_token? : String? = None,
+  fill_class_token~ : String? = None,
+  stroke_class_token~ : String? = None,
 ) -> String {
   let classes = StringBuilder()
   classes.write_string("shape")

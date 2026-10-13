@@ -15,15 +15,15 @@
 ///|
 fn dag_edge_index_sets(
   plan : DagPlan,
-) -> (@hashset.HashSet[Int], @hashset.HashSet[Int]) {
-  let self_loop : @hashset.HashSet[Int] = HashSet(
+) -> (@hashset.HashSet[Int32], @hashset.HashSet[Int32]) {
+  let self_loop : @hashset.HashSet[Int32] = HashSet(
     [],
     capacity=plan.self_loop_edge_indices.length() * 2 + 1,
   )
   for ei in plan.self_loop_edge_indices {
     self_loop.add(ei)
   }
-  let reversed : @hashset.HashSet[Int] = HashSet(
+  let reversed : @hashset.HashSet[Int32] = HashSet(
     [],
     capacity=plan.reverse_edge_indices.length() * 2 + 1,
   )
@@ -35,14 +35,14 @@ fn dag_edge_index_sets(
 
 ///|
 fn compute_depths(
-  n : Int,
+  n : Int32,
   graph : @graph.GraphInput,
-  id_to_idx : Map[String, Int],
+  id_to_idx : Map[String, Int32],
   plan : DagPlan,
-  self_loop : @hashset.HashSet[Int],
-  reversed : @hashset.HashSet[Int],
-) -> Array[Int] raise @engine_api.LayoutError {
-  let out_adj : Array[Array[Int]] = Array::makei(n, _ => ([] : Array[Int]))
+  self_loop : @hashset.HashSet[Int32],
+  reversed : @hashset.HashSet[Int32],
+) -> Array[Int32] raise @engine_api.LayoutError {
+  let out_adj : Array[Array[Int32]] = Array::makei(n, _ => ([] : Array[Int32]))
   for e in graph.edges {
     if self_loop.contains(e.index) {
       continue
@@ -81,17 +81,17 @@ fn order_layer_by_barycenter(
   if layer.length() <= 1 || fixed_layer.length() == 0 {
     return
   }
-  let fixed_pos : Map[String, Int] = Map([])
+  let fixed_pos : Map[String, Int32] = Map([])
   for i, node in fixed_layer {
     fixed_pos[node] = i
   }
-  let original_pos : Map[String, Int] = Map([])
+  let original_pos : Map[String, Int32] = Map([])
   for i, node in layer {
     original_pos[node] = i
   }
   let barycenters : Map[String, Double] = Map([])
   for node in layer {
-    let connected_positions : Array[Int] = []
+    let connected_positions : Array[Int32] = []
     match neighbors.get(node) {
       Some(ns) =>
         for nid in ns {
@@ -146,15 +146,15 @@ fn crossing_count(
   layer : Array[String],
   fixed_layer : Array[String],
   neighbors : Map[String, Array[String]],
-) -> Int {
+) -> Int32 {
   if layer.length() <= 1 || fixed_layer.length() <= 1 {
     return 0
   }
-  let fixed_pos : Map[String, Int] = Map([])
+  let fixed_pos : Map[String, Int32] = Map([])
   for i, node in fixed_layer {
     fixed_pos[node] = i
   }
-  let edge_pairs : Array[(Int, Int)] = []
+  let edge_pairs : Array[(Int32, Int32)] = []
   for i, node in layer {
     match neighbors.get(node) {
       Some(ns) =>
@@ -220,14 +220,14 @@ type Level = Array[String]
 ///|
 fn make_levels(
   graph : @graph.GraphInput,
-  depths : Array[Int],
+  depths : Array[Int32],
 ) -> Array[Level] raise @engine_api.LayoutError {
   let n = graph.objects.length()
   if n == 0 {
     return []
   }
   let ids : Array[String] = graph.objects.map(o => o.id)
-  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
+  let id_to_idx : Map[String, Int32] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx.set(ids[i], i)
   }

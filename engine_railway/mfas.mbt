@@ -15,15 +15,15 @@
 ///|
 priv struct DagPlan {
   order_ids : Array[String]
-  reverse_edge_indices : Array[Int]
-  self_loop_edge_indices : Array[Int]
+  reverse_edge_indices : Array[Int32]
+  self_loop_edge_indices : Array[Int32]
 }
 
 ///|
 fn require_index(
-  id_to_idx : Map[String, Int],
+  id_to_idx : Map[String, Int32],
   id : String,
-) -> Int raise @engine_api.LayoutError {
+) -> Int32 raise @engine_api.LayoutError {
   match id_to_idx.get(id) {
     Some(i) => i
     None => raise Unsupported("unknown object id: \{id}")
@@ -32,18 +32,18 @@ fn require_index(
 
 ///|
 fn els_ordering_indices(
-  n : Int,
-  out_adj : Array[Array[Int]],
-  in_adj : Array[Array[Int]],
-) -> Array[Int] {
+  n : Int32,
+  out_adj : Array[Array[Int32]],
+  in_adj : Array[Array[Int32]],
+) -> Array[Int32] {
   let indeg = Array::makei(n, i => in_adj[i].length())
   let outdeg = Array::makei(n, i => out_adj[i].length())
   let alive = Array::make(n, true)
-  let left : Array[Int] = []
-  let right : Array[Int] = []
+  let left : Array[Int32] = []
+  let right : Array[Int32] = []
   let mut remaining = n
-  let sinks : Array[Int] = []
-  let sources : Array[Int] = []
+  let sinks : Array[Int32] = []
+  let sources : Array[Int32] = []
   for v in 0..<n {
     if outdeg[v] == 0 {
       sinks.push(v)
@@ -54,7 +54,7 @@ fn els_ordering_indices(
   }
   let mut sink_i = 0
   let mut source_i = 0
-  fn remove_vertex(v : Int, to_left : Bool) -> Unit {
+  fn remove_vertex(v : Int32, to_left : Bool) -> Unit {
     alive[v] = false
     remaining = remaining - 1
     if to_left {
@@ -110,7 +110,7 @@ fn els_ordering_indices(
     for v in 0..<n {
       if alive[v] {
         let score = outdeg[v] - indeg[v]
-        let a = Int::abs(score)
+        let a = Int32::abs(score)
         if a > best_abs || (a == best_abs && score > best_score) {
           best = v
           best_abs = a
@@ -127,16 +127,16 @@ fn els_ordering_indices(
 
 ///|
 fn tarjan_scc_indices(
-  n : Int,
-  out_adj : Array[Array[Int]],
-) -> Array[Array[Int]] {
+  n : Int32,
+  out_adj : Array[Array[Int32]],
+) -> Array[Array[Int32]] {
   let index = Array::make(n, -1)
   let low = Array::make(n, 0)
   let on_stack = Array::make(n, false)
-  let stack : Array[Int] = []
+  let stack : Array[Int32] = []
   let mut time = 0
-  let comps : Array[Array[Int]] = []
-  fn dfs(v : Int) -> Unit {
+  let comps : Array[Array[Int32]] = []
+  fn dfs(v : Int32) -> Unit {
     index[v] = time
     low[v] = time
     time = time + 1
@@ -151,7 +151,7 @@ fn tarjan_scc_indices(
       }
     }
     if low[v] == index[v] {
-      let comp : Array[Int] = []
+      let comp : Array[Int32] = []
       while stack.pop() is Some(x) {
         on_stack[x] = false
         comp.push(x)
@@ -173,12 +173,12 @@ fn tarjan_scc_indices(
 
 ///|
 fn els_order_component(
-  comp : Array[Int],
-  out_adj : Array[Array[Int]],
-  locals_idx : Array[Int],
-  locals_mark : Array[Int],
-  mark : Int,
-) -> Array[Int] {
+  comp : Array[Int32],
+  out_adj : Array[Array[Int32]],
+  locals_idx : Array[Int32],
+  locals_mark : Array[Int32],
+  mark : Int32,
+) -> Array[Int32] {
   let k = comp.length()
   if k <= 1 {
     return comp
@@ -188,8 +188,8 @@ fn els_order_component(
     locals_idx[v] = i
     locals_mark[v] = mark
   }
-  let out_local : Array[Array[Int]] = Array::makei(k, _ => ([] : Array[Int]))
-  let in_local : Array[Array[Int]] = Array::makei(k, _ => ([] : Array[Int]))
+  let out_local : Array[Array[Int32]] = Array::makei(k, _ => ([] : Array[Int32]))
+  let in_local : Array[Array[Int32]] = Array::makei(k, _ => ([] : Array[Int32]))
   for gu in comp {
     let lu = locals_idx[gu]
     for gv in out_adj[gu] {
@@ -206,12 +206,12 @@ fn els_order_component(
 
 ///|
 fn topo_scc_order(
-  scc_count : Int,
-  comp_id : Array[Int],
-  out_adj : Array[Array[Int]],
-) -> Array[Int] raise @engine_api.LayoutError {
-  let scc_out : Array[Array[Int]] = Array::makei(scc_count, _ => {
-    ([] : Array[Int])
+  scc_count : Int32,
+  comp_id : Array[Int32],
+  out_adj : Array[Array[Int32]],
+) -> Array[Int32] raise @engine_api.LayoutError {
+  let scc_out : Array[Array[Int32]] = Array::makei(scc_count, _ => {
+    ([] : Array[Int32])
   })
   let indeg = Array::make(scc_count, 0)
   for u in 0..<comp_id.length() {
@@ -224,13 +224,13 @@ fn topo_scc_order(
       }
     }
   }
-  let q : Array[Int] = []
+  let q : Array[Int32] = []
   for c in 0..<scc_count {
     if indeg[c] == 0 {
       q.push(c)
     }
   }
-  let topo : Array[Int] = []
+  let topo : Array[Int32] = []
   let mut qi = 0
   while qi < q.length() {
     let c = q[qi]
@@ -255,12 +255,12 @@ fn els_tarjan_plan(
 ) -> DagPlan raise @engine_api.LayoutError {
   let n = g.objects.length()
   let ids : Array[String] = g.objects.map(o => o.id)
-  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
+  let id_to_idx : Map[String, Int32] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx.set(ids[i], i)
   }
-  let out_adj : Array[Array[Int]] = Array::makei(n, _ => ([] : Array[Int]))
-  let self_loops : Array[Int] = []
+  let out_adj : Array[Array[Int32]] = Array::makei(n, _ => ([] : Array[Int32]))
+  let self_loops : Array[Int32] = []
   for e in g.edges {
     let u = require_index(id_to_idx, e.src_id)
     let v = require_index(id_to_idx, e.dst_id)
@@ -279,7 +279,7 @@ fn els_tarjan_plan(
     }
   }
   let topo = topo_scc_order(scc_count, comp_id, out_adj)
-  let order_vertices : Array[Int] = []
+  let order_vertices : Array[Int32] = []
   let locals_idx = Array::make(n, 0)
   let locals_mark = Array::make(n, 0)
   for c in topo {
@@ -291,7 +291,7 @@ fn els_tarjan_plan(
   for i in 0..<order_vertices.length() {
     pos[order_vertices[i]] = i
   }
-  let rev_edges : Array[Int] = []
+  let rev_edges : Array[Int32] = []
   for e in g.edges {
     let u = require_index(id_to_idx, e.src_id)
     let v = require_index(id_to_idx, e.dst_id)

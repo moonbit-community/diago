@@ -19,7 +19,7 @@ test "render output plan writes svg before surfacing bundling warning" {
     warning: Some("bundle warning"),
   }
   match render_output_write_plan(Svg, compiled) {
-    WriteThenWarn(warning) => @debug.assert_eq(warning, "bundle warning")
+    WriteThenWarn(warning) => assert_eq(warning, "bundle warning")
     _ => fail("expected svg warning plan to write before returning warning")
   }
 }
@@ -31,7 +31,7 @@ test "render output plan keeps warnings write-free for non-svg outputs" {
     warning: Some("bundle warning"),
   }
   match render_output_write_plan(Unicode, compiled) {
-    WarnOnly(warning) => @debug.assert_eq(warning, "bundle warning")
+    WarnOnly(warning) => assert_eq(warning, "bundle warning")
     _ => fail("expected non-svg warning plan to skip writing output")
   }
 }
@@ -75,6 +75,6 @@ async test "render pipeline applies remote bundling only at CLI orchestration" {
   }
   assert_true(compiled.output.contains("data:image/svg+xml;base64,"))
   assert_false(compiled.output.contains(url))
-  @debug.assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
+  assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
   reset_bundle_test_state()
 }

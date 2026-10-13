@@ -41,14 +41,14 @@ const MAX_CURVE_HEIGHT = 3
 
 ///|
 priv struct Boundary {
-  tl_x : Int
-  tl_y : Int
-  br_x : Int
-  br_y : Int
+  tl_x : Int32
+  tl_y : Int32
+  br_x : Int32
+  br_y : Int32
 }
 
 ///|
-fn Boundary::contains(self : Boundary, x : Int, y : Int) -> Bool {
+fn Boundary::contains(self : Boundary, x : Int32, y : Int32) -> Bool {
   x >= self.tl_x && x <= self.br_x && y >= self.tl_y && y <= self.br_y
 }
 
@@ -60,8 +60,8 @@ priv struct RoutePoint {
 
 ///|
 priv struct RouteLabelPosition {
-  i : Int
-  x : Int
+  i : Int32
+  x : Int32
   max_diff : Double
 }
 
@@ -81,7 +81,7 @@ fn ShapeDrawContext::calibrate(
   y : Double,
   w : Double,
   h : Double,
-) -> (Int, Int, Int, Int) {
+) -> (Int32, Int32, Int32, Int32) {
   let x_c = round_int(x / self.font_width * self.scale)
   let y_c = round_int(y / self.font_height * self.scale)
   let w_c = round_int(w / self.font_width * self.scale)
@@ -100,7 +100,7 @@ fn connection_has_arrow(conn : @diagram.Connection) -> Bool {
 }
 
 ///|
-fn sign(v : Double) -> Int {
+fn sign(v : Double) -> Int32 {
   if v > 0.0 {
     1
   } else if v < 0.0 {
@@ -120,12 +120,12 @@ fn round_double(v : Double) -> Double {
 }
 
 ///|
-fn round_int(v : Double) -> Int {
+fn round_int(v : Double) -> Int32 {
   round_double(v).to_int()
 }
 
 ///|
-fn abs_int(v : Int) -> Int {
+fn abs_int(v : Int32) -> Int32 {
   if v < 0 {
     -v
   } else {
@@ -134,7 +134,7 @@ fn abs_int(v : Int) -> Int {
 }
 
 ///|
-fn max_int(a : Int, b : Int) -> Int {
+fn max_int(a : Int32, b : Int32) -> Int32 {
   if a > b {
     a
   } else {
@@ -166,7 +166,7 @@ fn short_id(id : String) -> String {
 }
 
 ///|
-fn string_slice(s : String, start : Int, end : Int) -> String {
+fn string_slice(s : String, start : Int32, end : Int32) -> String {
   let sb = StringBuilder()
   let mut i = start
   while i < end && i < s.length() {

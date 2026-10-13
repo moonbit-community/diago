@@ -31,8 +31,8 @@ pub(all) enum ConfigDataValue {
 /// Caller-provided options may override these values.
 pub struct Config {
   sketch : Bool?
-  theme_id : Int?
-  dark_theme_id : Int?
+  theme_id : Int32?
+  dark_theme_id : Int32?
   theme_overrides : ThemeOverrides?
   dark_theme_overrides : ThemeOverrides?
   pad : Double?
@@ -67,8 +67,8 @@ pub fn Config::new() -> Config {
 ///|
 pub fn Config::from_parts(
   sketch : Bool?,
-  theme_id : Int?,
-  dark_theme_id : Int?,
+  theme_id : Int32?,
+  dark_theme_id : Int32?,
   theme_overrides : ThemeOverrides?,
   dark_theme_overrides : ThemeOverrides?,
   pad : Double?,
@@ -112,7 +112,7 @@ pub struct Shape {
   label_width : Double?
   label_height : Double?
   child_ids : Array[String]
-  z_index : Int
+  z_index : Int32
   icon : String?
   icon_position : String?
   tooltip : String?
@@ -122,13 +122,13 @@ pub struct Shape {
   classes : Array[String]
   language : String?
   sql_constraints : Array[String]
-  grid_rows : Int?
-  grid_columns : Int?
+  grid_rows : Int32?
+  grid_columns : Int32?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
-  grid_column_span : Int?
-  grid_row_span : Int?
+  grid_column_span : Int32?
+  grid_row_span : Int32?
   near : String?
 } derive(Debug)
 
@@ -137,14 +137,14 @@ pub struct Shape {
 ///
 /// This is derived from `@graph.EdgeInput` after layout has been applied.
 pub struct Connection {
-  index : Int
+  index : Int32
   src_id : String
   dst_id : String
   src_syntax_id : String
   dst_syntax_id : String
   src_lookup_id : String
   dst_lookup_id : String
-  identity_scope_depth : Int
+  identity_scope_depth : Int32
   classes : Array[String]
   src_arrow : Bool
   dst_arrow : Bool
@@ -165,11 +165,11 @@ pub struct Connection {
   route : Array[@graph.Point]
   bend_points : Array[@graph.Point]?
   is_curve : Bool
-  z_index : Int
-  reference_count : Int
+  z_index : Int32
+  reference_count : Int32
   label_box : @graph.Box?
-  src_column_index : Int?
-  dst_column_index : Int?
+  src_column_index : Int32?
+  dst_column_index : Int32?
 } derive(Debug)
 
 ///|
@@ -216,7 +216,7 @@ pub fn Shape::legend_icon(
 pub fn Connection::legend_icon(
   src_id : String,
   dst_id : String,
-  index : Int,
+  index : Int32,
   src_arrow : Bool,
   dst_arrow : Bool,
   src_arrowhead : @graph.ArrowheadType,
@@ -353,7 +353,7 @@ pub fn Diagram::get_board(
 fn get_board_at(
   current : Diagram,
   board_path : Array[String],
-  index : Int,
+  index : Int32,
 ) -> Diagram? {
   if index >= board_path.length() {
     return Some(current)
@@ -500,8 +500,8 @@ pub fn Diagram::hash_id(self : Diagram, salt : String?) -> String {
 ///|
 pub fn Diagram::with_render_hash_config(
   self : Diagram,
-  theme_id : Int,
-  dark_theme_id : Int?,
+  theme_id : Int32,
+  dark_theme_id : Int32?,
   sketch : Bool,
 ) -> Diagram {
   let updated_config = match self.config {
@@ -658,7 +658,7 @@ fn json_bool(value : Bool) -> String {
 }
 
 ///|
-fn json_int(value : Int) -> String {
+fn json_int(value : Int32) -> String {
   value.to_string()
 }
 
@@ -1182,8 +1182,8 @@ fn shape_structured_corpus(shape : Shape, all_shapes : Array[Shape]) -> String {
 }
 
 ///|
-fn d2_fnv32a(text : String) -> Int {
-  let mut h : Int = -2128831035
+fn d2_fnv32a(text : String) -> Int32 {
+  let mut h : Int32 = -2128831035
   let bytes = @utf8.encode(text[:])
   for b in bytes {
     h = (h ^ b.to_int()) & 0xffffffff
@@ -1193,7 +1193,7 @@ fn d2_fnv32a(text : String) -> Int {
 }
 
 ///|
-fn d2_u32_decimal(v : Int) -> String {
+fn d2_u32_decimal(v : Int32) -> String {
   let unsigned = if v < 0 {
     Int64::from_int(v) + 4294967296L
   } else {
@@ -1313,13 +1313,13 @@ fn shape_from_object(obj : @graph.ObjectInput) -> Shape {
 ///|
 fn connection_from_edge(
   edge : @graph.EdgeInput,
-  src_id? : String = edge.src_id,
-  dst_id? : String = edge.dst_id,
-  src_syntax_id? : String = edge.src_id_syntax,
-  dst_syntax_id? : String = edge.dst_id_syntax,
-  src_lookup_id? : String = edge.src_id_syntax,
-  dst_lookup_id? : String = edge.dst_id_syntax,
-  identity_scope_depth? : Int = @graph.syntax_path_depth(src_syntax_id),
+  src_id~ : String = edge.src_id,
+  dst_id~ : String = edge.dst_id,
+  src_syntax_id~ : String = edge.src_id_syntax,
+  dst_syntax_id~ : String = edge.dst_id_syntax,
+  src_lookup_id~ : String = edge.src_id_syntax,
+  dst_lookup_id~ : String = edge.dst_id_syntax,
+  identity_scope_depth~ : Int32 = @graph.syntax_path_depth(src_syntax_id),
 ) -> Connection {
   {
     index: edge.index,
@@ -1505,13 +1505,13 @@ fn sequence_resolve_top_participant_id(
 }
 
 ///|
-const D2_SEQUENCE_LIFELINE_STROKE_WIDTH : Int = 2
+const D2_SEQUENCE_LIFELINE_STROKE_WIDTH : Int32 = 2
 
 ///|
-const D2_SEQUENCE_LIFELINE_STROKE_DASH : Int = 6
+const D2_SEQUENCE_LIFELINE_STROKE_DASH : Int32 = 6
 
 ///|
-const D2_SEQUENCE_MESSAGE_Z_INDEX : Int = 4
+const D2_SEQUENCE_MESSAGE_Z_INDEX : Int32 = 4
 
 ///|
 const D2_SEQUENCE_MIN_MESSAGE_DISTANCE : Double = 30.0

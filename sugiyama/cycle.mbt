@@ -34,7 +34,7 @@ priv enum NodeState {
 /// Result of cycle breaking algorithm
 pub(all) struct CycleBreakResult {
   /// Indices of edges that should be reversed to break cycles
-  reversed_edges : Array[Int]
+  reversed_edges : Array[Int32]
   /// Whether the original graph had cycles
   had_cycles : Bool
 }
@@ -45,7 +45,7 @@ pub(all) struct CycleBreakResult {
 /// are back-edges that create cycles.
 pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
   // Build adjacency list: node_id -> [(edge_index, target_id)]
-  let adj : Map[String, Array[(Int, String)]] = Map([])
+  let adj : Map[String, Array[(Int32, String)]] = Map([])
   for edge in graph.edges {
     let src = edge.lookup_src_id()
     let dst = edge.lookup_dst_id()
@@ -62,7 +62,7 @@ pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
     state[node] = White
   }
   // Reversed edges (feedback arc set)
-  let reversed : Array[Int] = []
+  let reversed : Array[Int32] = []
   // Run DFS from each unvisited node
   for node in nodes {
     match state.get(node) {
@@ -77,9 +77,9 @@ pub fn break_cycles(graph : @graph.GraphInput) -> CycleBreakResult {
 /// DFS visit for cycle detection
 fn dfs_visit(
   node : String,
-  adj : Map[String, Array[(Int, String)]],
+  adj : Map[String, Array[(Int32, String)]],
   state : Map[String, NodeState],
-  reversed : Array[Int],
+  reversed : Array[Int32],
 ) -> Unit {
   // Mark as being explored (on DFS stack)
   state[node] = Gray
@@ -114,7 +114,7 @@ fn dfs_visit(
 
 ///|
 /// Check if an edge should be treated as reversed during layout
-pub fn is_edge_reversed(result : CycleBreakResult, edge_index : Int) -> Bool {
+pub fn is_edge_reversed(result : CycleBreakResult, edge_index : Int32) -> Bool {
   result.reversed_edges.contains(edge_index)
 }
 

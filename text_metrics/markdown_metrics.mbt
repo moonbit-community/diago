@@ -73,7 +73,7 @@ fn markdown_max_double(a : Double, b : Double) -> Double {
 }
 
 ///|
-fn markdown_max_int(a : Int, b : Int) -> Int {
+fn markdown_max_int(a : Int32, b : Int32) -> Int32 {
   if a > b {
     a
   } else {
@@ -87,7 +87,7 @@ fn markdown_block_metrics_empty() -> MarkdownBlockMetrics {
 }
 
 ///|
-fn markdown_header_font_size(base_font_size : Int, level : Int) -> Int {
+fn markdown_header_font_size(base_font_size : Int32, level : Int32) -> Int32 {
   let base = base_font_size.to_double()
   let scaled = match level {
     1 => base * 2.0
@@ -109,7 +109,7 @@ fn markdown_header_font_size(base_font_size : Int, level : Int) -> Int {
 ///|
 fn markdown_inline_dimensions(
   inline : @cmark.Inline,
-  font_size : Int,
+  font_size : Int32,
   line_height : Double,
   kind : FontKind,
 ) -> (Double, Double) {
@@ -136,7 +136,7 @@ fn markdown_inline_dimensions(
 ///|
 fn markdown_add_inline_widths(
   inline : @cmark.Inline,
-  font_size : Int,
+  font_size : Int32,
   kind : FontKind,
   lines : Array[Double],
 ) -> Unit {
@@ -197,7 +197,7 @@ fn markdown_add_inline_widths(
 }
 
 ///|
-fn markdown_space_width(font_size : Int, kind : FontKind) -> Double {
+fn markdown_space_width(font_size : Int32, kind : FontKind) -> Double {
   let glyph = scaled_glyph_metrics(kind, ' '.to_int(), font_size)
   glyph.advance_fixed.to_double() / 64.0
 }
@@ -248,8 +248,8 @@ fn markdown_combine_blocks(
 ///|
 fn markdown_measure_block(
   block : @cmark.Block,
-  base_font_size : Int,
-  list_depth : Int,
+  base_font_size : Int32,
+  list_depth : Int32,
   in_list_item : Bool,
 ) -> MarkdownBlockMetrics {
   match block {
@@ -471,7 +471,10 @@ pub fn markdown_source_like_d2(text : String) -> String {
 
 ///|
 /// Measure a markdown label using compatibility block layout constants.
-pub fn measure_label_markdown(text : String, font_size : Int) -> TextDimensions {
+pub fn measure_label_markdown(
+  text : String,
+  font_size : Int32,
+) -> TextDimensions {
   if text == "" {
     return { width: 1.0, height: 1.0, }
   }

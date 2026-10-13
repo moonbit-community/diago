@@ -15,16 +15,16 @@
 ///|
 fn test_object_input(
   box : @graph.Box,
-  label? : String = "",
-  shape_type? : @graph.ShapeType = Rectangle,
-  style? : @graph.StyleInput = @graph.StyleInput::new(),
-  label_box? : @graph.Box? = None,
-  child_ids? : Array[String] = [],
-  label_position? : String? = None,
-  icon? : String? = None,
-  icon_position? : String? = None,
-  tooltip? : String? = None,
-  tooltip_position? : String? = None,
+  label~ : String = "",
+  shape_type~ : @graph.ShapeType = Rectangle,
+  style~ : @graph.StyleInput = @graph.StyleInput::new(),
+  label_box~ : @graph.Box? = None,
+  child_ids~ : Array[String] = [],
+  label_position~ : String? = None,
+  icon~ : String? = None,
+  icon_position~ : String? = None,
+  tooltip~ : String? = None,
+  tooltip_position~ : String? = None,
 ) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(
     "node",
@@ -76,12 +76,12 @@ fn test_diagram_with_object(obj : @graph.ObjectInput) -> @diagram.Diagram {
 
 ///|
 fn test_edge_input(
-  label? : String = "",
-  label_box? : @graph.Box? = None,
-  icon? : String? = None,
-  icon_position? : String? = None,
-  icon_border_radius? : Double? = None,
-  link? : String? = None,
+  label~ : String = "",
+  label_box~ : @graph.Box? = None,
+  icon~ : String? = None,
+  icon_position~ : String? = None,
+  icon_border_radius~ : Double? = None,
+  link~ : String? = None,
 ) -> @graph.EdgeInput {
   @graph.EdgeInput::from_parts(
     0,
@@ -202,7 +202,7 @@ test "edge icon near positions work without a label" {
   guard edge_icon_box(edge, 2.0) is Some(box) else {
     fail("expected edge icon box")
   }
-  @debug.assert_eq(box, @graph.Box::new(109.0, -13.0, 32.0, 32.0))
+  assert_eq(box, @graph.Box::new(109.0, -13.0, 32.0, 32.0))
   let rendered = render(diagram, SvgConfig::new())
   assert_false(rendered.contains("<a href=\"https://example.com/docs\""))
 }
@@ -221,9 +221,9 @@ test "plain object label layout uses explicit label position" {
   }
   guard shape.box is Some(box) else { fail("expected shape box") }
   let (x, y, width) = plain_object_label_layout(shape, box, 20.0, 10.0, "dagre")
-  @debug.assert_eq(x, 95.0)
-  @debug.assert_eq(y, 65.0)
-  @debug.assert_eq(width, 20.0)
+  assert_eq(x, 95.0)
+  assert_eq(y, 65.0)
+  assert_eq(width, 20.0)
 }
 
 ///|
@@ -241,27 +241,24 @@ test "container label layout is derived from the container box" {
   }
   guard shape.box is Some(box) else { fail("expected shape box") }
   let (x, y, width) = plain_object_label_layout(shape, box, 20.0, 10.0, "dagre")
-  @debug.assert_eq(x, 130.0)
-  @debug.assert_eq(y, 60.0)
-  @debug.assert_eq(width, 20.0)
+  assert_eq(x, 130.0)
+  assert_eq(y, 60.0)
+  assert_eq(width, 20.0)
 }
 
 ///|
 test "shape border radius is clamped to half the smaller dimension" {
   let box = @graph.Box::new(0.0, 0.0, 96.0, 66.0)
-  @debug.assert_eq(clamped_shape_border_radius(999.0, box), 33.0)
-  @debug.assert_eq(clamped_shape_border_radius(-1.0, box), 0.0)
+  assert_eq(clamped_shape_border_radius(999.0, box), 33.0)
+  assert_eq(clamped_shape_border_radius(-1.0, box), 0.0)
 }
 
 ///|
 test "board links use generated SVG paths" {
-  @debug.assert_eq(d2_svg_link_href("root.layers.cat"), "cat.svg")
-  @debug.assert_eq(d2_svg_link_href("root.layers.\"cat.go\""), "cat.go.svg")
-  @debug.assert_eq(
-    d2_svg_link_href("root.layers.cat.layers.kitten"),
-    "cat/kitten.svg",
-  )
-  @debug.assert_eq(
+  assert_eq(d2_svg_link_href("root.layers.cat"), "cat.svg")
+  assert_eq(d2_svg_link_href("root.layers.\"cat.go\""), "cat.go.svg")
+  assert_eq(d2_svg_link_href("root.layers.cat.layers.kitten"), "cat/kitten.svg")
+  assert_eq(
     d2_svg_link_href("https://example.com/docs"),
     "https://example.com/docs",
   )
@@ -269,7 +266,7 @@ test "board links use generated SVG paths" {
 
 ///|
 test "markdown HTML is normalized as an XHTML fragment" {
-  @debug.assert_eq(
+  assert_eq(
     normalize_markdown_xhtml("<p>a<br>b</p><hr>&nbsp;"),
     "<p>a<br />b</p><hr />&#160;",
   )
@@ -277,7 +274,7 @@ test "markdown HTML is normalized as an XHTML fragment" {
 
 ///|
 test "markdown table accessibility wrapper is removed like D2" {
-  @debug.assert_eq(
+  assert_eq(
     normalize_markdown_xhtml(
       "<div role=\"region\"><table>\n<tr><th>A</th></tr>\n<tr><td>B</td></tr>\n</table></div>",
     ),
@@ -431,7 +428,7 @@ test "compute graph bounds includes outside icon and positioned tooltip extents"
     @themes.get_theme(0),
   )
   assert_true(bounds.0 < 100.0)
-  @debug.assert_eq(bounds.1, 79.0)
+  assert_eq(bounds.1, 79.0)
   assert_true(bounds.2 >= 217.0)
   assert_true(bounds.3 > 121.0)
 }
@@ -451,7 +448,7 @@ test "compute graph bounds does not double count inline shape labels" {
     SvgConfig::new(),
     @themes.get_theme(0),
   )
-  @debug.assert_eq(bounds, (-1.0, -1.0, 101.0, 81.0))
+  assert_eq(bounds, (-1.0, -1.0, 101.0, 81.0))
 }
 
 ///|
@@ -464,12 +461,12 @@ test "compute graph bounds uses D2 target-truncated shape geometry" {
     SvgConfig::new(),
     @themes.get_theme(0),
   )
-  @debug.assert_eq(bounds, (-59.0, -1.0, 43.0, 81.0))
+  assert_eq(bounds, (-59.0, -1.0, 43.0, 81.0))
 }
 
 ///|
 test "label bounds truncate a negative half-pixel top-left like D2 target" {
-  @debug.assert_eq(
+  assert_eq(
     d2_target_label_bounds(-58.5, -13.5, 380.0, 36.0),
     (-58.0, -13.0, 322.0, 23.0),
   )

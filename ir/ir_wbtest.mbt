@@ -17,16 +17,16 @@ test "compile empty map" {
   let zero = @lexer.Position::zero()
   let ast = @ast.Map::new(@lexer.Range::new(zero, zero), [])
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.length(), 0)
-  @debug.assert_eq(ir.edges.length(), 0)
+  assert_eq(ir.fields.length(), 0)
+  assert_eq(ir.edges.length(), 0)
 }
 
 ///|
 test "compile simple key" {
   let (ast, _) = @parser.parse("x")
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.length(), 1)
-  @debug.assert_eq(ir.fields[0].name, "x")
+  assert_eq(ir.fields.length(), 1)
+  assert_eq(ir.fields[0].name, "x")
 }
 
 ///|
@@ -68,14 +68,11 @@ test "leading underscores resolve edge scopes and asymmetric endpoints" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   let edge = ir.edges[0]
-  @debug.assert_eq(edge.id.src_path, ["outside"])
-  @debug.assert_eq(edge.id.dst_path, ["container", "local"])
-  @debug.assert_eq(
-    edge.primary.map(fn(value) { value.to_string() }),
-    Some("updated"),
-  )
+  assert_eq(edge.id.src_path, ["outside"])
+  assert_eq(edge.id.dst_path, ["container", "local"])
+  assert_eq(edge.primary.map(fn(value) { value.to_string() }), Some("updated"))
   assert_true(ir.has_field("outside"))
   guard ir.get_field("container") is Some(container) else {
     fail("expected container")
@@ -111,13 +108,13 @@ test "import-aware compiler preserves leading underscore scope semantics" {
     fail("expected style")
   }
   guard style.map() is Some(style_map) else { fail("expected style map") }
-  @debug.assert_eq(
+  assert_eq(
     style_map.get_field("fill").unwrap().primary.unwrap().to_string(),
     "#ACE1AF",
   )
-  @debug.assert_eq(ir.edges.length(), 1)
-  @debug.assert_eq(ir.edges[0].id.src_path, ["christmas", "presents"])
-  @debug.assert_eq(ir.edges[0].id.dst_path, ["birthdays", "presents"])
+  assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges[0].id.src_path, ["christmas", "presents"])
+  assert_eq(ir.edges[0].id.dst_path, ["birthdays", "presents"])
 }
 
 ///|
@@ -131,8 +128,8 @@ test "suspend globs remove only targets declared before the operation" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["d"])
-  @debug.assert_eq(ir.edges.length(), 0)
+  assert_eq(ir.fields.map(fn(field) { field.name }), ["d"])
+  assert_eq(ir.edges.length(), 0)
 }
 
 ///|
@@ -165,27 +162,27 @@ test "unsuspending edges restores endpoints and ancestors without relabeling" {
   guard unsuspend_key.value is Some(BlockScalar(_, filter_map)) else {
     fail("expected suspension block")
   }
-  @debug.assert_eq(filter_map.nodes.length(), 1)
+  assert_eq(filter_map.nodes.length(), 1)
   guard filter_map.nodes[0] is Key(filter_key) else {
     fail("expected filter key")
   }
-  @debug.assert_eq(filter_key.ampersand, true)
-  @debug.assert_eq(filter_key.not_ampersand, false)
-  @debug.assert_eq(key_suspension(unsuspend_key), Some(false))
-  @debug.assert_eq(collect_filters_from_value(unsuspend_key), [
+  assert_eq(filter_key.ampersand, true)
+  assert_eq(filter_key.not_ampersand, false)
+  assert_eq(key_suspension(unsuspend_key), Some(false))
+  assert_eq(collect_filters_from_value(unsuspend_key), [
     (false, "label", "likes"),
   ])
   let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
-  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "c"])
-  @debug.assert_eq(ir.edges.length(), 1)
-  @debug.assert_eq(ir.edges[0].primary.unwrap().to_string(), "likes")
-  @debug.assert_eq(
+  assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "c"])
+  assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges[0].primary.unwrap().to_string(), "likes")
+  assert_eq(
     ir.get_field("a").unwrap().map().unwrap().fields.map(fn(field) {
       field.name
     }),
     ["b"],
   )
-  @debug.assert_eq(
+  assert_eq(
     ir.get_field("c").unwrap().map().unwrap().fields.map(fn(field) {
       field.name
     }),
@@ -201,8 +198,8 @@ test "quoted suspension words remain ordinary labels" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields[0].primary.unwrap().to_string(), "suspend")
-  @debug.assert_eq(ir.edges[0].primary.unwrap().to_string(), "unsuspend")
+  assert_eq(ir.fields[0].primary.unwrap().to_string(), "suspend")
+  assert_eq(ir.edges[0].primary.unwrap().to_string(), "unsuspend")
 }
 
 ///|
@@ -223,20 +220,16 @@ test "recursive edge suspension filters include nested edges with absolute endpo
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
-  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), [
-    "restaurants", "diners",
-  ])
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.fields.map(fn(field) { field.name }), ["restaurants", "diners"])
+  assert_eq(ir.edges.length(), 1)
   guard ir.get_field("restaurants") is Some(restaurants) else {
     fail("expected restaurants")
   }
   guard restaurants.map() is Some(restaurants_map) else {
     fail("expected restaurants map")
   }
-  @debug.assert_eq(restaurants_map.fields.map(fn(field) { field.name }), [
-    "chip", "bk",
-  ])
-  @debug.assert_eq(restaurants_map.edges.length(), 1)
+  assert_eq(restaurants_map.fields.map(fn(field) { field.name }), ["chip", "bk"])
+  assert_eq(restaurants_map.edges.length(), 1)
 }
 
 ///|
@@ -256,10 +249,7 @@ test "glob blocks compile dotted properties and wildcard filters" {
   guard x_map.get_field("style") is Some(style) else { fail("expected style") }
   guard style.map() is Some(style_map) else { fail("expected style map") }
   guard style_map.get_field("fill") is Some(fill) else { fail("expected fill") }
-  @debug.assert_eq(
-    fill.primary.map(fn(value) { value.to_string() }),
-    Some("red"),
-  )
+  assert_eq(fill.primary.map(fn(value) { value.to_string() }), Some("red"))
   guard ir.get_field("y") is Some(y) else { fail("expected y") }
   assert_true(y.map() is None)
 }
@@ -292,7 +282,7 @@ test "nested globs apply inside each filtered match" {
     guard actor_map.get_field("shape") is Some(shape) else {
       fail("expected shape")
     }
-    @debug.assert_eq(
+    assert_eq(
       shape.primary.map(fn(value) { value.to_string() }),
       Some("person"),
     )
@@ -312,7 +302,7 @@ test "edge glob endpoint filters update only matching edges" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 2)
+  assert_eq(ir.edges.length(), 2)
   for edge in ir.edges {
     let expected = if edge.id.dst_path == ["c"] { Some("yellow") } else { None }
     let actual = match edge.map {
@@ -335,7 +325,7 @@ test "edge glob endpoint filters update only matching edges" {
         }
       None => None
     }
-    @debug.assert_eq(actual, expected)
+    assert_eq(actual, expected)
   }
 }
 
@@ -343,26 +333,26 @@ test "edge glob endpoint filters update only matching edges" {
 test "compile key with value" {
   let (ast, _) = @parser.parse("x: hello")
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.length(), 1)
-  @debug.assert_eq(ir.fields[0].name, "x")
+  assert_eq(ir.fields.length(), 1)
+  assert_eq(ir.fields[0].name, "x")
   guard ir.fields[0].primary is Some(p) else { fail("expected primary") }
-  @debug.assert_eq(p.to_string(), "hello")
+  assert_eq(p.to_string(), "hello")
 }
 
 ///|
 test "compile nested keys" {
   let (ast, _) = @parser.parse("a.b.c: value")
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.length(), 1)
-  @debug.assert_eq(ir.fields[0].name, "a")
+  assert_eq(ir.fields.length(), 1)
+  assert_eq(ir.fields[0].name, "a")
   guard ir.fields[0].composite is Some(Map(m1)) else { fail("expected map") }
-  @debug.assert_eq(m1.fields.length(), 1)
-  @debug.assert_eq(m1.fields[0].name, "b")
+  assert_eq(m1.fields.length(), 1)
+  assert_eq(m1.fields[0].name, "b")
   guard m1.fields[0].composite is Some(Map(m2)) else { fail("expected map") }
-  @debug.assert_eq(m2.fields.length(), 1)
-  @debug.assert_eq(m2.fields[0].name, "c")
+  assert_eq(m2.fields.length(), 1)
+  assert_eq(m2.fields[0].name, "c")
   guard m2.fields[0].primary is Some(p) else { fail("expected primary") }
-  @debug.assert_eq(p.to_string(), "value")
+  assert_eq(p.to_string(), "value")
 }
 
 ///|
@@ -399,21 +389,21 @@ test "field references retain AST context" {
   guard c_field.last_ref() is Some(FieldRef(last_ref)) else {
     fail("expected last field reference")
   }
-  @debug.assert_eq(last_ref.string, "c")
+  assert_eq(last_ref.string, "c")
   assert_true(last_ref.primary)
   guard last_ref.context() is Some(context) else {
     fail("expected reference context")
   }
-  @debug.assert_eq(context.source_path, None)
-  @debug.assert_eq(context.key, Some(expected_key))
+  assert_eq(context.source_path, None)
+  assert_eq(context.key, Some(expected_key))
   guard c_field.last_primary_key() is Some(primary_key) else {
     fail("expected primary key")
   }
-  @debug.assert_eq(primary_key, expected_key)
+  assert_eq(primary_key, expected_key)
   guard c_field.ast() is Some(StringValue(syntax)) else {
     fail("expected string AST node")
   }
-  @debug.assert_eq(syntax.content(), "c")
+  assert_eq(syntax.content(), "c")
 }
 
 ///|
@@ -428,11 +418,11 @@ test "bare key fields retain name syntax and non-primary references" {
     _ => fail("expected key node")
   }
   let ir = compile(ast)
-  @debug.assert_eq(ir.get_field("style"), None)
+  assert_eq(ir.get_field("style"), None)
   guard ir.get_field_by_syntax(quoted_syntax) is Some(field) else {
     fail("expected quoted style field")
   }
-  @debug.assert_eq(field.name, "style")
+  assert_eq(field.name, "style")
   assert_false(field.name_is_unquoted())
   guard field.name_syntax() is Some(DoubleQuoted(_)) else {
     fail("expected double-quoted field syntax")
@@ -447,9 +437,9 @@ test "bare key fields retain name syntax and non-primary references" {
 test "compile edge" {
   let (ast, _) = @parser.parse("a -> b")
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
-  @debug.assert_eq(ir.edges[0].id.src_path, ["a"])
-  @debug.assert_eq(ir.edges[0].id.dst_path, ["b"])
+  assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges[0].id.src_path, ["a"])
+  assert_eq(ir.edges[0].id.dst_path, ["b"])
   assert_false(ir.edges[0].id.src_arrow)
   assert_true(ir.edges[0].id.dst_arrow)
   // Source and destination fields should exist
@@ -494,15 +484,15 @@ test "edge ids preserve quoted endpoint syntax" {
     _ => fail("expected edge key")
   }
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   let edge = ir.edges[0]
-  @debug.assert_eq(edge.id.src_path, ["style"])
+  assert_eq(edge.id.src_path, ["style"])
   let src_path_syntax = edge.id.src_path_syntax()
   guard src_path_syntax[0] is DoubleQuoted(_) else {
     fail("expected quoted source path syntax")
   }
-  @debug.assert_eq(src_path_syntax[0], quoted_src)
-  @debug.assert_eq(ir.get_field("style"), None)
+  assert_eq(src_path_syntax[0], quoted_src)
+  assert_eq(ir.get_field("style"), None)
   guard ir.get_field_by_syntax(quoted_src) is Some(src_field) else {
     fail("expected quoted source field")
   }
@@ -521,7 +511,7 @@ test "edge references retain context for glob expansions" {
     _ => fail("expected edge key")
   }
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   let edge = ir.edges[0]
   guard edge.last_ref() is Some(EdgeRef(reference)) else {
     fail("expected edge reference")
@@ -530,22 +520,22 @@ test "edge references retain context for glob expansions" {
   guard reference.context() is Some(context) else {
     fail("expected edge context")
   }
-  @debug.assert_eq(context.key, Some(expected_key))
+  assert_eq(context.key, Some(expected_key))
   guard context.edge is Some(edge_ast) else { fail("expected edge ast") }
   assert_true(edge_ast.src.has_glob())
   guard edge.ast() is Some(Edge(ast_edge)) else {
     fail("expected edge AST node")
   }
-  @debug.assert_eq(ast_edge, edge_ast)
+  assert_eq(ast_edge, edge_ast)
 }
 
 ///|
 test "compile edge with label" {
   let (ast, _) = @parser.parse("a -> b: connection")
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   guard ir.edges[0].primary is Some(p) else { fail("expected primary") }
-  @debug.assert_eq(p.to_string(), "connection")
+  assert_eq(p.to_string(), "connection")
 }
 
 ///|
@@ -564,16 +554,16 @@ test "compile edge between sequence diagram objects" {
   let ir = compile(ast)
   assert_true(ir.has_field("A"))
   assert_true(ir.has_field("B"))
-  @debug.assert_eq(ir.edges.length(), 1)
-  @debug.assert_eq(ir.edges[0].id.src_path, ["A"])
-  @debug.assert_eq(ir.edges[0].id.dst_path, ["B"])
+  assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges[0].id.src_path, ["A"])
+  assert_eq(ir.edges[0].id.dst_path, ["B"])
 }
 
 ///|
 test "compile reverse edge" {
   let (ast, _) = @parser.parse("a <- b")
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   assert_true(ir.edges[0].id.src_arrow)
   assert_false(ir.edges[0].id.dst_arrow)
 }
@@ -582,7 +572,7 @@ test "compile reverse edge" {
 test "compile bidirectional edge" {
   let (ast, _) = @parser.parse("a <-> b")
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   assert_true(ir.edges[0].id.src_arrow)
   assert_true(ir.edges[0].id.dst_arrow)
 }
@@ -595,22 +585,22 @@ test "compile block" {
     #|}
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.length(), 1)
-  @debug.assert_eq(ir.fields[0].name, "container")
+  assert_eq(ir.fields.length(), 1)
+  assert_eq(ir.fields[0].name, "container")
   guard ir.fields[0].composite is Some(Map(m)) else { fail("expected map") }
-  @debug.assert_eq(m.fields.length(), 1)
-  @debug.assert_eq(m.fields[0].name, "child")
+  assert_eq(m.fields.length(), 1)
+  assert_eq(m.fields[0].name, "child")
 }
 
 ///|
 test "compile array" {
   let (ast, _) = @parser.parse("x: [1, 2, 3]")
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.length(), 1)
+  assert_eq(ir.fields.length(), 1)
   guard ir.fields[0].composite is Some(Array(arr)) else {
     fail("expected array")
   }
-  @debug.assert_eq(arr.values.length(), 3)
+  assert_eq(arr.values.length(), 3)
 }
 
 ///|
@@ -629,7 +619,7 @@ test "glob properties preserve array values" {
   guard class_field.array() is Some(classes) else {
     fail("expected class array")
   }
-  @debug.assert_eq(classes.values.length(), 2)
+  assert_eq(classes.values.length(), 2)
 }
 
 ///|
@@ -650,7 +640,7 @@ test "explicit empty array clears an earlier glob array" {
   guard class_field.array() is Some(classes) else {
     fail("expected class array")
   }
-  @debug.assert_eq(classes.values.length(), 0)
+  assert_eq(classes.values.length(), 0)
 }
 
 ///|
@@ -667,7 +657,7 @@ test "later scalar glob replaces an earlier array glob" {
   guard x_map.get_field("class") is Some(class_field) else {
     fail("expected class")
   }
-  @debug.assert_eq(class_field.primary.unwrap().to_string(), "note")
+  assert_eq(class_field.primary.unwrap().to_string(), "note")
   assert_true(class_field.composite is None)
 }
 
@@ -677,7 +667,7 @@ test "compile boolean values" {
   let ir = compile(ast)
   guard ir.fields[0].primary is Some(p) else { fail("expected primary") }
   assert_true(p.is_bool())
-  @debug.assert_eq(p.as_bool(), Some(true))
+  assert_eq(p.as_bool(), Some(true))
 }
 
 ///|
@@ -694,7 +684,7 @@ test "compile number value" {
   let ir = compile(ast)
   guard ir.fields[0].primary is Some(p) else { fail("expected primary") }
   assert_true(p.is_number())
-  @debug.assert_eq(p.to_string(), "42")
+  assert_eq(p.to_string(), "42")
 }
 
 ///|
@@ -702,25 +692,25 @@ test "map operations" {
   let m = Map::new()
   m.add_field(Field::simple("a"))
   m.add_field(Field::simple("b"))
-  @debug.assert_eq(m.fields.length(), 2)
+  assert_eq(m.fields.length(), 2)
   assert_true(m.has_field("a"))
   assert_true(m.has_field("A")) // case-insensitive
   assert_false(m.has_field("c"))
   // Get field
   guard m.get_field("a") is Some(f) else { fail("expected field") }
-  @debug.assert_eq(f.name, "a")
+  assert_eq(f.name, "a")
   // Ensure field (existing)
   let f2 = m.ensure_field("a")
-  @debug.assert_eq(f2.name, "a")
-  @debug.assert_eq(m.fields.length(), 2) // No new field
+  assert_eq(f2.name, "a")
+  assert_eq(m.fields.length(), 2) // No new field
   // Ensure field (new)
   let f3 = m.ensure_field("c")
-  @debug.assert_eq(f3.name, "c")
-  @debug.assert_eq(m.fields.length(), 3) // New field added
+  assert_eq(f3.name, "c")
+  assert_eq(m.fields.length(), 3) // New field added
   // Delete field
   let deleted = m.delete_field("b")
   assert_true(deleted is Some(_))
-  @debug.assert_eq(m.fields.length(), 2)
+  assert_eq(m.fields.length(), 2)
   assert_false(m.has_field("b"))
 }
 
@@ -751,8 +741,7 @@ test "indexed edge update rejects a missing edge" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   try compile(ast) catch {
-    InvalidKey(message) =>
-      @debug.assert_eq(message, "indexed edge does not exist")
+    InvalidKey(message) => assert_eq(message, "indexed edge does not exist")
     err => fail("unexpected error: \{err}")
   } noraise {
     _ => fail("expected indexed edge compilation to fail")
@@ -771,8 +760,7 @@ test "scenario indexed edge update rejects an out of range index" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   try compile(ast) catch {
-    InvalidKey(message) =>
-      @debug.assert_eq(message, "indexed edge does not exist")
+    InvalidKey(message) => assert_eq(message, "indexed edge does not exist")
     err => fail("unexpected error: \{err}")
   } noraise {
     _ => fail("expected scenario indexed edge compilation to fail")
@@ -784,23 +772,23 @@ test "scalar operations" {
   let s1 = Scalar::null()
   assert_true(s1.is_null())
   assert_false(s1.is_bool())
-  @debug.assert_eq(s1.to_string(), "null")
+  assert_eq(s1.to_string(), "null")
   let s2 = Scalar::bool(true)
   assert_true(s2.is_bool())
-  @debug.assert_eq(s2.as_bool(), Some(true))
-  @debug.assert_eq(s2.to_string(), "true")
+  assert_eq(s2.as_bool(), Some(true))
+  assert_eq(s2.to_string(), "true")
   let s3 = Scalar::number("3.14")
   assert_true(s3.is_number())
-  @debug.assert_eq(s3.to_string(), "3.14")
+  assert_eq(s3.to_string(), "3.14")
   let s4 = Scalar::string("hello")
   assert_true(s4.is_string())
-  @debug.assert_eq(s4.to_string(), "hello")
+  assert_eq(s4.to_string(), "hello")
 }
 
 ///|
 test "field operations" {
   let f = Field::simple("test")
-  @debug.assert_eq(f.name, "test")
+  assert_eq(f.name, "test")
   assert_false(f.has_primary())
   assert_false(f.has_composite())
   assert_true(f.map() is None)
@@ -847,7 +835,7 @@ test "glob style.fill applies to all fields" {
     guard fill_field.primary is Some(p) else {
       fail("field \{field_name} fill has no value")
     }
-    @debug.assert_eq(p.to_string(), "red")
+    assert_eq(p.to_string(), "red")
   }
 }
 
@@ -867,7 +855,7 @@ test "triple glob applies inside layer boards" {
   for target in ir.glob_targets(["***"]) {
     target_names.push(target.field.name)
   }
-  @debug.assert_eq(target_names, ["a"])
+  assert_eq(target_names, ["a"])
   guard ir.get_field("layers") is Some(layers) &&
     layers.composite is Some(Map(layers_map)) &&
     layers_map.get_field("next") is Some(next) &&
@@ -880,7 +868,7 @@ test "triple glob applies inside layer boards" {
     fill.primary is Some(value) else {
     fail("expected layer object a to receive triple-glob fill")
   }
-  @debug.assert_eq(value.to_string(), "yellow")
+  assert_eq(value.to_string(), "yellow")
 }
 
 ///|
@@ -907,11 +895,11 @@ test "glob-created properties keep due_to_glob references" {
     fail("expected fill reference")
   }
   assert_true(reference.due_to_glob)
-  @debug.assert_eq(reference.string, "fill")
+  assert_eq(reference.string, "fill")
   guard reference.context() is Some(context) else {
     fail("expected glob context")
   }
-  @debug.assert_eq(context.key, Some(expected_key))
+  assert_eq(context.key, Some(expected_key))
 }
 
 ///|
@@ -928,7 +916,7 @@ test "compile with imports applies globs declared before their matches" {
   guard style.map() is Some(style_map) else { fail("expected style map") }
   guard style_map.get_field("fill") is Some(fill) else { fail("expected fill") }
   guard fill.primary is Some(value) else { fail("expected fill value") }
-  @debug.assert_eq(value.to_string(), "lightblue")
+  assert_eq(value.to_string(), "lightblue")
 }
 
 ///|
@@ -944,7 +932,7 @@ test "compile with imports preserves edge glob endpoint filters" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile_with_imports(ast, ImportResolver::new(fn(_) { None }))
-  @debug.assert_eq(ir.edges.length(), 2)
+  assert_eq(ir.edges.length(), 2)
   for edge in ir.edges {
     if edge.id.dst_path == ["b"] {
       assert_true(edge.map is None)
@@ -957,7 +945,7 @@ test "compile with imports preserves edge glob endpoint filters" {
       guard style_map.get_field("stroke") is Some(stroke) else {
         fail("expected stroke")
       }
-      @debug.assert_eq(
+      assert_eq(
         stroke.primary.map(fn(value) { value.to_string() }),
         Some("yellow"),
       )
@@ -999,7 +987,7 @@ test "double glob applies to nested fields" {
     fail("child1 has no opacity")
   }
   guard opacity.primary is Some(p) else { fail("opacity has no value") }
-  @debug.assert_eq(p.to_string(), "0.5")
+  assert_eq(p.to_string(), "0.5")
 }
 
 ///|
@@ -1016,9 +1004,9 @@ test "double glob edge endpoints select leaf fields only" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 3)
+  assert_eq(ir.edges.length(), 3)
   let sources = ir.edges.map(fn(edge) { edge.id.src_path.join(".") })
-  @debug.assert_eq(sources, [
+  assert_eq(sources, [
     "zone A.machine A", "zone A.machine B.submachine A", "zone A.machine B.submachine B",
   ])
 }
@@ -1050,7 +1038,7 @@ test "recursive edge glob preserves arrow-direction matching" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   assert_true(ir.edges[0].id.src_arrow)
   assert_true(ir.edges[0].id.dst_arrow)
 }
@@ -1071,8 +1059,8 @@ test "suspending endpoints removes unmatched directed edges" {
   let (ast, errors) = @parser.parse(source)
   assert_true(errors.is_empty())
   let ir = compile(ast)
-  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b"])
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b"])
+  assert_eq(ir.edges.length(), 1)
   assert_false(ir.edges[0].id.src_arrow)
   assert_true(ir.edges[0].id.dst_arrow)
 }
@@ -1122,10 +1110,10 @@ test "suspending nested endpoints removes unmatched directed edges" {
   let ir = compile(ast)
   guard ir.get_field("sys") is Some(sys) else { fail("expected sys") }
   guard sys.map() is Some(sys_map) else { fail("expected sys map") }
-  @debug.assert_eq(sys_map.fields.map(fn(field) { field.name }), [
+  assert_eq(sys_map.fields.map(fn(field) { field.name }), [
     "spa", "mobile", "api", "label",
   ])
-  @debug.assert_eq(ir.edges.length(), 4)
+  assert_eq(ir.edges.length(), 4)
   for edge in ir.edges {
     assert_false(edge.id.src_arrow)
     assert_true(edge.id.dst_arrow)
@@ -1138,7 +1126,7 @@ test "suspending nested endpoints removes unmatched directed edges" {
     fail("expected imported sys map")
   }
   assert_false(imported_sys_map.has_field("database"))
-  @debug.assert_eq(imported.edges.length(), 4)
+  assert_eq(imported.edges.length(), 4)
 }
 
 ///|
@@ -1163,7 +1151,7 @@ test "edge suspension globs respect later explicit declarations" {
       compile(ast),
       compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
     ] {
-    @debug.assert_eq(ir.edges.length(), 1)
+    assert_eq(ir.edges.length(), 1)
     assert_false(ir.edges[0].id.src_arrow)
     assert_true(ir.edges[0].id.dst_arrow)
   }
@@ -1193,13 +1181,13 @@ test "edge suspension level filters restore existing root edges" {
       compile(ast),
       compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
     ] {
-    @debug.assert_eq(
+    assert_eq(
       ir.edges.map(fn(edge) {
         (edge.id.src_path.join("."), edge.id.dst_path.join("."))
       }),
       [("root_a", "root_b"), ("root_b", "root_c")],
     )
-    @debug.assert_eq(ir.fields.map(fn(field) { field.name }), [
+    assert_eq(ir.fields.map(fn(field) { field.name }), [
       "root_a", "root_b", "group", "root_c",
     ])
     guard ir.get_field("group") is Some(group) && group.map() is Some(group_map) else {
@@ -1256,7 +1244,7 @@ test "filtered unsuspend restores every matching class array" {
       compile(ast),
       compile_with_imports(ast, ImportResolver::new(fn(_) { None })),
     ] {
-    @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b", "d"])
+    assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b", "d"])
   }
 }
 
@@ -1285,7 +1273,7 @@ test "filtered unsuspend restores every matching spread-import class array" {
     }
   })
   let ir = compile_with_imports(ast, resolver)
-  @debug.assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b", "d"])
+  assert_eq(ir.fields.map(fn(field) { field.name }), ["a", "b", "d"])
 }
 
 ///|
@@ -1337,7 +1325,7 @@ test "compile with imports materializes indexed scenario edge updates" {
     fail("expected focus scenario")
   }
   guard focus.map() is Some(focus_map) else { fail("expected focus map") }
-  @debug.assert_eq(focus_map.edges.length(), 1)
+  assert_eq(focus_map.edges.length(), 1)
   guard focus_map.edges[0].map is Some(edge_map) else {
     fail("expected edge map")
   }
@@ -1349,7 +1337,7 @@ test "compile with imports materializes indexed scenario edge updates" {
     fail("expected opacity")
   }
   guard opacity.primary is Some(value) else { fail("expected opacity value") }
-  @debug.assert_eq(value.to_string(), "0.6")
+  assert_eq(value.to_string(), "0.6")
 }
 
 ///|
@@ -1383,7 +1371,7 @@ test "compile with imports tracks source path in references" {
   guard reference.context() is Some(context) else {
     fail("expected imported context")
   }
-  @debug.assert_eq(context.source_path, Some("inner.d2"))
+  assert_eq(context.source_path, Some("inner.d2"))
 }
 
 ///|
@@ -1413,32 +1401,32 @@ test "compile with imports tracks import AST on imported maps fields and edges" 
   guard ir.get_field("common") is Some(common_field) else {
     fail("expected common field")
   }
-  @debug.assert_eq(common_field.import_ast(), None)
+  assert_eq(common_field.import_ast(), None)
   guard common_field.map() is Some(common_map) else {
     fail("expected imported map")
   }
-  @debug.assert_eq(common_map.import_ast(), Some(import_node))
+  assert_eq(common_map.import_ast(), Some(import_node))
   guard common_map.get_field("service") is Some(service_field) else {
     fail("expected service field")
   }
-  @debug.assert_eq(service_field.import_ast(), Some(import_node))
+  assert_eq(service_field.import_ast(), Some(import_node))
   guard service_field.last_ref() is Some(FieldRef(field_ref)) else {
     fail("expected service field ref")
   }
   guard field_ref.context() is Some(field_ctx) else {
     fail("expected service field context")
   }
-  @debug.assert_eq(field_ctx.source_path, Some("inner.d2"))
-  @debug.assert_eq(common_map.edges.length(), 1)
+  assert_eq(field_ctx.source_path, Some("inner.d2"))
+  assert_eq(common_map.edges.length(), 1)
   let imported_edge = common_map.edges[0]
-  @debug.assert_eq(imported_edge.import_ast(), Some(import_node))
+  assert_eq(imported_edge.import_ast(), Some(import_node))
   guard imported_edge.last_ref() is Some(EdgeRef(edge_ref)) else {
     fail("expected edge ref")
   }
   guard edge_ref.context() is Some(edge_ctx) else {
     fail("expected edge context")
   }
-  @debug.assert_eq(edge_ctx.source_path, Some("inner.d2"))
+  assert_eq(edge_ctx.source_path, Some("inner.d2"))
 }
 
 ///|
@@ -1482,14 +1470,14 @@ test "compile with spread imports tracks import AST on merged fields and edges" 
   guard ir.get_field("alpha") is Some(alpha_field) else {
     fail("expected alpha field")
   }
-  @debug.assert_eq(alpha_field.import_ast(), Some(import_node))
+  assert_eq(alpha_field.import_ast(), Some(import_node))
   guard alpha_field.last_ref() is Some(FieldRef(alpha_ref)) else {
     fail("expected alpha ref")
   }
   guard alpha_ref.context() is Some(alpha_ctx) else {
     fail("expected alpha context")
   }
-  @debug.assert_eq(alpha_ctx.source_path, Some("common.d2"))
+  assert_eq(alpha_ctx.source_path, Some("common.d2"))
   guard alpha_field.map() is Some(alpha_map) else { fail("expected alpha map") }
   guard alpha_map.get_field("beta") is Some(beta_field) else {
     fail("expected beta field")
@@ -1500,17 +1488,17 @@ test "compile with spread imports tracks import AST on merged fields and edges" 
   guard beta_ref.context() is Some(beta_ctx) else {
     fail("expected beta context")
   }
-  @debug.assert_eq(beta_ctx.source_path, Some("common.d2"))
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(beta_ctx.source_path, Some("common.d2"))
+  assert_eq(ir.edges.length(), 1)
   let imported_edge = ir.edges[0]
-  @debug.assert_eq(imported_edge.import_ast(), Some(import_node))
+  assert_eq(imported_edge.import_ast(), Some(import_node))
   guard imported_edge.last_ref() is Some(EdgeRef(edge_ref)) else {
     fail("expected edge ref")
   }
   guard edge_ref.context() is Some(edge_ctx) else {
     fail("expected edge context")
   }
-  @debug.assert_eq(edge_ctx.source_path, Some("common.d2"))
+  assert_eq(edge_ctx.source_path, Some("common.d2"))
 }
 
 ///|
@@ -1541,7 +1529,7 @@ test "compile with imports - selection (nested scalar)" {
   let ir = compile_with_imports(ast, resolver)
   guard ir.get_field("x") is Some(x) else { fail("expected x") }
   guard x.primary is Some(p) else { fail("expected primary") }
-  @debug.assert_eq(p.to_string(), "meow")
+  assert_eq(p.to_string(), "meow")
 }
 
 ///|
@@ -1558,11 +1546,11 @@ test "compile with imports - selection (nested array)" {
   let ir = compile_with_imports(ast, resolver)
   guard ir.get_field("x") is Some(x) else { fail("expected x") }
   guard x.composite is Some(Array(arr)) else { fail("expected array") }
-  @debug.assert_eq(arr.values.length(), 2)
+  assert_eq(arr.values.length(), 2)
   guard arr.values[0] is Scalar(s0) else { fail("expected scalar") }
   guard arr.values[1] is Scalar(s1) else { fail("expected scalar") }
-  @debug.assert_eq(s0.to_string(), "1")
-  @debug.assert_eq(s1.to_string(), "2")
+  assert_eq(s0.to_string(), "1")
+  assert_eq(s1.to_string(), "2")
 }
 
 ///|
@@ -1583,7 +1571,7 @@ test "compile with imports - spread selection non-map errors" {
   }
   match result {
     Err(ImportError(msg)) =>
-      @debug.assert_eq(msg, "cannot spread import non map into map")
+      assert_eq(msg, "cannot spread import non map into map")
     _ => fail("expected ImportError")
   }
 }
@@ -1602,13 +1590,13 @@ test "compile with imports - spread array into array" {
   let ir = compile_with_imports(ast, resolver)
   guard ir.get_field("x") is Some(x) else { fail("expected x") }
   guard x.composite is Some(Array(arr)) else { fail("expected array") }
-  @debug.assert_eq(arr.values.length(), 3)
+  assert_eq(arr.values.length(), 3)
   guard arr.values[0] is Scalar(s0) else { fail("expected scalar") }
   guard arr.values[1] is Scalar(s1) else { fail("expected scalar") }
   guard arr.values[2] is Scalar(s2) else { fail("expected scalar") }
-  @debug.assert_eq(s0.to_string(), "1")
-  @debug.assert_eq(s1.to_string(), "2")
-  @debug.assert_eq(s2.to_string(), "3")
+  assert_eq(s0.to_string(), "1")
+  assert_eq(s1.to_string(), "2")
+  assert_eq(s2.to_string(), "3")
 }
 
 ///|
@@ -1687,7 +1675,7 @@ test "compile vars - spread-in-place (reference behavior)" {
   guard ir.get_field("dora") is Some(dora) else { fail("expected dora") }
   guard dora.composite is Some(Map(dm)) else { fail("expected dora map") }
   guard dm.fields.length() > 0 else { fail("expected fields") }
-  @debug.assert_eq(dm.fields[0].name, "grid-columns")
+  assert_eq(dm.fields[0].name, "grid-columns")
 }
 
 ///|
@@ -1702,13 +1690,13 @@ test "compile vars - spread array (reference behavior)" {
   let ir = compile(ast)
   guard ir.get_field("a") is Some(a) else { fail("expected a") }
   guard a.composite is Some(Array(arr)) else { fail("expected array") }
-  @debug.assert_eq(arr.values.length(), 3)
+  assert_eq(arr.values.length(), 3)
   guard arr.values[0] is Scalar(s0) else { fail("expected scalar") }
   guard arr.values[1] is Scalar(s1) else { fail("expected scalar") }
   guard arr.values[2] is Scalar(s2) else { fail("expected scalar") }
-  @debug.assert_eq(s0.to_string(), "1")
-  @debug.assert_eq(s1.to_string(), "2")
-  @debug.assert_eq(s2.to_string(), "3")
+  assert_eq(s0.to_string(), "1")
+  assert_eq(s1.to_string(), "2")
+  assert_eq(s2.to_string(), "3")
 }
 
 ///|
@@ -1728,13 +1716,13 @@ test "compile vars - spread D2 semicolon array" {
   guard constraints.composite is Some(Array(arr)) else {
     fail("expected constraints array")
   }
-  @debug.assert_eq(arr.values.length(), 3)
+  assert_eq(arr.values.length(), 3)
   guard arr.values[0] is Scalar(pk) else { fail("expected PK") }
   guard arr.values[1] is Scalar(not_null) else { fail("expected NOT NULL") }
   guard arr.values[2] is Scalar(unq) else { fail("expected UNQ") }
-  @debug.assert_eq(pk.to_string(), "PK")
-  @debug.assert_eq(not_null.to_string(), "NOT NULL")
-  @debug.assert_eq(unq.to_string(), "UNQ")
+  assert_eq(pk.to_string(), "PK")
+  assert_eq(not_null.to_string(), "NOT NULL")
+  assert_eq(unq.to_string(), "UNQ")
 }
 
 ///|
@@ -1746,7 +1734,7 @@ test "compile vars - unresolved substitution errors (reference behavior)" {
   }
   match result {
     Err(InvalidSubstitution(msg)) =>
-      @debug.assert_eq(msg, "could not resolve variable \"missing\"")
+      assert_eq(msg, "could not resolve variable \"missing\"")
     _ => fail("expected InvalidSubstitution")
   }
 }
@@ -1771,10 +1759,10 @@ test "compile vars - self scope vars doesn't resolve to itself (reference behavi
   guard vars.composite is Some(Map(vm)) else { fail("expected vars map") }
   guard vm.get_field("x") is Some(x) else { fail("expected x") }
   guard x.primary is Some(px) else { fail("expected x primary") }
-  @debug.assert_eq(px.to_string(), "a-b")
+  assert_eq(px.to_string(), "a-b")
   guard hm.get_field("yo") is Some(yo) else { fail("expected yo") }
   guard yo.primary is Some(pyo) else { fail("expected yo primary") }
-  @debug.assert_eq(pyo.to_string(), "a-b")
+  assert_eq(pyo.to_string(), "a-b")
 }
 
 ///|
@@ -1788,7 +1776,7 @@ test "compile vars - spread non-composite errors (reference behavior)" {
   }
   match result {
     Err(InvalidSubstitution(msg)) =>
-      @debug.assert_eq(msg, "cannot spread non-composite")
+      assert_eq(msg, "cannot spread non-composite")
     _ => fail("expected InvalidSubstitution")
   }
 }
@@ -1804,7 +1792,7 @@ test "compile vars - spread non-array into array errors (reference behavior)" {
   }
   match result {
     Err(InvalidSubstitution(msg)) =>
-      @debug.assert_eq(msg, "cannot spread non-array into array")
+      assert_eq(msg, "cannot spread non-array into array")
     _ => fail("expected InvalidSubstitution")
   }
 }
@@ -1823,43 +1811,43 @@ test "compiled IR assigns node paths and parent lookups" {
   let (ast, _) = @parser.parse(source)
   let ir = compile(ast)
   let root_path = NodePath::root()
-  @debug.assert_eq(ir.path(), Some(root_path))
+  assert_eq(ir.path(), Some(root_path))
 
   guard ir.get_field("a") is Some(a_field) else { fail("expected a field") }
   let a_field_path = root_path.append(FieldStep("a", true))
-  @debug.assert_eq(a_field.path(), Some(a_field_path))
+  assert_eq(a_field.path(), Some(a_field_path))
   guard a_field.parent(ir) is Some(Map(parent_map)) else {
     fail("expected map parent")
   }
-  @debug.assert_eq(parent_map.path(), Some(root_path))
+  assert_eq(parent_map.path(), Some(root_path))
 
   guard a_field.map() is Some(a_map) else { fail("expected a map") }
   let a_map_path = a_field_path.append(CompositeStep)
-  @debug.assert_eq(a_map.path(), Some(a_map_path))
+  assert_eq(a_map.path(), Some(a_map_path))
   guard a_map.parent(ir) is Some(Field(parent_field)) else {
     fail("expected field parent")
   }
-  @debug.assert_eq(parent_field.name, "a")
+  assert_eq(parent_field.name, "a")
 
   guard a_map.get_field("b") is Some(b_field) else { fail("expected b field") }
   let b_field_path = a_map_path.append(FieldStep("b", true))
-  @debug.assert_eq(b_field.path(), Some(b_field_path))
+  assert_eq(b_field.path(), Some(b_field_path))
   guard b_field.primary is Some(b_scalar) else { fail("expected b scalar") }
   let b_scalar_path = b_field_path.append(PrimaryStep)
-  @debug.assert_eq(b_scalar.path(), Some(b_scalar_path))
+  assert_eq(b_scalar.path(), Some(b_scalar_path))
   guard b_scalar.parent(ir) is Some(Field(parent_of_b_scalar)) else {
     fail("expected b scalar parent")
   }
-  @debug.assert_eq(parent_of_b_scalar.name, "b")
+  assert_eq(parent_of_b_scalar.name, "b")
 
   guard a_map.get_field("c") is Some(c_field) else { fail("expected c field") }
   guard c_field.map() is Some(c_map) else { fail("expected c map") }
   let c_map_path = a_map_path.append(FieldStep("c", true)).append(CompositeStep)
-  @debug.assert_eq(c_map.path(), Some(c_map_path))
+  assert_eq(c_map.path(), Some(c_map_path))
   guard c_map.parent(ir) is Some(Field(parent_of_c_map)) else {
     fail("expected c map parent")
   }
-  @debug.assert_eq(parent_of_c_map.name, "c")
+  assert_eq(parent_of_c_map.name, "c")
 
   guard a_map.get_field("xs") is Some(xs_field) else {
     fail("expected xs field")
@@ -1868,36 +1856,36 @@ test "compiled IR assigns node paths and parent lookups" {
   let xs_array_path = a_map_path
     .append(FieldStep("xs", true))
     .append(CompositeStep)
-  @debug.assert_eq(xs_array.path(), Some(xs_array_path))
+  assert_eq(xs_array.path(), Some(xs_array_path))
   guard xs_array.parent(ir) is Some(Field(parent_of_xs_array)) else {
     fail("expected xs array parent")
   }
-  @debug.assert_eq(parent_of_xs_array.name, "xs")
+  assert_eq(parent_of_xs_array.name, "xs")
   guard xs_array.values[0] is Scalar(first_item) else {
     fail("expected first array item")
   }
   let first_item_path = xs_array_path.append(ArrayItemStep(0))
-  @debug.assert_eq(first_item.path(), Some(first_item_path))
+  assert_eq(first_item.path(), Some(first_item_path))
   guard first_item.parent(ir) is Some(IRArray(parent_array)) else {
     fail("expected array parent")
   }
-  @debug.assert_eq(parent_array.path(), Some(xs_array_path))
+  assert_eq(parent_array.path(), Some(xs_array_path))
 
-  @debug.assert_eq(ir.edges.length(), 1)
+  assert_eq(ir.edges.length(), 1)
   let edge = ir.edges[0]
   let edge_path = root_path.append(EdgeStep(edge.id.copy()))
-  @debug.assert_eq(edge.path(), Some(edge_path))
+  assert_eq(edge.path(), Some(edge_path))
   guard edge.parent(ir) is Some(Map(parent_of_edge)) else {
     fail("expected edge parent")
   }
-  @debug.assert_eq(parent_of_edge.path(), Some(root_path))
+  assert_eq(parent_of_edge.path(), Some(root_path))
   guard edge.primary is Some(edge_scalar) else { fail("expected edge scalar") }
   let edge_scalar_path = edge_path.append(PrimaryStep)
-  @debug.assert_eq(edge_scalar.path(), Some(edge_scalar_path))
+  assert_eq(edge_scalar.path(), Some(edge_scalar_path))
   guard edge_scalar.parent(ir) is Some(Edge(parent_edge)) else {
     fail("expected edge scalar parent")
   }
-  @debug.assert_eq(parent_edge.id, edge.id)
+  assert_eq(parent_edge.id, edge.id)
 }
 
 ///|
@@ -1936,7 +1924,7 @@ test "quoted reserved fields keep distinct node paths" {
   }
   assert_true(default_lookup.name_is_unquoted())
   let quoted_path = NodePath::root().append(FieldStep("style", false))
-  @debug.assert_eq(quoted_field.path(), Some(quoted_path))
+  assert_eq(quoted_field.path(), Some(quoted_path))
   guard ir.get_node(quoted_path) is Some(Field(looked_up_quoted)) else {
     fail("expected quoted field lookup by path")
   }
@@ -1966,7 +1954,7 @@ test "map get_node resolves nodes by stored path" {
   guard ir.get_node(d_scalar_path) is Some(Scalar(looked_up_scalar)) else {
     fail("expected scalar lookup")
   }
-  @debug.assert_eq(looked_up_scalar.to_string(), "world")
+  assert_eq(looked_up_scalar.to_string(), "world")
 
   guard a_map.get_field("xs") is Some(xs_field) else {
     fail("expected xs field")
@@ -1978,7 +1966,7 @@ test "map get_node resolves nodes by stored path" {
   guard ir.get_node(xs_array_path) is Some(IRArray(looked_up_array)) else {
     fail("expected array lookup")
   }
-  @debug.assert_eq(looked_up_array.values.length(), 2)
+  assert_eq(looked_up_array.values.length(), 2)
 }
 
 ///|
@@ -2004,7 +1992,7 @@ test "map copy deep clones nested values and reindexes paths" {
   }
   original_xs_array.values.push(Scalar(Scalar::number("3")))
 
-  @debug.assert_eq(copied.get_field("fresh"), None)
+  assert_eq(copied.get_field("fresh"), None)
   guard copied.get_field("a") is Some(copied_a) else {
     fail("expected copied a")
   }
@@ -2018,13 +2006,13 @@ test "map copy deep clones nested values and reindexes paths" {
   guard copied_xs_field.array() is Some(copied_xs_array) else {
     fail("expected copied xs array")
   }
-  @debug.assert_eq(copied_xs_array.values.length(), 2)
-  @debug.assert_eq(copied.path(), Some(NodePath::root()))
+  assert_eq(copied_xs_array.values.length(), 2)
+  assert_eq(copied.path(), Some(NodePath::root()))
   guard copied_xs_array.values[0] is Scalar(copied_item) else {
     fail("expected copied item")
   }
   guard copied_item.parent(copied) is Some(IRArray(parent_array)) else {
     fail("expected copied item parent")
   }
-  @debug.assert_eq(parent_array.values.length(), 2)
+  assert_eq(parent_array.values.length(), 2)
 }

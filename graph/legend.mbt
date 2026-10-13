@@ -68,7 +68,7 @@ pub(all) enum LegendEntry {
   ConnectionEntry(
     src_id~ : String,
     dst_id~ : String,
-    index~ : Int,
+    index~ : Int32,
     src_arrow_enabled~ : Bool,
     dst_arrow_enabled~ : Bool,
     src_arrow~ : ArrowheadType,
@@ -88,7 +88,7 @@ pub fn LegendEntry::shape(
   shape : ShapeType,
   label : String,
   style : StyleInput?,
-  id? : String = label,
+  id~ : String = label,
 ) -> LegendEntry {
   ShapeEntry(id~, shape~, label~, style~)
 }
@@ -100,11 +100,11 @@ pub fn LegendEntry::connection(
   dst_arrow : ArrowheadType,
   label : String,
   style : StyleInput?,
-  src_id? : String = "src",
-  dst_id? : String = "dst",
-  index? : Int = 0,
-  src_arrow_enabled? : Bool = src_arrow != None,
-  dst_arrow_enabled? : Bool = dst_arrow != None,
+  src_id~ : String = "src",
+  dst_id~ : String = "dst",
+  index~ : Int32 = 0,
+  src_arrow_enabled~ : Bool = src_arrow != None,
+  dst_arrow_enabled~ : Bool = dst_arrow != None,
 ) -> LegendEntry {
   ConnectionEntry(
     src_id~,
@@ -250,7 +250,7 @@ pub fn Legend::is_empty(self : Legend) -> Bool {
 
 ///|
 /// Get the number of entries (excluding separators)
-pub fn Legend::entry_count(self : Legend) -> Int {
+pub fn Legend::entry_count(self : Legend) -> Int32 {
   let mut count = 0
   for entry in self.entries {
     match entry {

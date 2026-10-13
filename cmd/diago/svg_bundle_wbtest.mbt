@@ -23,7 +23,7 @@ async test "bundle local image href to data uri" {
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href=".diago_bundle_test_icon.svg" x="0" y="0" width="1" height="1"/></svg>
   let bundled = bundle_local_svg_images(svg, Some("."))
   remove_test_file(icon_path)
-  @debug.assert_eq(bundled.error, None)
+  assert_eq(bundled.error, None)
   assert_true(bundled.svg.contains("data:image/svg+xml;base64,"))
   assert_false(bundled.svg.contains("href=\".diago_bundle_test_icon.svg\""))
 }
@@ -39,7 +39,7 @@ async test "bundle updates href and xlink:href together" {
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href=".diago_bundle_test_icon_xlink.svg" xlink:href=".diago_bundle_test_icon_xlink.svg"/></svg>
   let bundled = bundle_local_svg_images(svg, Some("."))
   remove_test_file(icon_path)
-  @debug.assert_eq(bundled.error, None)
+  assert_eq(bundled.error, None)
   assert_true(bundled.svg.contains("href=\"data:image/svg+xml;base64,"))
   assert_true(bundled.svg.contains("xlink:href=\"data:image/svg+xml;base64,"))
 }
@@ -49,8 +49,8 @@ async test "bundle keeps pre-bundled data uri unchanged" {
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/png;base64,AAAA"/></svg>
   let bundled = bundle_local_svg_images(svg, Some("."))
-  @debug.assert_eq(bundled.error, None)
-  @debug.assert_eq(bundled.svg, svg)
+  assert_eq(bundled.error, None)
+  assert_eq(bundled.svg, svg)
 }
 
 ///|
@@ -68,7 +68,7 @@ async test "bundle local image resolves relative paths from base path" {
   let bundled = bundle_local_svg_images(svg, Some(dir))
   remove_test_file(icon_path)
   remove_test_dir(dir)
-  @debug.assert_eq(bundled.error, None)
+  assert_eq(bundled.error, None)
   assert_true(bundled.svg.contains("data:image/svg+xml;base64,"))
 }
 
@@ -77,11 +77,11 @@ async test "bundle local image keeps svg and reports invalid relative base path"
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="./missing.svg"/></svg>
   let bundled = bundle_local_svg_images(svg, Some(".diago_missing_bundle_dir"))
-  @debug.assert_eq(
+  assert_eq(
     bundled.error,
     Some("failed to bundle local images: [./missing.svg]"),
   )
-  @debug.assert_eq(bundled.svg, svg)
+  assert_eq(bundled.svg, svg)
 }
 
 ///|
@@ -92,13 +92,10 @@ async test "bundle remote duplicate url is fetched once per run" {
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/icon.svg"/><image href="https://example.com/icon.svg"/></svg>
   let bundled = bundle_remote_svg_images(svg)
-  @debug.assert_eq(bundled.error, None)
-  @debug.assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
+  assert_eq(bundled.error, None)
+  assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
   assert_false(bundled.svg.contains(url))
-  @debug.assert_eq(
-    count_occurrences(bundled.svg, "data:image/svg+xml;base64,"),
-    2,
-  )
+  assert_eq(count_occurrences(bundled.svg, "data:image/svg+xml;base64,"), 2)
   reset_bundle_test_state()
 }
 
@@ -114,12 +111,12 @@ async test "bundle remote cache reuses fetched image across runs when enabled" {
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/icon.svg"/></svg>
   ignore(bundle_remote_svg_images(svg, cache_images=true))
   ignore(bundle_remote_svg_images(svg, cache_images=true))
-  @debug.assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
+  assert_eq(test_remote_fetch_count.get_or_default(url, 0), 1)
   test_remote_fetch_count.clear()
   persistent_bundle_cache.clear()
   ignore(bundle_remote_svg_images(svg, cache_images=false))
   ignore(bundle_remote_svg_images(svg, cache_images=false))
-  @debug.assert_eq(test_remote_fetch_count.get_or_default(url, 0), 2)
+  assert_eq(test_remote_fetch_count.get_or_default(url, 0), 2)
   reset_bundle_test_state()
 }
 
@@ -134,11 +131,11 @@ async test "bundle remote image keeps svg and reports oversized response" {
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/huge.bin"/></svg>
   let bundled = bundle_remote_svg_images(svg)
-  @debug.assert_eq(
+  assert_eq(
     bundled.error,
     Some("failed to bundle remote images: [https://example.com/huge.bin]"),
   )
-  @debug.assert_eq(bundled.svg, svg)
+  assert_eq(bundled.svg, svg)
   reset_bundle_test_state()
 }
 
@@ -150,11 +147,11 @@ async test "bundle remote image keeps svg and reports fetch errors" {
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/error.svg"/></svg>
   let bundled = bundle_remote_svg_images(svg)
-  @debug.assert_eq(
+  assert_eq(
     bundled.error,
     Some("failed to bundle remote images: [https://example.com/error.svg]"),
   )
-  @debug.assert_eq(bundled.svg, svg)
+  assert_eq(bundled.svg, svg)
   reset_bundle_test_state()
 }
 
@@ -182,8 +179,8 @@ async test "fetch remote image with async HTTP and redirects" {
     )
     match fetched {
       Ok((bytes, content_type)) => {
-        @debug.assert_eq(bytes, ascii_bytes(test_svg_payload))
-        @debug.assert_eq(content_type, "image/svg+xml")
+        assert_eq(bytes, ascii_bytes(test_svg_payload))
+        assert_eq(content_type, "image/svg+xml")
       }
       Err(message) => fail(message)
     }
@@ -192,25 +189,25 @@ async test "fetch remote image with async HTTP and redirects" {
 
 ///|
 async test "resolve remote image redirects" {
-  @debug.assert_eq(
+  assert_eq(
     resolve_remote_redirect(
       "https://example.com/assets/icon.svg?size=1", "../shared/icon.svg",
     ),
     Ok("https://example.com/assets/../shared/icon.svg"),
   )
-  @debug.assert_eq(
+  assert_eq(
     resolve_remote_redirect(
       "https://example.com/assets/icon.svg", "/images/icon.svg",
     ),
     Ok("https://example.com/images/icon.svg"),
   )
-  @debug.assert_eq(
+  assert_eq(
     resolve_remote_redirect(
       "https://example.com/assets/icon.svg", "//cdn.example.com/icon.svg",
     ),
     Ok("https://cdn.example.com/icon.svg"),
   )
-  @debug.assert_eq(
+  assert_eq(
     resolve_remote_redirect("https://example.com", "icon.svg"),
     Ok("https://example.com/icon.svg"),
   )
@@ -226,15 +223,15 @@ async test "bundle remote image preserves successful replacements when another f
   let svg =
     #|<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/ok.svg"/><image href="https://example.com/error.svg"/></svg>
   let bundled = bundle_remote_svg_images(svg)
-  @debug.assert_eq(
+  assert_eq(
     bundled.error,
     Some("failed to bundle remote images: [https://example.com/error.svg]"),
   )
   assert_true(bundled.svg.contains("data:image/svg+xml;base64,"))
   assert_true(bundled.svg.contains(bad_url))
   assert_false(bundled.svg.contains(ok_url))
-  @debug.assert_eq(test_remote_fetch_count.get_or_default(ok_url, 0), 1)
-  @debug.assert_eq(test_remote_fetch_count.get_or_default(bad_url, 0), 1)
+  assert_eq(test_remote_fetch_count.get_or_default(ok_url, 0), 1)
+  assert_eq(test_remote_fetch_count.get_or_default(bad_url, 0), 1)
   reset_bundle_test_state()
 }
 
@@ -266,7 +263,7 @@ fn reset_bundle_test_state() -> Unit {
 }
 
 ///|
-fn count_occurrences(s : String, needle : String) -> Int {
+fn count_occurrences(s : String, needle : String) -> Int32 {
   if needle == "" {
     return 0
   }

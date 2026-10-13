@@ -63,16 +63,16 @@ pub struct SequenceFragmentModel {
   fragment_type : String
   condition : String?
   bbox : Box?
-  start_index : Int
-  end_index : Int
+  start_index : Int32
+  end_index : Int32
   operands : Array[FragmentOperandModel]
 } derive(Debug)
 
 ///|
 pub fn SequenceFragmentModel::new(
   fragment_type : String,
-  start_index : Int,
-  end_index : Int,
+  start_index : Int32,
+  end_index : Int32,
 ) -> SequenceFragmentModel {
   {
     fragment_type,
@@ -87,7 +87,7 @@ pub fn SequenceFragmentModel::new(
 ///|
 pub struct ObjectReference {
   range : @lexer.Range
-  key_path_index : Int
+  key_path_index : Int32
   in_edge : Bool
   scope_abs_id_syntax : String?
   source_path : String?
@@ -99,7 +99,7 @@ pub struct ObjectReference {
 ///|
 pub fn ObjectReference::new(
   range : @lexer.Range,
-  key_path_index : Int,
+  key_path_index : Int32,
   in_edge : Bool,
   scope_abs_id_syntax : String?,
   source_path : String?,
@@ -122,7 +122,7 @@ pub fn ObjectReference::new(
 ///|
 pub struct EdgeReference {
   range : @lexer.Range
-  edge_index : Int
+  edge_index : Int32
   scope_abs_id_syntax : String?
   source_path : String?
   primary : Bool
@@ -133,7 +133,7 @@ pub struct EdgeReference {
 ///|
 pub fn EdgeReference::new(
   range : @lexer.Range,
-  edge_index : Int,
+  edge_index : Int32,
   scope_abs_id_syntax : String?,
   source_path : String?,
   primary : Bool,
@@ -222,7 +222,7 @@ pub struct ObjectModel {
   box : Box?
   label_box : Box?
   children : Array[ObjectModel]
-  z_index : Int
+  z_index : Int32
   icon : String?
   icon_position : String?
   tooltip : String?
@@ -232,25 +232,25 @@ pub struct ObjectModel {
   classes : Array[String]
   language : String?
   sql_constraints : Array[String]
-  grid_rows : Int?
-  grid_columns : Int?
+  grid_rows : Int32?
+  grid_columns : Int32?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
-  grid_column_span : Int?
-  grid_row_span : Int?
+  grid_column_span : Int32?
+  grid_row_span : Int32?
   near : String?
-  top : Int?
-  left : Int?
+  top : Int32?
+  left : Int32?
   direction : String?
 } derive(Debug)
 
 ///|
 pub fn ObjectModel::new(
   id : String,
-  id_val? : String = id,
-  id_syntax? : String = id,
-  abs_id_syntax? : String = id,
+  id_val~ : String = id,
+  id_syntax~ : String = id,
+  abs_id_syntax~ : String = id,
 ) -> ObjectModel {
   {
     id,
@@ -291,7 +291,7 @@ pub fn ObjectModel::new(
 ///|
 /// Immutable edge model
 pub struct EdgeModel {
-  index : Int
+  index : Int32
   src_id : String
   dst_id : String
   src_id_syntax : String
@@ -317,22 +317,22 @@ pub struct EdgeModel {
   route : Array[Point]
   bend_points : Array[Point]?
   is_curve : Bool
-  z_index : Int
-  reference_count : Int
+  z_index : Int32
+  reference_count : Int32
   label_box : Box?
-  src_column_index : Int?
-  dst_column_index : Int?
+  src_column_index : Int32?
+  dst_column_index : Int32?
 } derive(Debug)
 
 ///|
 pub fn EdgeModel::new(
-  index : Int,
+  index : Int32,
   src_id : String,
   dst_id : String,
   src_arrow : Bool,
   dst_arrow : Bool,
-  src_id_syntax? : String = src_id,
-  dst_id_syntax? : String = dst_id,
+  src_id_syntax~ : String = src_id,
+  dst_id_syntax~ : String = dst_id,
 ) -> EdgeModel {
   {
     index,

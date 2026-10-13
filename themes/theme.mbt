@@ -79,7 +79,7 @@ pub fn SpecialRules::default() -> SpecialRules {
 ///|
 /// A complete theme definition
 pub struct Theme {
-  id : Int
+  id : Int32
   name : String
   colors : ColorPalette
   rules : SpecialRules
@@ -87,7 +87,7 @@ pub struct Theme {
 } derive(Debug)
 
 ///|
-pub fn Theme::get_id(self : Theme) -> Int {
+pub fn Theme::get_id(self : Theme) -> Int32 {
   self.id
 }
 
@@ -147,7 +147,7 @@ pub fn Theme::fill_color(self : Theme) -> String {
 
 ///|
 /// Get container fill for nesting level (0 = outermost)
-pub fn Theme::container_fill(self : Theme, level : Int) -> String {
+pub fn Theme::container_fill(self : Theme, level : Int32) -> String {
   match level {
     0 => self.colors.b6
     1 => self.colors.b5

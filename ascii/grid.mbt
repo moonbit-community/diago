@@ -20,14 +20,14 @@
 ///|
 /// 2D character grid for ASCII rendering
 pub struct Grid {
-  width : Int
-  height : Int
+  width : Int32
+  height : Int32
   cells : Array[Array[Char]]
 }
 
 ///|
 /// Create a new grid filled with spaces
-pub fn Grid::new(width : Int, height : Int) -> Grid {
+pub fn Grid::new(width : Int32, height : Int32) -> Grid {
   let cells : Array[Array[Char]] = []
   for _ in 0..<height {
     let row : Array[Char] = []
@@ -41,19 +41,19 @@ pub fn Grid::new(width : Int, height : Int) -> Grid {
 
 ///|
 /// Get grid width
-pub fn Grid::get_width(self : Grid) -> Int {
+pub fn Grid::get_width(self : Grid) -> Int32 {
   self.width
 }
 
 ///|
 /// Get grid height
-pub fn Grid::get_height(self : Grid) -> Int {
+pub fn Grid::get_height(self : Grid) -> Int32 {
   self.height
 }
 
 ///|
 /// Set a character at position (x, y)
-pub fn Grid::set(self : Grid, x : Int, y : Int, ch : Char) -> Unit {
+pub fn Grid::set(self : Grid, x : Int32, y : Int32, ch : Char) -> Unit {
   if x >= 0 && x < self.width && y >= 0 && y < self.height {
     self.cells[y][x] = ch
   }
@@ -61,7 +61,7 @@ pub fn Grid::set(self : Grid, x : Int, y : Int, ch : Char) -> Unit {
 
 ///|
 /// Get character at position (x, y)
-pub fn Grid::get(self : Grid, x : Int, y : Int) -> Char {
+pub fn Grid::get(self : Grid, x : Int32, y : Int32) -> Char {
   if x >= 0 && x < self.width && y >= 0 && y < self.height {
     self.cells[y][x]
   } else {
@@ -70,13 +70,13 @@ pub fn Grid::get(self : Grid, x : Int, y : Int) -> Char {
 }
 
 ///|
-pub fn Grid::is_in_bounds(self : Grid, x : Int, y : Int) -> Bool {
+pub fn Grid::is_in_bounds(self : Grid, x : Int32, y : Int32) -> Bool {
   y >= 0 && y < self.height && x >= 0 && x < self.width
 }
 
 ///|
 /// Write text starting at position (x, y)
-pub fn Grid::text(self : Grid, x : Int, y : Int, text : String) -> Unit {
+pub fn Grid::text(self : Grid, x : Int32, y : Int32, text : String) -> Unit {
   let mut col = x
   for ch in text {
     self.set(col, y, ch)
@@ -85,7 +85,12 @@ pub fn Grid::text(self : Grid, x : Int, y : Int, text : String) -> Unit {
 }
 
 ///|
-pub fn Grid::draw_label(self : Grid, x : Int, y : Int, label : String) -> Unit {
+pub fn Grid::draw_label(
+  self : Grid,
+  x : Int32,
+  y : Int32,
+  label : String,
+) -> Unit {
   if !self.is_in_bounds(x, y) {
     return
   }
@@ -100,7 +105,7 @@ pub fn Grid::draw_label(self : Grid, x : Int, y : Int, label : String) -> Unit {
 }
 
 ///|
-pub fn Grid::contains_alphanumeric(self : Grid, x : Int, y : Int) -> Bool {
+pub fn Grid::contains_alphanumeric(self : Grid, x : Int32, y : Int32) -> Bool {
   let ch = self.get(x, y)
   let code = ch.to_int()
   (code >= 'a'.to_int() && code <= 'z'.to_int()) ||
@@ -110,7 +115,13 @@ pub fn Grid::contains_alphanumeric(self : Grid, x : Int, y : Int) -> Bool {
 
 ///|
 /// Draw a horizontal line from (x1, y) to (x2, y)
-pub fn Grid::hline(self : Grid, x1 : Int, x2 : Int, y : Int, ch : Char) -> Unit {
+pub fn Grid::hline(
+  self : Grid,
+  x1 : Int32,
+  x2 : Int32,
+  y : Int32,
+  ch : Char,
+) -> Unit {
   let start = if x1 < x2 { x1 } else { x2 }
   let end = if x1 < x2 { x2 } else { x1 }
   for x in start..<=end {
@@ -120,7 +131,13 @@ pub fn Grid::hline(self : Grid, x1 : Int, x2 : Int, y : Int, ch : Char) -> Unit 
 
 ///|
 /// Draw a vertical line from (x, y1) to (x, y2)
-pub fn Grid::vline(self : Grid, x : Int, y1 : Int, y2 : Int, ch : Char) -> Unit {
+pub fn Grid::vline(
+  self : Grid,
+  x : Int32,
+  y1 : Int32,
+  y2 : Int32,
+  ch : Char,
+) -> Unit {
   let start = if y1 < y2 { y1 } else { y2 }
   let end = if y1 < y2 { y2 } else { y1 }
   for y in start..<=end {
@@ -132,10 +149,10 @@ pub fn Grid::vline(self : Grid, x : Int, y1 : Int, y2 : Int, ch : Char) -> Unit 
 /// Draw a rectangle outline
 pub fn Grid::rect(
   self : Grid,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
   corner : Char,
   horiz : Char,
   vert : Char,
@@ -157,10 +174,10 @@ pub fn Grid::rect(
 /// Uses: + - |
 pub fn Grid::ascii_rect(
   self : Grid,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
 ) -> Unit {
   self.box_rect(x1, y1, x2, y2, CharSet::ascii())
 }
@@ -169,10 +186,10 @@ pub fn Grid::ascii_rect(
 /// Draw a rectangle using a CharSet
 pub fn Grid::box_rect(
   self : Grid,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
   cs : CharSet,
 ) -> Unit {
   // Corners
@@ -191,10 +208,10 @@ pub fn Grid::box_rect(
 /// Draw a rounded rectangle using a CharSet
 pub fn Grid::rounded_rect(
   self : Grid,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
   cs : CharSet,
 ) -> Unit {
   // Rounded corners
@@ -213,10 +230,10 @@ pub fn Grid::rounded_rect(
 /// Draw a line between two points (handles vertical, horizontal, diagonal)
 pub fn Grid::line(
   self : Grid,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
   horiz : Char,
   vert : Char,
   diag_down : Char,
@@ -250,10 +267,10 @@ pub fn Grid::line(
 /// Fill a rectangular area with a character
 pub fn Grid::fill(
   self : Grid,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
   ch : Char,
 ) -> Unit {
   let start_x = if x1 < x2 { x1 } else { x2 }
@@ -342,13 +359,13 @@ pub fn Grid::to_compact_string(self : Grid, cs : CharSet) -> String {
     }
   }
 
-  let mut prev_route_columns : Array[Int] = []
+  let mut prev_route_columns : Array[Int32] = []
   let mut prev_route_type : Char = ' '
   let sb = StringBuilder()
 
   for row = start_row; row <= end_row; row = row + 1 {
     let row_data = self.cells[row]
-    let route_columns : Array[Int] = []
+    let route_columns : Array[Int32] = []
     let mut route_type : Char = ' '
     let mut route_type_set = false
     let mut only_route_chars = true

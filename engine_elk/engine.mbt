@@ -80,7 +80,7 @@ const D2_SQL_TABLE_CONSTRAINT_PADDING : Double = 20.0
 const D2_SQL_TABLE_HEADER_PADDING : Double = 10.0
 
 ///|
-const D2_SQL_TABLE_HEADER_FONT_ADD : Int = 4
+const D2_SQL_TABLE_HEADER_FONT_ADD : Int32 = 4
 
 ///|
 const D2_CLASS_PREFIX_PADDING : Double = 10.0
@@ -92,7 +92,7 @@ const D2_CLASS_PREFIX_WIDTH : Double = 20.0
 const D2_CLASS_CENTER_PADDING : Double = 50.0
 
 ///|
-const D2_CLASS_HEADER_FONT_ADD : Int = 4
+const D2_CLASS_HEADER_FONT_ADD : Int32 = 4
 
 ///|
 const D2_CLASS_TYPE_PADDING : Double = 20.0
@@ -197,7 +197,7 @@ const D2_HEXAGON_HALF_Y_FACTOR : Double = 43.6 / 87.3
 const D2_CYLINDER_BEZIER_MULTIPLIER : Double = 0.45
 
 ///|
-const D2_CUBIC_TRACE_SAMPLES : Int = 160
+const D2_CUBIC_TRACE_SAMPLES : Int32 = 160
 
 ///|
 const D2_GEO_PRECISION : Double = 0.0001
@@ -338,8 +338,8 @@ fn build_elk_graph(
   direction : @engine_api.Direction,
 ) -> (
   Json,
-  Map[Int, String],
-  Map[Int, (String, String)],
+  Map[Int32, String],
+  Map[Int32, (String, String)],
   Map[String, (Double, Double)],
   Map[String, LayoutSpacing],
 ) {
@@ -503,8 +503,8 @@ fn build_elk_graph(
     }
   }
 
-  let edge_id_by_index : Map[Int, String] = Map([])
-  let edge_endpoints_by_index : Map[Int, (String, String)] = Map([])
+  let edge_id_by_index : Map[Int32, String] = Map([])
+  let edge_endpoints_by_index : Map[Int32, (String, String)] = Map([])
   let edges_json : Array[Json] = []
   let edge_repeat_indices = d2_edge_repeat_indices(graph.edges)
   let (default_sql_src_side, default_sql_dst_side) = sql_root_port_sides(
@@ -616,7 +616,7 @@ fn build_elk_graph(
 ///|
 fn apply_margin_adjustments_like_d2(
   graph : @graph.GraphInput,
-  edge_id_by_index : Map[Int, String],
+  edge_id_by_index : Map[Int32, String],
   routes_by_edge_id : Map[String, Array[@graph.Point]],
   node_box_by_id : Map[String, @graph.Box],
   node_margin_by_id : Map[String, LayoutSpacing],
@@ -956,7 +956,7 @@ fn shift_route_end_like_d2(
 ///|
 fn shift_descendants_like_d2(
   graph : @graph.GraphInput,
-  edge_id_by_index : Map[Int, String],
+  edge_id_by_index : Map[Int32, String],
   routes_by_edge_id : Map[String, Array[@graph.Point]],
   node_box_by_id : Map[String, @graph.Box],
   child_ids_by_id : Map[String, Array[String]],
@@ -1535,13 +1535,13 @@ fn clip_patch_routes_after_constant_near(
 fn build_patch_edge_endpoints_by_index(
   graph : @graph.GraphInput,
   patch : @graph.LayoutPatch,
-) -> Map[Int, (String, String)] {
+) -> Map[Int32, (String, String)] {
   let node_ids : Map[String, Bool] = Map([])
   for id, _ in patch.nodes {
     node_ids[id] = true
   }
   let (object_by_id, parent_id_by_child_id) = build_object_maps(graph)
-  let edge_endpoints_by_index : Map[Int, (String, String)] = Map([])
+  let edge_endpoints_by_index : Map[Int32, (String, String)] = Map([])
   for edge in graph.edges {
     let src_id = match
       resolve_edge_endpoint_id(
@@ -1620,7 +1620,7 @@ fn is_constant_near_key(key : String) -> Bool {
 }
 
 ///|
-fn near_key_matches_set(key : String, key_set : Int) -> Bool {
+fn near_key_matches_set(key : String, key_set : Int32) -> Bool {
   match key_set {
     0 => key == "top-center" || key == "bottom-center"
     1 => key == "center-left" || key == "center-right"
@@ -1835,8 +1835,8 @@ fn adjust_constant_near_for_label(
 fn build_endpoint_degree_counts(
   graph : @graph.GraphInput,
   excluded_node_ids : Map[String, Bool],
-) -> Map[String, (Int, Int)] {
-  let counts : Map[String, (Int, Int)] = Map([])
+) -> Map[String, (Int32, Int32)] {
+  let counts : Map[String, (Int32, Int32)] = Map([])
   for edge in graph.edges {
     let src_id = edge.src_id
     let dst_id = edge.dst_id
@@ -1865,8 +1865,8 @@ fn apply_multi_edge_min_size_like_d2(
   direction : @engine_api.Direction,
   width : Double,
   height : Double,
-  incoming : Int,
-  outgoing : Int,
+  incoming : Int32,
+  outgoing : Int32,
 ) -> (Double, Double) {
   let mut adjusted_width = width
   let mut adjusted_height = height
@@ -2010,7 +2010,7 @@ fn sql_column_dst_port_id(table_id : String, column_name : String) -> String {
 ///|
 fn sql_column_name_by_index(
   obj : @graph.ObjectInput,
-  column_index : Int,
+  column_index : Int32,
 ) -> String {
   if column_index >= 0 && column_index < obj.child_ids.length() {
     short_name_from_id(obj.child_ids[column_index])
@@ -2021,10 +2021,10 @@ fn sql_column_name_by_index(
 
 ///|
 fn edge_endpoint_with_sql_port(
-  column_index : Int?,
+  column_index : Int32?,
   resolved_id : String,
   is_source : Bool,
-  edge_order_index : Int,
+  edge_order_index : Int32,
   default_side : String,
   object_by_id : Map[String, @graph.ObjectInput],
   node_json_by_id : Map[String, Map[String, Json]],
@@ -2193,8 +2193,8 @@ fn fill_patch_nodes(
 fn fill_patch_edges(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
-  edge_id_by_index : Map[Int, String],
-  edge_endpoints_by_index : Map[Int, (String, String)],
+  edge_id_by_index : Map[Int32, String],
+  edge_endpoints_by_index : Map[Int32, (String, String)],
   node_box_by_id : Map[String, @graph.Box],
   routes_by_edge_id : Map[String, Array[@graph.Point]],
   direction : @engine_api.Direction,
@@ -2205,7 +2205,7 @@ fn fill_patch_edges(
     object_by_id[obj.id] = obj
   }
 
-  let routes_by_index : Map[Int, Array[@graph.Point]] = Map([])
+  let routes_by_index : Map[Int32, Array[@graph.Point]] = Map([])
 
   for edge in graph.edges {
     let mut route : Array[@graph.Point] = []
@@ -2283,9 +2283,9 @@ fn fill_patch_edges(
 
 ///|
 fn trace_route_endpoints_like_d2(
-  routes_by_index : Map[Int, Array[@graph.Point]],
+  routes_by_index : Map[Int32, Array[@graph.Point]],
   graph : @graph.GraphInput,
-  edge_endpoints_by_index : Map[Int, (String, String)],
+  edge_endpoints_by_index : Map[Int32, (String, String)],
   node_box_by_id : Map[String, @graph.Box],
 ) -> Unit {
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
@@ -2661,7 +2661,7 @@ fn copy_passthrough_layout_data(
 fn make_root_layout_options(
   config : @engine_api.LayoutConfig,
   direction : @engine_api.Direction,
-  self_loop_spacing : Int,
+  self_loop_spacing : Int32,
 ) -> Map[String, Json] {
   let spacing = layout_node_spacing(config, direction)
   {
@@ -2688,7 +2688,7 @@ fn make_container_layout_options(
   direction : @engine_api.Direction,
   width : Double,
   height : Double,
-  self_loop_spacing : Int,
+  self_loop_spacing : Int32,
   content_padding : LayoutSpacing,
 ) -> Map[String, Json] {
   let spacing = layout_node_spacing(config, direction)
@@ -2750,7 +2750,7 @@ fn make_leaf_layout_options() -> Map[String, Json] {
 fn layout_node_spacing(
   config : @engine_api.LayoutConfig,
   direction : @engine_api.Direction,
-) -> Int {
+) -> Int32 {
   let raw = match
     (direction, config.horizontal_spacing, config.vertical_spacing) {
     // Align default ELK spacing with the reference default (70) while preserving explicit config overrides.
@@ -2763,7 +2763,7 @@ fn layout_node_spacing(
 }
 
 ///|
-fn layout_padding_value(config : @engine_api.LayoutConfig) -> Int {
+fn layout_padding_value(config : @engine_api.LayoutConfig) -> Int32 {
   let raw = if approx_eq(config.container_padding, 40.0) {
     50.0
   } else {
@@ -2791,7 +2791,7 @@ fn self_loop_spacing_for_parent(
   graph : @graph.GraphInput,
   child_ids : Array[String],
   direction : @engine_api.Direction,
-) -> Int {
+) -> Int32 {
   let base = 50
   if child_ids.is_empty() {
     return base
@@ -2830,7 +2830,7 @@ fn self_loop_spacing_for_parent(
 }
 
 ///|
-fn max_int(a : Int, b : Int) -> Int {
+fn max_int(a : Int32, b : Int32) -> Int32 {
   if a > b {
     a
   } else {
@@ -2839,7 +2839,7 @@ fn max_int(a : Int, b : Int) -> Int {
 }
 
 ///|
-fn positive_int(value : Double, fallback : Int) -> Int {
+fn positive_int(value : Double, fallback : Int32) -> Int32 {
   let rounded = value.round().to_int()
   if rounded > 0 {
     rounded
@@ -3250,7 +3250,7 @@ fn shape_border_point_towards(
 
 ///|
 fn delete_bends_like_d2(
-  routes_by_index : Map[Int, Array[@graph.Point]],
+  routes_by_index : Map[Int32, Array[@graph.Point]],
   graph : @graph.GraphInput,
   node_box_by_id : Map[String, @graph.Box],
 ) -> Unit {
@@ -3273,7 +3273,7 @@ fn delete_bends_like_d2(
     }
   }
 
-  let point_counts : Map[String, Int] = Map([])
+  let point_counts : Map[String, Int32] = Map([])
   for edge in graph.edges {
     let route = match routes_by_index.get(edge.index) {
       Some(points) => points
@@ -3435,7 +3435,7 @@ fn delete_bends_like_d2(
 ///|
 fn delete_endpoint_s_shape_like_d2(
   route : Array[@graph.Point],
-  routes_by_index : Map[Int, Array[@graph.Point]],
+  routes_by_index : Map[Int32, Array[@graph.Point]],
   edge : @graph.EdgeInput,
   node_box_by_id : Map[String, @graph.Box],
   object_by_id : Map[String, @graph.ObjectInput],
@@ -3573,7 +3573,7 @@ fn count_object_intersects(
   dst_id : String,
   a : @graph.Point,
   b : @graph.Point,
-) -> Int {
+) -> Int32 {
   let mut count = 0
   for id, box in node_box_by_id {
     if id == src_id || id == dst_id {
@@ -3588,11 +3588,11 @@ fn count_object_intersects(
 
 ///|
 fn count_edge_intersects(
-  routes_by_index : Map[Int, Array[@graph.Point]],
-  current_edge_index : Int,
+  routes_by_index : Map[Int32, Array[@graph.Point]],
+  current_edge_index : Int32,
   a : @graph.Point,
   b : @graph.Point,
-) -> (Int, Int, Int, Int) {
+) -> (Int32, Int32, Int32, Int32) {
   let is_horizontal = ceil_eq(a.y, b.y)
   let mut crossings = 0
   let mut overlaps = 0
@@ -5005,7 +5005,7 @@ fn cubic_polyline_intersections(
   p1 : @graph.Point,
   p2 : @graph.Point,
   p3 : @graph.Point,
-  samples : Int,
+  samples : Int32,
 ) -> Array[@graph.Point] {
   let _ = samples
   compute_cubic_line_intersections(segment_start, segment_end, p0, p1, p2, p3)
@@ -5057,7 +5057,7 @@ fn compute_cubic_line_intersections(
 }
 
 ///|
-fn precision_compare(a : Double, b : Double, e : Double) -> Int {
+fn precision_compare(a : Double, b : Double, e : Double) -> Int32 {
   if abs_double(a - b) < e {
     0
   } else if a < b {
@@ -5297,7 +5297,7 @@ fn object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
   object_by_id : Map[String, @graph.ObjectInput],
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
   if obj.label == "" &&
     obj.shape_type != Image &&
@@ -5393,7 +5393,7 @@ fn estimate_object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
   _object_by_id : Map[String, @graph.ObjectInput],
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
   let has_explicit_dimension = match obj.box {
     Some(box) => box.width > 0.0 || box.height > 0.0
@@ -6287,7 +6287,7 @@ fn shape_inner_box_for_label(
 ///|
 fn object_label_dimensions(
   obj : @graph.ObjectInput,
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> (Double, Double)? {
   if obj.label == "" {
     return None
@@ -6493,7 +6493,7 @@ fn object_is_markdown(obj : @graph.ObjectInput) -> Bool {
 ///|
 fn measure_object_label_dims(
   obj : @graph.ObjectInput,
-  font_size : Int,
+  font_size : Int32,
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
@@ -6588,7 +6588,7 @@ fn style_bool(value : @graph.StyleValue?, default : Bool) -> Bool {
 ///|
 fn object_label_bold_like_d2(
   obj : @graph.ObjectInput,
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> Bool {
   if inside_sequence || obj.shape_type == Class {
     false
@@ -6709,14 +6709,14 @@ fn point_distance(a : @graph.Point, b : @graph.Point) -> Double {
 }
 
 ///|
-fn elk_edge_id(edge : @graph.EdgeInput, repeat_index : Int) -> String {
+fn elk_edge_id(edge : @graph.EdgeInput, repeat_index : Int32) -> String {
   d2_edge_abs_id(edge, repeat_index)
 }
 
 ///|
-fn d2_edge_repeat_indices(edges : Array[@graph.EdgeInput]) -> Array[Int] {
-  let counts : Map[String, Int] = Map([])
-  let out : Array[Int] = []
+fn d2_edge_repeat_indices(edges : Array[@graph.EdgeInput]) -> Array[Int32] {
+  let counts : Map[String, Int32] = Map([])
+  let out : Array[Int32] = []
   for edge in edges {
     let key = d2_edge_repeat_key(edge)
     let index = counts.get(key).unwrap_or(0)
@@ -6732,7 +6732,7 @@ fn d2_edge_repeat_key(edge : @graph.EdgeInput) -> String {
 }
 
 ///|
-fn d2_edge_abs_id(edge : @graph.EdgeInput, repeat_index : Int) -> String {
+fn d2_edge_abs_id(edge : @graph.EdgeInput, repeat_index : Int32) -> String {
   let src_parts = d2_split_abs_id_parts(edge.src_id)
   let dst_parts = d2_split_abs_id_parts(edge.dst_id)
   let common : Array[String] = []

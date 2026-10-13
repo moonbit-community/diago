@@ -326,7 +326,7 @@ fn basename_string(path : String) -> String {
 
 ///|
 /// Run the watch subcommand
-fn parse_interval_ms(s : String, default_value : Int) -> Int {
+fn parse_interval_ms(s : String, default_value : Int32) -> Int32 {
   match parse_uint(s) {
     Some(v) => if v <= 0 { default_value } else { v }
     None => default_value
@@ -334,7 +334,7 @@ fn parse_interval_ms(s : String, default_value : Int) -> Int {
 }
 
 ///|
-fn parse_uint(s : String) -> Int? {
+fn parse_uint(s : String) -> Int32? {
   if s.length() == 0 {
     return None
   }
@@ -349,7 +349,7 @@ fn parse_uint(s : String) -> Int? {
 }
 
 ///|
-fn parse_theme_id_option(value : String, fallback : Int?) -> Int? {
+fn parse_theme_id_option(value : String, fallback : Int32?) -> Int32? {
   match parse_uint(value.trim().to_owned()) {
     Some(v) => Some(v)
     None => fallback
@@ -408,7 +408,7 @@ fn parse_override_pairs(raw : String) -> @diagram.ThemeOverrides? {
 }
 
 ///|
-fn find_pair_separator(s : String) -> Int {
+fn find_pair_separator(s : String) -> Int32 {
   for i in 0..<s.length() {
     let ch = s.code_unit_at(i).to_int().unsafe_to_char()
     if ch == '=' || ch == ':' {
@@ -430,7 +430,7 @@ fn normalize_override_component(s : String) -> String {
 }
 
 ///|
-fn string_slice(s : String, start : Int, end : Int) -> String {
+fn string_slice(s : String, start : Int32, end : Int32) -> String {
   if start < 0 || end < start || end > s.length() {
     return ""
   }
@@ -489,16 +489,16 @@ async fn compile_source(
   layout_engine : LayoutEngineChoice,
   layout_explicit : Bool,
   target_spec : String?,
-  dark_theme_id? : Int? = None,
-  sketch? : Bool? = None,
-  pad? : Double? = None,
-  center? : Bool? = None,
-  theme_overrides? : @diagram.ThemeOverrides? = None,
-  dark_theme_overrides? : @diagram.ThemeOverrides? = None,
-  scale? : Double? = None,
-  no_xml_tag? : Bool? = None,
-  salt? : String? = None,
-  omit_version? : Bool? = None,
+  dark_theme_id~ : Int32? = None,
+  sketch~ : Bool? = None,
+  pad~ : Double? = None,
+  center~ : Bool? = None,
+  theme_overrides~ : @diagram.ThemeOverrides? = None,
+  dark_theme_overrides~ : @diagram.ThemeOverrides? = None,
+  scale~ : Double? = None,
+  no_xml_tag~ : Bool? = None,
+  salt~ : String? = None,
+  omit_version~ : Bool? = None,
 ) -> Result[String, String] {
   match
     compile_source_with_warnings(
@@ -538,16 +538,16 @@ async fn compile_source_with_warnings(
   layout_engine : LayoutEngineChoice,
   layout_explicit : Bool,
   target_spec : String?,
-  dark_theme_id? : Int? = None,
-  sketch? : Bool? = None,
-  pad? : Double? = None,
-  center? : Bool? = None,
-  theme_overrides? : @diagram.ThemeOverrides? = None,
-  dark_theme_overrides? : @diagram.ThemeOverrides? = None,
-  scale? : Double? = None,
-  no_xml_tag? : Bool? = None,
-  salt? : String? = None,
-  omit_version? : Bool? = None,
+  dark_theme_id~ : Int32? = None,
+  sketch~ : Bool? = None,
+  pad~ : Double? = None,
+  center~ : Bool? = None,
+  theme_overrides~ : @diagram.ThemeOverrides? = None,
+  dark_theme_overrides~ : @diagram.ThemeOverrides? = None,
+  scale~ : Double? = None,
+  no_xml_tag~ : Bool? = None,
+  salt~ : String? = None,
+  omit_version~ : Bool? = None,
 ) -> Result[CompiledSourceResult, String] {
   match output_mode {
     Svg =>
@@ -596,16 +596,16 @@ async fn compile_diago_svg_with_warnings(
   layout_engine : LayoutEngineChoice,
   layout_explicit : Bool,
   target_spec : String?,
-  dark_theme_id? : Int? = None,
-  sketch? : Bool? = None,
-  pad? : Double? = None,
-  center? : Bool? = None,
-  theme_overrides? : @diagram.ThemeOverrides? = None,
-  dark_theme_overrides? : @diagram.ThemeOverrides? = None,
-  scale? : Double? = None,
-  no_xml_tag? : Bool? = None,
-  salt? : String? = None,
-  omit_version? : Bool? = None,
+  dark_theme_id~ : Int32? = None,
+  sketch~ : Bool? = None,
+  pad~ : Double? = None,
+  center~ : Bool? = None,
+  theme_overrides~ : @diagram.ThemeOverrides? = None,
+  dark_theme_overrides~ : @diagram.ThemeOverrides? = None,
+  scale~ : Double? = None,
+  no_xml_tag~ : Bool? = None,
+  salt~ : String? = None,
+  omit_version~ : Bool? = None,
 ) -> Result[CompiledSourceResult, String] {
   match
     compile_with_facade(
@@ -705,16 +705,16 @@ async fn compile_with_facade(
   layout_engine : LayoutEngineChoice,
   layout_explicit : Bool,
   target_spec : String?,
-  dark_theme_id? : Int? = None,
-  sketch? : Bool? = None,
-  pad? : Double? = None,
-  center? : Bool? = None,
-  theme_overrides? : @diagram.ThemeOverrides? = None,
-  dark_theme_overrides? : @diagram.ThemeOverrides? = None,
-  scale? : Double? = None,
-  no_xml_tag? : Bool? = None,
-  salt? : String? = None,
-  omit_version? : Bool? = None,
+  dark_theme_id~ : Int32? = None,
+  sketch~ : Bool? = None,
+  pad~ : Double? = None,
+  center~ : Bool? = None,
+  theme_overrides~ : @diagram.ThemeOverrides? = None,
+  dark_theme_overrides~ : @diagram.ThemeOverrides? = None,
+  scale~ : Double? = None,
+  no_xml_tag~ : Bool? = None,
+  salt~ : String? = None,
+  omit_version~ : Bool? = None,
 ) -> Result[String, String] {
   let options = base_compile_options(
       source, base_path, layout_engine, layout_explicit, target_spec,

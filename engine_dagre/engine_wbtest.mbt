@@ -56,8 +56,8 @@ test "constant near place shifts left for outside-right labels like the referenc
     outside_right, "top-left", 0.0, 0.0, 100.0, 80.0, 60.0, 40.0,
   )
   let (label_width, _) = object_label_dimensions(outside_right).unwrap()
-  @debug.assert_eq(adjusted_pos.0, plain_pos.0 - label_width)
-  @debug.assert_eq(adjusted_pos.1, plain_pos.1)
+  assert_eq(adjusted_pos.0, plain_pos.0 - label_width)
+  assert_eq(adjusted_pos.1, plain_pos.1)
 }
 
 ///|
@@ -71,8 +71,8 @@ test "constant near place shifts down for outside-top labels like the reference"
     outside_top, "bottom-right", 0.0, 0.0, 100.0, 80.0, 60.0, 40.0,
   )
   let (_, label_height) = object_label_dimensions(outside_top).unwrap()
-  @debug.assert_eq(adjusted_pos.0, plain_pos.0)
-  @debug.assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
+  assert_eq(adjusted_pos.0, plain_pos.0)
+  assert_eq(adjusted_pos.1, plain_pos.1 + label_height)
 }
 
 ///|
@@ -107,8 +107,8 @@ test "person with only an explicit width preserves the reference aspect ratio" {
     @engine_api.LayoutConfig::new(),
     object_by_id,
   )
-  @debug.assert_eq(width, 130.0)
-  @debug.assert_eq(height, 87.0)
+  assert_eq(width, 130.0)
+  assert_eq(height, 87.0)
 }
 
 ///|
@@ -266,7 +266,7 @@ test "sequence participants use regular label metrics like D2" {
     object_by_id,
     inside_sequence=true,
   )
-  @debug.assert_eq(size, (181.0, 66.0))
+  assert_eq(size, (181.0, 66.0))
 }
 
 ///|
@@ -276,7 +276,7 @@ test "dagre node center offsets use Go math.Round tie semantics" {
   attrs.set_float("y", 754.5)
   attrs.set_float("width", 362.0)
   attrs.set_float("height", 200.0)
-  @debug.assert_eq(
+  assert_eq(
     box_from_dagre_node(attrs, 362.0, 200.0),
     Some(@graph.Box::new(282.0, 655.0, 362.0, 200.0)),
   )
@@ -284,7 +284,7 @@ test "dagre node center offsets use Go math.Round tie semantics" {
 
 ///|
 test "box tracing rounds a half-pixel dagre endpoint like D2" {
-  @debug.assert_eq(
+  assert_eq(
     first_box_intersection(
       @graph.Box::new(282.0, 655.0, 362.0, 200.0),
       @graph.Point::new(463.0, 854.5),
@@ -300,9 +300,9 @@ test "C4 person tracing matches D2's exact cubic intersection" {
   let rect = @graph.Point::new(1065.25, 264.1230581784953)
   let prev = @graph.Point::new(452.0, 462.5)
   let chopped = first_box_intersection(box, prev, rect).unwrap()
-  @debug.assert_eq(chopped, @graph.Point::new(1065.0, 264.5))
+  assert_eq(chopped, @graph.Point::new(1065.0, 264.5))
   let extended = extended_trace_segment_end(box, chopped, prev)
-  @debug.assert_eq(
+  assert_eq(
     segment_segment_intersection(
       @graph.Point::new(1065.0, 337.0),
       @graph.Point::new(1065.0, 222.0),
@@ -311,7 +311,7 @@ test "C4 person tracing matches D2's exact cubic intersection" {
     ),
     Some(@graph.Point::new(1065.0, 265.0)),
   )
-  @debug.assert_eq(
+  assert_eq(
     trace_to_shape_border(C4Person, box, chopped, prev),
     @graph.Point::new(1065.0, 265.0),
   )

@@ -195,7 +195,7 @@ const D2_CLASS_PREFIX_WIDTH : Double = 20.0
 const D2_CLASS_CENTER_PADDING : Double = 50.0
 
 ///|
-const D2_CLASS_HEADER_FONT_ADD : Int = 4
+const D2_CLASS_HEADER_FONT_ADD : Int32 = 4
 
 ///|
 const D2_CLASS_TYPE_PADDING : Double = 20.0
@@ -356,7 +356,7 @@ const SQL_TABLE_CONSTRAINT_PADDING : Double = 20.0
 const SQL_TABLE_HEADER_PADDING : Double = 10.0
 
 ///|
-const SQL_TABLE_HEADER_FONT_ADD : Int = 4
+const SQL_TABLE_HEADER_FONT_ADD : Int32 = 4
 
 ///|
 const SQL_CONSTRAINT_PREFIX : String = "sql_constraint:"
@@ -512,9 +512,9 @@ fn recompute_edge_label_boxes(
   graph : @graph.GraphInput,
   direction : @engine_api.Direction,
   config : @engine_api.LayoutConfig,
-  lane_by_edge : Map[Int, Int],
+  lane_by_edge : Map[Int32, Int32],
 ) -> Unit {
-  let label_boxes : Map[Int, @graph.Box] = Map([])
+  let label_boxes : Map[Int32, @graph.Box] = Map([])
   for edge in graph.edges {
     let route = match patch.edges.get(edge.index) {
       Some(v) => v
@@ -545,7 +545,7 @@ fn recompute_edge_label_boxes(
 
 ///|
 priv struct LabelInterval {
-  edge_index : Int
+  edge_index : Int32
   minor_start : Double
   minor_end : Double
   major_span : Double
@@ -553,17 +553,17 @@ priv struct LabelInterval {
 
 ///|
 fn resolve_edge_label_collisions(
-  label_boxes : Map[Int, @graph.Box],
+  label_boxes : Map[Int32, @graph.Box],
   direction : @engine_api.Direction,
   config : @engine_api.LayoutConfig,
-  lane_by_edge : Map[Int, Int],
+  lane_by_edge : Map[Int32, Int32],
 ) -> Unit {
   let vertical = match direction {
     Down | Up => true
     Right | Left => false
   }
   let bucket_size = @cmp.maximum(16.0, config.edge_padding)
-  let grouped : Map[Int, Array[LabelInterval]] = Map([])
+  let grouped : Map[Int32, Array[LabelInterval]] = Map([])
   for entry in label_boxes {
     let edge_index = entry.0
     let box = entry.1
@@ -612,7 +612,7 @@ fn resolve_edge_label_collisions(
       }
     })
     let lane_ends : Array[Double] = []
-    let lane_by_edge : Map[Int, Int] = Map([])
+    let lane_by_edge : Map[Int32, Int32] = Map([])
     let mut max_major_span = 0.0
     for item in ordered {
       if item.major_span > max_major_span {
@@ -658,7 +658,7 @@ fn resolve_edge_label_collisions(
 
 ///|
 fn resolve_edge_label_obstacles(
-  label_boxes : Map[Int, @graph.Box],
+  label_boxes : Map[Int32, @graph.Box],
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
   direction : @engine_api.Direction,
@@ -667,16 +667,16 @@ fn resolve_edge_label_obstacles(
   if label_boxes.is_empty() {
     return
   }
-  let edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
+  let edge_by_index : Map[Int32, @graph.EdgeInput] = Map([])
   for edge in graph.edges {
     edge_by_index[edge.index] = edge
   }
-  let order : Array[Int] = []
+  let order : Array[Int32] = []
   for entry in label_boxes {
     order.push(entry.0)
   }
   order.sort()
-  let route_by_edge : Map[Int, Array[@graph.Point]] = Map([])
+  let route_by_edge : Map[Int32, Array[@graph.Point]] = Map([])
   for entry in patch.edges {
     route_by_edge[entry.0] = entry.1
   }
@@ -919,10 +919,10 @@ fn label_within_route_band(
 
 ///|
 fn label_candidate_is_feasible(
-  edge_index : Int,
+  edge_index : Int32,
   box : @graph.Box,
   edge : @graph.EdgeInput,
-  label_boxes : Map[Int, @graph.Box],
+  label_boxes : Map[Int32, @graph.Box],
   patch : @graph.LayoutPatch,
 ) -> Bool {
   for entry in label_boxes {
@@ -978,11 +978,11 @@ fn label_feasible_cost(box : @graph.Box, base : @graph.Box) -> Double {
 
 ///|
 fn label_obstacle_score(
-  edge_index : Int,
+  edge_index : Int32,
   box : @graph.Box,
   base : @graph.Box,
   edge : @graph.EdgeInput,
-  label_boxes : Map[Int, @graph.Box],
+  label_boxes : Map[Int32, @graph.Box],
   patch : @graph.LayoutPatch,
 ) -> Double {
   let mut score = 0.0
@@ -1186,7 +1186,7 @@ priv struct ContainerLabelScoreRailway {
   placed_label_penalty : Double
   edge_label_penalty : Double
   edge_route_penalty : Double
-  candidate_order : Int
+  candidate_order : Int32
 }
 
 ///|
@@ -1402,7 +1402,7 @@ fn container_label_score_railway(
   container_box : @graph.Box,
   placed_labels : Map[String, @graph.Box],
   bounds : (Double, Double, Double, Double),
-  candidate_order : Int,
+  candidate_order : Int32,
 ) -> ContainerLabelScoreRailway {
   let padded = @graph.Box::new(
     candidate.x - RAILWAY_LABEL_BOX_PADDING,

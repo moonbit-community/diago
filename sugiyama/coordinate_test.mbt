@@ -23,9 +23,11 @@ test "assign_coordinates simple chain" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   // Collect node dimensions
   let widths : Map[String, Double] = Map([])
   let heights : Map[String, Double] = Map([])
@@ -35,7 +37,7 @@ test "assign_coordinates simple chain" {
   heights["a"] = 60.0
   heights["b"] = 60.0
   heights["c"] = 60.0
-  let coords = assign_coordinates(
+  let coords = @sugiyama.assign_coordinates(
     graph, crossing_result, cycle_result, widths, heights, 60.0, 40.0,
   )
   // All nodes should have coordinates
@@ -59,16 +61,18 @@ test "assign_coordinates diamond" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   let widths : Map[String, Double] = Map([])
   let heights : Map[String, Double] = Map([])
   for node in ["a", "b", "c", "d"] {
     widths[node] = 100.0
     heights[node] = 60.0
   }
-  let coords = assign_coordinates(
+  let coords = @sugiyama.assign_coordinates(
     graph, crossing_result, cycle_result, widths, heights, 60.0, 40.0,
   )
   // b and c should have same y (same layer)
@@ -88,9 +92,11 @@ test "assign_coordinates_simple" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   let widths : Map[String, Double] = Map([])
   let heights : Map[String, Double] = Map([])
   widths["a"] = 100.0
@@ -99,7 +105,7 @@ test "assign_coordinates_simple" {
   heights["a"] = 60.0
   heights["b"] = 60.0
   heights["c"] = 60.0
-  let coords = assign_coordinates_simple(
+  let coords = @sugiyama.assign_coordinates_simple(
     crossing_result, widths, heights, 60.0, 40.0, 20.0,
   )
   // All nodes should have coordinates starting from padding

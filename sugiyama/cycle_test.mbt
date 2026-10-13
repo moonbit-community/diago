@@ -23,7 +23,7 @@ test "break_cycles detects simple cycle" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let result = break_cycles(graph)
+  let result = @sugiyama.break_cycles(graph)
   // Should have found one back-edge to break
   inspect(result.had_cycles, content="true")
   inspect(result.reversed_edges.length() > 0, content="true")
@@ -37,7 +37,7 @@ test "break_cycles handles DAG" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let result = break_cycles(graph)
+  let result = @sugiyama.break_cycles(graph)
   // No cycles to break
   inspect(result.had_cycles, content="false")
   inspect(result.reversed_edges.length(), content="0")
@@ -51,7 +51,7 @@ test "break_cycles handles self-loop" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let result = break_cycles(graph)
+  let result = @sugiyama.break_cycles(graph)
   // Self-loop is a cycle
   inspect(result.had_cycles, content="true")
 }
@@ -64,7 +64,7 @@ test "break_cycles handles diamond" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let result = break_cycles(graph)
+  let result = @sugiyama.break_cycles(graph)
   inspect(result.had_cycles, content="false")
 }
 
@@ -76,7 +76,7 @@ test "break_cycles handles multiple cycles" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let result = break_cycles(graph)
+  let result = @sugiyama.break_cycles(graph)
   inspect(result.had_cycles, content="true")
   // Should break at least 2 edges (one per cycle)
   inspect(result.reversed_edges.length() >= 2, content="true")
@@ -89,14 +89,14 @@ test "get_effective_src/dst respects reversal" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let result = break_cycles(graph)
+  let result = @sugiyama.break_cycles(graph)
   // At least one edge should be reversed
   let mut found_reversed = false
   for edge in graph.edges {
-    if is_edge_reversed(result, edge.index) {
+    if @sugiyama.is_edge_reversed(result, edge.index) {
       // Reversed edge should swap src/dst
-      let eff_src = get_effective_src(edge, result)
-      let eff_dst = get_effective_dst(edge, result)
+      let eff_src = @sugiyama.get_effective_src(edge, result)
+      let eff_dst = @sugiyama.get_effective_dst(edge, result)
       inspect(eff_src == edge.lookup_dst_id(), content="true")
       inspect(eff_dst == edge.lookup_src_id(), content="true")
       found_reversed = true

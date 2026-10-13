@@ -1,25 +1,16 @@
 ///|
 test "syntax_path_last_display preserves quoted dots and escapes" {
-  @debug.assert_eq(
-    syntax_path_last_display("alpha.\"beta.gamma\""),
-    "beta.gamma",
-  )
-  @debug.assert_eq(syntax_path_last_display("alpha.'beta.gamma'"), "beta.gamma")
-  @debug.assert_eq(
-    syntax_path_last_display("alpha.\"+peek\\\"()\""),
-    "+peek\"()",
-  )
-  @debug.assert_eq(syntax_path_last_display("alpha.rewind()"), "rewind()")
+  assert_eq(syntax_path_last_display("alpha.\"beta.gamma\""), "beta.gamma")
+  assert_eq(syntax_path_last_display("alpha.'beta.gamma'"), "beta.gamma")
+  assert_eq(syntax_path_last_display("alpha.\"+peek\\\"()\""), "+peek\"()")
+  assert_eq(syntax_path_last_display("alpha.rewind()"), "rewind()")
 }
 
 ///|
 test "layout default font is recursive and preserves explicit styles" {
   let graph = GraphInput::new("root")
   let defaulted = graph.with_default_font("mono")
-  @debug.assert_eq(
-    defaulted.root.style.font,
-    Some(StyleValue::from_string("mono")),
-  )
+  assert_eq(defaulted.root.style.font, Some(StyleValue::from_string("mono")))
 
   let explicit_style = {
     ..StyleInput::new(),
@@ -29,7 +20,7 @@ test "layout default font is recursive and preserves explicit styles" {
   let explicit_graph = { ..GraphInput::new("root"), root: explicit_root, }.with_default_font(
     "mono",
   )
-  @debug.assert_eq(
+  assert_eq(
     explicit_graph.root.style.font,
     Some(StyleValue::from_string("serif")),
   )
@@ -51,9 +42,9 @@ test "theme caps lock is recursive and respects D2 exemptions" {
     objects: [plain, code, latex, exempt],
     edges: [{ ..edge, label: "edge label", }],
   }.with_caps_lock()
-  @debug.assert_eq(graph.objects[0].label, "PLAIN")
-  @debug.assert_eq(graph.objects[1].label, "code")
-  @debug.assert_eq(graph.objects[2].label, "latex")
-  @debug.assert_eq(graph.objects[3].label, "exempt")
-  @debug.assert_eq(graph.edges[0].label, "EDGE LABEL")
+  assert_eq(graph.objects[0].label, "PLAIN")
+  assert_eq(graph.objects[1].label, "code")
+  assert_eq(graph.objects[2].label, "latex")
+  assert_eq(graph.objects[3].label, "exempt")
+  assert_eq(graph.edges[0].label, "EDGE LABEL")
 }

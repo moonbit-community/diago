@@ -112,7 +112,7 @@ pub fn DiagramOptions::with_route_plugin(
 pub struct RenderOptions {
   output_mode : OutputMode
   theme_name : String?
-  dark_theme_id : Int?
+  dark_theme_id : Int32?
   sketch : Bool?
   pad : Double?
   center : Bool?
@@ -161,7 +161,7 @@ pub fn RenderOptions::with_theme_name(
 ///|
 pub fn RenderOptions::with_dark_theme_id(
   self : RenderOptions,
-  dark_theme_id : Int?,
+  dark_theme_id : Int32?,
 ) -> RenderOptions {
   { ..self, dark_theme_id, }
 }
@@ -251,7 +251,7 @@ pub(all) enum LibError {
 pub fn compile_diagram(
   graph_input : @graph.GraphInput,
   source_config : @diagram.Config?,
-  options? : DiagramOptions = DiagramOptions::new(),
+  options~ : DiagramOptions = DiagramOptions::new(),
 ) -> Result[@diagram.Diagram, LibError] {
   if graph_input.uses_latex_labels() {
     return Err(UnsupportedFeature("LaTeX labels are not supported"))
@@ -343,7 +343,7 @@ pub fn compile_diagram(
 ///|
 pub fn render(
   diagram : @diagram.Diagram,
-  options? : RenderOptions = RenderOptions::new(),
+  options~ : RenderOptions = RenderOptions::new(),
 ) -> Result[String, LibError] {
   if options.sketch.unwrap_or(false) {
     return Err(UnsupportedFeature("sketch rendering is not supported"))

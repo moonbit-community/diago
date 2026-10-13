@@ -23,7 +23,7 @@ test "dagre engine can layout simple graph" {
     e => fail("graph error: \{e}")
   }
   let laid_out = @engine_api.layout_with_engine(
-    DagreEngine::new(),
+    @engine_dagre.DagreEngine::new(),
     graph_input,
     @engine_api.LayoutConfig::new(),
     Down,
@@ -53,7 +53,7 @@ test "dagre layout preserves edge glob styles by edge index" {
     error => fail("graph error: \{error}")
   }
   let laid_out = @engine_api.layout_with_engine(
-    DagreEngine::new(),
+    @engine_dagre.DagreEngine::new(),
     graph,
     @engine_api.LayoutConfig::new(),
     Down,
@@ -64,7 +64,7 @@ test "dagre layout preserves edge glob styles by edge index" {
     guard edge.style.stroke is Some(stroke) else {
       fail("expected edge stroke")
     }
-    @debug.assert_eq(
+    assert_eq(
       stroke.get_value(),
       if edge.dst_id == "c" {
         "yellow"
@@ -105,7 +105,7 @@ test "dagre nested container padding matches D2 terminal theme geometry" {
   }
   let graph = base_graph.with_default_font("mono").with_caps_lock()
   let laid_out = @engine_api.layout_with_engine(
-    DagreEngine::new(),
+    @engine_dagre.DagreEngine::new(),
     graph,
     @engine_api.LayoutConfig::new(),
     Down,
@@ -115,10 +115,10 @@ test "dagre nested container padding matches D2 terminal theme geometry" {
   guard laid_out.find_object("network.cell tower").unwrap().box is Some(box) else {
     fail("expected laid-out cell tower box")
   }
-  @debug.assert_eq(box.x, 130.0)
-  @debug.assert_eq(box.y, 268.0)
-  @debug.assert_eq(box.width, 253.0)
-  @debug.assert_eq(box.height, 323.0)
+  assert_eq(box.x, 130.0)
+  assert_eq(box.y, 268.0)
+  assert_eq(box.width, 253.0)
+  assert_eq(box.height, 323.0)
 }
 
 ///|
@@ -147,14 +147,13 @@ test "dagre rejects LaTeX labels before layout" {
   }
   try
     @engine_api.layout_with_engine(
-      DagreEngine::new(),
+      @engine_dagre.DagreEngine::new(),
       graph,
       @engine_api.LayoutConfig::new(),
       Down,
     )
   catch {
-    Unsupported(message) =>
-      @debug.assert_eq(message, "LaTeX labels are not supported")
+    Unsupported(message) => assert_eq(message, "LaTeX labels are not supported")
     _ => fail("expected unsupported LaTeX error")
   } noraise {
     _ => fail("expected unsupported LaTeX error")

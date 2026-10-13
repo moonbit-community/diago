@@ -88,7 +88,7 @@ test "double_glob" {
   m.add_field(Field::simple("client"))
   // Double glob should return all fields recursively
   let fields = m.double_glob()
-  @debug.assert_eq(fields.length(), 4) // server, db, cache, client
+  assert_eq(fields.length(), 4) // server, db, cache, client
 }
 
 ///|
@@ -101,7 +101,7 @@ test "double_glob skips board keywords" {
   m.add_field(Field::new("layers", None, Some(Map(layers_map)), []))
   // Double glob should not include layers or its children
   let fields = m.double_glob()
-  @debug.assert_eq(fields.length(), 1) // only server
+  assert_eq(fields.length(), 1) // only server
 }
 
 ///|
@@ -116,8 +116,8 @@ test "triple_glob includes all" {
   m.add_field(Field::new("layers", None, Some(Map(layers_map)), []))
   // Triple glob should include fields inside layers
   let fields = m.triple_glob()
-  @debug.assert_eq(fields.length(), 2) // server and inside (not board names)
-  @debug.assert_eq(fields[1].name, "inside")
+  assert_eq(fields.length(), 2) // server and inside (not board names)
+  assert_eq(fields[1].name, "inside")
 }
 
 ///|
@@ -128,7 +128,7 @@ test "single_glob" {
   m.add_field(Field::simple("client"))
   // Pattern: server*
   let fields = m.single_glob(["server", "*"])
-  @debug.assert_eq(fields.length(), 2)
+  assert_eq(fields.length(), 2)
 }
 
 ///|
@@ -149,10 +149,10 @@ test "quoted reserved names are not treated as reserved in globs" {
   )
   m.add_field(Field::simple("server"))
   let fields = m.single_glob(["st", "*"])
-  @debug.assert_eq(fields.length(), 1)
-  @debug.assert_eq(fields[0].name, "style")
+  assert_eq(fields.length(), 1)
+  assert_eq(fields[0].name, "style")
   let double_glob_fields = m.double_glob()
-  @debug.assert_eq(double_glob_fields.length(), 2)
+  assert_eq(double_glob_fields.length(), 2)
 }
 
 ///|
@@ -243,7 +243,7 @@ test "apply_glob_properties" {
   guard m.get_field("server1") is Some(s1) else { fail("expected server1") }
   guard s1.composite is Some(Map(s1m)) else { fail("expected server1 map") }
   guard s1m.get_field("fill") is Some(fill) else { fail("expected fill") }
-  @debug.assert_eq(fill.primary, Some(Scalar::string("red")))
+  assert_eq(fill.primary, Some(Scalar::string("red")))
 }
 
 ///|
@@ -271,7 +271,7 @@ test "apply_glob_properties with filter" {
   guard s1m.get_field("fill") is Some(fill1) else {
     fail("expected fill in server1")
   }
-  @debug.assert_eq(fill1.primary, Some(Scalar::string("blue")))
+  assert_eq(fill1.primary, Some(Scalar::string("blue")))
   // server2 should not have fill=blue (still has circle shape only)
   guard m.get_field("server2") is Some(s2) else { fail("expected server2") }
   guard s2.composite is Some(Map(s2m)) else { fail("expected server2 map") }

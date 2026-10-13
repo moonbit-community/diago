@@ -64,7 +64,7 @@ async test "official grid padding preserves escaped IDs and glob classes" {
   let service = graph
     .find_object("Kubernetes.system.Backend Node.ClusterIP\nService 1")
     .unwrap()
-  @debug.assert_eq(
+  assert_eq(
     service.abs_id_syntax,
     "Kubernetes.system.Backend Node.\"ClusterIP\\nService 1\"",
   )
@@ -73,7 +73,7 @@ async test "official grid padding preserves escaped IDs and glob classes" {
     .find_object("Kubernetes.system.Backend Node.Deployment 1.NEXT POD 1")
     .unwrap()
   assert_true(next_pod.classes.contains("nextpod"))
-  @debug.assert_eq(
+  assert_eq(
     next_pod.icon,
     Some("https://www.svgrepo.com/show/378440/nextjs-fill.svg"),
   )
@@ -81,7 +81,7 @@ async test "official grid padding preserves escaped IDs and glob classes" {
     .find_object("Kubernetes.system.Frontend Node.Deployment 2.FLASK POD 1")
     .unwrap()
   assert_true(flask_pod.classes.contains("flaskpod"))
-  @debug.assert_eq(
+  assert_eq(
     flask_pod.icon,
     Some("https://www.svgrepo.com/show/508915/flask.svg"),
   )
@@ -94,7 +94,7 @@ async test "official class members preserve escaped visibility prefixes" {
   ).text()
   let graph = compile_graph_no_layout(source).unwrap()
   let parser = graph.find_object("D2 Parser").unwrap()
-  @debug.assert_eq(parser.child_ids, [
+  assert_eq(parser.child_ids, [
     "D2 Parser.+reader", "D2 Parser.readerPos", "D2 Parser.-lookahead", "D2 Parser.\"#lookaheadPos\"",
     "D2 Parser.\"+peek()\"", "D2 Parser.\"rewind()\"", "D2 Parser.\"commit()\"",
     "D2 Parser.\"#peekn(n int)\"",
@@ -109,13 +109,13 @@ async test "sequence connection identities omit nested group scopes" {
   let graph = compile_graph_no_layout(source).unwrap()
   let group = graph.find_object("Office chatter.awkward small talk").unwrap()
   assert_true(group.classes.contains("__diago_sequence_group"))
-  @debug.assert_eq(group.abs_id_syntax, "Office chatter.awkward small talk")
+  assert_eq(group.abs_id_syntax, "Office chatter.awkward small talk")
   let diagram = @diagram.from_graph(graph, None)
   let identities : Array[String] = []
   for edge in diagram.connections {
     identities.push("\{edge.src_syntax_id}->\{edge.dst_syntax_id}")
   }
-  @debug.assert_eq(identities, [
+  assert_eq(identities, [
     "Office chatter.alice->Office chatter.bob", "Office chatter.bob->Office chatter.alice",
     "Office chatter.alice->Office chatter.bob", "Office chatter.bob->Office chatter.alice",
   ])

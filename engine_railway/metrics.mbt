@@ -75,7 +75,7 @@ fn point_distance(a : @graph.Point, b : @graph.Point) -> Double {
 
 ///|
 priv struct OrthSegment {
-  edge_index : Int
+  edge_index : Int32
   x1 : Double
   y1 : Double
   x2 : Double
@@ -87,7 +87,7 @@ priv struct OrthSegment {
 fn railway_readability_metrics(
   graph : @graph.GraphInput,
   patch : @graph.LayoutPatch,
-) -> (Int, Int, Int, Int, Double) {
+) -> (Int32, Int32, Int32, Int32, Double) {
   let crossing_count = route_crossing_count(patch)
   let label_overlap_count = edge_label_overlap_count(patch)
   let node_overlap_count = node_overlap_count_excluding_hierarchy(graph, patch)
@@ -100,7 +100,7 @@ fn railway_readability_metrics(
 }
 
 ///|
-fn route_crossing_count(patch : @graph.LayoutPatch) -> Int {
+fn route_crossing_count(patch : @graph.LayoutPatch) -> Int32 {
   let segments : Array[OrthSegment] = []
   for edge_entry in patch.edges {
     let edge_index = edge_entry.0
@@ -167,8 +167,8 @@ fn orth_segments_cross(v : OrthSegment, h : OrthSegment) -> Bool {
 }
 
 ///|
-fn edge_label_overlap_count(patch : @graph.LayoutPatch) -> Int {
-  let labels : Array[(Int, @graph.Box)] = []
+fn edge_label_overlap_count(patch : @graph.LayoutPatch) -> Int32 {
+  let labels : Array[(Int32, @graph.Box)] = []
   for entry in patch.edge_labels {
     labels.push((entry.0, entry.1))
   }
@@ -191,7 +191,7 @@ fn edge_label_overlap_count(patch : @graph.LayoutPatch) -> Int {
 fn node_overlap_count_excluding_hierarchy(
   graph : @graph.GraphInput,
   patch : @graph.LayoutPatch,
-) -> Int {
+) -> Int32 {
   let parent_id_by_child_id = build_parent_id_by_child_id(graph)
   let nodes : Array[(String, @graph.Box)] = []
   for entry in patch.nodes {
@@ -251,7 +251,7 @@ fn boxes_overlap_strict(a : @graph.Box, b : @graph.Box) -> Bool {
 fn route_detour_metrics(
   graph : @graph.GraphInput,
   patch : @graph.LayoutPatch,
-) -> (Int, Double) {
+) -> (Int32, Double) {
   let mut long_detour_count = 0
   let mut edge_total_length = 0.0
   for edge in graph.edges {

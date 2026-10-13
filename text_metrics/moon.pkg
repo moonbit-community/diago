@@ -2,7 +2,6 @@ import {
   "moonbit-community/cmark/cmark",
   "moonbitlang/core/math",
   "moonbitlang/core/encoding/utf8",
-  "moonbitlang/core/debug",
 }
 
 options(
@@ -13,3 +12,6 @@ options(
   readme: "README.md",
   repository: "",
 )
+
+import {
+} for "test"

@@ -14,7 +14,7 @@
 
 ///|
 priv struct WasmFailure {
-  error_kind : Int
+  error_kind : Int32
   message : String
 }
 
@@ -213,7 +213,7 @@ fn required_string(
 fn required_int(
   fields : Map[String, Json],
   key : String,
-) -> Result[Int, String] {
+) -> Result[Int32, String] {
   match fields.get(key) {
     Some(Number(value, ..)) => {
       let integer = value.to_int()
@@ -257,7 +257,7 @@ fn optional_string(
 fn optional_int(
   fields : Map[String, Json],
   key : String,
-) -> Result[Int?, String] {
+) -> Result[Int32?, String] {
   match fields.get(key) {
     Some(Number(value, ..)) => {
       let integer = value.to_int()

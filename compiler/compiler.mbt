@@ -73,7 +73,7 @@ pub fn parse(source : String) -> (@ast.Map, @parser.ParseErrors) {
 ///|
 pub fn compile_ir(
   source : String,
-  options? : ParseOptions = ParseOptions::new(),
+  options~ : ParseOptions = ParseOptions::new(),
 ) -> Result[@ir.Map, CompileError] {
   let (ast, errors) = parse(source)
   if !errors.is_empty() {
@@ -91,7 +91,7 @@ pub fn compile_ir(
 pub fn compile_graph(
   name : String,
   source : String,
-  options? : ParseOptions = ParseOptions::new(),
+  options~ : ParseOptions = ParseOptions::new(),
 ) -> Result[CompileResult, CompileError] {
   let ir_map = match compile_ir(source, options~) {
     Ok(ir_map) => ir_map

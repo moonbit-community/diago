@@ -17,7 +17,7 @@
 /// filesystem into memory.
 pub async fn import_resolver(
   source : String,
-  base_path? : String? = None,
+  base_path~ : String? = None,
 ) -> @ir.ImportResolver {
   let loaded : Map[String, String] = Map([])
   let attempted : Map[String, Bool] = Map([])
@@ -83,7 +83,7 @@ fn import_full_path(import_path : String, base_path : String?) -> String {
 /// Parses a local source file and resolves imports relative to that file.
 pub async fn parse_file(
   file_path : String,
-  options? : @diago.ParseOptions = @diago.ParseOptions::new(),
+  options~ : @diago.ParseOptions = @diago.ParseOptions::new(),
 ) -> @ir.Map raise @diago.DiagoError {
   let source = read_source_file(file_path)
   let options = with_filesystem_resolver(options, source, parent_dir(file_path)) catch {
@@ -96,7 +96,7 @@ pub async fn parse_file(
 /// Compiles a local source file and resolves imports relative to that file.
 pub async fn compile_file(
   file_path : String,
-  options? : @diago.CompileOptions = @diago.CompileOptions::new(),
+  options~ : @diago.CompileOptions = @diago.CompileOptions::new(),
 ) -> String raise @diago.DiagoError {
   let source = read_source_file(file_path)
   let parse_options = with_filesystem_resolver(

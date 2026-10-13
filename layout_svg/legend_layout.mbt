@@ -28,12 +28,12 @@ using @graph {
 
 ///|
 pub struct LegendLayoutConfig {
-  font_size : Int
+  font_size : Int32
   margin : Double
 } derive(Debug)
 
 ///|
-pub fn LegendLayoutConfig::new(font_size : Int) -> LegendLayoutConfig {
+pub fn LegendLayoutConfig::new(font_size : Int32) -> LegendLayoutConfig {
   { font_size, margin: 20.0, }
 }
 
@@ -74,7 +74,7 @@ pub enum LegendEntryLayout {
   Connection(
     src_id~ : String,
     dst_id~ : String,
-    index~ : Int,
+    index~ : Int32,
     line_start_x~ : Double,
     line_end_x~ : Double,
     line_y~ : Double,
@@ -105,7 +105,7 @@ fn legend_text_dimensions(text : String) -> @text_metrics.TextDimensions {
 }
 
 ///|
-fn calculate_size(legend : LegendInput) -> (Double, Double, Int, Int) {
+fn calculate_size(legend : LegendInput) -> (Double, Double, Int32, Int32) {
   if legend.is_empty() {
     return (0.0, 0.0, 0, 0)
   }
@@ -169,7 +169,7 @@ fn calculate_size(legend : LegendInput) -> (Double, Double, Int, Int) {
 }
 
 ///|
-fn max_int(a : Int, b : Int) -> Int {
+fn max_int(a : Int32, b : Int32) -> Int32 {
   if a > b {
     a
   } else {

@@ -35,11 +35,11 @@ test "layer assignment classes example - alice and bob at top" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
+  let cycle_result = @sugiyama.break_cycles(graph)
 
   // Should have no reversed edges (no cycles)
   inspect(cycle_result.reversed_edges.length(), content="0")
-  let layer_result = assign_layers(graph, cycle_result)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
 
   // alice and bob should be at layer 0 (sources)
   debug_inspect(layer_result.layers.get("alice"), content="Some(0)")
@@ -64,8 +64,8 @@ test "assign_layers simple chain" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let result = assign_layers(graph, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let result = @sugiyama.assign_layers(graph, cycle_result)
   // Should have 3 layers
   inspect(result.layer_count, content="3")
   // Check layer assignments
@@ -86,8 +86,8 @@ test "assign_layers diamond" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let result = assign_layers(graph, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let result = @sugiyama.assign_layers(graph, cycle_result)
   // Should have 3 layers
   inspect(result.layer_count, content="3")
   // Check key relationships
@@ -122,8 +122,8 @@ test "assign_layers independent nodes" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let result = assign_layers(graph, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let result = @sugiyama.assign_layers(graph, cycle_result)
   // All nodes should be in layer 0
   inspect(result.layer_count, content="1")
   debug_inspect(result.layers.get("a"), content="Some(0)")
@@ -140,8 +140,8 @@ test "assign_layers with cycle" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let result = assign_layers(graph, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let result = @sugiyama.assign_layers(graph, cycle_result)
   // Should have valid layers (at least 1)
   inspect(result.layer_count >= 1, content="true")
   // All nodes should have layers
@@ -157,8 +157,8 @@ test "nodes_by_layer grouping" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let result = assign_layers(graph, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let result = @sugiyama.assign_layers(graph, cycle_result)
   // Check nodes_by_layer
   inspect(result.nodes_by_layer.length(), content="3")
   // Layer 0 should have "a"

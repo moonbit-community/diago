@@ -27,7 +27,7 @@ pub(all) struct VirtualNodeResult {
   /// Updated layer assignment including virtual nodes
   layer_assignment : LayerAssignment
   /// Map from edge index to list of virtual node IDs for that edge
-  edge_virtual_nodes : Map[Int, Array[String]]
+  edge_virtual_nodes : Map[Int32, Array[String]]
   /// Set of virtual node IDs (for identification during routing)
   virtual_nodes : Map[String, Bool]
 }
@@ -39,10 +39,10 @@ pub fn insert_virtual_nodes(
   layer_result : LayerAssignment,
   cycle_result : CycleBreakResult,
 ) -> VirtualNodeResult {
-  let edge_virtual_nodes : Map[Int, Array[String]] = Map([])
+  let edge_virtual_nodes : Map[Int32, Array[String]] = Map([])
   let virtual_nodes : Map[String, Bool] = Map([])
   // Copy the existing layer structures
-  let layers : Map[String, Int] = Map([])
+  let layers : Map[String, Int32] = Map([])
   for entry in layer_result.layers {
     layers[entry.0] = entry.1
   }
@@ -97,7 +97,7 @@ pub fn is_virtual_node(node_id : String) -> Bool {
 
 ///|
 /// Get the edge index from a virtual node ID
-pub fn get_virtual_edge_index(node_id : String) -> Int? {
+pub fn get_virtual_edge_index(node_id : String) -> Int32? {
   if !node_id.has_prefix("__virtual_") {
     return None
   }
@@ -131,7 +131,7 @@ fn split_string(s : String, delim : Char) -> Array[String] {
 
 ///|
 /// Parse an integer from a string
-fn parse_int(s : String) -> Int? {
+fn parse_int(s : String) -> Int32? {
   let mut result = 0
   let mut has_digit = false
   for c in s {

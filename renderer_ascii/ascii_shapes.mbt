@@ -195,8 +195,8 @@ fn draw_diagram_shape(
   shape : @diagram.Shape,
   all_shapes : Array[@diagram.Shape],
   connections : Array[@diagram.Connection],
-  x_offset : Int,
-  y_offset : Int,
+  x_offset : Int32,
+  y_offset : Int32,
 ) -> Unit {
   match shape.box {
     Some(box) => {
@@ -501,12 +501,12 @@ fn has_connections_at_top_edge(
 
 ///|
 fn label_y(
-  y1 : Int,
-  y2 : Int,
-  h : Int,
+  y1 : Int32,
+  y2 : Int32,
+  h : Int32,
   label : String,
   label_position : String,
-) -> Int {
+) -> Int32 {
   let _ = label
   if label_position.contains("OUTSIDE") {
     if label_position.contains("BOTTOM") {
@@ -530,12 +530,12 @@ fn label_y(
 ///|
 fn draw_shape_label(
   ctx : ShapeDrawContext,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
-  width : Int,
-  height : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
+  width : Int32,
+  height : Int32,
   label : String,
   label_position : String,
 ) -> Unit {
@@ -557,7 +557,7 @@ fn draw_shape_label(
 }
 
 ///|
-fn adjust_width_for_label(width : Int, label : String) -> Int {
+fn adjust_width_for_label(width : Int32, label : String) -> Int32 {
   if label == "" {
     return width
   }
@@ -574,10 +574,10 @@ fn adjust_width_for_label(width : Int, label : String) -> Int {
 ///|
 fn draw_border(
   ctx : ShapeDrawContext,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  y2 : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  y2 : Int32,
 ) -> Unit {
   for xi = x1; xi <= x2; xi = xi + 1 {
     for yi = y1; yi <= y2; yi = yi + 1 {
@@ -601,12 +601,12 @@ fn draw_border(
 ///|
 fn draw_header(
   ctx : ShapeDrawContext,
-  x1 : Int,
-  y1 : Int,
-  x2 : Int,
-  width : Int,
+  x1 : Int32,
+  y1 : Int32,
+  x2 : Int32,
+  width : Int32,
   label : String,
-) -> Int {
+) -> Int32 {
   let header_height = 2
   let header_y2 = y1 + header_height - 1
 
@@ -626,9 +626,9 @@ fn draw_header(
 ///|
 fn draw_separator_line(
   ctx : ShapeDrawContext,
-  x1 : Int,
-  x2 : Int,
-  y : Int,
+  x1 : Int32,
+  x2 : Int32,
+  y : Int32,
 ) -> Unit {
   for xi = x1; xi <= x2; xi = xi + 1 {
     if xi == x1 {
@@ -644,10 +644,10 @@ fn draw_separator_line(
 ///|
 fn draw_field_with_type(
   ctx : ShapeDrawContext,
-  x1 : Int,
-  x2 : Int,
-  y : Int,
-  width : Int,
+  x1 : Int32,
+  x2 : Int32,
+  y : Int32,
+  width : Int32,
   name : String,
   field_type : String,
 ) -> Unit {
@@ -673,8 +673,8 @@ fn draw_rect(
   label : String,
   label_position : String,
   symbol : String,
-  preserve_height? : Bool = false,
-  render_label? : Bool = true,
+  preserve_height~ : Bool = false,
+  render_label~ : Bool = true,
 ) -> Unit {
   let (x1_0, y1_0, w0, h0) = ctx.calibrate(x, y, w, h)
   let x1 = x1_0
@@ -1241,7 +1241,7 @@ fn draw_diamond(
   }
   let x2 = x1 + w_i - 1
   let y2 = y1 + h_i - 1
-  let path : Array[(Int, Int)] = [
+  let path : Array[(Int32, Int32)] = [
     (x1, y1 + h_i / 2),
     (x1 + w_i / 2, y1),
     (x2, y1 + h_i / 2),

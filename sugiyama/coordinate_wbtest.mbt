@@ -42,7 +42,7 @@ test "range helpers" {
 
 ///|
 test "sort_by_pos" {
-  let pos : Map[String, Int] = Map([])
+  let pos : Map[String, Int32] = Map([])
   pos["a"] = 2
   pos["b"] = 0
   pos["c"] = 1

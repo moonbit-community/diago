@@ -49,7 +49,7 @@ pub fn assign_coordinates(
     return { x_coords: Map([]), y_coords: Map([]), }
   }
   // Build position index for each node within its layer
-  let pos : Map[String, Int] = Map([])
+  let pos : Map[String, Int32] = Map([])
   for layer in layers {
     for i, node in layer {
       pos[node] = i
@@ -144,7 +144,7 @@ fn compute_dynamic_rank_spacing(
     return []
   }
   // Build layer index for each node
-  let layer_idx : Map[String, Int] = Map([])
+  let layer_idx : Map[String, Int32] = Map([])
   for i, layer in layers {
     for node in layer {
       layer_idx[node] = i
@@ -198,7 +198,7 @@ fn build_neighbors(
   let upper : Map[String, Array[String]] = Map([])
   let lower : Map[String, Array[String]] = Map([])
   // Build layer index for each node
-  let layer_idx : Map[String, Int] = Map([])
+  let layer_idx : Map[String, Int32] = Map([])
   for i, layer in layers {
     for node in layer {
       layer_idx[node] = i
@@ -232,7 +232,7 @@ fn build_neighbors(
 /// Perform vertical alignment and horizontal compaction
 fn align_and_compact(
   layers : Array[Array[String]],
-  pos : Map[String, Int],
+  pos : Map[String, Int32],
   neighbors : Map[String, Array[String]],
   node_widths : Map[String, Double],
   sep : Double,
@@ -345,7 +345,7 @@ fn place_block(
   shift : Map[String, Double],
   root : Map[String, String],
   align : Map[String, String],
-  pos : Map[String, Int],
+  pos : Map[String, Int32],
   node_widths : Map[String, Double],
   sep : Double,
   layers : Array[Array[String]],
@@ -413,7 +413,7 @@ fn place_block(
 
 ///|
 /// Find layer index for a node
-fn find_layer(node : String, layers : Array[Array[String]]) -> Int {
+fn find_layer(node : String, layers : Array[Array[String]]) -> Int32 {
   for i, layer in layers {
     if layer.contains(node) {
       return i
@@ -424,7 +424,10 @@ fn find_layer(node : String, layers : Array[Array[String]]) -> Int {
 
 ///|
 /// Sort nodes by their position
-fn sort_by_pos(nodes : Array[String], pos : Map[String, Int]) -> Array[String] {
+fn sort_by_pos(
+  nodes : Array[String],
+  pos : Map[String, Int32],
+) -> Array[String] {
   let result = nodes.copy()
   // Insertion sort
   for i = 1; i < result.length(); i = i + 1 {
@@ -447,8 +450,8 @@ fn sort_by_pos(nodes : Array[String], pos : Map[String, Int]) -> Array[String] {
 
 ///|
 /// Generate range [start, end)
-fn range(start : Int, end : Int) -> Array[Int] {
-  let result : Array[Int] = []
+fn range(start : Int32, end : Int32) -> Array[Int32] {
+  let result : Array[Int32] = []
   for i = start; i < end; i = i + 1 {
     result.push(i)
   }
@@ -457,8 +460,8 @@ fn range(start : Int, end : Int) -> Array[Int] {
 
 ///|
 /// Generate reversed range [start, end) -> [end-1, ..., start]
-fn range_rev(start : Int, end : Int) -> Array[Int] {
-  let result : Array[Int] = []
+fn range_rev(start : Int32, end : Int32) -> Array[Int32] {
+  let result : Array[Int32] = []
   for i = end - 1; i >= start; i = i - 1 {
     result.push(i)
   }
@@ -801,7 +804,7 @@ fn center_parents_over_children(
   cycle_result : CycleBreakResult,
 ) -> Unit {
   // Build layer index for each node
-  let layer_idx : Map[String, Int] = Map([])
+  let layer_idx : Map[String, Int32] = Map([])
   for i, layer in layers {
     for node in layer {
       layer_idx[node] = i

@@ -42,7 +42,7 @@ pub fn minimize_crossings(
   )
   // Build original order map: node -> definition order
   // This preserves user's intended order for nodes without edge constraints
-  let original_order : Map[String, Int] = Map([])
+  let original_order : Map[String, Int32] = Map([])
   let mut order_idx = 0
   for layer in layer_result.nodes_by_layer {
     for node in layer {
@@ -119,7 +119,7 @@ fn build_layer_adjacency(
 fn sweep_down(
   layers : Array[Array[String]],
   upper_neighbors : Map[String, Array[String]],
-  original_order : Map[String, Int],
+  original_order : Map[String, Int32],
 ) -> Unit {
   // Skip first layer (no upper neighbors)
   for i = 1; i < layers.length(); i = i + 1 {
@@ -136,7 +136,7 @@ fn sweep_down(
 fn sweep_up(
   layers : Array[Array[String]],
   lower_neighbors : Map[String, Array[String]],
-  original_order : Map[String, Int],
+  original_order : Map[String, Int32],
 ) -> Unit {
   // Skip last layer (no lower neighbors)
   for i = layers.length() - 2; i >= 0; i = i - 1 {
@@ -154,16 +154,16 @@ fn reorder_by_barycenter(
   current_layer : Array[String],
   adjacent_layer : Array[String],
   neighbors : Map[String, Array[String]],
-  original_order : Map[String, Int],
+  original_order : Map[String, Int32],
 ) -> Unit {
   // Build position map for adjacent layer
-  let positions : Map[String, Int] = Map([])
+  let positions : Map[String, Int32] = Map([])
   for i, node in adjacent_layer {
     positions[node] = i
   }
   // Compute barycenter for each node in current layer
   // Store (node, barycenter, original_order) for sorting
-  let entries : Array[(String, Double, Int)] = []
+  let entries : Array[(String, Double, Int32)] = []
   for node in current_layer {
     let bc = compute_barycenter(node, positions, neighbors, original_order)
     let orig = original_order.get(node).unwrap_or(0)
@@ -183,9 +183,9 @@ fn reorder_by_barycenter(
 /// Returns average position of neighbors, or a position based on original order if no neighbors
 fn compute_barycenter(
   node : String,
-  adjacent_positions : Map[String, Int],
+  adjacent_positions : Map[String, Int32],
   neighbors : Map[String, Array[String]],
-  original_order : Map[String, Int],
+  original_order : Map[String, Int32],
 ) -> Double {
   let node_neighbors = match neighbors.get(node) {
     Some(n) => n
@@ -221,7 +221,9 @@ fn compute_barycenter(
 ///|
 /// Sort entries by (barycenter, original_order)
 /// Uses original order as tie-breaker when barycenters are equal
-fn sort_by_barycenter_and_order(entries : Array[(String, Double, Int)]) -> Unit {
+fn sort_by_barycenter_and_order(
+  entries : Array[(String, Double, Int32)],
+) -> Unit {
   let n = entries.length()
   for i = 1; i < n; i = i + 1 {
     let key = entries[i]
@@ -255,10 +257,10 @@ pub fn count_crossings(
   upper_layer : Array[String],
   lower_layer : Array[String],
   edges : Array[(String, String)],
-) -> Int {
+) -> Int32 {
   // Build position maps
-  let upper_pos : Map[String, Int] = Map([])
-  let lower_pos : Map[String, Int] = Map([])
+  let upper_pos : Map[String, Int32] = Map([])
+  let lower_pos : Map[String, Int32] = Map([])
   for i, node in upper_layer {
     upper_pos[node] = i
   }
@@ -313,7 +315,7 @@ pub fn minimize_crossings_with_virtual(
     graph, layer_result, cycle_result, _virtual_nodes,
   )
   // Build original order map
-  let original_order : Map[String, Int] = Map([])
+  let original_order : Map[String, Int32] = Map([])
   let mut order_idx = 0
   for layer in layer_result.nodes_by_layer {
     for node in layer {

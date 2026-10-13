@@ -326,7 +326,7 @@ fn parse_render_request(
   }
   let target_spec = first_match_value(matches, "target")
   let theme_name = first_match_value(matches, "theme")
-  let mut dark_theme_id : Int? = None
+  let mut dark_theme_id : Int32? = None
   if first_match_value(matches, "dark-theme") is Some(value) {
     dark_theme_id = parse_theme_id_option(value, dark_theme_id)
   }

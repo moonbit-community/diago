@@ -38,7 +38,7 @@ pub struct XmlElement {
 ///|
 priv struct Parser {
   s : String
-  mut pos : Int
+  mut pos : Int32
 }
 
 ///|
@@ -95,7 +95,7 @@ fn is_name_char(c : Char) -> Bool {
 }
 
 ///|
-fn substring_range(s : String, start : Int, end_ : Int) -> String {
+fn substring_range(s : String, start : Int32, end_ : Int32) -> String {
   if start >= end_ {
     return ""
   }

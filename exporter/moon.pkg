@@ -5,5 +5,4 @@ import {
   "Milky2018/diago/lexer",
   "Milky2018/diago/parser",
   "moonbitlang/core/string",
-  "moonbitlang/core/debug",
 }

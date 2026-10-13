@@ -123,7 +123,11 @@ pub fn Element::attr_num(
 
 ///|
 /// Add an integer attribute
-pub fn Element::attr_int(self : Element, name : String, value : Int) -> Element {
+pub fn Element::attr_int(
+  self : Element,
+  name : String,
+  value : Int32,
+) -> Element {
   self.attrs.push((name, value.to_string()))
   self
 }

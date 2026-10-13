@@ -33,7 +33,7 @@ priv struct RenderRequest {
   layout_explicit : Bool
   target_spec : String?
   theme_name : String?
-  dark_theme_id : Int?
+  dark_theme_id : Int32?
   sketch : Bool?
   pad : Double?
   center : Bool?
@@ -45,7 +45,7 @@ priv struct RenderRequest {
   salt : String?
   omit_version : Bool?
   watch : Bool
-  watch_interval_ms : Int
+  watch_interval_ms : Int32
 }
 
 ///|

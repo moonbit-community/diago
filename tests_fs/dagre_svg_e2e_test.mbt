@@ -38,7 +38,7 @@ async test "examples: dagre svg e2e snapshots and reference semantic parity" {
     let snapshot_svg = read_required_file(
       "examples/diago-dagre-output/" + name + ".svg",
     ).unwrap()
-    @debug.assert_eq(
+    assert_eq(
       normalize_svg_snapshot(actual_svg),
       normalize_svg_snapshot(snapshot_svg),
       msg="\{name}: diago dagre svg snapshot mismatch",
@@ -61,7 +61,7 @@ async test "examples: dagre svg e2e snapshots and reference semantic parity" {
     let semantic_diff = semantic_snapshot_mismatch_summary(
       diago_semantic_snapshot, reference_semantic,
     )
-    @debug.assert_eq(
+    assert_eq(
       diago_semantic_snapshot,
       reference_semantic,
       msg="\{name}: semantic snapshot diverges from reference dagre output (\{semantic_diff})",
@@ -72,7 +72,7 @@ async test "examples: dagre svg e2e snapshots and reference semantic parity" {
     let visual_diff = semantic_snapshot_mismatch_summary(
       diago_visual_snapshot, reference_visual,
     )
-    @debug.assert_eq(
+    assert_eq(
       diago_visual_snapshot,
       reference_visual,
       msg="\{name}: visual style snapshot diverges from reference dagre output (\{visual_diff})",
@@ -450,8 +450,8 @@ fn semantic_snapshot_mismatch_summary(a : String, b : String) -> String {
 }
 
 ///|
-fn snapshot_line_counts(snapshot : String) -> Map[String, Int] {
-  let counts : Map[String, Int] = Map([])
+fn snapshot_line_counts(snapshot : String) -> Map[String, Int32] {
+  let counts : Map[String, Int32] = Map([])
   for line in snapshot.split("\n").collect() {
     let key = line.to_owned()
     if key.length() == 0 {
@@ -777,7 +777,7 @@ fn reference_label_coverage_mismatches(
 fn reference_parity_metrics(
   diago_svg : String,
   d2_svg : String,
-) -> (Double, Double, Double, Int, Double) {
+) -> (Double, Double, Double, Int32, Double) {
   let diago_labels = extract_text_positions(diago_svg)
   let d2_labels = extract_text_positions(d2_svg)
   let label_distances : Array[Double] = []
@@ -931,7 +931,7 @@ fn extract_edge_endpoints_and_cubic(
 ///|
 fn count_cubic(
   edges : Array[((Double, Double, Double, Double), Bool, Array[Double])],
-) -> Int {
+) -> Int32 {
   let mut count = 0
   for edge in edges {
     if edge.1 {
@@ -1053,7 +1053,7 @@ fn cubic_param_l1_distance(a : Array[Double], b : Array[Double]) -> Double {
 }
 
 ///|
-fn find_substring(s : String, pattern : String) -> Int? {
+fn find_substring(s : String, pattern : String) -> Int32? {
   if pattern.length() == 0 {
     return Some(0)
   }
@@ -1079,7 +1079,7 @@ fn parse_double_safe(s : String) -> Double? {
 }
 
 ///|
-fn slice_string(s : String, start : Int, end_exclusive : Int) -> String {
+fn slice_string(s : String, start : Int32, end_exclusive : Int32) -> String {
   let sb = StringBuilder()
   for i in start..<end_exclusive {
     match s[i].to_char() {
@@ -1091,8 +1091,8 @@ fn slice_string(s : String, start : Int, end_exclusive : Int) -> String {
 }
 
 ///|
-fn extract_text_counts(svg : String) -> Map[String, Int] {
-  let counts : Map[String, Int] = Map([])
+fn extract_text_counts(svg : String) -> Map[String, Int32] {
+  let counts : Map[String, Int32] = Map([])
   let parts = svg.split("<text").collect()
   if parts.length() < 2 {
     return counts

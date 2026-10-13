@@ -26,8 +26,8 @@ test "nested grids size markdown children with markdown block metrics" {
     language=Some("markdown"),
   )
   let markdown_size = semantic_object_size(markdown, LayoutConfig::new())
-  @debug.assert_eq(markdown_size.0, 300.0)
-  @debug.assert_eq(markdown_size.1, 51.0)
+  assert_eq(markdown_size.0, 300.0)
+  assert_eq(markdown_size.1, 51.0)
 
   let child_ids = ["teleport.inp", "teleport.audit", "teleport.cert"]
   let parent = @graph.ObjectInput::from_parts(
@@ -62,18 +62,18 @@ test "nested grids size markdown children with markdown block metrics" {
   let layout = estimate_grid_container_layout_like_d2(
     parent, child_ids, child_sizes,
   ).unwrap()
-  @debug.assert_eq(layout.width, 473.0)
-  @debug.assert_eq(layout.height, 303.0)
+  assert_eq(layout.width, 473.0)
+  assert_eq(layout.height, 303.0)
   let inp = layout.child_boxes["teleport.inp"]
-  @debug.assert_eq(inp.x, 60.0)
-  @debug.assert_eq(inp.y, 60.0)
-  @debug.assert_eq(inp.width, 353.0)
-  @debug.assert_eq(inp.height, 51.0)
+  assert_eq(inp.x, 60.0)
+  assert_eq(inp.y, 60.0)
+  assert_eq(inp.width, 353.0)
+  assert_eq(inp.height, 51.0)
   let audit = layout.child_boxes["teleport.audit"]
-  @debug.assert_eq(audit.x, 60.0)
-  @debug.assert_eq(audit.y, 151.0)
-  @debug.assert_eq(audit.width, 140.0)
-  @debug.assert_eq(audit.height, 92.0)
+  assert_eq(audit.x, 60.0)
+  assert_eq(audit.y, 151.0)
+  assert_eq(audit.width, 140.0)
+  assert_eq(audit.height, 92.0)
 }
 
 ///|
@@ -164,7 +164,7 @@ test "constant near bounds ignore SQL member implementation nodes" {
     [],
     None,
   )
-  @debug.assert_eq(
+  assert_eq(
     constant_near_bounding_box_like_d2(graph, Map([])),
     (12.0, 12.0, 278.0, 84.0),
   )
@@ -181,8 +181,5 @@ test "final edge label placement uses the target route precision stage" {
     @graph.Point::new(253.58333333333334, 836.0),
   ]
   let center = d2_target_route_point_at_percent_like_d2(route, 0.5)
-  @debug.assert_eq(
-    d2_label_chop_precision_like_d2(center.x - 31.0 / 2.0),
-    334.0,
-  )
+  assert_eq(d2_label_chop_precision_like_d2(center.x - 31.0 / 2.0), 334.0)
 }

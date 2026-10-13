@@ -17,9 +17,9 @@
 ///
 /// `offset` is a 0-based codepoint offset within the source string.
 pub struct Position {
-  line : Int // 0-based line
-  column : Int // 0-based column (in characters)
-  offset : Int // 0-based codepoint offset
+  line : Int32 // 0-based line
+  column : Int32 // 0-based column (in characters)
+  offset : Int32 // 0-based codepoint offset
 } derive(Eq, Debug)
 
 ///|
@@ -97,7 +97,7 @@ pub struct Token {
 } derive(Eq, Debug)
 
 ///|
-pub fn Position::new(line : Int, column : Int, offset : Int) -> Position {
+pub fn Position::new(line : Int32, column : Int32, offset : Int32) -> Position {
   { line, column, offset, }
 }
 

@@ -81,8 +81,8 @@ test "quoted syntax identities survive diagram and svg rendering" {
   guard diagram.find_object("a.b") is Some(nested) else {
     fail("expected nested shape")
   }
-  @debug.assert_eq(quoted.id, "\"a.b\"")
-  @debug.assert_eq(nested.id, "a.b")
+  assert_eq(quoted.id, "\"a.b\"")
+  assert_eq(nested.id, "a.b")
   assert_true(quoted.id != nested.id, msg="diagram shape identities")
   let rendered = @renderer_svg.render(diagram, @renderer_svg.SvgConfig::new()) catch {
     e => fail("SVG render error: \{e}")
@@ -112,7 +112,7 @@ test "constant-near children use the nested default direction" {
   let diagram = compile_to_graph(source, Down).unwrap()
   let first = diagram.find_object("legend.color1").unwrap().get_box().unwrap()
   let second = diagram.find_object("legend.color2").unwrap().get_box().unwrap()
-  @debug.assert_eq(first.y, second.y)
+  assert_eq(first.y, second.y)
   assert_true(first.x < second.x)
 }
 
@@ -130,7 +130,7 @@ fn compile_ascii(source : String) -> Result[String, String] {
 
 ///|
 /// Count occurrences of a character in a string
-fn count_char(s : String, ch : Char) -> Int {
+fn count_char(s : String, ch : Char) -> Int32 {
   let mut count = 0
   for c in s {
     if c == ch {
@@ -518,7 +518,7 @@ test "grid combined spans" {
 /// Compile diago source to SVG with a specific theme
 fn compile_with_theme(
   source : String,
-  theme_id : Int,
+  theme_id : Int32,
 ) -> Result[String, String] {
   let (ast, errors) = @parser.parse(source)
   if !errors.is_empty() {

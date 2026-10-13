@@ -133,8 +133,8 @@ test "quoted syntax identities survive dagre elk and railway layout" {
   guard dagre.find_object("a.b") is Some(dagre_nested) else {
     fail("expected nested object after dagre layout")
   }
-  @debug.assert_eq(dagre_quoted.abs_id_syntax, "\"a.b\"")
-  @debug.assert_eq(dagre_nested.abs_id_syntax, "a.b")
+  assert_eq(dagre_quoted.abs_id_syntax, "\"a.b\"")
+  assert_eq(dagre_nested.abs_id_syntax, "a.b")
   assert_true(dagre_quoted.box is Some(_), msg="dagre quoted box")
   assert_true(dagre_nested.box is Some(_), msg="dagre nested box")
   assert_true(dagre.edges.length() == 1, msg="dagre edge count")
@@ -146,8 +146,8 @@ test "quoted syntax identities survive dagre elk and railway layout" {
   guard elk.find_object("a.b") is Some(elk_nested) else {
     fail("expected nested object after elk layout")
   }
-  @debug.assert_eq(elk_quoted.abs_id_syntax, "\"a.b\"")
-  @debug.assert_eq(elk_nested.abs_id_syntax, "a.b")
+  assert_eq(elk_quoted.abs_id_syntax, "\"a.b\"")
+  assert_eq(elk_nested.abs_id_syntax, "a.b")
   assert_true(elk_quoted.box is Some(_), msg="elk quoted box")
   assert_true(elk_nested.box is Some(_), msg="elk nested box")
   assert_true(elk.edges.length() == 1, msg="elk edge count")
@@ -159,8 +159,8 @@ test "quoted syntax identities survive dagre elk and railway layout" {
   guard railway.find_object("a.b") is Some(railway_nested) else {
     fail("expected nested object after railway layout")
   }
-  @debug.assert_eq(railway_quoted.abs_id_syntax, "\"a.b\"")
-  @debug.assert_eq(railway_nested.abs_id_syntax, "a.b")
+  assert_eq(railway_quoted.abs_id_syntax, "\"a.b\"")
+  assert_eq(railway_nested.abs_id_syntax, "a.b")
   assert_true(railway_quoted.box is Some(_), msg="railway quoted box")
   assert_true(railway_nested.box is Some(_), msg="railway nested box")
   assert_true(railway.edges.length() == 1, msg="railway edge count")
@@ -271,19 +271,19 @@ test "grid unaligned preserves reference fractional route geometry" {
     e => fail("elk layout error: \{e}")
   }
   for graph in [dagre, elk] {
-    @debug.assert_eq(
+    assert_eq(
       graph.find_object("us-east-1.c").unwrap().box,
       Some(@graph.Box::new(246.0, 60.0, 53.0, 66.0)),
     )
-    @debug.assert_eq(
+    assert_eq(
       graph.find_object("us-west-1.a").unwrap().box,
       Some(@graph.Box::new(60.0, 286.0, 53.0, 66.0)),
     )
-    @debug.assert_eq(graph.edges[0].route.length(), 2)
-    @debug.assert_eq(graph.edges[0].route[0].x, 246.5)
-    @debug.assert_eq(graph.edges[0].route[0].y, 125.0)
-    @debug.assert_eq(graph.edges[0].route[1].x, 112.5)
-    @debug.assert_eq(graph.edges[0].route[1].y, 287.0)
+    assert_eq(graph.edges[0].route.length(), 2)
+    assert_eq(graph.edges[0].route[0].x, 246.5)
+    assert_eq(graph.edges[0].route[0].y, 125.0)
+    assert_eq(graph.edges[0].route[1].x, 112.5)
+    assert_eq(graph.edges[0].route[1].y, 287.0)
   }
 }
 
@@ -300,10 +300,10 @@ fn assert_root_grid_nested_layout_like_d2(
   match (a.get_box(), b.get_box(), aa.get_box(), bb.get_box()) {
     (Some(a_box), Some(b_box), Some(aa_box), Some(bb_box)) => {
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(0.0, 0.0, 53.0, 282.0))
-        @debug.assert_eq(b_box, @graph.Box::new(93.0, 0.0, 244.0, 282.0))
-        @debug.assert_eq(aa_box, @graph.Box::new(153.0, 96.0, 124.0, 126.0))
-        @debug.assert_eq(bb_box, @graph.Box::new(183.0, 126.0, 64.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(0.0, 0.0, 53.0, 282.0))
+        assert_eq(b_box, @graph.Box::new(93.0, 0.0, 244.0, 282.0))
+        assert_eq(aa_box, @graph.Box::new(153.0, 96.0, 124.0, 126.0))
+        assert_eq(bb_box, @graph.Box::new(183.0, 126.0, 64.0, 66.0))
       }
       assert_true(
         a_box.x < b_box.x,
@@ -591,21 +591,21 @@ fn assert_connected_container_like_d2(
       Some(fhg_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(31.0, 20.0, 113.0, 126.0))
-        @debug.assert_eq(ab_box, @graph.Box::new(61.0, 50.0, 53.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(30.0, 286.0, 114.0, 126.0))
-        @debug.assert_eq(cd_box, @graph.Box::new(60.0, 316.0, 54.0, 66.0))
-        @debug.assert_eq(f_box, @graph.Box::new(0.0, 561.0, 174.0, 197.0))
-        @debug.assert_eq(fh_box, @graph.Box::new(30.0, 602.0, 114.0, 126.0))
-        @debug.assert_eq(fhg_box, @graph.Box::new(60.0, 632.0, 54.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(31.0, 20.0, 113.0, 126.0))
+        assert_eq(ab_box, @graph.Box::new(61.0, 50.0, 53.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(30.0, 286.0, 114.0, 126.0))
+        assert_eq(cd_box, @graph.Box::new(60.0, 316.0, 54.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(0.0, 561.0, 174.0, 197.0))
+        assert_eq(fh_box, @graph.Box::new(30.0, 602.0, 114.0, 126.0))
+        assert_eq(fhg_box, @graph.Box::new(60.0, 632.0, 54.0, 66.0))
       } else {
-        @debug.assert_eq(a_box, @graph.Box::new(62.0, 12.0, 153.0, 166.0))
-        @debug.assert_eq(ab_box, @graph.Box::new(112.0, 62.0, 53.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(62.0, 258.0, 154.0, 166.0))
-        @debug.assert_eq(cd_box, @graph.Box::new(112.0, 308.0, 54.0, 66.0))
-        @debug.assert_eq(f_box, @graph.Box::new(12.0, 504.0, 254.0, 271.0))
-        @debug.assert_eq(fh_box, @graph.Box::new(62.0, 559.0, 154.0, 166.0))
-        @debug.assert_eq(fhg_box, @graph.Box::new(112.0, 609.0, 54.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(62.0, 12.0, 153.0, 166.0))
+        assert_eq(ab_box, @graph.Box::new(112.0, 62.0, 53.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(62.0, 258.0, 154.0, 166.0))
+        assert_eq(cd_box, @graph.Box::new(112.0, 308.0, 54.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(12.0, 504.0, 254.0, 271.0))
+        assert_eq(fh_box, @graph.Box::new(62.0, 559.0, 154.0, 166.0))
+        assert_eq(fhg_box, @graph.Box::new(112.0, 609.0, 54.0, 66.0))
       }
     _ =>
       fail(
@@ -695,23 +695,23 @@ fn assert_container_edges_like_d2(
       Some(f_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(40.0, 0.0, 53.0, 66.0))
-        @debug.assert_eq(g_box, @graph.Box::new(10.0, 186.0, 113.0, 658.0))
-        @debug.assert_eq(gb_box, @graph.Box::new(40.0, 216.0, 53.0, 66.0))
-        @debug.assert_eq(ge_box, @graph.Box::new(40.0, 748.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(153.0, 411.0, 173.0, 197.0))
-        @debug.assert_eq(dh_box, @graph.Box::new(183.0, 452.0, 113.0, 126.0))
-        @debug.assert_eq(dhc_box, @graph.Box::new(213.0, 482.0, 53.0, 66.0))
-        @debug.assert_eq(f_box, @graph.Box::new(41.0, 964.0, 51.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(40.0, 0.0, 53.0, 66.0))
+        assert_eq(g_box, @graph.Box::new(10.0, 186.0, 113.0, 658.0))
+        assert_eq(gb_box, @graph.Box::new(40.0, 216.0, 53.0, 66.0))
+        assert_eq(ge_box, @graph.Box::new(40.0, 748.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(153.0, 411.0, 173.0, 197.0))
+        assert_eq(dh_box, @graph.Box::new(183.0, 452.0, 113.0, 126.0))
+        assert_eq(dhc_box, @graph.Box::new(213.0, 482.0, 53.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(41.0, 964.0, 51.0, 66.0))
       } else {
-        @debug.assert_eq(a_box, @graph.Box::new(94.0, 12.0, 53.0, 66.0))
-        @debug.assert_eq(g_box, @graph.Box::new(44.0, 213.0, 226.0, 166.0))
-        @debug.assert_eq(gb_box, @graph.Box::new(94.0, 263.0, 53.0, 66.0))
-        @debug.assert_eq(ge_box, @graph.Box::new(167.0, 263.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(12.0, 519.0, 253.0, 271.0))
-        @debug.assert_eq(dh_box, @graph.Box::new(62.0, 574.0, 153.0, 166.0))
-        @debug.assert_eq(dhc_box, @graph.Box::new(112.0, 624.0, 53.0, 66.0))
-        @debug.assert_eq(f_box, @graph.Box::new(285.0, 519.0, 51.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(94.0, 12.0, 53.0, 66.0))
+        assert_eq(g_box, @graph.Box::new(44.0, 213.0, 226.0, 166.0))
+        assert_eq(gb_box, @graph.Box::new(94.0, 263.0, 53.0, 66.0))
+        assert_eq(ge_box, @graph.Box::new(167.0, 263.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(12.0, 519.0, 253.0, 271.0))
+        assert_eq(dh_box, @graph.Box::new(62.0, 574.0, 153.0, 166.0))
+        assert_eq(dhc_box, @graph.Box::new(112.0, 624.0, 53.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(285.0, 519.0, 51.0, 66.0))
       }
     _ =>
       fail("\{engine_name} expected boxes for container_edges fixture objects")
@@ -801,7 +801,7 @@ fn assert_reference_container_geometry(
   for entry in expected {
     let (id, expected_box) = entry
     let shape = target.find_object(id).unwrap()
-    @debug.assert_eq(require_shape_box(shape, id, engine_name), expected_box)
+    assert_eq(require_shape_box(shape, id, engine_name), expected_box)
   }
 
   let edge = find_connection(target, "a", "b").unwrap()
@@ -969,7 +969,7 @@ fn assert_reference_straight_hierarchy_geometry(
   for entry in expected {
     let (id, expected_box) = entry
     let shape = target.find_object(id).unwrap()
-    @debug.assert_eq(require_shape_box(shape, id, engine_name), expected_box)
+    assert_eq(require_shape_box(shape, id, engine_name), expected_box)
   }
 
   let final_connections = [
@@ -1097,7 +1097,7 @@ fn assert_reference_different_subgraphs_geometry(
   for entry in expected {
     let (id, expected_box) = entry
     let shape = target.find_object(id).unwrap()
-    @debug.assert_eq(require_shape_box(shape, id, engine_name), expected_box)
+    assert_eq(require_shape_box(shape, id, engine_name), expected_box)
   }
 
   let links = [
@@ -1191,7 +1191,7 @@ fn assert_grid_nested_simple_edges_order_like_d2(
   guard graph.find_object("outer-grid") is Some(outer_grid) else {
     fail("\{engine_name} expected outer-grid object")
   }
-  @debug.assert_eq(outer_grid.child_ids, [
+  assert_eq(outer_grid.child_ids, [
     "outer-grid.inner-grid", "outer-grid.container", "outer-grid.etc",
   ])
 
@@ -1308,57 +1308,27 @@ fn assert_grid_nested_gap0_reference(
       Some(terrastruct_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(universe_box, @graph.Box::new(0.0, 0.0, 400.0, 366.0))
-        @debug.assert_eq(first_two_box, @graph.Box::new(0.0, 46.0, 300.0, 66.0))
-        @debug.assert_eq(last_box, @graph.Box::new(300.0, 46.0, 100.0, 66.0))
-        @debug.assert_eq(tala_box, @graph.Box::new(0.0, 112.0, 100.0, 193.0))
-        @debug.assert_eq(
-          tala_tala_box,
-          @graph.Box::new(0.0, 112.0, 100.0, 61.0),
-        )
-        @debug.assert_eq(
-          tala_node2_box,
-          @graph.Box::new(0.0, 173.0, 100.0, 66.0),
-        )
-        @debug.assert_eq(
-          tala_cloud_box,
-          @graph.Box::new(0.0, 239.0, 100.0, 66.0),
-        )
-        @debug.assert_eq(node2_box, @graph.Box::new(100.0, 112.0, 200.0, 193.0))
-        @debug.assert_eq(cloud_box, @graph.Box::new(300.0, 112.0, 100.0, 193.0))
-        @debug.assert_eq(
-          terrastruct_box,
-          @graph.Box::new(0.0, 305.0, 400.0, 61.0),
-        )
+        assert_eq(universe_box, @graph.Box::new(0.0, 0.0, 400.0, 366.0))
+        assert_eq(first_two_box, @graph.Box::new(0.0, 46.0, 300.0, 66.0))
+        assert_eq(last_box, @graph.Box::new(300.0, 46.0, 100.0, 66.0))
+        assert_eq(tala_box, @graph.Box::new(0.0, 112.0, 100.0, 193.0))
+        assert_eq(tala_tala_box, @graph.Box::new(0.0, 112.0, 100.0, 61.0))
+        assert_eq(tala_node2_box, @graph.Box::new(0.0, 173.0, 100.0, 66.0))
+        assert_eq(tala_cloud_box, @graph.Box::new(0.0, 239.0, 100.0, 66.0))
+        assert_eq(node2_box, @graph.Box::new(100.0, 112.0, 200.0, 193.0))
+        assert_eq(cloud_box, @graph.Box::new(300.0, 112.0, 100.0, 193.0))
+        assert_eq(terrastruct_box, @graph.Box::new(0.0, 305.0, 400.0, 61.0))
       } else {
-        @debug.assert_eq(
-          universe_box,
-          @graph.Box::new(12.0, 12.0, 400.0, 366.0),
-        )
-        @debug.assert_eq(
-          first_two_box,
-          @graph.Box::new(12.0, 58.0, 300.0, 66.0),
-        )
-        @debug.assert_eq(last_box, @graph.Box::new(312.0, 58.0, 100.0, 66.0))
-        @debug.assert_eq(tala_box, @graph.Box::new(12.0, 124.0, 100.0, 193.0))
-        @debug.assert_eq(
-          tala_tala_box,
-          @graph.Box::new(12.0, 124.0, 100.0, 61.0),
-        )
-        @debug.assert_eq(
-          tala_node2_box,
-          @graph.Box::new(12.0, 185.0, 100.0, 66.0),
-        )
-        @debug.assert_eq(
-          tala_cloud_box,
-          @graph.Box::new(12.0, 251.0, 100.0, 66.0),
-        )
-        @debug.assert_eq(node2_box, @graph.Box::new(112.0, 124.0, 200.0, 193.0))
-        @debug.assert_eq(cloud_box, @graph.Box::new(312.0, 124.0, 100.0, 193.0))
-        @debug.assert_eq(
-          terrastruct_box,
-          @graph.Box::new(12.0, 317.0, 400.0, 61.0),
-        )
+        assert_eq(universe_box, @graph.Box::new(12.0, 12.0, 400.0, 366.0))
+        assert_eq(first_two_box, @graph.Box::new(12.0, 58.0, 300.0, 66.0))
+        assert_eq(last_box, @graph.Box::new(312.0, 58.0, 100.0, 66.0))
+        assert_eq(tala_box, @graph.Box::new(12.0, 124.0, 100.0, 193.0))
+        assert_eq(tala_tala_box, @graph.Box::new(12.0, 124.0, 100.0, 61.0))
+        assert_eq(tala_node2_box, @graph.Box::new(12.0, 185.0, 100.0, 66.0))
+        assert_eq(tala_cloud_box, @graph.Box::new(12.0, 251.0, 100.0, 66.0))
+        assert_eq(node2_box, @graph.Box::new(112.0, 124.0, 200.0, 193.0))
+        assert_eq(cloud_box, @graph.Box::new(312.0, 124.0, 100.0, 193.0))
+        assert_eq(terrastruct_box, @graph.Box::new(12.0, 317.0, 400.0, 61.0))
       }
     _ =>
       fail("\{engine_name} expected boxes for grid_nested_gap0 fixture objects")
@@ -1433,19 +1403,19 @@ fn assert_grid_nested_container_like_d2(
       Some(d_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(root_box, @graph.Box::new(0.0, 0.0, 364.0, 388.0))
-        @debug.assert_eq(a_box, @graph.Box::new(60.0, 60.0, 53.0, 162.0))
-        @debug.assert_eq(b_box, @graph.Box::new(153.0, 96.0, 151.0, 126.0))
-        @debug.assert_eq(b_child_box, @graph.Box::new(183.0, 126.0, 91.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(60.0, 262.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(153.0, 262.0, 151.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(0.0, 0.0, 364.0, 388.0))
+        assert_eq(a_box, @graph.Box::new(60.0, 60.0, 53.0, 162.0))
+        assert_eq(b_box, @graph.Box::new(153.0, 96.0, 151.0, 126.0))
+        assert_eq(b_child_box, @graph.Box::new(183.0, 126.0, 91.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(60.0, 262.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(153.0, 262.0, 151.0, 66.0))
       } else {
-        @debug.assert_eq(root_box, @graph.Box::new(12.0, 12.0, 404.0, 392.0))
-        @debug.assert_eq(a_box, @graph.Box::new(72.0, 72.0, 53.0, 166.0))
-        @debug.assert_eq(b_box, @graph.Box::new(165.0, 72.0, 191.0, 166.0))
-        @debug.assert_eq(b_child_box, @graph.Box::new(215.0, 122.0, 91.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(72.0, 278.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(165.0, 278.0, 191.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(12.0, 12.0, 404.0, 392.0))
+        assert_eq(a_box, @graph.Box::new(72.0, 72.0, 53.0, 166.0))
+        assert_eq(b_box, @graph.Box::new(165.0, 72.0, 191.0, 166.0))
+        assert_eq(b_child_box, @graph.Box::new(215.0, 122.0, 91.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(72.0, 278.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(165.0, 278.0, 191.0, 66.0))
       }
     _ =>
       fail(
@@ -1537,25 +1507,25 @@ fn assert_grid_in_grid_like_d2(
       Some(d_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(root_box, @graph.Box::new(0.0, 0.0, 480.0, 518.0))
-        @debug.assert_eq(a_box, @graph.Box::new(60.0, 60.0, 53.0, 292.0))
-        @debug.assert_eq(b_box, @graph.Box::new(153.0, 60.0, 267.0, 292.0))
-        @debug.assert_eq(ba_box, @graph.Box::new(213.0, 120.0, 53.0, 66.0))
-        @debug.assert_eq(bb_box, @graph.Box::new(306.0, 120.0, 54.0, 66.0))
-        @debug.assert_eq(bc_box, @graph.Box::new(213.0, 226.0, 53.0, 66.0))
-        @debug.assert_eq(bd_box, @graph.Box::new(306.0, 226.0, 54.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(60.0, 392.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(153.0, 392.0, 267.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(0.0, 0.0, 480.0, 518.0))
+        assert_eq(a_box, @graph.Box::new(60.0, 60.0, 53.0, 292.0))
+        assert_eq(b_box, @graph.Box::new(153.0, 60.0, 267.0, 292.0))
+        assert_eq(ba_box, @graph.Box::new(213.0, 120.0, 53.0, 66.0))
+        assert_eq(bb_box, @graph.Box::new(306.0, 120.0, 54.0, 66.0))
+        assert_eq(bc_box, @graph.Box::new(213.0, 226.0, 53.0, 66.0))
+        assert_eq(bd_box, @graph.Box::new(306.0, 226.0, 54.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(60.0, 392.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(153.0, 392.0, 267.0, 66.0))
       } else {
-        @debug.assert_eq(root_box, @graph.Box::new(12.0, 12.0, 480.0, 518.0))
-        @debug.assert_eq(a_box, @graph.Box::new(72.0, 72.0, 53.0, 292.0))
-        @debug.assert_eq(b_box, @graph.Box::new(165.0, 72.0, 267.0, 292.0))
-        @debug.assert_eq(ba_box, @graph.Box::new(225.0, 132.0, 53.0, 66.0))
-        @debug.assert_eq(bb_box, @graph.Box::new(318.0, 132.0, 54.0, 66.0))
-        @debug.assert_eq(bc_box, @graph.Box::new(225.0, 238.0, 53.0, 66.0))
-        @debug.assert_eq(bd_box, @graph.Box::new(318.0, 238.0, 54.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(72.0, 404.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(165.0, 404.0, 267.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(12.0, 12.0, 480.0, 518.0))
+        assert_eq(a_box, @graph.Box::new(72.0, 72.0, 53.0, 292.0))
+        assert_eq(b_box, @graph.Box::new(165.0, 72.0, 267.0, 292.0))
+        assert_eq(ba_box, @graph.Box::new(225.0, 132.0, 53.0, 66.0))
+        assert_eq(bb_box, @graph.Box::new(318.0, 132.0, 54.0, 66.0))
+        assert_eq(bc_box, @graph.Box::new(225.0, 238.0, 53.0, 66.0))
+        assert_eq(bd_box, @graph.Box::new(318.0, 238.0, 54.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(72.0, 404.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(165.0, 404.0, 267.0, 66.0))
       }
     _ =>
       fail(
@@ -1667,37 +1637,31 @@ fn assert_grid_nested_containers_like_d2(
       Some(d_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(root_box, @graph.Box::new(0.0, 0.0, 692.0, 576.0))
-        @debug.assert_eq(a_box, @graph.Box::new(60.0, 60.0, 53.0, 350.0))
-        @debug.assert_eq(b_box, @graph.Box::new(153.0, 96.0, 479.0, 314.0))
-        @debug.assert_eq(b1_box, @graph.Box::new(173.0, 132.0, 439.0, 248.0))
-        @debug.assert_eq(b2_box, @graph.Box::new(193.0, 163.0, 186.0, 187.0))
-        @debug.assert_eq(b3_box, @graph.Box::new(223.0, 194.0, 126.0, 126.0))
-        @debug.assert_eq(b4_box, @graph.Box::new(253.0, 224.0, 66.0, 66.0))
-        @debug.assert_eq(b2a_box, @graph.Box::new(399.0, 163.0, 193.0, 187.0))
-        @debug.assert_eq(b3a_box, @graph.Box::new(429.0, 194.0, 133.0, 126.0))
-        @debug.assert_eq(
-          b3a_leaf_box,
-          @graph.Box::new(459.0, 224.0, 73.0, 66.0),
-        )
-        @debug.assert_eq(c_box, @graph.Box::new(60.0, 450.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(153.0, 450.0, 479.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(0.0, 0.0, 692.0, 576.0))
+        assert_eq(a_box, @graph.Box::new(60.0, 60.0, 53.0, 350.0))
+        assert_eq(b_box, @graph.Box::new(153.0, 96.0, 479.0, 314.0))
+        assert_eq(b1_box, @graph.Box::new(173.0, 132.0, 439.0, 248.0))
+        assert_eq(b2_box, @graph.Box::new(193.0, 163.0, 186.0, 187.0))
+        assert_eq(b3_box, @graph.Box::new(223.0, 194.0, 126.0, 126.0))
+        assert_eq(b4_box, @graph.Box::new(253.0, 224.0, 66.0, 66.0))
+        assert_eq(b2a_box, @graph.Box::new(399.0, 163.0, 193.0, 187.0))
+        assert_eq(b3a_box, @graph.Box::new(429.0, 194.0, 133.0, 126.0))
+        assert_eq(b3a_leaf_box, @graph.Box::new(459.0, 224.0, 73.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(60.0, 450.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(153.0, 450.0, 479.0, 66.0))
       } else {
-        @debug.assert_eq(root_box, @graph.Box::new(12.0, 12.0, 972.0, 692.0))
-        @debug.assert_eq(a_box, @graph.Box::new(72.0, 72.0, 53.0, 466.0))
-        @debug.assert_eq(b_box, @graph.Box::new(165.0, 72.0, 759.0, 466.0))
-        @debug.assert_eq(b1_box, @graph.Box::new(215.0, 122.0, 659.0, 366.0))
-        @debug.assert_eq(b2_box, @graph.Box::new(265.0, 172.0, 266.0, 266.0))
-        @debug.assert_eq(b3_box, @graph.Box::new(315.0, 222.0, 166.0, 166.0))
-        @debug.assert_eq(b4_box, @graph.Box::new(365.0, 272.0, 66.0, 66.0))
-        @debug.assert_eq(b2a_box, @graph.Box::new(551.0, 172.0, 273.0, 266.0))
-        @debug.assert_eq(b3a_box, @graph.Box::new(601.0, 222.0, 173.0, 166.0))
-        @debug.assert_eq(
-          b3a_leaf_box,
-          @graph.Box::new(651.0, 272.0, 73.0, 66.0),
-        )
-        @debug.assert_eq(c_box, @graph.Box::new(72.0, 578.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(165.0, 578.0, 759.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(12.0, 12.0, 972.0, 692.0))
+        assert_eq(a_box, @graph.Box::new(72.0, 72.0, 53.0, 466.0))
+        assert_eq(b_box, @graph.Box::new(165.0, 72.0, 759.0, 466.0))
+        assert_eq(b1_box, @graph.Box::new(215.0, 122.0, 659.0, 366.0))
+        assert_eq(b2_box, @graph.Box::new(265.0, 172.0, 266.0, 266.0))
+        assert_eq(b3_box, @graph.Box::new(315.0, 222.0, 166.0, 166.0))
+        assert_eq(b4_box, @graph.Box::new(365.0, 272.0, 66.0, 66.0))
+        assert_eq(b2a_box, @graph.Box::new(551.0, 172.0, 273.0, 266.0))
+        assert_eq(b3a_box, @graph.Box::new(601.0, 222.0, 173.0, 166.0))
+        assert_eq(b3a_leaf_box, @graph.Box::new(651.0, 272.0, 73.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(72.0, 578.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(165.0, 578.0, 759.0, 66.0))
       }
     _ =>
       fail(
@@ -1854,49 +1818,49 @@ fn assert_grid_with_grid_with_grid_like_d2(
       Some(d_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(root_box, @graph.Box::new(0.0, 0.0, 321.0, 581.0))
-        @debug.assert_eq(a_box, @graph.Box::new(0.0, 46.0, 53.0, 469.0))
-        @debug.assert_eq(b_box, @graph.Box::new(53.0, 46.0, 268.0, 469.0))
-        @debug.assert_eq(ba_box, @graph.Box::new(53.0, 87.0, 214.0, 66.0))
-        @debug.assert_eq(bb_box, @graph.Box::new(267.0, 87.0, 54.0, 66.0))
-        @debug.assert_eq(bc_box, @graph.Box::new(53.0, 153.0, 214.0, 362.0))
-        @debug.assert_eq(bca_box, @graph.Box::new(53.0, 189.0, 53.0, 66.0))
-        @debug.assert_eq(bcb_box, @graph.Box::new(106.0, 189.0, 161.0, 66.0))
-        @debug.assert_eq(bcc_box, @graph.Box::new(53.0, 255.0, 53.0, 260.0))
-        @debug.assert_eq(bcd_box, @graph.Box::new(106.0, 255.0, 161.0, 260.0))
-        @debug.assert_eq(bcda_box, @graph.Box::new(106.0, 286.0, 107.0, 163.0))
-        @debug.assert_eq(bcdaa_box, @graph.Box::new(106.0, 317.0, 53.0, 66.0))
-        @debug.assert_eq(bcdab_box, @graph.Box::new(159.0, 317.0, 54.0, 66.0))
-        @debug.assert_eq(bcdac_box, @graph.Box::new(106.0, 383.0, 53.0, 66.0))
-        @debug.assert_eq(bcdad_box, @graph.Box::new(159.0, 383.0, 54.0, 66.0))
-        @debug.assert_eq(bcdb_box, @graph.Box::new(213.0, 286.0, 54.0, 163.0))
-        @debug.assert_eq(bcdc_box, @graph.Box::new(106.0, 449.0, 107.0, 66.0))
-        @debug.assert_eq(bcdd_box, @graph.Box::new(213.0, 449.0, 54.0, 66.0))
-        @debug.assert_eq(bd_box, @graph.Box::new(267.0, 153.0, 54.0, 362.0))
-        @debug.assert_eq(c_box, @graph.Box::new(0.0, 515.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(53.0, 515.0, 268.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(0.0, 0.0, 321.0, 581.0))
+        assert_eq(a_box, @graph.Box::new(0.0, 46.0, 53.0, 469.0))
+        assert_eq(b_box, @graph.Box::new(53.0, 46.0, 268.0, 469.0))
+        assert_eq(ba_box, @graph.Box::new(53.0, 87.0, 214.0, 66.0))
+        assert_eq(bb_box, @graph.Box::new(267.0, 87.0, 54.0, 66.0))
+        assert_eq(bc_box, @graph.Box::new(53.0, 153.0, 214.0, 362.0))
+        assert_eq(bca_box, @graph.Box::new(53.0, 189.0, 53.0, 66.0))
+        assert_eq(bcb_box, @graph.Box::new(106.0, 189.0, 161.0, 66.0))
+        assert_eq(bcc_box, @graph.Box::new(53.0, 255.0, 53.0, 260.0))
+        assert_eq(bcd_box, @graph.Box::new(106.0, 255.0, 161.0, 260.0))
+        assert_eq(bcda_box, @graph.Box::new(106.0, 286.0, 107.0, 163.0))
+        assert_eq(bcdaa_box, @graph.Box::new(106.0, 317.0, 53.0, 66.0))
+        assert_eq(bcdab_box, @graph.Box::new(159.0, 317.0, 54.0, 66.0))
+        assert_eq(bcdac_box, @graph.Box::new(106.0, 383.0, 53.0, 66.0))
+        assert_eq(bcdad_box, @graph.Box::new(159.0, 383.0, 54.0, 66.0))
+        assert_eq(bcdb_box, @graph.Box::new(213.0, 286.0, 54.0, 163.0))
+        assert_eq(bcdc_box, @graph.Box::new(106.0, 449.0, 107.0, 66.0))
+        assert_eq(bcdd_box, @graph.Box::new(213.0, 449.0, 54.0, 66.0))
+        assert_eq(bd_box, @graph.Box::new(267.0, 153.0, 54.0, 362.0))
+        assert_eq(c_box, @graph.Box::new(0.0, 515.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(53.0, 515.0, 268.0, 66.0))
       } else {
-        @debug.assert_eq(root_box, @graph.Box::new(12.0, 12.0, 321.0, 581.0))
-        @debug.assert_eq(a_box, @graph.Box::new(12.0, 58.0, 53.0, 469.0))
-        @debug.assert_eq(b_box, @graph.Box::new(65.0, 58.0, 268.0, 469.0))
-        @debug.assert_eq(ba_box, @graph.Box::new(65.0, 99.0, 214.0, 66.0))
-        @debug.assert_eq(bb_box, @graph.Box::new(279.0, 99.0, 54.0, 66.0))
-        @debug.assert_eq(bc_box, @graph.Box::new(65.0, 165.0, 214.0, 362.0))
-        @debug.assert_eq(bca_box, @graph.Box::new(65.0, 201.0, 53.0, 66.0))
-        @debug.assert_eq(bcb_box, @graph.Box::new(118.0, 201.0, 161.0, 66.0))
-        @debug.assert_eq(bcc_box, @graph.Box::new(65.0, 267.0, 53.0, 260.0))
-        @debug.assert_eq(bcd_box, @graph.Box::new(118.0, 267.0, 161.0, 260.0))
-        @debug.assert_eq(bcda_box, @graph.Box::new(118.0, 298.0, 107.0, 163.0))
-        @debug.assert_eq(bcdaa_box, @graph.Box::new(118.0, 329.0, 53.0, 66.0))
-        @debug.assert_eq(bcdab_box, @graph.Box::new(171.0, 329.0, 54.0, 66.0))
-        @debug.assert_eq(bcdac_box, @graph.Box::new(118.0, 395.0, 53.0, 66.0))
-        @debug.assert_eq(bcdad_box, @graph.Box::new(171.0, 395.0, 54.0, 66.0))
-        @debug.assert_eq(bcdb_box, @graph.Box::new(225.0, 298.0, 54.0, 163.0))
-        @debug.assert_eq(bcdc_box, @graph.Box::new(118.0, 461.0, 107.0, 66.0))
-        @debug.assert_eq(bcdd_box, @graph.Box::new(225.0, 461.0, 54.0, 66.0))
-        @debug.assert_eq(bd_box, @graph.Box::new(279.0, 165.0, 54.0, 362.0))
-        @debug.assert_eq(c_box, @graph.Box::new(12.0, 527.0, 53.0, 66.0))
-        @debug.assert_eq(d_box, @graph.Box::new(65.0, 527.0, 268.0, 66.0))
+        assert_eq(root_box, @graph.Box::new(12.0, 12.0, 321.0, 581.0))
+        assert_eq(a_box, @graph.Box::new(12.0, 58.0, 53.0, 469.0))
+        assert_eq(b_box, @graph.Box::new(65.0, 58.0, 268.0, 469.0))
+        assert_eq(ba_box, @graph.Box::new(65.0, 99.0, 214.0, 66.0))
+        assert_eq(bb_box, @graph.Box::new(279.0, 99.0, 54.0, 66.0))
+        assert_eq(bc_box, @graph.Box::new(65.0, 165.0, 214.0, 362.0))
+        assert_eq(bca_box, @graph.Box::new(65.0, 201.0, 53.0, 66.0))
+        assert_eq(bcb_box, @graph.Box::new(118.0, 201.0, 161.0, 66.0))
+        assert_eq(bcc_box, @graph.Box::new(65.0, 267.0, 53.0, 260.0))
+        assert_eq(bcd_box, @graph.Box::new(118.0, 267.0, 161.0, 260.0))
+        assert_eq(bcda_box, @graph.Box::new(118.0, 298.0, 107.0, 163.0))
+        assert_eq(bcdaa_box, @graph.Box::new(118.0, 329.0, 53.0, 66.0))
+        assert_eq(bcdab_box, @graph.Box::new(171.0, 329.0, 54.0, 66.0))
+        assert_eq(bcdac_box, @graph.Box::new(118.0, 395.0, 53.0, 66.0))
+        assert_eq(bcdad_box, @graph.Box::new(171.0, 395.0, 54.0, 66.0))
+        assert_eq(bcdb_box, @graph.Box::new(225.0, 298.0, 54.0, 163.0))
+        assert_eq(bcdc_box, @graph.Box::new(118.0, 461.0, 107.0, 66.0))
+        assert_eq(bcdd_box, @graph.Box::new(225.0, 461.0, 54.0, 66.0))
+        assert_eq(bd_box, @graph.Box::new(279.0, 165.0, 54.0, 362.0))
+        assert_eq(c_box, @graph.Box::new(12.0, 527.0, 53.0, 66.0))
+        assert_eq(d_box, @graph.Box::new(65.0, 527.0, 268.0, 66.0))
       }
     _ =>
       fail(
@@ -1950,11 +1914,11 @@ fn assert_empty_nested_grid_like_d2(
   match (outer.get_box(), inner.get_box()) {
     (Some(outer_box), Some(inner_box)) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(outer_box, @graph.Box::new(0.0, 0.0, 221.0, 196.0))
-        @debug.assert_eq(inner_box, @graph.Box::new(60.0, 60.0, 101.0, 76.0))
+        assert_eq(outer_box, @graph.Box::new(0.0, 0.0, 221.0, 196.0))
+        assert_eq(inner_box, @graph.Box::new(60.0, 60.0, 101.0, 76.0))
       } else {
-        @debug.assert_eq(outer_box, @graph.Box::new(12.0, 12.0, 221.0, 196.0))
-        @debug.assert_eq(inner_box, @graph.Box::new(72.0, 72.0, 101.0, 76.0))
+        assert_eq(outer_box, @graph.Box::new(12.0, 12.0, 221.0, 196.0))
+        assert_eq(inner_box, @graph.Box::new(72.0, 72.0, 101.0, 76.0))
       }
     _ =>
       fail(
@@ -1982,7 +1946,7 @@ test "reference empty_sequence matches stable boxes" {
       "\{edge.lookup_src_id()} -> \{edge.lookup_dst_id()}",
     )
   }
-  @debug.assert_eq(compiled_endpoints, ["A -> B"])
+  assert_eq(compiled_endpoints, ["A -> B"])
   let config = @engine_api.LayoutConfig::new()
 
   let dagre = @engine_api.layout_with_engine(
@@ -2181,8 +2145,8 @@ fn assert_empty_sequence_like_d2(
   match (a.get_box(), b.get_box()) {
     (Some(a_box), Some(b_box)) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(13.0, 0.0, 80.0, 66.0))
-        @debug.assert_eq(b_box, @graph.Box::new(0.0, 166.0, 106.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(13.0, 0.0, 80.0, 66.0))
+        assert_eq(b_box, @graph.Box::new(0.0, 166.0, 106.0, 66.0))
         assert_route_points_close(edge.route, [
           @graph.Point::new(53.0, 66.0),
           @graph.Point::new(53.0, 106.0),
@@ -2190,8 +2154,8 @@ fn assert_empty_sequence_like_d2(
           @graph.Point::new(53.0, 166.0),
         ])
       } else {
-        @debug.assert_eq(a_box, @graph.Box::new(25.0, 12.0, 80.0, 66.0))
-        @debug.assert_eq(b_box, @graph.Box::new(12.0, 148.0, 106.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(25.0, 12.0, 80.0, 66.0))
+        assert_eq(b_box, @graph.Box::new(12.0, 148.0, 106.0, 66.0))
         assert_route_points_close(edge.route, [
           @graph.Point::new(65.0, 78.0),
           @graph.Point::new(65.0, 148.0),
@@ -2236,7 +2200,7 @@ fn assert_sequence_nested_span_reference(
     ] {
     let (id, expected) = entry
     let shape = target.find_object(id).unwrap()
-    @debug.assert_eq(require_shape_box(shape, id, engine_name), expected)
+    assert_eq(require_shape_box(shape, id, engine_name), expected)
   }
 
   let scorer_item_response = find_connections(target, "scorer", "itemResponse")
@@ -2247,37 +2211,37 @@ fn assert_sequence_nested_span_reference(
   let scorer_item = find_connections(target, "scorer", "item")
   let item_outcome_scorer = find_connections(target, "itemOutcome", "scorer")
 
-  @debug.assert_eq(
+  assert_eq(
     scorer_item_response.length(),
     2,
     msg="\{engine_name} expected two scorer -> itemResponse messages",
   )
-  @debug.assert_eq(
+  assert_eq(
     item_response_item.length(),
     1,
     msg="\{engine_name} expected one itemResponse -> item message",
   )
-  @debug.assert_eq(
+  assert_eq(
     item_essay_rubric.length(),
     2,
     msg="\{engine_name} expected two item -> essayRubric messages",
   )
-  @debug.assert_eq(
+  assert_eq(
     essay_rubric_concept.length(),
     1,
     msg="\{engine_name} expected one essayRubric -> concept message",
   )
-  @debug.assert_eq(
+  assert_eq(
     concept_item_outcome.length(),
     1,
     msg="\{engine_name} expected one concept -> itemOutcome message",
   )
-  @debug.assert_eq(
+  assert_eq(
     scorer_item.length(),
     1,
     msg="\{engine_name} expected one scorer -> item message",
   )
-  @debug.assert_eq(
+  assert_eq(
     item_outcome_scorer.length(),
     1,
     msg="\{engine_name} expected one itemOutcome -> scorer message",
@@ -2336,11 +2300,11 @@ fn assert_sequence_inter_span_self_reference(
     ] {
     let (id, expected) = entry
     let shape = target.find_object(id).unwrap()
-    @debug.assert_eq(require_shape_box(shape, id, engine_name), expected)
+    assert_eq(require_shape_box(shape, id, engine_name), expected)
   }
 
   let a_b = find_connections(target, "a", "b")
-  @debug.assert_eq(
+  assert_eq(
     a_b.length(),
     2,
     msg="\{engine_name} expected two a -> b messages in sequence inter span self",
@@ -2438,31 +2402,31 @@ fn assert_sequence_nested_groups_reference(
   let b_note_box = require_shape_box(b_note, "b.note", engine_name)
   let a_note_box = require_shape_box(a_note, "a.note", engine_name)
 
-  @debug.assert_eq(a_box, @graph.Box::new(12.0, 52.0, 100.0, 66.0))
-  @debug.assert_eq(b_box, @graph.Box::new(285.0, 52.0, 100.0, 66.0))
-  @debug.assert_eq(c_box, @graph.Box::new(542.0, 52.0, 130.0, 66.0))
-  @debug.assert_eq(group1_box, @graph.Box::new(-58.0, 173.0, 481.0, 711.0))
-  @debug.assert_eq(group2_box, @graph.Box::new(-46.0, 274.0, 457.0, 567.0))
-  @debug.assert_eq(group3_box, @graph.Box::new(-34.0, 375.0, 433.0, 423.0))
-  @debug.assert_eq(crazy_town_box, @graph.Box::new(-22.0, 476.0, 409.0, 310.0))
-  @debug.assert_eq(a_group_note_box, @graph.Box::new(18.0, 522.0, 88.0, 66.0))
-  @debug.assert_eq(whoa_box, @graph.Box::new(22.0, 713.0, 353.0, 61.0))
-  @debug.assert_eq(alt_box, @graph.Box::new(283.0, 802.0, 376.0, 419.0))
-  @debug.assert_eq(case1_box, @graph.Box::new(295.0, 845.0, 352.0, 61.0))
-  @debug.assert_eq(case2_box, @graph.Box::new(295.0, 946.0, 352.0, 61.0))
-  @debug.assert_eq(case3_box, @graph.Box::new(295.0, 1047.0, 352.0, 61.0))
-  @debug.assert_eq(case4_box, @graph.Box::new(295.0, 1148.0, 352.0, 61.0))
-  @debug.assert_eq(b_note_box, @graph.Box::new(102.0, 1264.0, 465.0, 66.0))
-  @debug.assert_eq(a_note_box, @graph.Box::new(23.0, 1400.0, 77.0, 130.0))
+  assert_eq(a_box, @graph.Box::new(12.0, 52.0, 100.0, 66.0))
+  assert_eq(b_box, @graph.Box::new(285.0, 52.0, 100.0, 66.0))
+  assert_eq(c_box, @graph.Box::new(542.0, 52.0, 130.0, 66.0))
+  assert_eq(group1_box, @graph.Box::new(-58.0, 173.0, 481.0, 711.0))
+  assert_eq(group2_box, @graph.Box::new(-46.0, 274.0, 457.0, 567.0))
+  assert_eq(group3_box, @graph.Box::new(-34.0, 375.0, 433.0, 423.0))
+  assert_eq(crazy_town_box, @graph.Box::new(-22.0, 476.0, 409.0, 310.0))
+  assert_eq(a_group_note_box, @graph.Box::new(18.0, 522.0, 88.0, 66.0))
+  assert_eq(whoa_box, @graph.Box::new(22.0, 713.0, 353.0, 61.0))
+  assert_eq(alt_box, @graph.Box::new(283.0, 802.0, 376.0, 419.0))
+  assert_eq(case1_box, @graph.Box::new(295.0, 845.0, 352.0, 61.0))
+  assert_eq(case2_box, @graph.Box::new(295.0, 946.0, 352.0, 61.0))
+  assert_eq(case3_box, @graph.Box::new(295.0, 1047.0, 352.0, 61.0))
+  assert_eq(case4_box, @graph.Box::new(295.0, 1148.0, 352.0, 61.0))
+  assert_eq(b_note_box, @graph.Box::new(102.0, 1264.0, 465.0, 66.0))
+  assert_eq(a_note_box, @graph.Box::new(23.0, 1400.0, 77.0, 130.0))
 
   let ab = find_connections(target, "a", "b")
   let bc = find_connections(target, "b", "c")
-  @debug.assert_eq(
+  assert_eq(
     ab.length(),
     5,
     msg="\{engine_name} expected five a -> b messages in sequence nested groups",
   )
-  @debug.assert_eq(
+  assert_eq(
     bc.length(),
     4,
     msg="\{engine_name} expected four b -> c messages in sequence nested groups",
@@ -2549,11 +2513,11 @@ fn assert_nested_steps_like_d2(
   match (a.get_box(), aa.get_box(), ab.get_box(), c.get_box(), d.get_box()) {
     (Some(a_box), Some(aa_box), Some(ab_box), Some(c_box), Some(d_box)) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(10.0, 20.0, 153.0, 362.0))
-        @debug.assert_eq(aa_box, @graph.Box::new(40.0, 50.0, 93.0, 101.0))
-        @debug.assert_eq(ab_box, @graph.Box::new(40.0, 251.0, 93.0, 101.0))
-        @debug.assert_eq(c_box, @graph.Box::new(214.0, 50.0, 93.0, 101.0))
-        @debug.assert_eq(d_box, @graph.Box::new(213.0, 251.0, 94.0, 101.0))
+        assert_eq(a_box, @graph.Box::new(10.0, 20.0, 153.0, 362.0))
+        assert_eq(aa_box, @graph.Box::new(40.0, 50.0, 93.0, 101.0))
+        assert_eq(ab_box, @graph.Box::new(40.0, 251.0, 93.0, 101.0))
+        assert_eq(c_box, @graph.Box::new(214.0, 50.0, 93.0, 101.0))
+        assert_eq(d_box, @graph.Box::new(213.0, 251.0, 94.0, 101.0))
         assert_route_points_close(ab_edge.route, [
           @graph.Point::new(86.0, 151.0),
           @graph.Point::new(86.4000015258789, 191.0),
@@ -2567,11 +2531,11 @@ fn assert_nested_steps_like_d2(
           @graph.Point::new(260.0, 251.0),
         ])
       } else {
-        @debug.assert_eq(a_box, @graph.Box::new(12.0, 12.0, 193.0, 372.0))
-        @debug.assert_eq(aa_box, @graph.Box::new(62.0, 62.0, 93.0, 101.0))
-        @debug.assert_eq(ab_box, @graph.Box::new(62.0, 233.0, 93.0, 101.0))
-        @debug.assert_eq(c_box, @graph.Box::new(225.0, 283.0, 93.0, 101.0))
-        @debug.assert_eq(d_box, @graph.Box::new(224.0, 454.0, 94.0, 101.0))
+        assert_eq(a_box, @graph.Box::new(12.0, 12.0, 193.0, 372.0))
+        assert_eq(aa_box, @graph.Box::new(62.0, 62.0, 93.0, 101.0))
+        assert_eq(ab_box, @graph.Box::new(62.0, 233.0, 93.0, 101.0))
+        assert_eq(c_box, @graph.Box::new(225.0, 283.0, 93.0, 101.0))
+        assert_eq(d_box, @graph.Box::new(224.0, 454.0, 94.0, 101.0))
         assert_route_points_close(ab_edge.route, [
           @graph.Point::new(108.0, 163.0),
           @graph.Point::new(109.0, 233.0),
@@ -2747,18 +2711,12 @@ fn assert_constant_near_title_like_d2(
       Some(will_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(title_box, @graph.Box::new(37.0, -71.0, 257.0, 51.0))
-        @debug.assert_eq(poll_box, @graph.Box::new(82.0, 0.0, 150.0, 66.0))
-        @debug.assert_eq(results_box, @graph.Box::new(191.0, 166.0, 93.0, 66.0))
-        @debug.assert_eq(
-          unfavorable_box,
-          @graph.Box::new(0.0, 332.0, 131.0, 66.0),
-        )
-        @debug.assert_eq(
-          favorable_box,
-          @graph.Box::new(191.0, 332.0, 113.0, 66.0),
-        )
-        @debug.assert_eq(will_box, @graph.Box::new(164.0, 498.0, 167.0, 66.0))
+        assert_eq(title_box, @graph.Box::new(37.0, -71.0, 257.0, 51.0))
+        assert_eq(poll_box, @graph.Box::new(82.0, 0.0, 150.0, 66.0))
+        assert_eq(results_box, @graph.Box::new(191.0, 166.0, 93.0, 66.0))
+        assert_eq(unfavorable_box, @graph.Box::new(0.0, 332.0, 131.0, 66.0))
+        assert_eq(favorable_box, @graph.Box::new(191.0, 332.0, 113.0, 66.0))
+        assert_eq(will_box, @graph.Box::new(164.0, 498.0, 167.0, 66.0))
         assert_route_points_close(poll_results.route, [
           @graph.Point::new(188.5, 66.0),
           @graph.Point::new(227.6999969482422, 106.0),
@@ -2793,18 +2751,12 @@ fn assert_constant_near_title_like_d2(
           @graph.Point::new(247.5, 498.0),
         ])
       } else {
-        @debug.assert_eq(title_box, @graph.Box::new(29.0, -59.0, 257.0, 51.0))
-        @debug.assert_eq(poll_box, @graph.Box::new(110.0, 12.0, 150.0, 66.0))
-        @debug.assert_eq(results_box, @graph.Box::new(64.0, 158.0, 93.0, 66.0))
-        @debug.assert_eq(
-          unfavorable_box,
-          @graph.Box::new(172.0, 304.0, 131.0, 66.0),
-        )
-        @debug.assert_eq(
-          favorable_box,
-          @graph.Box::new(39.0, 304.0, 113.0, 66.0),
-        )
-        @debug.assert_eq(will_box, @graph.Box::new(12.0, 440.0, 167.0, 66.0))
+        assert_eq(title_box, @graph.Box::new(29.0, -59.0, 257.0, 51.0))
+        assert_eq(poll_box, @graph.Box::new(110.0, 12.0, 150.0, 66.0))
+        assert_eq(results_box, @graph.Box::new(64.0, 158.0, 93.0, 66.0))
+        assert_eq(unfavorable_box, @graph.Box::new(172.0, 304.0, 131.0, 66.0))
+        assert_eq(favorable_box, @graph.Box::new(39.0, 304.0, 113.0, 66.0))
+        assert_eq(will_box, @graph.Box::new(12.0, 440.0, 167.0, 66.0))
         assert_route_points_close(poll_results.route, [
           @graph.Point::new(160.16600036621094, 78.0),
           @graph.Point::new(160.16600036621094, 118.0),
@@ -2890,16 +2842,16 @@ fn assert_grid_edge_across_cell_like_d2(
       Some(fg_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(cell1_box, @graph.Box::new(10.0, 82.0, 113.0, 206.0))
-        @debug.assert_eq(a_box, @graph.Box::new(40.0, 112.0, 53.0, 66.0))
-        @debug.assert_eq(cell2_box, @graph.Box::new(10.0, 334.0, 113.0, 206.0))
-        @debug.assert_eq(b_box, @graph.Box::new(40.0, 364.0, 53.0, 66.0))
-        @debug.assert_eq(cell3_box, @graph.Box::new(133.0, 82.0, 280.0, 458.0))
-        @debug.assert_eq(c_box, @graph.Box::new(163.0, 118.0, 154.0, 126.0))
-        @debug.assert_eq(cd_box, @graph.Box::new(233.0, 148.0, 54.0, 66.0))
-        @debug.assert_eq(e_box, @graph.Box::new(166.0, 414.0, 53.0, 66.0))
-        @debug.assert_eq(f_box, @graph.Box::new(269.0, 384.0, 114.0, 126.0))
-        @debug.assert_eq(fg_box, @graph.Box::new(299.0, 414.0, 54.0, 66.0))
+        assert_eq(cell1_box, @graph.Box::new(10.0, 82.0, 113.0, 206.0))
+        assert_eq(a_box, @graph.Box::new(40.0, 112.0, 53.0, 66.0))
+        assert_eq(cell2_box, @graph.Box::new(10.0, 334.0, 113.0, 206.0))
+        assert_eq(b_box, @graph.Box::new(40.0, 364.0, 53.0, 66.0))
+        assert_eq(cell3_box, @graph.Box::new(133.0, 82.0, 280.0, 458.0))
+        assert_eq(c_box, @graph.Box::new(163.0, 118.0, 154.0, 126.0))
+        assert_eq(cd_box, @graph.Box::new(233.0, 148.0, 54.0, 66.0))
+        assert_eq(e_box, @graph.Box::new(166.0, 414.0, 53.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(269.0, 384.0, 114.0, 126.0))
+        assert_eq(fg_box, @graph.Box::new(299.0, 414.0, 54.0, 66.0))
         assert_route_points_close(
           ab.route,
           [@graph.Point::new(66.875, 178.0), @graph.Point::new(66.875, 364.0)],
@@ -2939,16 +2891,16 @@ fn assert_grid_edge_across_cell_like_d2(
           tolerance=1.0,
         )
       } else {
-        @debug.assert_eq(cell1_box, @graph.Box::new(22.0, 58.0, 153.0, 256.0))
-        @debug.assert_eq(a_box, @graph.Box::new(72.0, 108.0, 53.0, 66.0))
-        @debug.assert_eq(cell2_box, @graph.Box::new(22.0, 324.0, 153.0, 256.0))
-        @debug.assert_eq(b_box, @graph.Box::new(72.0, 374.0, 53.0, 66.0))
-        @debug.assert_eq(cell3_box, @graph.Box::new(185.0, 58.0, 327.0, 522.0))
-        @debug.assert_eq(c_box, @graph.Box::new(251.0, 108.0, 154.0, 166.0))
-        @debug.assert_eq(cd_box, @graph.Box::new(301.0, 158.0, 54.0, 66.0))
-        @debug.assert_eq(e_box, @graph.Box::new(235.0, 364.0, 53.0, 66.0))
-        @debug.assert_eq(f_box, @graph.Box::new(308.0, 364.0, 154.0, 166.0))
-        @debug.assert_eq(fg_box, @graph.Box::new(358.0, 414.0, 54.0, 66.0))
+        assert_eq(cell1_box, @graph.Box::new(22.0, 58.0, 153.0, 256.0))
+        assert_eq(a_box, @graph.Box::new(72.0, 108.0, 53.0, 66.0))
+        assert_eq(cell2_box, @graph.Box::new(22.0, 324.0, 153.0, 256.0))
+        assert_eq(b_box, @graph.Box::new(72.0, 374.0, 53.0, 66.0))
+        assert_eq(cell3_box, @graph.Box::new(185.0, 58.0, 327.0, 522.0))
+        assert_eq(c_box, @graph.Box::new(251.0, 108.0, 154.0, 166.0))
+        assert_eq(cd_box, @graph.Box::new(301.0, 158.0, 54.0, 66.0))
+        assert_eq(e_box, @graph.Box::new(235.0, 364.0, 53.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(308.0, 364.0, 154.0, 166.0))
+        assert_eq(fg_box, @graph.Box::new(358.0, 414.0, 54.0, 66.0))
         assert_route_points_close(
           ab.route,
           [@graph.Point::new(98.5, 174.0), @graph.Point::new(98.5, 374.0)],
@@ -3027,16 +2979,16 @@ fn assert_multiple_constant_nears_like_d2(
       Some(b2222_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(73.0, -196.0, 113.0, 458.0))
-        @debug.assert_eq(b_box, @graph.Box::new(73.0, 318.0, 139.0, 292.0))
-        @debug.assert_eq(c_box, @graph.Box::new(0.0, 0.0, 53.0, 66.0))
-        @debug.assert_eq(a1_box, @graph.Box::new(104.0, -166.0, 52.0, 66.0))
-        @debug.assert_eq(a2_box, @graph.Box::new(103.0, 0.0, 53.0, 66.0))
-        @debug.assert_eq(a3_box, @graph.Box::new(103.0, 166.0, 53.0, 66.0))
-        @debug.assert_eq(b1111_box, @graph.Box::new(104.0, 348.0, 78.0, 66.0))
-        @debug.assert_eq(b2222_box, @graph.Box::new(103.0, 514.0, 79.0, 66.0))
-        @debug.assert_eq(a.label_position, Some("OUTSIDE_TOP_CENTER"))
-        @debug.assert_eq(b.label_position, Some("OUTSIDE_TOP_CENTER"))
+        assert_eq(a_box, @graph.Box::new(73.0, -196.0, 113.0, 458.0))
+        assert_eq(b_box, @graph.Box::new(73.0, 318.0, 139.0, 292.0))
+        assert_eq(c_box, @graph.Box::new(0.0, 0.0, 53.0, 66.0))
+        assert_eq(a1_box, @graph.Box::new(104.0, -166.0, 52.0, 66.0))
+        assert_eq(a2_box, @graph.Box::new(103.0, 0.0, 53.0, 66.0))
+        assert_eq(a3_box, @graph.Box::new(103.0, 166.0, 53.0, 66.0))
+        assert_eq(b1111_box, @graph.Box::new(104.0, 348.0, 78.0, 66.0))
+        assert_eq(b2222_box, @graph.Box::new(103.0, 514.0, 79.0, 66.0))
+        assert_eq(a.label_position, Some("OUTSIDE_TOP_CENTER"))
+        assert_eq(b.label_position, Some("OUTSIDE_TOP_CENTER"))
         assert_route_points_close(a12.route, [
           @graph.Point::new(129.5, -100.0),
           @graph.Point::new(129.5, -60.0),
@@ -3056,16 +3008,16 @@ fn assert_multiple_constant_nears_like_d2(
           @graph.Point::new(142.5, 514.0),
         ])
       } else {
-        @debug.assert_eq(a_box, @graph.Box::new(85.0, -174.0, 153.0, 438.0))
-        @debug.assert_eq(b_box, @graph.Box::new(85.0, 284.0, 179.0, 302.0))
-        @debug.assert_eq(c_box, @graph.Box::new(12.0, 12.0, 53.0, 66.0))
-        @debug.assert_eq(a1_box, @graph.Box::new(135.0, -124.0, 52.0, 66.0))
-        @debug.assert_eq(a2_box, @graph.Box::new(135.0, 12.0, 53.0, 66.0))
-        @debug.assert_eq(a3_box, @graph.Box::new(135.0, 148.0, 53.0, 66.0))
-        @debug.assert_eq(b1111_box, @graph.Box::new(135.0, 334.0, 78.0, 66.0))
-        @debug.assert_eq(b2222_box, @graph.Box::new(135.0, 470.0, 79.0, 66.0))
-        @debug.assert_eq(a.label_position, Some("INSIDE_TOP_CENTER"))
-        @debug.assert_eq(b.label_position, Some("INSIDE_TOP_CENTER"))
+        assert_eq(a_box, @graph.Box::new(85.0, -174.0, 153.0, 438.0))
+        assert_eq(b_box, @graph.Box::new(85.0, 284.0, 179.0, 302.0))
+        assert_eq(c_box, @graph.Box::new(12.0, 12.0, 53.0, 66.0))
+        assert_eq(a1_box, @graph.Box::new(135.0, -124.0, 52.0, 66.0))
+        assert_eq(a2_box, @graph.Box::new(135.0, 12.0, 53.0, 66.0))
+        assert_eq(a3_box, @graph.Box::new(135.0, 148.0, 53.0, 66.0))
+        assert_eq(b1111_box, @graph.Box::new(135.0, 334.0, 78.0, 66.0))
+        assert_eq(b2222_box, @graph.Box::new(135.0, 470.0, 79.0, 66.0))
+        assert_eq(a.label_position, Some("INSIDE_TOP_CENTER"))
+        assert_eq(b.label_position, Some("INSIDE_TOP_CENTER"))
         assert_route_points_close(a12.route, [
           @graph.Point::new(161.5, -58.0),
           @graph.Point::new(161.5, 12.0),
@@ -3153,19 +3105,19 @@ fn assert_grid_in_constant_near_like_d2(
       Some(z_box),
     ) =>
       if engine_name == "dagre" {
-        @debug.assert_eq(a_box, @graph.Box::new(0.0, 0.0, 53.0, 66.0))
-        @debug.assert_eq(b_box, @graph.Box::new(113.0, 0.0, 53.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(226.0, 0.0, 53.0, 66.0))
-        @debug.assert_eq(x_box, @graph.Box::new(299.0, -312.0, 174.0, 292.0))
-        @debug.assert_eq(y_box, @graph.Box::new(359.0, -252.0, 54.0, 66.0))
-        @debug.assert_eq(z_box, @graph.Box::new(359.0, -146.0, 54.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(0.0, 0.0, 53.0, 66.0))
+        assert_eq(b_box, @graph.Box::new(113.0, 0.0, 53.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(226.0, 0.0, 53.0, 66.0))
+        assert_eq(x_box, @graph.Box::new(299.0, -312.0, 174.0, 292.0))
+        assert_eq(y_box, @graph.Box::new(359.0, -252.0, 54.0, 66.0))
+        assert_eq(z_box, @graph.Box::new(359.0, -146.0, 54.0, 66.0))
       } else {
-        @debug.assert_eq(a_box, @graph.Box::new(12.0, 12.0, 53.0, 66.0))
-        @debug.assert_eq(b_box, @graph.Box::new(85.0, 12.0, 53.0, 66.0))
-        @debug.assert_eq(c_box, @graph.Box::new(158.0, 12.0, 53.0, 66.0))
-        @debug.assert_eq(x_box, @graph.Box::new(231.0, -300.0, 174.0, 292.0))
-        @debug.assert_eq(y_box, @graph.Box::new(291.0, -240.0, 54.0, 66.0))
-        @debug.assert_eq(z_box, @graph.Box::new(291.0, -134.0, 54.0, 66.0))
+        assert_eq(a_box, @graph.Box::new(12.0, 12.0, 53.0, 66.0))
+        assert_eq(b_box, @graph.Box::new(85.0, 12.0, 53.0, 66.0))
+        assert_eq(c_box, @graph.Box::new(158.0, 12.0, 53.0, 66.0))
+        assert_eq(x_box, @graph.Box::new(231.0, -300.0, 174.0, 292.0))
+        assert_eq(y_box, @graph.Box::new(291.0, -240.0, 54.0, 66.0))
+        assert_eq(z_box, @graph.Box::new(291.0, -134.0, 54.0, 66.0))
       }
     _ =>
       fail(
@@ -3232,9 +3184,9 @@ fn find_connections(
 fn assert_route_points_close(
   actual : Array[@graph.Point],
   expected : Array[@graph.Point],
-  tolerance? : Double = 1.0e-3,
+  tolerance~ : Double = 1.0e-3,
 ) -> Unit raise {
-  @debug.assert_eq(actual.length(), expected.length())
+  assert_eq(actual.length(), expected.length())
   for i in 0..<actual.length() {
     let dx = (actual[i].x - expected[i].x).abs()
     let dy = (actual[i].y - expected[i].y).abs()
@@ -3364,7 +3316,7 @@ test "elk centers equal-size left and right near images at the same height" {
   let graph_input = compile_graph_no_layout(source).unwrap()
   let input_ding = graph_input.find_object("ding").unwrap().get_box().unwrap()
   let input_nepo = graph_input.find_object("nepo").unwrap().get_box().unwrap()
-  @debug.assert_eq(input_ding.height, input_nepo.height)
+  assert_eq(input_ding.height, input_nepo.height)
   let elk = @engine_api.layout_with_engine(
     @engine_elk.ElkEngine::new(),
     graph_input,
@@ -3375,8 +3327,8 @@ test "elk centers equal-size left and right near images at the same height" {
   }
   let ding = elk.find_object("ding").unwrap().get_box().unwrap()
   let nepo = elk.find_object("nepo").unwrap().get_box().unwrap()
-  @debug.assert_eq(ding.height, nepo.height)
-  @debug.assert_eq(ding.y, nepo.y)
+  assert_eq(ding.height, nepo.height)
+  assert_eq(ding.y, nepo.y)
 }
 
 ///|
@@ -3464,11 +3416,11 @@ test "edge bend points override routing" {
   guard edge.bend_points is Some(bend_points) else {
     fail("expected edge bend points")
   }
-  @debug.assert_eq(bend_points.length(), 2)
-  @debug.assert_eq(bend_points[0].get_x(), 10.0)
-  @debug.assert_eq(bend_points[0].get_y(), 20.0)
-  @debug.assert_eq(bend_points[1].get_x(), 30.0)
-  @debug.assert_eq(bend_points[1].get_y(), 40.0)
+  assert_eq(bend_points.length(), 2)
+  assert_eq(bend_points[0].get_x(), 10.0)
+  assert_eq(bend_points[0].get_y(), 20.0)
+  assert_eq(bend_points[1].get_x(), 30.0)
+  assert_eq(bend_points[1].get_y(), 40.0)
   let route = edge.route
   assert_true(route.length() >= 2, msg="expected route points")
 }
@@ -3602,7 +3554,7 @@ test "sql_table edges connect to correct rows" {
   assert_true(posts_box.get_height() > 0.0, msg="posts table height")
   assert_true(comments_box.get_width() > 0.0, msg="comments table width")
   assert_true(comments_box.get_height() > 0.0, msg="comments table height")
-  @debug.assert_eq(graph.get_edges().length(), 3)
+  assert_eq(graph.get_edges().length(), 3)
   let mut found_users_posts = false
   let mut found_posts_comments = false
   let mut found_users_comments = false

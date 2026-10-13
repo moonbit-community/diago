@@ -5,5 +5,4 @@ import {
 import {
   "Milky2018/diago/layout_core",
   "Milky2018/diago/graph",
-  "moonbitlang/core/debug",
 } for "test"

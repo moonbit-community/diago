@@ -278,14 +278,14 @@ pub fn rect(
   y : Double,
   width : Double,
   height : Double,
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
-  rx? : Double? = None,
-  ry? : Double? = None,
-  id? : String? = None,
-  class? : String? = None,
-  onclick? : String? = None,
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
+  rx~ : Double? = None,
+  ry~ : Double? = None,
+  id~ : String? = None,
+  class~ : String? = None,
+  onclick~ : String? = None,
 ) -> String {
   let elem = @xml_emit.Element::new("rect")
     .attr_num("x", x)
@@ -325,9 +325,9 @@ pub fn ellipse(
   cy : Double,
   rx : Double,
   ry : Double,
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
 ) -> String {
   @xml_emit.Element::new("ellipse")
   .attr_num("cx", cx)
@@ -347,9 +347,9 @@ pub fn circle(
   cx : Double,
   cy : Double,
   r : Double,
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
 ) -> String {
   @xml_emit.Element::new("circle")
   .attr_num("cx", cx)
@@ -369,8 +369,8 @@ pub fn line(
   y1 : Double,
   x2 : Double,
   y2 : Double,
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
 ) -> String {
   @xml_emit.Element::new("line")
   .attr_num("x1", x1)
@@ -387,9 +387,9 @@ pub fn line(
 /// Build a polyline element
 pub fn polyline(
   points : Array[(Double, Double)],
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
 ) -> String {
   let points_str = points_to_string(points)
   @xml_emit.Element::new("polyline")
@@ -405,9 +405,9 @@ pub fn polyline(
 /// Build a polygon element
 pub fn polygon(
   points : Array[(Double, Double)],
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
 ) -> String {
   let points_str = points_to_string(points)
   @xml_emit.Element::new("polygon")
@@ -486,13 +486,13 @@ fn d2_stroke_width_value(value : Double) -> String {
 /// Build a path element
 pub fn path(
   d : String,
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
-  stroke_dash? : Double = 0.0,
-  marker_start? : String = "",
-  marker_end? : String = "",
-  mask? : String = "",
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
+  stroke_dash~ : Double = 0.0,
+  marker_start~ : String = "",
+  marker_end~ : String = "",
+  mask~ : String = "",
 ) -> String {
   let elem = @xml_emit.Element::new("path")
     .attr("d", d)
@@ -520,12 +520,12 @@ pub fn path(
 /// Build an animated path element with marching ants effect
 pub fn animated_path(
   d : String,
-  fill? : String = "none",
-  stroke? : String = "black",
-  stroke_width? : Double = 1.0,
-  marker_start? : String = "",
-  marker_end? : String = "",
-  mask? : String = "",
+  fill~ : String = "none",
+  stroke~ : String = "black",
+  stroke_width~ : Double = 1.0,
+  marker_start~ : String = "",
+  marker_end~ : String = "",
+  mask~ : String = "",
 ) -> String {
   // Create path with animation
   let path_elem = @xml_emit.Element::new("path")
@@ -555,10 +555,10 @@ pub fn text(
   x : Double,
   y : Double,
   content : String,
-  font_family? : String = "Arial, sans-serif",
-  font_size? : Int = 14,
-  text_anchor? : String = "middle",
-  dominant_baseline? : String = "middle",
+  font_family~ : String = "Arial, sans-serif",
+  font_size~ : Int32 = 14,
+  text_anchor~ : String = "middle",
+  dominant_baseline~ : String = "middle",
 ) -> String {
   @xml_emit.Element::new("text")
   .attr_num("x", x)
@@ -577,12 +577,12 @@ pub fn styled_text(
   x : Double,
   y : Double,
   content : String,
-  font_family? : String = "Arial, sans-serif",
-  font_size? : Int = 14,
-  text_anchor? : String = "middle",
-  dominant_baseline? : String = "middle",
-  text_transform? : String = "",
-  extra_style? : String = "",
+  font_family~ : String = "Arial, sans-serif",
+  font_size~ : Int32 = 14,
+  text_anchor~ : String = "middle",
+  dominant_baseline~ : String = "middle",
+  text_transform~ : String = "",
+  extra_style~ : String = "",
 ) -> String {
   // Build style attribute
   let style_parts : Array[String] = []
@@ -611,7 +611,7 @@ pub fn arrow_marker(
   id : String,
   size : Double,
   fill : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let (refX, d) = if reverse {
@@ -642,7 +642,7 @@ pub fn diamond_marker(
   id : String,
   size : Double,
   fill : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let refX = if reverse { 0.0 } else { size }
@@ -670,7 +670,7 @@ pub fn circle_marker(
   id : String,
   size : Double,
   fill : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let r = half * 0.8
@@ -700,7 +700,7 @@ pub fn cf_one_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let refX = if reverse { 0.0 } else { size }
@@ -732,7 +732,7 @@ pub fn cf_many_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let (refX, d) = if reverse {
@@ -771,7 +771,7 @@ pub fn cf_one_required_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let bar_x = if reverse { size * 0.3 } else { size * 0.7 }
@@ -813,7 +813,7 @@ pub fn cf_many_required_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let bar_x = if reverse { size * 0.7 } else { size * 0.3 }
@@ -862,7 +862,7 @@ pub fn cf_one_optional_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let r = size * 0.2
@@ -905,7 +905,7 @@ pub fn cf_many_optional_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let r = size * 0.2
@@ -955,7 +955,7 @@ pub fn line_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let x = if reverse { 0.0 } else { size }
@@ -987,7 +987,7 @@ pub fn open_marker(
   id : String,
   size : Double,
   stroke : String,
-  reverse? : Bool = false,
+  reverse~ : Bool = false,
 ) -> String {
   let half = size / 2.0
   let (refX, d) = if reverse {
@@ -1190,8 +1190,8 @@ pub fn PathBuilder::arc_to(
   ry : Double,
   x : Double,
   y : Double,
-  large_arc? : Bool = false,
-  sweep? : Bool = true,
+  large_arc~ : Bool = false,
+  sweep~ : Bool = true,
 ) -> PathBuilder {
   let large = if large_arc { 1 } else { 0 }
   let sw = if sweep { 1 } else { 0 }

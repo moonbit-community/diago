@@ -37,8 +37,8 @@ fn calibrate_xy(
 fn draw_connection_route(
   ctx : RouteDrawContext,
   conn : @diagram.Connection,
-  x_offset : Int,
-  y_offset : Int,
+  x_offset : Int32,
+  y_offset : Int32,
 ) -> Unit {
   let source_route = connection_route_points(conn)
   if source_route.length() < 2 {
@@ -86,8 +86,8 @@ fn draw_connection_route(
 ///|
 fn route_points_from_graph(
   points : Array[@graph.Point],
-  x_offset : Int,
-  y_offset : Int,
+  x_offset : Int32,
+  y_offset : Int32,
 ) -> Array[RoutePoint] {
   let routes : Array[RoutePoint] = []
   for p in points {
@@ -411,7 +411,7 @@ fn build_arrow_map(chars : @ascii.CharSet) -> Map[String, Char] {
 }
 
 ///|
-fn point_key(x : Int, y : Int) -> String {
+fn point_key(x : Int32, y : Int32) -> String {
   "\{x}_\{y}"
 }
 
@@ -420,8 +420,8 @@ fn draw_segment_between_points(
   ctx : RouteDrawContext,
   start : RoutePoint,
   end : RoutePoint,
-  segment_index : Int,
-  source_route_count : Int,
+  segment_index : Int32,
+  source_route_count : Int32,
   source_routes : Array[RoutePoint],
   conn : @diagram.Connection,
   corners : Map[String, Char],
@@ -502,12 +502,12 @@ fn draw_segment_between_points(
 ///|
 fn draw_route_point(
   ctx : RouteDrawContext,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   sx : Double,
   sy : Double,
-  segment_index : Int,
-  route_len : Int,
+  segment_index : Int32,
+  route_len : Int32,
   ax : Double,
   ay : Double,
   cx : Double,
@@ -558,8 +558,8 @@ fn draw_route_point(
 ///|
 fn draw_route_segment(
   ctx : RouteDrawContext,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   sx : Double,
   sy : Double,
   from_boundary : Boundary,
@@ -599,8 +599,8 @@ fn draw_route_segment(
 ///|
 fn draw_arrowhead(
   ctx : RouteDrawContext,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   sx : Double,
   sy : Double,
   arrows : Map[String, Char],
@@ -641,8 +641,8 @@ fn is_shape_boundary_char(chars : @ascii.CharSet, ch : Char) -> Bool {
 ///|
 fn should_draw_t_junction(
   ctx : RouteDrawContext,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   from_boundary : Boundary,
   to_boundary : Boundary,
   is_vertical : Bool,
@@ -672,8 +672,8 @@ fn should_draw_t_junction(
 ///|
 fn should_skip_overwrite(
   ctx : RouteDrawContext,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   from_boundary : Boundary,
   to_boundary : Boundary,
 ) -> Bool {
@@ -690,9 +690,9 @@ fn should_skip_overwrite(
 ///|
 fn should_draw_label_at(
   pos : RouteLabelPosition,
-  current_index : Int,
-  x : Int,
-  y : Int,
+  current_index : Int32,
+  x : Int32,
+  y : Int32,
   ax : Double,
   ay : Double,
   sx : Double,
@@ -762,12 +762,12 @@ fn draw_connection_label(
   pos : RouteLabelPosition,
   label : String,
   label_position : String,
-  x : Int,
-  y : Int,
+  x : Int32,
+  y : Int32,
   sx : Double,
   sy : Double,
   routes : Array[RoutePoint],
-  segment_index : Int,
+  segment_index : Int32,
 ) -> Unit {
   let _ = segment_index
   if sy != 0.0 {

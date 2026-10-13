@@ -1,12 +1,12 @@
 ///|
-fn test_object(id : String, z_index : Int) -> @graph.ObjectInput {
+fn test_object(id : String, z_index : Int32) -> @graph.ObjectInput {
   test_object_with_children(id, z_index, [])
 }
 
 ///|
 fn test_object_with_children(
   id : String,
-  z_index : Int,
+  z_index : Int32,
   child_ids : Array[String],
 ) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(

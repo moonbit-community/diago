@@ -19,73 +19,73 @@
 /// arena, calls `render`, and reads the UTF-8 result body from the same arena.
 
 ///|
-let abi_version_number : Int = 2
+let abi_version_number : Int32 = 2
 
 ///|
-let transfer_start : Int = 1048576
+let transfer_start : Int32 = 1048576
 
 ///|
-let transfer_size : Int = 15728640
+let transfer_size : Int32 = 15728640
 
 ///|
-let status_ok : Int = 0
+let status_ok : Int32 = 0
 
 ///|
-let status_error : Int = 1
+let status_error : Int32 = 1
 
 ///|
-let error_none : Int = 0
+let error_none : Int32 = 0
 
 ///|
-let error_request_length : Int = 1
+let error_request_length : Int32 = 1
 
 ///|
-let error_invalid_utf8 : Int = 2
+let error_invalid_utf8 : Int32 = 2
 
 ///|
-let error_invalid_json : Int = 3
+let error_invalid_json : Int32 = 3
 
 ///|
-let error_unsupported_version : Int = 4
+let error_unsupported_version : Int32 = 4
 
 ///|
-let error_invalid_request : Int = 5
+let error_invalid_request : Int32 = 5
 
 ///|
-let error_parse : Int = 10
+let error_parse : Int32 = 10
 
 ///|
-let error_io : Int = 11
+let error_io : Int32 = 11
 
 ///|
-let error_ir : Int = 12
+let error_ir : Int32 = 12
 
 ///|
-let error_graph : Int = 13
+let error_graph : Int32 = 13
 
 ///|
-let error_config : Int = 14
+let error_config : Int32 = 14
 
 ///|
-let error_layout : Int = 15
+let error_layout : Int32 = 15
 
 ///|
-let error_render : Int = 16
+let error_render : Int32 = 16
 
 ///|
-let error_target : Int = 17
+let error_target : Int32 = 17
 
 ///|
-let error_result_too_large : Int = 18
+let error_result_too_large : Int32 = 18
 
 ///|
-let error_unsupported_feature : Int = 19
+let error_unsupported_feature : Int32 = 19
 
 ///|
 priv struct WasmResultState {
-  mut length : Int
-  mut error_kind : Int
-  mut required_length : Int
+  mut length : Int32
+  mut error_kind : Int32
+  mut required_length : Int32
 }
 
 ///|
@@ -96,37 +96,37 @@ let wasm_result_state : WasmResultState = {
 }
 
 ///|
-pub fn abi_version() -> Int {
+pub fn abi_version() -> Int32 {
   abi_version_number
 }
 
 ///|
-pub fn transfer_ptr() -> Int {
+pub fn transfer_ptr() -> Int32 {
   transfer_start
 }
 
 ///|
-pub fn transfer_capacity() -> Int {
+pub fn transfer_capacity() -> Int32 {
   transfer_size
 }
 
 ///|
-pub fn result_len() -> Int {
+pub fn result_len() -> Int32 {
   wasm_result_state.length
 }
 
 ///|
-pub fn result_error_kind() -> Int {
+pub fn result_error_kind() -> Int32 {
   wasm_result_state.error_kind
 }
 
 ///|
-pub fn result_required_len() -> Int {
+pub fn result_required_len() -> Int32 {
   wasm_result_state.required_length
 }
 
 ///|
-pub fn render(request_len : Int) -> Int {
+pub fn render(request_len : Int32) -> Int32 {
   reset_result_state()
   let request_text = match read_request(request_len) {
     Ok(text) => text
@@ -156,7 +156,7 @@ fn reset_result_state() -> Unit {
 }
 
 ///|
-fn read_request(request_len : Int) -> Result[String, WasmFailure] {
+fn read_request(request_len : Int32) -> Result[String, WasmFailure] {
   if request_len < 0 || request_len > transfer_size {
     return Err({
       error_kind: error_request_length,
@@ -179,17 +179,17 @@ fn read_request(request_len : Int) -> Result[String, WasmFailure] {
 }
 
 ///|
-fn finish_success(body : String) -> Int {
+fn finish_success(body : String) -> Int32 {
   finish_result(body, error_none)
 }
 
 ///|
-fn finish_error(error_kind : Int, message : String) -> Int {
+fn finish_error(error_kind : Int32, message : String) -> Int32 {
   finish_result(message, error_kind)
 }
 
 ///|
-fn finish_result(body : String, error_kind : Int) -> Int {
+fn finish_result(body : String, error_kind : Int32) -> Int32 {
   let bytes = @utf8.encode(body)
   wasm_result_state.required_length = bytes.length()
   if bytes.length() > transfer_size {
@@ -221,7 +221,7 @@ fn write_transfer_bytes(bytes : Bytes) -> Unit {
 }
 
 ///|
-fn diago_error_metadata(error : @diago.DiagoError) -> (Int, String) {
+fn diago_error_metadata(error : @diago.DiagoError) -> (Int32, String) {
   match error {
     ParseError(message) => (error_parse, message)
     IOError(message) => (error_io, message)
@@ -236,11 +236,11 @@ fn diago_error_metadata(error : @diago.DiagoError) -> (Int, String) {
 }
 
 ///|
-extern "wasm" fn wasm_load_u8(ptr : Int) -> Int =
+extern "wasm" fn wasm_load_u8(ptr : Int32) -> Int32 =
   #|(func (param i32) (result i32)
   #|  (i32.load8_u (local.get 0)))
 
 ///|
-extern "wasm" fn wasm_store_u8(ptr : Int, value : Int) -> Unit =
+extern "wasm" fn wasm_store_u8(ptr : Int32, value : Int32) -> Unit =
   #|(func (param i32 i32)
   #|  (i32.store8 (local.get 0) (local.get 1)))

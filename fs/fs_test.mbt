@@ -70,7 +70,7 @@ async test "filesystem resolver supports source-based facade calls" {
   let ir_map = @diago.parse(
     "common: @common",
     options=@diago.ParseOptions::new().with_import_resolver(
-      Some(import_resolver("common: @common", base_path=Some(dir))),
+      Some(@fs.import_resolver("common: @common", base_path=Some(dir))),
     ),
   )
   clean_import_fixture(dir, main_path, dep_path, nested_path)
@@ -95,7 +95,7 @@ async test "filesystem resolver supports source-based facade calls" {
 async test "parse_file resolves imports relative to the input file" {
   let dir = ".diago_fs_parse_file_test"
   let (main_path, dep_path, nested_path) = prepare_import_fixture(dir)
-  let ir_map = parse_file(main_path)
+  let ir_map = @fs.parse_file(main_path)
   clean_import_fixture(dir, main_path, dep_path, nested_path)
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
@@ -111,7 +111,7 @@ async test "parse_file resolves imports relative to the input file" {
 async test "compile_file returns rendered output" {
   let dir = ".diago_fs_compile_file_test"
   let (main_path, dep_path, nested_path) = prepare_import_fixture(dir)
-  let svg = compile_file(main_path)
+  let svg = @fs.compile_file(main_path)
   clean_import_fixture(dir, main_path, dep_path, nested_path)
   assert_true(svg.contains("<svg"))
 }

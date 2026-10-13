@@ -154,7 +154,7 @@ fn dagre_point_to_json(point : @moon_dagre.Point) -> Json {
 
 ///|
 priv struct EdgeLayoutInfo {
-  edge_index : Int
+  edge_index : Int32
   src_id : String
   dst_id : String
   src_arrow : Bool
@@ -207,7 +207,7 @@ const D2_SQL_TABLE_CONSTRAINT_PADDING : Double = 20.0
 const D2_SQL_TABLE_HEADER_PADDING : Double = 10.0
 
 ///|
-const D2_SQL_TABLE_HEADER_FONT_ADD : Int = 4
+const D2_SQL_TABLE_HEADER_FONT_ADD : Int32 = 4
 
 ///|
 const D2_CLASS_PREFIX_PADDING : Double = 10.0
@@ -219,7 +219,7 @@ const D2_CLASS_PREFIX_WIDTH : Double = 20.0
 const D2_CLASS_CENTER_PADDING : Double = 50.0
 
 ///|
-const D2_CLASS_HEADER_FONT_ADD : Int = 4
+const D2_CLASS_HEADER_FONT_ADD : Int32 = 4
 
 ///|
 const D2_CLASS_TYPE_PADDING : Double = 20.0
@@ -478,8 +478,8 @@ fn build_dagre_graph(
     }
   }
 
-  let layout_endpoints_by_edge_index : Map[Int, (String, String)] = Map([])
-  let parallel_edge_count_by_pair : Map[String, Int] = Map([])
+  let layout_endpoints_by_edge_index : Map[Int32, (String, String)] = Map([])
+  let parallel_edge_count_by_pair : Map[String, Int32] = Map([])
   for edge in graph.edges {
     let resolved_endpoints = resolve_edge_layout_endpoints(
       graph, edge, object_by_id, parent_id_by_child_id,
@@ -773,8 +773,8 @@ fn get_longest_edge_chain_head_id(
     return container.id
   }
 
-  let rank : Map[String, Int] = Map([])
-  let chain_length : Map[String, Int] = Map([])
+  let rank : Map[String, Int32] = Map([])
+  let chain_length : Map[String, Int32] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -865,7 +865,7 @@ fn get_longest_edge_chain_tail_id(
     return container.id
   }
 
-  let rank : Map[String, Int] = Map([])
+  let rank : Map[String, Int32] = Map([])
   for child_id in children {
     let mut is_head = true
     for edge in graph.edges {
@@ -1448,7 +1448,7 @@ fn is_constant_near_key(key : String) -> Bool {
 }
 
 ///|
-fn near_key_matches_set(key : String, key_set : Int) -> Bool {
+fn near_key_matches_set(key : String, key_set : Int32) -> Bool {
   match key_set {
     0 => key == "top-center" || key == "bottom-center"
     1 => key == "center-left" || key == "center-right"
@@ -1660,7 +1660,7 @@ fn object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
   object_by_id : Map[String, @graph.ObjectInput],
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
   if obj.label == "" &&
     obj.shape_type != Image &&
@@ -1756,7 +1756,7 @@ fn estimate_object_size(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
   _object_by_id : Map[String, @graph.ObjectInput],
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
   let has_explicit_dimension = match obj.box {
     Some(box) => box.width > 0.0 || box.height > 0.0
@@ -2331,7 +2331,7 @@ fn style_bool(value : @graph.StyleValue?, default : Bool) -> Bool {
 ///|
 fn object_label_bold_like_d2(
   obj : @graph.ObjectInput,
-  inside_sequence? : Bool = false,
+  inside_sequence~ : Bool = false,
 ) -> Bool {
   if inside_sequence || obj.shape_type == Class {
     false
@@ -2373,7 +2373,7 @@ fn style_is_hand_drawn(value : @graph.StyleValue?) -> Bool {
 fn make_dagre_edge_attrs(
   edge : @graph.EdgeInput,
   direction : @engine_api.Direction,
-  parallel_edge_count : Int,
+  parallel_edge_count : Int32,
 ) -> @moon_dagre.Attrs {
   let attrs = @moon_dagre.empty_attrs()
   attrs.set_string("labelpos", "c")
@@ -2630,7 +2630,7 @@ fn truncate_float32(v : Double) -> Double {
 }
 
 ///|
-fn dagre_node_id(order : Int, obj_id : String) -> String {
+fn dagre_node_id(order : Int32, obj_id : String) -> String {
   let _ = obj_id
   order.to_string()
 }
@@ -2642,7 +2642,7 @@ fn fill_patch_edges(
   edge_layout_by_key : Map[String, EdgeLayoutInfo],
   direction : @engine_api.Direction,
 ) -> Unit {
-  let routes_by_pair : Map[String, Array[(Int, Array[@graph.Point])]] = Map([])
+  let routes_by_pair : Map[String, Array[(Int32, Array[@graph.Point])]] = Map([])
   for edge_obj in dagre_graph.edges() {
     let key = dagre_edge_key(edge_obj.v, edge_obj.w, edge_obj.name)
     match edge_layout_by_key.get(key) {
@@ -2753,14 +2753,14 @@ fn reverse_route(route : Array[@graph.Point]) -> Array[@graph.Point] {
 ///|
 fn stabilize_parallel_edge_routes(
   patch : @graph.LayoutPatch,
-  routes_by_pair : Map[String, Array[(Int, Array[@graph.Point])]],
+  routes_by_pair : Map[String, Array[(Int32, Array[@graph.Point])]],
   direction : @engine_api.Direction,
 ) -> Unit {
   for _, group in routes_by_pair {
     if group.length() <= 1 {
       continue
     }
-    let edge_indices : Array[Int] = []
+    let edge_indices : Array[Int32] = []
     let route_entries : Array[(Double, Array[@graph.Point])] = []
     for entry in group {
       let edge_index = entry.0
@@ -2845,7 +2845,7 @@ fn approx_eq(a : Double, b : Double) -> Bool {
 }
 
 ///|
-fn sort_ints_asc(values : Array[Int]) -> Array[Int] {
+fn sort_ints_asc(values : Array[Int32]) -> Array[Int32] {
   let out = values.copy()
   let mut i = 0
   while i < out.length() {
@@ -3045,11 +3045,11 @@ fn get_layout_ranks(
   is_horizontal : Bool,
 ) -> (
   Array[Array[String]],
-  Map[String, Int],
-  Map[String, Int],
-  Map[String, Int],
+  Map[String, Int32],
+  Map[String, Int32],
+  Map[String, Int32],
 ) {
-  let aligned : Map[Int, Array[String]] = Map([])
+  let aligned : Map[Int32, Array[String]] = Map([])
   for obj in graph.objects {
     if is_layout_container_candidate(obj) {
       continue
@@ -3070,13 +3070,13 @@ fn get_layout_ranks(
     }
   }
 
-  let levels : Array[Int] = []
+  let levels : Array[Int32] = []
   for level, _ in aligned {
     levels.push(level)
   }
   let sorted_levels = sort_ints_asc(levels)
   let ranks : Array[Array[String]] = []
-  let object_ranks : Map[String, Int] = Map([])
+  let object_ranks : Map[String, Int32] = Map([])
   for i, level in sorted_levels {
     let members = aligned.get_or_default(level, [])
     for id in members {
@@ -3085,8 +3085,8 @@ fn get_layout_ranks(
     ranks.push(members)
   }
 
-  let starting_parent_ranks : Map[String, Int] = Map([])
-  let ending_parent_ranks : Map[String, Int] = Map([])
+  let starting_parent_ranks : Map[String, Int32] = Map([])
+  let ending_parent_ranks : Map[String, Int32] = Map([])
   for obj in graph.objects {
     if is_layout_container_candidate(obj) {
       continue
@@ -3655,8 +3655,8 @@ fn build_edge_semantic_endpoints(
   graph : @graph.GraphInput,
   object_by_id : Map[String, @graph.ObjectInput],
   parent_id_by_child_id : Map[String, String],
-) -> Map[Int, (String, String)] {
-  let endpoints : Map[Int, (String, String)] = Map([])
+) -> Map[Int32, (String, String)] {
+  let endpoints : Map[Int32, (String, String)] = Map([])
   for edge in graph.edges {
     let src_id = collapse_sql_or_class_endpoint_id(
       edge.src_id,
@@ -3684,13 +3684,13 @@ fn shift_reachable_down_layout(
   is_margin : Bool,
   parent_id_by_child_id : Map[String, String],
   children_by_parent_id : Map[String, Array[String]],
-  edge_semantic_endpoints : Map[Int, (String, String)],
+  edge_semantic_endpoints : Map[Int32, (String, String)],
 ) -> Map[String, Bool] {
   let q : Array[String] = [obj_id]
   let needs_move : Map[String, Bool] = Map([])
   let seen : Map[String, Bool] = Map([])
   let shifted : Map[String, Bool] = Map([])
-  let shifted_edges : Map[Int, Bool] = Map([])
+  let shifted_edges : Map[Int32, Bool] = Map([])
   let grown : Map[String, Bool] = Map([])
   let threshold = 100.0
 
@@ -4614,7 +4614,7 @@ fn fit_adjust_delta_for_edges(
   obj_position : Double,
   delta : Double,
   is_horizontal : Bool,
-  edge_semantic_endpoints : Map[Int, (String, String)],
+  edge_semantic_endpoints : Map[Int32, (String, String)],
 ) -> Double {
   let mut has_edge_on_collapsing_side = false
   let mut outermost = obj_position + delta
@@ -4719,7 +4719,7 @@ fn fit_adjust_edges(
   obj_position : Double,
   delta : Double,
   is_horizontal : Bool,
-  edge_semantic_endpoints : Map[Int, (String, String)],
+  edge_semantic_endpoints : Map[Int32, (String, String)],
 ) -> Unit {
   for edge in graph.edges {
     let (edge_src_id, edge_dst_id) = match
@@ -4816,7 +4816,7 @@ fn precision_eq_with_tol(a : Double, b : Double, tol : Double) -> Bool {
 }
 
 ///|
-fn object_depth_from_id(id : String) -> Int {
+fn object_depth_from_id(id : String) -> Int32 {
   @graph.syntax_path_depth(id)
 }
 
@@ -4970,7 +4970,7 @@ const D2_HEXAGON_HALF_Y_FACTOR : Double = 43.6 / 87.3
 const D2_CYLINDER_BEZIER_MULTIPLIER : Double = 0.45
 
 ///|
-const D2_CUBIC_TRACE_SAMPLES : Int = 160
+const D2_CUBIC_TRACE_SAMPLES : Int32 = 160
 
 ///|
 const D2_GEO_PRECISION : Double = 0.0001
@@ -6226,7 +6226,7 @@ fn cubic_polyline_intersections(
   p1 : @graph.Point,
   p2 : @graph.Point,
   p3 : @graph.Point,
-  samples : Int,
+  samples : Int32,
 ) -> Array[@graph.Point] {
   let _ = samples
   compute_cubic_line_intersections(segment_start, segment_end, p0, p1, p2, p3)
@@ -6278,7 +6278,7 @@ fn compute_cubic_line_intersections(
 }
 
 ///|
-fn precision_compare(a : Double, b : Double, epsilon : Double) -> Int {
+fn precision_compare(a : Double, b : Double, epsilon : Double) -> Int32 {
   if abs_double(a - b) < epsilon {
     0
   } else if a < b {
@@ -6805,7 +6805,7 @@ fn object_is_markdown(obj : @graph.ObjectInput) -> Bool {
 ///|
 fn measure_object_label_dims(
   obj : @graph.ObjectInput,
-  font_size : Int,
+  font_size : Int32,
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,

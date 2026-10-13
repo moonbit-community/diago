@@ -22,7 +22,7 @@ test "get_syntax_tokens classifies the language lexer output" {
     #|}
     #|client -> server
     #|
-  let tokens = get_syntax_tokens(source)
+  let tokens = @diago.get_syntax_tokens(source)
   debug_inspect(
     tokens,
     content=(
@@ -51,7 +51,7 @@ test "get_syntax_tokens keeps block strings whole when source is incomplete" {
   let source =
     #|note: |md
     #|  **still editing
-  let tokens = get_syntax_tokens(source)
+  let tokens = @diago.get_syntax_tokens(source)
   debug_inspect(
     tokens,
     content=(
@@ -66,7 +66,7 @@ test "get_syntax_tokens keeps block strings whole when source is incomplete" {
 
 ///|
 test "get_syntax_tokens offsets count Unicode code points" {
-  let tokens = get_syntax_tokens("\"🌙\": true")
+  let tokens = @diago.get_syntax_tokens("\"🌙\": true")
   debug_inspect(
     tokens,
     content=(

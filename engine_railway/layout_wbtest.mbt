@@ -163,7 +163,7 @@ test "railway layout offsets overlapping back edges" {
   let patch = layout_graph(g, config, Down)
   let plan = els_tarjan_plan(g)
   let (_self_loop, reversed) = dag_edge_index_sets(plan)
-  let reversed_edges : Array[Int] = []
+  let reversed_edges : Array[Int32] = []
   for edge in g.edges {
     if reversed.contains(edge.index) {
       reversed_edges.push(edge.index)
@@ -251,7 +251,7 @@ test "railway lane optimizer minimizes fanout rail crossings" {
   fn crossings_between(
     r1 : Array[@graph.Point],
     r2 : Array[@graph.Point],
-  ) -> Int {
+  ) -> Int32 {
     let mut count = 0
     for i in 0..<(r1.length() - 1) {
       let a0 = r1[i]
@@ -304,13 +304,13 @@ test "railway assign_ports keeps fanout ports ordered by destination axis" {
   let e1 = @graph.EdgeInput::new(1, "s", "b", false, true)
   let e2 = @graph.EdgeInput::new(2, "s", "c", false, true)
   g.edges.append([e0, e1, e2])
-  let id_to_idx : Map[String, Int] = Map([])
+  let id_to_idx : Map[String, Int32] = Map([])
   id_to_idx["s"] = 0
   id_to_idx["a"] = 1
   id_to_idx["b"] = 2
   id_to_idx["c"] = 3
   let depths = [0, 1, 1, 1]
-  let self_loop : @hashset.HashSet[Int] = HashSet([])
+  let self_loop : @hashset.HashSet[Int32] = HashSet([])
   let boxes : Map[String, @graph.Box] = Map([])
   boxes["s"] = @graph.Box::new(0.0, 0.0, 180.0, 80.0)
   boxes["a"] = @graph.Box::new(0.0, 220.0, 120.0, 70.0)
@@ -362,12 +362,12 @@ test "railway downward destination ports keep left bias" {
   let e0 = @graph.EdgeInput::new(0, "a", "t", false, true)
   let e1 = @graph.EdgeInput::new(1, "b", "t", false, true)
   g.edges.append([e0, e1])
-  let id_to_idx : Map[String, Int] = Map([])
+  let id_to_idx : Map[String, Int32] = Map([])
   id_to_idx["a"] = 0
   id_to_idx["b"] = 1
   id_to_idx["t"] = 2
   let depths = [0, 0, 1]
-  let self_loop : @hashset.HashSet[Int] = HashSet([])
+  let self_loop : @hashset.HashSet[Int32] = HashSet([])
   let boxes : Map[String, @graph.Box] = Map([])
   boxes["a"] = @graph.Box::new(0.0, 0.0, 120.0, 70.0)
   boxes["b"] = @graph.Box::new(260.0, 0.0, 120.0, 70.0)
@@ -674,7 +674,7 @@ test "railway layout computes edge label boxes" {
 ///|
 test "railway layout separates reciprocal edge labels" {
   fn labeled_edge(
-    index : Int,
+    index : Int32,
     src : String,
     dst : String,
     label : String,
@@ -840,7 +840,7 @@ test "railway levels reduce simple bipartite crossing" {
   g.edges.push(@graph.EdgeInput::new(1, "b", "c", false, true))
 
   let n = g.objects.length()
-  let id_to_idx : Map[String, Int] = Map([], capacity=n * 2)
+  let id_to_idx : Map[String, Int32] = Map([], capacity=n * 2)
   for i in 0..<n {
     id_to_idx[g.objects[i].id] = i
   }
@@ -849,8 +849,8 @@ test "railway levels reduce simple bipartite crossing" {
   let depths = compute_depths(n, g, id_to_idx, plan, self_loop, reversed)
   let levels = make_levels(g, depths)
   assert_true(levels.length() == 2)
-  let upper_pos : Map[String, Int] = Map([])
-  let lower_pos : Map[String, Int] = Map([])
+  let upper_pos : Map[String, Int32] = Map([])
+  let lower_pos : Map[String, Int32] = Map([])
   for i, id in levels[0] {
     upper_pos[id] = i
   }
@@ -2245,7 +2245,7 @@ test "railway sequence layout keeps participants aligned and messages horizontal
   let bob = @graph.ObjectInput::new("bob")
   let server = @graph.ObjectInput::new("server")
   fn seq_edge(
-    index : Int,
+    index : Int32,
     src : String,
     dst : String,
     label : String,

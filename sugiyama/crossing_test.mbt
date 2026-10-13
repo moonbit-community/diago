@@ -24,7 +24,7 @@ test "count_crossings no crossings" {
   let upper = ["a", "b"]
   let lower = ["c", "d"]
   let edges = [("a", "c"), ("b", "d")]
-  let crossings = count_crossings(upper, lower, edges)
+  let crossings = @sugiyama.count_crossings(upper, lower, edges)
   inspect(crossings, content="0")
 }
 
@@ -38,7 +38,7 @@ test "count_crossings one crossing" {
   let upper = ["a", "b"]
   let lower = ["c", "d"]
   let edges = [("a", "d"), ("b", "c")]
-  let crossings = count_crossings(upper, lower, edges)
+  let crossings = @sugiyama.count_crossings(upper, lower, edges)
   inspect(crossings, content="1")
 }
 
@@ -54,7 +54,7 @@ test "count_crossings multiple crossings" {
   let lower = ["d", "e", "f"]
   // a->e crosses b->d; b->f crosses c->e
   let edges = [("a", "e"), ("b", "d"), ("b", "f"), ("c", "e")]
-  let crossings = count_crossings(upper, lower, edges)
+  let crossings = @sugiyama.count_crossings(upper, lower, edges)
   // a->e crosses b->d (1)
   // b->f crosses c->e (1)
   inspect(crossings, content="2")
@@ -70,9 +70,11 @@ test "minimize_crossings simple graph" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   // Should have 2 layers
   inspect(crossing_result.ordered_layers.length(), content="2")
   // Both layers should have the same nodes (possibly reordered)
@@ -88,9 +90,11 @@ test "minimize_crossings preserves all nodes" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   // Count total nodes
   let mut total = 0
   for layer in crossing_result.ordered_layers {
@@ -119,15 +123,17 @@ test "minimize_crossings reduces crossings" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
   // Store initial crossing count
   let initial_crossings = count_all_crossings(
     layer_result.nodes_by_layer,
     graph,
     cycle_result,
   )
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   // Count final crossings
   let final_crossings = count_all_crossings(
     crossing_result.ordered_layers,
@@ -147,9 +153,11 @@ test "minimize_crossings preserves original order for unconnected nodes" {
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   // All nodes should be in one layer, in original definition order
   inspect(crossing_result.ordered_layers.length(), content="1")
   debug_inspect(
@@ -168,9 +176,11 @@ test "minimize_crossings preserves order within layer for nodes without neighbor
   let ir = @ir.compile(ast)
   let graph_input = @exporter.compile("test", ir)
   let graph = graph_input
-  let cycle_result = break_cycles(graph)
-  let layer_result = assign_layers(graph, cycle_result)
-  let crossing_result = minimize_crossings(graph, layer_result, cycle_result)
+  let cycle_result = @sugiyama.break_cycles(graph)
+  let layer_result = @sugiyama.assign_layers(graph, cycle_result)
+  let crossing_result = @sugiyama.minimize_crossings(
+    graph, layer_result, cycle_result,
+  )
   // Layer 0 should have [x, y] in definition order
   // Layer 1 should have [a, b] in definition order
   inspect(crossing_result.ordered_layers.length(), content="2")
@@ -188,20 +198,20 @@ test "minimize_crossings preserves order within layer for nodes without neighbor
 fn count_all_crossings(
   layers : Array[Array[String]],
   graph : @graph.GraphInput,
-  cycle_result : CycleBreakResult,
-) -> Int {
+  cycle_result : @sugiyama.CycleBreakResult,
+) -> Int32 {
   let mut total = 0
   for i = 0; i < layers.length() - 1; i = i + 1 {
     // Collect edges between layer i and i+1
     let edges : Array[(String, String)] = []
     for edge in graph.edges {
-      let src = get_effective_src(edge, cycle_result)
-      let dst = get_effective_dst(edge, cycle_result)
+      let src = @sugiyama.get_effective_src(edge, cycle_result)
+      let dst = @sugiyama.get_effective_dst(edge, cycle_result)
       if layers[i].contains(src) && layers[i + 1].contains(dst) {
         edges.push((src, dst))
       }
     }
-    total = total + count_crossings(layers[i], layers[i + 1], edges)
+    total = total + @sugiyama.count_crossings(layers[i], layers[i + 1], edges)
   }
   total
 }

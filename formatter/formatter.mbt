@@ -18,7 +18,7 @@
 ///|
 pub struct FormatConfig {
   indent : String
-  max_width : Int
+  max_width : Int32
 }
 
 ///|
@@ -30,7 +30,7 @@ pub fn FormatConfig::new() -> FormatConfig {
 priv struct Printer {
   sb : StringBuilder
   config : FormatConfig
-  mut indent_level : Int
+  mut indent_level : Int32
   mut in_key : Bool
 }
 

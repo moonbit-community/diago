@@ -213,8 +213,8 @@ fn extract_source_config(
     None => return Ok(None)
   }
   let mut sketch : Bool? = None
-  let mut theme_id : Int? = None
-  let mut dark_theme_id : Int? = None
+  let mut theme_id : Int32? = None
+  let mut dark_theme_id : Int32? = None
   let mut theme_overrides : @diagram.ThemeOverrides? = None
   let mut dark_theme_overrides : @diagram.ThemeOverrides? = None
   let mut pad : Double? = None

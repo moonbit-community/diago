@@ -84,7 +84,7 @@ fn merge_missing_edge_properties(target : Map, patch : Map) -> Unit {
 ///|
 fn glob_edge_patch_follows_existing(
   existing : Edge?,
-  glob_offset : Int,
+  glob_offset : Int32,
 ) -> Bool {
   guard existing is Some(edge) else { return true }
   for i = edge.references.length() - 1; i >= 0; i = i - 1 {
@@ -102,7 +102,7 @@ fn apply_edge_value(
   edge_key : @ast.KeyPath?,
   patch_primary : Scalar?,
   patch_map : Map?,
-  patch_overrides? : Bool = true,
+  patch_overrides~ : Bool = true,
 ) -> (Scalar?, Map?) {
   let existing_primary = match existing {
     Some(edge) => edge.primary

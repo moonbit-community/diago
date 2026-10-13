@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-fn railway_scale_fixture(node_count : Int) -> @graph.GraphInput {
+fn railway_scale_fixture(node_count : Int32) -> @graph.GraphInput {
   let graph = @graph.GraphInput::new("railway-scale-\{node_count}")
   for i in 0..<node_count {
     graph.objects.push(@graph.ObjectInput::new("n\{i}"))
@@ -36,7 +36,7 @@ fn railway_scale_fixture(node_count : Int) -> @graph.GraphInput {
 
 ///|
 fn run_railway_scale_fixture(
-  node_count : Int,
+  node_count : Int32,
 ) -> RailwayRoutingResult raise @engine_api.LayoutError {
   let graph = railway_scale_fixture(node_count)
   let config = @engine_api.LayoutConfig::new()

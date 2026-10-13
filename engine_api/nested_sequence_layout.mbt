@@ -32,8 +32,8 @@ priv struct NestedSequenceContext {
   constant_near_order : Array[String]
   constant_near_graphs_by_container_id : Map[String, @graph.GraphInput]
   descendant_container_by_id : Map[String, String]
-  internal_edge_container_by_index : Map[Int, String]
-  external_edge_indices : Map[Int, Bool]
+  internal_edge_container_by_index : Map[Int32, String]
+  external_edge_indices : Map[Int32, Bool]
 }
 
 ///|
@@ -187,7 +187,7 @@ fn restore_nested_sequence_layouts(
 
   let container_ids : Map[String, Bool] = Map([])
   let shifted_nested_object_by_id : Map[String, @graph.ObjectInput] = Map([])
-  let shifted_nested_edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
+  let shifted_nested_edge_by_index : Map[Int32, @graph.EdgeInput] = Map([])
   let shifted_activation_boxes : Array[(String, @graph.Box)] = []
   let shifted_sequence_notes : Array[(String, String, @graph.Box)] = []
   let shifted_sequence_fragments : Array[@graph.SequenceFragmentLayout] = []
@@ -259,7 +259,7 @@ fn restore_nested_sequence_layouts(
     objects.push(final_obj)
   }
 
-  let laid_out_edge_by_index : Map[Int, @graph.EdgeInput] = Map([])
+  let laid_out_edge_by_index : Map[Int32, @graph.EdgeInput] = Map([])
   for edge in laid_out_graph.edges {
     laid_out_edge_by_index[edge.index] = edge
   }
@@ -373,7 +373,7 @@ fn is_root_grid_cell_container_like_d2(
 }
 
 ///|
-fn graph_root_level_like_d2(graph : @graph.GraphInput) -> Int {
+fn graph_root_level_like_d2(graph : @graph.GraphInput) -> Int32 {
   if graph.root.child_ids.is_empty() {
     return 0
   }
@@ -416,7 +416,7 @@ fn is_nested_diagram_candidate_like_d2(obj : @graph.ObjectInput) -> Bool {
 fn extract_constant_near_graph_like_d2(
   graph : @graph.GraphInput,
   container_id : String,
-) -> (@graph.GraphInput, @graph.GraphInput, Map[Int, Bool]) raise LayoutError {
+) -> (@graph.GraphInput, @graph.GraphInput, Map[Int32, Bool]) raise LayoutError {
   let object_by_id = build_object_by_abs_id_syntax(graph)
   guard object_by_id.get(container_id) is Some(_) else {
     raise invalid_graph("constant near container not found: \{container_id}")
@@ -434,7 +434,7 @@ fn extract_constant_near_graph_like_d2(
   }
   let nested_edges : Array[@graph.EdgeInput] = []
   let outer_edges : Array[@graph.EdgeInput] = []
-  let external_edge_indices : Map[Int, Bool] = Map([])
+  let external_edge_indices : Map[Int32, Bool] = Map([])
   for edge in graph.edges {
     let src_nested = subtree_ids.contains(edge.src_id_syntax)
     let dst_nested = subtree_ids.contains(edge.dst_id_syntax)
@@ -655,8 +655,8 @@ fn extract_nested_sequence_graph(
   @graph.GraphInput,
   @graph.GraphInput,
   Map[String, Bool],
-  Map[Int, Bool],
-  Map[Int, Bool],
+  Map[Int32, Bool],
+  Map[Int32, Bool],
 ) raise LayoutError {
   let object_by_id = build_object_by_abs_id_syntax(graph)
   let container = match object_by_id.get(container_id) {
@@ -684,8 +684,8 @@ fn extract_nested_sequence_graph(
 
   let nested_edges : Array[@graph.EdgeInput] = []
   let outer_edges : Array[@graph.EdgeInput] = []
-  let internal_edge_indices : Map[Int, Bool] = Map([])
-  let external_edge_indices : Map[Int, Bool] = Map([])
+  let internal_edge_indices : Map[Int32, Bool] = Map([])
+  let external_edge_indices : Map[Int32, Bool] = Map([])
   for edge in graph.edges {
     let src_nested = descendant_ids.contains(edge.src_id_syntax)
     let dst_nested = descendant_ids.contains(edge.dst_id_syntax)
@@ -883,7 +883,7 @@ fn finalize_grid_cell_container_like_d2(
   laid_out_graph : @graph.GraphInput,
   descendant_graph : @graph.GraphInput,
   container_id : String,
-  internal_edge_indices : Map[Int, Bool],
+  internal_edge_indices : Map[Int32, Bool],
 ) -> (@graph.ObjectInput, @graph.GraphInput) raise LayoutError {
   let object_by_id = build_object_by_abs_id_syntax(laid_out_graph)
   let container = match object_by_id.get(container_id) {
@@ -1620,7 +1620,7 @@ fn is_constant_near_key_like_d2(key : String) -> Bool {
 }
 
 ///|
-fn near_key_matches_set_like_d2(key : String, key_set : Int) -> Bool {
+fn near_key_matches_set_like_d2(key : String, key_set : Int32) -> Bool {
   match key_set {
     0 => key == "top-center" || key == "bottom-center"
     1 => key == "center-left" || key == "center-right"

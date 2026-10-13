@@ -38,8 +38,8 @@ fn placement_graph(
 fn place_test_graph(
   graph : @graph.GraphInput,
   direction : @engine_api.Direction,
-) -> PlacementResult raise @layout_core.LayoutProblemError {
-  place(
+) -> @sugiyama.PlacementResult raise @layout_core.LayoutProblemError {
+  @sugiyama.place(
     @layout_core.compile(graph),
     fixed_placement_size,
     direction,

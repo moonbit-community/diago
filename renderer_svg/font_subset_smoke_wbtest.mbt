@@ -7,12 +7,12 @@ fn subset_ok(bytes : Bytes) -> Bool {
 }
 
 ///|
-fn read_u16_be(data : Array[Byte], at : Int) -> Int {
+fn read_u16_be(data : Array[Byte], at : Int32) -> Int32 {
   (data[at].to_int() << 8) + data[at + 1].to_int()
 }
 
 ///|
-fn read_u32_be(data : Array[Byte], at : Int) -> Int {
+fn read_u32_be(data : Array[Byte], at : Int32) -> Int32 {
   (data[at].to_int() << 24) +
   (data[at + 1].to_int() << 16) +
   (data[at + 2].to_int() << 8) +
@@ -20,12 +20,12 @@ fn read_u32_be(data : Array[Byte], at : Int) -> Int {
 }
 
 ///|
-fn align4(n : Int) -> Int {
+fn align4(n : Int32) -> Int32 {
   (n + 3) / 4 * 4
 }
 
 ///|
-fn tag_string(data : Array[Byte], at : Int) -> String {
+fn tag_string(data : Array[Byte], at : Int32) -> String {
   let sb = StringBuilder()
   for i in 0..<4 {
     sb.write_char(data[at + i].to_int().unsafe_to_char())

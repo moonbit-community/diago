@@ -57,10 +57,10 @@ fn apply_locked_position(obj : ObjectInput, box : Box?) -> Box? {
 ///|
 fn apply_route_to_edge(
   edge : EdgeInput,
-  routes : Map[Int, Array[Point]],
-  edge_bend_points : Map[Int, Array[Point]],
-  edge_curves : Map[Int, Bool],
-  edge_labels : Map[Int, Box],
+  routes : Map[Int32, Array[Point]],
+  edge_bend_points : Map[Int32, Array[Point]],
+  edge_curves : Map[Int32, Bool],
+  edge_labels : Map[Int32, Box],
 ) -> EdgeInput {
   let route = match routes.get(edge.index) {
     Some(ps) => ps

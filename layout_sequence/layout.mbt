@@ -79,7 +79,7 @@ pub fn layout(
     graph, participant_ids, object_by_abs_id,
   )
 
-  let participant_rank_by_id : Map[String, Int] = Map([])
+  let participant_rank_by_id : Map[String, Int32] = Map([])
   let participant_exists : Map[String, Bool] = Map([])
   let raw_widths : Array[Double] = []
   let widths : Array[Double] = []
@@ -771,10 +771,10 @@ fn sequence_collect_notes_and_spans_like_d2(
   participant_exists : Map[String, Bool],
   parent_id_by_child_id : Map[String, String],
   participant_alias_by_abs_id : Map[String, String],
-) -> (Array[@graph.ObjectInput], Array[@graph.ObjectInput], Map[String, Int]) {
+) -> (Array[@graph.ObjectInput], Array[@graph.ObjectInput], Map[String, Int32]) {
   let notes : Array[@graph.ObjectInput] = []
   let spans : Array[@graph.ObjectInput] = []
-  let note_line_by_id : Map[String, Int] = Map([])
+  let note_line_by_id : Map[String, Int32] = Map([])
   for obj in graph.objects {
     if participant_exists.contains(obj.abs_id_syntax) ||
       participant_alias_by_abs_id.contains(obj.abs_id_syntax) ||
@@ -817,7 +817,7 @@ fn sequence_place_notes_like_d2(
   patch : @graph.LayoutPatch,
   notes : Array[@graph.ObjectInput],
   ordered_edges : Array[@graph.EdgeInput],
-  note_line_by_id : Map[String, Int],
+  note_line_by_id : Map[String, Int32],
   participant_exists : Map[String, Bool],
   parent_id_by_child_id : Map[String, String],
   participant_alias_by_abs_id : Map[String, String],
@@ -1370,7 +1370,7 @@ fn sequence_sort_spans_most_nested(
 fn sequence_span_depth_like_d2(
   span : @graph.ObjectInput,
   parent_id_by_child_id : Map[String, String],
-) -> Int {
+) -> Int32 {
   let mut depth = 0
   let mut current = span.abs_id_syntax
   while true {
@@ -1426,7 +1426,7 @@ fn sequence_message_has_vertical_turn_like_d2(
 fn sequence_note_vertical_offset_before_edge_like_d2(
   edge : @graph.EdgeInput,
   notes : Array[@graph.ObjectInput],
-  note_line_by_id : Map[String, Int],
+  note_line_by_id : Map[String, Int32],
   note_height_by_id : Map[String, Double],
   y_step : Double,
 ) -> Double {
@@ -1562,7 +1562,7 @@ fn sequence_edge_contained_by_like_d2(
 fn sequence_object_depth_like_d2(
   abs_id_syntax : String,
   parent_id_by_child_id : Map[String, String],
-) -> Int {
+) -> Int32 {
   let mut depth = 0
   let mut current = abs_id_syntax
   while true {
@@ -1578,7 +1578,7 @@ fn sequence_object_depth_like_d2(
 }
 
 ///|
-fn sequence_object_earliest_line_like_d2(obj : @graph.ObjectInput) -> Int {
+fn sequence_object_earliest_line_like_d2(obj : @graph.ObjectInput) -> Int32 {
   let mut min_line = 1073741824
   for reference in obj.references {
     if reference.due_to_glob || reference.due_to_lazy_glob {
@@ -1592,7 +1592,7 @@ fn sequence_object_earliest_line_like_d2(obj : @graph.ObjectInput) -> Int {
 }
 
 ///|
-fn sequence_edge_earliest_line_like_d2(edge : @graph.EdgeInput) -> Int {
+fn sequence_edge_earliest_line_like_d2(edge : @graph.EdgeInput) -> Int32 {
   let mut min_line = 1073741824
   for reference in edge.references {
     if reference.due_to_glob || reference.due_to_lazy_glob {
@@ -1817,7 +1817,7 @@ fn object_is_markdown(obj : @graph.ObjectInput) -> Bool {
 ///|
 fn measure_object_label_dims(
   obj : @graph.ObjectInput,
-  font_size : Int,
+  font_size : Int32,
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,

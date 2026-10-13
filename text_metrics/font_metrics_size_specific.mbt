@@ -1,7 +1,7 @@
 // Generated from upstream reference embedded fonts by text_metrics/gen_font_metrics.go --size-specific. Do not edit by hand.
 
 ///|
-let size_specific_font_sizes : Array[Int] = [
+let size_specific_font_sizes : Array[Int32] = [
   1, 2, 8, 10, 12, 13, 14, 16, 18, 20, 21, 24, 28, 29, 30, 32, 35, 36, 40, 43, 48,
   55, 75, 85, 90, 100,
 ]

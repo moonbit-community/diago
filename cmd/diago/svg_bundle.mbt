@@ -14,8 +14,8 @@
 
 ///|
 priv struct AttributeSpan {
-  value_start : Int
-  value_end : Int
+  value_start : Int32
+  value_end : Int32
 }
 
 ///|
@@ -37,13 +37,13 @@ priv struct ImageTagBundleResult {
 }
 
 ///|
-let max_bundle_image_size : Int = 1 << 25
+let max_bundle_image_size : Int32 = 1 << 25
 
 ///|
-let max_remote_redirects : Int = 5
+let max_remote_redirects : Int32 = 5
 
 ///|
-let remote_fetch_timeout_ms : Int = 20_000
+let remote_fetch_timeout_ms : Int32 = 20_000
 
 ///|
 let persistent_bundle_cache : Map[String, String] = Map([])
@@ -56,13 +56,13 @@ let test_remote_fetch_ok_overrides : Map[String, (Bytes, String)] = Map([])
 let test_remote_fetch_error_overrides : Map[String, String] = Map([])
 
 ///|
-let test_remote_fetch_count : Map[String, Int] = Map([])
+let test_remote_fetch_count : Map[String, Int32] = Map([])
 
 ///|
 async fn bundle_local_svg_images(
   svg : String,
   base_path : String?,
-  cache_images? : Bool = false,
+  cache_images~ : Bool = false,
 ) -> SvgBundleResult {
   bundle_svg_images_in_scope(svg, base_path, Local, cache_images)
 }
@@ -70,7 +70,7 @@ async fn bundle_local_svg_images(
 ///|
 async fn bundle_remote_svg_images(
   svg : String,
-  cache_images? : Bool = false,
+  cache_images~ : Bool = false,
 ) -> SvgBundleResult {
   let remote_fetches : Map[String, Result[(Bytes, String), String]] = Map([])
   for source in collect_remote_image_sources(svg) {
@@ -120,7 +120,7 @@ async fn bundle_svg_images_in_scope(
   base_path : String?,
   scope : BundleScope,
   cache_images : Bool,
-  remote_fetches? : Map[String, Result[(Bytes, String), String]] = Map([]),
+  remote_fetches~ : Map[String, Result[(Bytes, String), String]] = Map([]),
 ) -> SvgBundleResult {
   let cache : Array[(String, String)] = []
   let failed_cache : Array[(String, String)] = []
@@ -316,7 +316,7 @@ fn find_attr_span(tag : String, name : String) -> AttributeSpan? {
 }
 
 ///|
-fn skip_quoted(s : String, start : Int, quote : Char) -> Int {
+fn skip_quoted(s : String, start : Int32, quote : Char) -> Int32 {
   let mut i = start
   while i < s.length() {
     if char_at(s, i) == quote {
@@ -723,7 +723,7 @@ fn resolve_remote_redirect(
 }
 
 ///|
-fn find_url_authority_end(url : String, start : Int) -> Int {
+fn find_url_authority_end(url : String, start : Int32) -> Int32 {
   for i in start..<url.length() {
     let c = char_at(url, i)
     if c == '/' || c == '?' || c == '#' {
@@ -830,7 +830,7 @@ fn detect_mime_type(source_hint : String, bytes : Bytes) -> String {
 }
 
 ///|
-fn bytes_has_prefix(bytes : Bytes, prefix : Array[Int]) -> Bool {
+fn bytes_has_prefix(bytes : Bytes, prefix : Array[Int32]) -> Bool {
   if bytes.length() < prefix.length() {
     return false
   }
@@ -856,7 +856,11 @@ fn bytes_has_prefix_ascii(bytes : Bytes, text : String) -> Bool {
 }
 
 ///|
-fn bytes_window_equals_ascii(bytes : Bytes, start : Int, text : String) -> Bool {
+fn bytes_window_equals_ascii(
+  bytes : Bytes,
+  start : Int32,
+  text : String,
+) -> Bool {
   if start < 0 || bytes.length() < start + text.length() {
     return false
   }
@@ -912,7 +916,7 @@ fn decode_xml_attr_entities(s : String) -> String {
 }
 
 ///|
-fn find_tag_end(s : String, start : Int) -> Int? {
+fn find_tag_end(s : String, start : Int32) -> Int32? {
   let mut i = start
   let mut in_quote = '\u0000'
   while i < s.length() {
@@ -932,7 +936,7 @@ fn find_tag_end(s : String, start : Int) -> Int? {
 }
 
 ///|
-fn find_substring_from(s : String, pattern : String, start : Int) -> Int? {
+fn find_substring_from(s : String, pattern : String, start : Int32) -> Int32? {
   if pattern.length() == 0 {
     return Some(start)
   }
@@ -958,7 +962,7 @@ fn find_substring_from(s : String, pattern : String, start : Int) -> Int? {
 }
 
 ///|
-fn slice_string(s : String, start : Int, end_exclusive : Int) -> String {
+fn slice_string(s : String, start : Int32, end_exclusive : Int32) -> String {
   let sb = StringBuilder()
   let mut i = start
   while i < end_exclusive {
@@ -985,7 +989,7 @@ fn is_space(c : Char) -> Bool {
 }
 
 ///|
-fn char_at(s : String, i : Int) -> Char {
+fn char_at(s : String, i : Int32) -> Char {
   s.code_unit_at(i).to_int().unsafe_to_char()
 }
 

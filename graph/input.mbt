@@ -72,8 +72,8 @@ pub fn GraphInput::from_parts(
   scenarios : Array[ScenarioInput],
   steps : Array[StepInput],
   legend : LegendInput?,
-  is_folder_only? : Bool = false,
-  data? : Map[String, GraphDataValue] = Map([]),
+  is_folder_only~ : Bool = false,
+  data~ : Map[String, GraphDataValue] = Map([]),
 ) -> GraphInput {
   {
     name,
@@ -368,7 +368,7 @@ pub fn split_syntax_path(id : String) -> Array[String] {
 }
 
 ///|
-pub fn syntax_path_depth(id : String) -> Int {
+pub fn syntax_path_depth(id : String) -> Int32 {
   split_syntax_path(id).length()
 }
 
@@ -468,8 +468,8 @@ pub fn StepInput::new(name : String, graph : GraphInput) -> StepInput {
 pub struct SequenceFragmentInput {
   fragment_type : String
   condition : String?
-  start_index : Int
-  end_index : Int
+  start_index : Int32
+  end_index : Int32
   operands : Array[FragmentOperandInput]
 } derive(Debug)
 
@@ -477,8 +477,8 @@ pub struct SequenceFragmentInput {
 pub fn SequenceFragmentInput::new(
   fragment_type : String,
   condition : String?,
-  start_index : Int,
-  end_index : Int,
+  start_index : Int32,
+  end_index : Int32,
   operands : Array[FragmentOperandInput],
 ) -> SequenceFragmentInput {
   { fragment_type, condition, start_index, end_index, operands, }
@@ -565,7 +565,7 @@ pub struct ObjectInput {
   box : Box?
   label_box : Box?
   child_ids : Array[String]
-  z_index : Int
+  z_index : Int32
   icon : String?
   icon_position : String?
   tooltip : String?
@@ -575,26 +575,26 @@ pub struct ObjectInput {
   classes : Array[String]
   language : String?
   sql_constraints : Array[String]
-  grid_rows : Int?
-  grid_columns : Int?
+  grid_rows : Int32?
+  grid_columns : Int32?
   grid_row_directed : Bool?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
-  grid_column_span : Int?
-  grid_row_span : Int?
+  grid_column_span : Int32?
+  grid_row_span : Int32?
   near : String?
-  top : Int?
-  left : Int?
+  top : Int32?
+  left : Int32?
   direction : String?
 } derive(Debug)
 
 ///|
 pub fn ObjectInput::new(
   id : String,
-  id_val? : String = id,
-  id_syntax? : String = id,
-  abs_id_syntax? : String = id,
+  id_val~ : String = id,
+  id_syntax~ : String = id,
+  abs_id_syntax~ : String = id,
 ) -> ObjectInput {
   {
     id,
@@ -642,32 +642,32 @@ pub fn ObjectInput::from_parts(
   box : Box?,
   label_box : Box?,
   child_ids : Array[String],
-  z_index : Int,
+  z_index : Int32,
   icon : String?,
   tooltip : String?,
   link : String?,
   classes : Array[String],
-  grid_rows : Int?,
-  grid_columns : Int?,
+  grid_rows : Int32?,
+  grid_columns : Int32?,
   grid_gap : Double?,
   horizontal_gap : Double?,
   vertical_gap : Double?,
-  grid_column_span : Int?,
-  grid_row_span : Int?,
+  grid_column_span : Int32?,
+  grid_row_span : Int32?,
   near : String?,
-  top : Int?,
-  left : Int?,
-  direction? : String? = None,
-  language? : String? = None,
-  sql_constraints? : Array[String] = [],
-  id_val? : String = id,
-  id_syntax? : String = id,
-  abs_id_syntax? : String = id,
-  references? : Array[ObjectReference] = [],
-  icon_position? : String? = None,
-  tooltip_position? : String? = None,
-  label_position? : String? = None,
-  grid_row_directed? : Bool? = None,
+  top : Int32?,
+  left : Int32?,
+  direction~ : String? = None,
+  language~ : String? = None,
+  sql_constraints~ : Array[String] = [],
+  id_val~ : String = id,
+  id_syntax~ : String = id,
+  abs_id_syntax~ : String = id,
+  references~ : Array[ObjectReference] = [],
+  icon_position~ : String? = None,
+  tooltip_position~ : String? = None,
+  label_position~ : String? = None,
+  grid_row_directed~ : Bool? = None,
 ) -> ObjectInput {
   {
     id,
@@ -731,7 +731,7 @@ pub fn ObjectInput::get_label_box(self : ObjectInput) -> Box? {
 
 ///|
 pub struct EdgeInput {
-  index : Int
+  index : Int32
   src_id : String
   dst_id : String
   src_id_syntax : String
@@ -757,22 +757,22 @@ pub struct EdgeInput {
   route : Array[Point]
   bend_points : Array[Point]?
   is_curve : Bool
-  z_index : Int
-  reference_count : Int
+  z_index : Int32
+  reference_count : Int32
   label_box : Box?
-  src_column_index : Int?
-  dst_column_index : Int?
+  src_column_index : Int32?
+  dst_column_index : Int32?
 } derive(Debug)
 
 ///|
 pub fn EdgeInput::new(
-  index : Int,
+  index : Int32,
   src_id : String,
   dst_id : String,
   src_arrow : Bool,
   dst_arrow : Bool,
-  src_id_syntax? : String = src_id,
-  dst_id_syntax? : String = dst_id,
+  src_id_syntax~ : String = src_id,
+  dst_id_syntax~ : String = dst_id,
 ) -> EdgeInput {
   {
     index,
@@ -819,7 +819,7 @@ pub fn EdgeInput::new(
 
 ///|
 pub fn EdgeInput::from_parts(
-  index : Int,
+  index : Int32,
   src_id : String,
   dst_id : String,
   src_arrow : Bool,
@@ -837,19 +837,19 @@ pub fn EdgeInput::from_parts(
   route : Array[Point],
   bend_points : Array[Point]?,
   is_curve : Bool,
-  z_index : Int,
-  reference_count : Int,
+  z_index : Int32,
+  reference_count : Int32,
   label_box : Box?,
-  src_column_index : Int?,
-  dst_column_index : Int?,
-  src_id_syntax? : String = src_id,
-  dst_id_syntax? : String = dst_id,
-  references? : Array[EdgeReference] = [],
-  icon? : String? = None,
-  icon_position? : String? = None,
-  icon_border_radius? : Double? = None,
-  link? : String? = None,
-  classes? : Array[String] = [],
+  src_column_index : Int32?,
+  dst_column_index : Int32?,
+  src_id_syntax~ : String = src_id,
+  dst_id_syntax~ : String = dst_id,
+  references~ : Array[EdgeReference] = [],
+  icon~ : String? = None,
+  icon_position~ : String? = None,
+  icon_border_radius~ : Double? = None,
+  link~ : String? = None,
+  classes~ : Array[String] = [],
 ) -> EdgeInput {
   {
     index,
@@ -942,7 +942,7 @@ pub fn StyleValue::as_bool(self : StyleValue) -> Bool? {
 }
 
 ///|
-pub fn StyleValue::as_int(self : StyleValue) -> Int? {
+pub fn StyleValue::as_int(self : StyleValue) -> Int32? {
   Some(@string.parse_int(self.value)) catch {
     _ => None
   }
@@ -977,7 +977,7 @@ pub fn StyleValue::from_bool(value : Bool) -> StyleValue {
 }
 
 ///|
-pub fn StyleValue::from_int(value : Int) -> StyleValue {
+pub fn StyleValue::from_int(value : Int32) -> StyleValue {
   StyleValue::synthetic("\{value}")
 }
 
@@ -1003,7 +1003,7 @@ pub fn StyleValue::from_bool_opt(value : Bool?) -> StyleValue? {
 }
 
 ///|
-pub fn StyleValue::from_int_opt(value : Int?) -> StyleValue? {
+pub fn StyleValue::from_int_opt(value : Int32?) -> StyleValue? {
   match value {
     Some(v) => Some(StyleValue::from_int(v))
     None => None
@@ -1138,7 +1138,7 @@ pub enum LegendEntryInput {
   ConnectionEntry(
     src_id~ : String,
     dst_id~ : String,
-    index~ : Int,
+    index~ : Int32,
     src_arrow_enabled~ : Bool,
     dst_arrow_enabled~ : Bool,
     src_arrow~ : ArrowheadType,
@@ -1155,7 +1155,7 @@ pub fn LegendEntryInput::shape(
   shape : ShapeType,
   label : String,
   style : StyleInput?,
-  id? : String = label,
+  id~ : String = label,
 ) -> LegendEntryInput {
   ShapeEntry(id~, shape~, label~, style~)
 }
@@ -1166,11 +1166,11 @@ pub fn LegendEntryInput::connection(
   dst_arrow : ArrowheadType,
   label : String,
   style : StyleInput?,
-  src_id? : String = "src",
-  dst_id? : String = "dst",
-  index? : Int = 0,
-  src_arrow_enabled? : Bool = src_arrow != None,
-  dst_arrow_enabled? : Bool = dst_arrow != None,
+  src_id~ : String = "src",
+  dst_id~ : String = "dst",
+  index~ : Int32 = 0,
+  src_arrow_enabled~ : Bool = src_arrow != None,
+  dst_arrow_enabled~ : Bool = dst_arrow != None,
 ) -> LegendEntryInput {
   ConnectionEntry(
     src_id~,
@@ -1230,7 +1230,7 @@ pub fn LegendInput::is_empty(self : LegendInput) -> Bool {
 }
 
 ///|
-pub fn LegendInput::entry_count(self : LegendInput) -> Int {
+pub fn LegendInput::entry_count(self : LegendInput) -> Int32 {
   let mut count = 0
   for entry in self.entries {
     match entry {

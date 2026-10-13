@@ -106,7 +106,7 @@ pub struct CompileOptions {
   route_plugin : RoutePlugin?
   parse_options : ParseOptions
   theme_name : String?
-  dark_theme_id : Int?
+  dark_theme_id : Int32?
   sketch : Bool?
   pad : Double?
   center : Bool?
@@ -209,7 +209,7 @@ pub fn CompileOptions::with_theme_name(
 ///|
 pub fn CompileOptions::with_dark_theme_id(
   self : CompileOptions,
-  dark_theme_id : Int?,
+  dark_theme_id : Int32?,
 ) -> CompileOptions {
   { ..self, dark_theme_id, }
 }
@@ -302,7 +302,7 @@ pub(all) suberror DiagoError {
 ///|
 pub fn parse(
   source : String,
-  options? : ParseOptions = ParseOptions::new(),
+  options~ : ParseOptions = ParseOptions::new(),
 ) -> @ir.Map raise DiagoError {
   match
     @compiler.compile_ir(source, options=to_compiler_parse_options(options)) {
@@ -314,7 +314,7 @@ pub fn parse(
 ///|
 pub fn compile_diagram(
   source : String,
-  options? : CompileOptions = CompileOptions::new(),
+  options~ : CompileOptions = CompileOptions::new(),
 ) -> @diagram.Diagram raise DiagoError {
   let compiled = match
     @compiler.compile_graph(
@@ -339,7 +339,7 @@ pub fn compile_diagram(
 ///|
 pub fn compile(
   source : String,
-  options? : CompileOptions = CompileOptions::new(),
+  options~ : CompileOptions = CompileOptions::new(),
 ) -> String raise DiagoError {
   let diagram = compile_diagram(source, options~)
   match @lib.render(diagram, options=to_lib_render_options(options)) {

@@ -75,8 +75,8 @@ test "sugiyama preserves syntax-distinct canonical identities" {
   )
   let problem = @layout_core.compile(graph)
   let canonical = problem.graph()
-  let cycle = break_cycles(canonical)
-  let layers = assign_layers(canonical, cycle)
+  let cycle = @sugiyama.break_cycles(canonical)
+  let layers = @sugiyama.assign_layers(canonical, cycle)
 
   assert_true(layers.layers.length() == 2)
   assert_true(layers.layers.contains("\"a.b\""))
@@ -84,7 +84,13 @@ test "sugiyama preserves syntax-distinct canonical identities" {
   assert_true(
     layers.layers.get("\"a.b\"").unwrap() < layers.layers.get("a.b").unwrap(),
   )
-  let placement = place(problem, fn(_obj) { (100.0, 60.0) }, Down, 60.0, 40.0)
+  let placement = @sugiyama.place(
+    problem,
+    fn(_obj) { (100.0, 60.0) },
+    Down,
+    60.0,
+    40.0,
+  )
   assert_true(placement.boxes.contains(@layout_core.ObjectId::new("\"a.b\"")))
   assert_true(placement.boxes.contains(@layout_core.ObjectId::new("a.b")))
 }

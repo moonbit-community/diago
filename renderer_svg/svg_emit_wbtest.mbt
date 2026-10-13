@@ -14,7 +14,7 @@ test "reference legend corpus ignores custom entries" {
     0.0,
     0.0,
   )
-  @debug.assert_eq(d2_legend_corpus(legend), "LegendaryNodeEdge")
+  assert_eq(d2_legend_corpus(legend), "LegendaryNodeEdge")
 }
 
 ///|
@@ -29,7 +29,7 @@ test "reference legend corpus uses fallback title when empty" {
     0.0,
     0.0,
   )
-  @debug.assert_eq(d2_legend_corpus(legend), "LegendNode")
+  assert_eq(d2_legend_corpus(legend), "LegendNode")
 }
 
 ///|
@@ -87,30 +87,21 @@ test "diagram scope class follows diagram hash id instead of svg config font set
   }
   let salted = { ..font_variant, salt: Some("salt"), }
 
-  @debug.assert_eq(diagram_scope_class(diagram, base), diagram.hash_id(None))
-  @debug.assert_eq(
-    diagram_scope_class(diagram, font_variant),
-    diagram.hash_id(None),
-  )
-  @debug.assert_eq(
+  assert_eq(diagram_scope_class(diagram, base), diagram.hash_id(None))
+  assert_eq(diagram_scope_class(diagram, font_variant), diagram.hash_id(None))
+  assert_eq(
     diagram_scope_class(diagram, base),
     diagram_scope_class(diagram, font_variant),
   )
-  @debug.assert_eq(
-    diagram_scope_class(diagram, salted),
-    diagram.hash_id(Some("salt")),
-  )
+  assert_eq(diagram_scope_class(diagram, salted), diagram.hash_id(Some("salt")))
 }
 
 ///|
 test "svg identity formatting preserves quoted syntax paths" {
-  @debug.assert_eq(d2_output_abs_id("\"a.b\""), "\"a.b\"")
-  @debug.assert_eq(d2_output_abs_id("a.b"), "a.b")
-  @debug.assert_eq(d2_output_abs_id("outer.\"a.b\""), "outer.\"a.b\"")
-  @debug.assert_eq(
-    d2_output_abs_id("outer.\"line\\nnext\""),
-    "outer.\"line\\nnext\"",
-  )
+  assert_eq(d2_output_abs_id("\"a.b\""), "\"a.b\"")
+  assert_eq(d2_output_abs_id("a.b"), "a.b")
+  assert_eq(d2_output_abs_id("outer.\"a.b\""), "outer.\"a.b\"")
+  assert_eq(d2_output_abs_id("outer.\"line\\nnext\""), "outer.\"line\\nnext\"")
   assert_true(
     d2_shape_wrapper_class("\"a.b\"") != d2_shape_wrapper_class("a.b"),
     msg="quoted-dot and nested identities need distinct SVG wrapper classes",

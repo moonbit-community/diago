@@ -186,7 +186,7 @@ fn compile_graph_input(source : String) -> Result[@graph.GraphInput, String] {
 }
 
 ///|
-fn edge_input(index : Int, curved : Bool?) -> @graph.EdgeInput {
+fn edge_input(index : Int32, curved : Bool?) -> @graph.EdgeInput {
   let style = @graph.StyleInput::from_parts(
     None,
     None,
@@ -372,22 +372,22 @@ test "layout result roundtrips via graph" {
   )
   let diagram = @diagram.from_graph(laid_out_graph, None)
   match diagram.find_object("a").unwrap().get_box() {
-    Some(box) => @debug.assert_eq(box, @graph.Box::new(1.0, 2.0, 3.0, 4.0))
+    Some(box) => assert_eq(box, @graph.Box::new(1.0, 2.0, 3.0, 4.0))
     None => fail("a should have a box")
   }
   match diagram.find_object("b").unwrap().get_box() {
-    Some(box) => @debug.assert_eq(box, @graph.Box::new(10.0, 20.0, 30.0, 40.0))
+    Some(box) => assert_eq(box, @graph.Box::new(10.0, 20.0, 30.0, 40.0))
     None => fail("b should have a box")
   }
   let e = diagram.get_edges()[0]
-  @debug.assert_eq(e.index, 7)
-  @debug.assert_eq(e.route.length(), 2)
+  assert_eq(e.index, 7)
+  assert_eq(e.route.length(), 2)
   match e.label_box {
-    Some(box) => @debug.assert_eq(box, @graph.Box::new(5.0, 6.0, 7.0, 8.0))
+    Some(box) => assert_eq(box, @graph.Box::new(5.0, 6.0, 7.0, 8.0))
     None => fail("edge should have label box")
   }
-  @debug.assert_eq(diagram.activation_boxes.length(), 1)
-  @debug.assert_eq(diagram.sequence_notes.length(), 1)
+  assert_eq(diagram.activation_boxes.length(), 1)
+  assert_eq(diagram.sequence_notes.length(), 1)
 }
 
 ///|
@@ -412,9 +412,9 @@ test "layout result keeps orthogonalization when curved=false" {
   )
   let diagram = @diagram.from_graph(laid_out_graph, None)
   let e = diagram.get_edges()[0]
-  @debug.assert_eq(e.route.length(), 3)
+  assert_eq(e.route.length(), 3)
   match e.label_box {
-    Some(box) => @debug.assert_eq(box, @graph.Box::new(5.0, 6.0, 7.0, 8.0))
+    Some(box) => assert_eq(box, @graph.Box::new(5.0, 6.0, 7.0, 8.0))
     None => fail("edge should have label box")
   }
 }
@@ -446,12 +446,12 @@ test "engine implementations must not mutate input graph" {
   // Input graph must remain unchanged after engine.layout(...)
   let mut i = 0
   for obj in graph.get_objects() {
-    @debug.assert_eq(obj.box, boxes_before[i])
+    assert_eq(obj.box, boxes_before[i])
     i = i + 1
   }
   let mut j = 0
   for e in graph.get_edges() {
-    @debug.assert_eq(e.label_box, labels_before[j])
+    assert_eq(e.label_box, labels_before[j])
     j = j + 1
   }
 }
@@ -473,7 +473,7 @@ test "dagre rejects object near like the reference feature checks" {
     ),
   ) catch {
     e => {
-      @debug.assert_eq(
+      assert_eq(
         e,
         @engine_api.unsupported(
           "Object \"b\" has \"near\" set to another object, but layout engine \"dagre\" only supports constant values for \"near\". See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
@@ -502,7 +502,7 @@ test "dagre rejects container dimensions like the reference feature checks" {
     ),
   ) catch {
     e => {
-      @debug.assert_eq(
+      assert_eq(
         e,
         @engine_api.unsupported(
           "Object \"container\" has attribute \"width\" and/or \"height\" set, but layout engine \"dagre\" does not support dimensions set on containers. See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
@@ -531,7 +531,7 @@ test "dagre rejects descendant edges like the reference feature checks" {
     ),
   ) catch {
     e => {
-      @debug.assert_eq(
+      assert_eq(
         e,
         @engine_api.unsupported(
           "Connection \"(aaa.ccc -- aaa)[0]\" goes from a container to a descendant, but layout engine \"dagre\" does not support this. See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
@@ -602,7 +602,7 @@ test "elk still rejects unsupported feature-gated inputs" {
     ),
   ) catch {
     e => {
-      @debug.assert_eq(
+      assert_eq(
         e,
         @engine_api.unsupported(
           "Object \"b\" has \"near\" set to another object, but layout engine \"elk\" only supports constant values for \"near\". See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",
@@ -628,7 +628,7 @@ test "elk still rejects unsupported feature-gated inputs" {
     ),
   ) catch {
     e => {
-      @debug.assert_eq(
+      assert_eq(
         e,
         @engine_api.unsupported(
           "Object \"a\" has attribute \"top\" and/or \"left\" set, but layout engine \"elk\" does not support locked positions. See https://d2lang.com/tour/layouts/#layout-specific-functionality for more.",

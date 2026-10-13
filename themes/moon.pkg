@@ -3,5 +3,4 @@ import {
 }
 
 import {
-  "moonbitlang/core/debug",
 } for "wbtest"

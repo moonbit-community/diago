@@ -80,7 +80,7 @@ pub struct Edge {
 /// Index into an edge group
 pub struct EdgeIndex {
   range : @lexer.Range
-  index : Int?
+  index : Int32?
   glob : Bool
 } derive(Eq, Debug)
 
@@ -231,7 +231,7 @@ pub fn Edge::new(
 ///|
 pub fn EdgeIndex::new(
   range : @lexer.Range,
-  index : Int?,
+  index : Int32?,
   glob : Bool,
 ) -> EdgeIndex {
   { range, index, glob, }

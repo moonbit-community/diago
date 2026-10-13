@@ -68,7 +68,7 @@ pub struct RenderConfig {
   /// Default font family (for text-based renderers, affects char choice)
   font_family : String
   /// Default font size
-  font_size : Int
+  font_size : Int32
   /// Background color (format-specific: hex/name/none)
   background : String
   /// Whether to use dark mode

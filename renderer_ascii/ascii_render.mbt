@@ -148,7 +148,7 @@ fn calculate_extended_bounds(
   inline_child_shape_ids : Map[String, Bool],
   fw : Double,
   fh : Double,
-) -> (Int, Int, Int, Int) {
+) -> (Int32, Int32, Int32, Int32) {
   let mut min_x = 2147483647
   let mut min_y = 2147483647
   let mut max_x = -2147483648
@@ -400,7 +400,7 @@ fn is_inline_child_shape(
 }
 
 ///|
-fn min_int(a : Int, b : Int) -> Int {
+fn min_int(a : Int32, b : Int32) -> Int32 {
   if a < b {
     a
   } else {
@@ -409,7 +409,7 @@ fn min_int(a : Int, b : Int) -> Int {
 }
 
 ///|
-fn ceil_int(v : Double) -> Int {
+fn ceil_int(v : Double) -> Int32 {
   let i = v.to_int()
   if i.to_double() < v {
     i + 1
@@ -419,7 +419,7 @@ fn ceil_int(v : Double) -> Int {
 }
 
 ///|
-fn floor_int(v : Double) -> Int {
+fn floor_int(v : Double) -> Int32 {
   let i = v.to_int()
   if i.to_double() > v {
     i - 1
@@ -437,7 +437,7 @@ fn style_bool_local(value : @graph.StyleValue?, default : Bool) -> Bool {
 }
 
 ///|
-fn style_stroke_width(style : @graph.StyleInput, default : Int) -> Int {
+fn style_stroke_width(style : @graph.StyleInput, default : Int32) -> Int32 {
   match style.stroke_width {
     Some(v) =>
       match v.as_int() {
@@ -466,7 +466,7 @@ const BOUNDS_LABEL_PADDING : Double = 5.0
 fn estimate_shape_label_bounds(
   shape : @diagram.Shape,
   box : @graph.Box,
-) -> (Int, Int, Int, Int)? {
+) -> (Int32, Int32, Int32, Int32)? {
   if shape.label == "" {
     return None
   }

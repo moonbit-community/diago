@@ -3,47 +3,47 @@
 // Ported from upstream reference lib/font/subsetFont.go.
 
 ///|
-let symbol_words : Int = 1 << 0
+let symbol_words : Int32 = 1 << 0
 
 ///|
-let symbol_scale : Int = 1 << 3
+let symbol_scale : Int32 = 1 << 3
 
 ///|
-let symbol_continue : Int = 1 << 5
+let symbol_continue : Int32 = 1 << 5
 
 ///|
-let symbol_all_scale : Int = 1 << 6
+let symbol_all_scale : Int32 = 1 << 6
 
 ///|
-let symbol_2x2 : Int = 1 << 7
+let symbol_2x2 : Int32 = 1 << 7
 
 ///|
 #warnings("-unused_field")
 priv struct FontBox {
-  x_min : Int
-  y_min : Int
-  x_max : Int
-  y_max : Int
+  x_min : Int32
+  y_min : Int32
+  x_max : Int32
+  y_max : Int32
 }
 
 ///|
 #warnings("-unused_field")
 priv struct TableDescription {
   name : String
-  checksum_hi : Int
-  checksum_lo : Int
-  position : Int
-  size : Int
+  checksum_hi : Int32
+  checksum_lo : Int32
+  position : Int32
+  size : Int32
 }
 
 ///|
 priv struct FileReader {
-  mut reader_position : Int
+  mut reader_position : Int32
   array : Array[Byte]
 }
 
 ///|
-fn FileReader::read(self : FileReader, n : Int) -> Array[Byte] {
+fn FileReader::read(self : FileReader, n : Int32) -> Array[Byte] {
   let start = self.reader_position
   let end_ = start + n
   self.reader_position = end_
@@ -51,7 +51,7 @@ fn FileReader::read(self : FileReader, n : Int) -> Array[Byte] {
 }
 
 ///|
-fn FileReader::seek(self : FileReader, shift : Int, flag : Int) -> Int {
+fn FileReader::seek(self : FileReader, shift : Int32, flag : Int32) -> Int32 {
   if flag == 0 {
     self.reader_position = shift
   } else if flag == 1 {
@@ -66,24 +66,24 @@ fn FileReader::seek(self : FileReader, shift : Int, flag : Int) -> Int {
 #warnings("-unused_field")
 priv struct Utf8FontFile {
   file_reader : FileReader
-  mut last_rune : Int
+  mut last_rune : Int32
   mut table_descriptions : Map[String, TableDescription]
   mut out_tables_data : Map[String, Array[Byte]]
-  mut symbol_position : Array[Int]
-  mut char_symbol_dictionary : Map[Int, Int]
-  mut ascent : Int
-  mut descent : Int
+  mut symbol_position : Array[Int32]
+  mut char_symbol_dictionary : Map[Int32, Int32]
+  mut ascent : Int32
+  mut descent : Int32
   mut bbox : FontBox
-  mut cap_height : Int
-  mut stem_v : Int
-  mut italic_angle : Int
-  mut flags : Int
+  mut cap_height : Int32
+  mut stem_v : Int32
+  mut italic_angle : Int32
+  mut flags : Int32
   mut underline_position : Double
   mut underline_thickness : Double
-  mut char_widths : Array[Int]
+  mut char_widths : Array[Int32]
   mut default_width : Double
-  mut symbol_data : Map[Int, Map[String, Array[Int]]]
-  mut code_symbol_dictionary : Map[Int, Int]
+  mut symbol_data : Map[Int32, Map[String, Array[Int32]]]
+  mut code_symbol_dictionary : Map[Int32, Int32]
 }
 
 ///|
@@ -112,12 +112,12 @@ fn new_utf8_font(reader : FileReader) -> Utf8FontFile {
 }
 
 ///|
-fn read_u16_be(data : Array[Byte], at : Int) -> Int {
+fn read_u16_be(data : Array[Byte], at : Int32) -> Int32 {
   (data[at].to_int() << 8) + data[at + 1].to_int()
 }
 
 ///|
-fn read_u32_be(data : Array[Byte], at : Int) -> Int {
+fn read_u32_be(data : Array[Byte], at : Int32) -> Int32 {
   (data[at].to_int() << 24) +
   (data[at + 1].to_int() << 16) +
   (data[at + 2].to_int() << 8) +
@@ -125,14 +125,14 @@ fn read_u32_be(data : Array[Byte], at : Int) -> Int {
 }
 
 ///|
-fn write_u16_be(out : Array[Byte], v : Int) -> Unit {
+fn write_u16_be(out : Array[Byte], v : Int32) -> Unit {
   let u = v & 0xFFFF
   out.push(((u >> 8) & 0xFF).to_byte())
   out.push((u & 0xFF).to_byte())
 }
 
 ///|
-fn write_u32_be(out : Array[Byte], v : Int) -> Unit {
+fn write_u32_be(out : Array[Byte], v : Int32) -> Unit {
   let u = v & 0xFFFFFFFF
   out.push(((u >> 24) & 0xFF).to_byte())
   out.push(((u >> 16) & 0xFF).to_byte())
@@ -150,7 +150,7 @@ fn bytes4_to_string(bs : Array[Byte]) -> String {
 }
 
 ///|
-fn max_int(a : Int, b : Int) -> Int {
+fn max_int(a : Int32, b : Int32) -> Int32 {
   if b > a {
     b
   } else {
@@ -159,12 +159,12 @@ fn max_int(a : Int, b : Int) -> Int {
 }
 
 ///|
-fn align4(v : Int) -> Int {
+fn align4(v : Int32) -> Int32 {
   (v + 3) / 4 * 4
 }
 
 ///|
-fn safe_read_u16_be(data : Array[Byte], at : Int) -> Int? {
+fn safe_read_u16_be(data : Array[Byte], at : Int32) -> Int32? {
   if at < 0 || at + 1 >= data.length() {
     return None
   }
@@ -172,7 +172,7 @@ fn safe_read_u16_be(data : Array[Byte], at : Int) -> Int? {
 }
 
 ///|
-fn safe_read_u32_be(data : Array[Byte], at : Int) -> Int? {
+fn safe_read_u32_be(data : Array[Byte], at : Int32) -> Int32? {
   if at < 0 || at + 3 >= data.length() {
     return None
   }
@@ -242,13 +242,13 @@ fn Utf8FontFile::read_table_name(self : Utf8FontFile) -> String {
 }
 
 ///|
-fn Utf8FontFile::read_uint16(self : Utf8FontFile) -> Int {
+fn Utf8FontFile::read_uint16(self : Utf8FontFile) -> Int32 {
   let s = self.file_reader.read(2)
   (s[0].to_int() << 8) + s[1].to_int()
 }
 
 ///|
-fn Utf8FontFile::read_uint32(self : Utf8FontFile) -> Int {
+fn Utf8FontFile::read_uint32(self : Utf8FontFile) -> Int32 {
   let s = self.file_reader.read(4)
   (s[0].to_int() << 24) +
   (s[1].to_int() << 16) +
@@ -257,7 +257,7 @@ fn Utf8FontFile::read_uint32(self : Utf8FontFile) -> Int {
 }
 
 ///|
-fn Utf8FontFile::read_int16(self : Utf8FontFile) -> Int {
+fn Utf8FontFile::read_int16(self : Utf8FontFile) -> Int32 {
   let s = self.file_reader.read(2)
   let a = (s[0].to_int() << 8) + s[1].to_int()
   if (a & (1 << 15)) != 0 {
@@ -270,11 +270,11 @@ fn Utf8FontFile::read_int16(self : Utf8FontFile) -> Int {
 ///|
 fn Utf8FontFile::calc_int32(
   _self : Utf8FontFile,
-  x_hi : Int,
-  x_lo : Int,
-  y_hi : Int,
-  y_lo : Int,
-) -> (Int, Int) {
+  x_hi : Int32,
+  x_lo : Int32,
+  y_hi : Int32,
+  y_lo : Int32,
+) -> (Int32, Int32) {
   let mut xh = x_hi
   let mut xl = x_lo
   if y_lo > xl {
@@ -293,7 +293,7 @@ fn Utf8FontFile::calc_int32(
 fn Utf8FontFile::generate_checksum(
   _self : Utf8FontFile,
   data : Array[Byte],
-) -> (Int, Int) {
+) -> (Int32, Int32) {
   let data2 = data.copy()
   while data2.length() % 4 != 0 {
     data2.push(b'\x00')
@@ -313,12 +313,12 @@ fn Utf8FontFile::generate_checksum(
 }
 
 ///|
-fn Utf8FontFile::seek(self : Utf8FontFile, shift : Int) -> Unit {
+fn Utf8FontFile::seek(self : Utf8FontFile, shift : Int32) -> Unit {
   ignore(self.file_reader.seek(shift, 0))
 }
 
 ///|
-fn Utf8FontFile::skip(self : Utf8FontFile, delta : Int) -> Unit {
+fn Utf8FontFile::skip(self : Utf8FontFile, delta : Int32) -> Unit {
   ignore(self.file_reader.seek(delta, 1))
 }
 
@@ -326,20 +326,20 @@ fn Utf8FontFile::skip(self : Utf8FontFile, delta : Int) -> Unit {
 fn Utf8FontFile::seek_table(
   self : Utf8FontFile,
   name : String,
-  offset_in_table : Int,
-) -> Int {
+  offset_in_table : Int32,
+) -> Int32 {
   let desc = self.table_descriptions.get(name).unwrap()
   ignore(self.file_reader.seek(desc.position + offset_in_table, 0))
   self.file_reader.reader_position
 }
 
 ///|
-fn Utf8FontFile::seek_table_start(self : Utf8FontFile, name : String) -> Int {
+fn Utf8FontFile::seek_table_start(self : Utf8FontFile, name : String) -> Int32 {
   self.seek_table(name, 0)
 }
 
 ///|
-fn Utf8FontFile::get_uint16(self : Utf8FontFile, pos : Int) -> Int {
+fn Utf8FontFile::get_uint16(self : Utf8FontFile, pos : Int32) -> Int32 {
   ignore(self.file_reader.seek(pos, 0))
   let s = self.file_reader.read(2)
   (s[0].to_int() << 8) + s[1].to_int()
@@ -348,7 +348,7 @@ fn Utf8FontFile::get_uint16(self : Utf8FontFile, pos : Int) -> Int {
 ///|
 fn splice_bytes(
   stream : Array[Byte],
-  offset : Int,
+  offset : Int32,
   value : Array[Byte],
 ) -> Array[Byte] {
   let out : Array[Byte] = []
@@ -369,8 +369,8 @@ fn splice_bytes(
 fn Utf8FontFile::insert_uint16(
   _self : Utf8FontFile,
   stream : Array[Byte],
-  offset : Int,
-  value : Int,
+  offset : Int32,
+  value : Int32,
 ) -> Array[Byte] {
   let rep : Array[Byte] = []
   write_u16_be(rep, value)
@@ -380,8 +380,8 @@ fn Utf8FontFile::insert_uint16(
 ///|
 fn Utf8FontFile::get_range(
   self : Utf8FontFile,
-  pos : Int,
-  length : Int,
+  pos : Int32,
+  length : Int32,
 ) -> Array[Byte] {
   ignore(self.file_reader.seek(pos, 0))
   if length < 1 {
@@ -461,8 +461,8 @@ fn key_sort_strings_map_bytes(s : Map[String, Array[Byte]]) -> Array[String] {
 }
 
 ///|
-fn key_sort_int_map_int(s : Map[Int, Int]) -> Array[Int] {
-  let keys : Array[Int] = []
+fn key_sort_int_map_int(s : Map[Int32, Int32]) -> Array[Int32] {
+  let keys : Array[Int32] = []
   for k, _ in s {
     keys.push(k)
   }
@@ -471,8 +471,8 @@ fn key_sort_int_map_int(s : Map[Int, Int]) -> Array[Int] {
 }
 
 ///|
-fn key_sort_int_map_array(s : Map[Int, Array[Int]]) -> Array[Int] {
-  let keys : Array[Int] = []
+fn key_sort_int_map_array(s : Map[Int32, Array[Int32]]) -> Array[Int32] {
+  let keys : Array[Int32] = []
   for k, _ in s {
     keys.push(k)
   }
@@ -481,13 +481,13 @@ fn key_sort_int_map_array(s : Map[Int, Array[Int]]) -> Array[Int] {
 }
 
 ///|
-fn unpack_uint16(data : Array[Byte]) -> Int {
+fn unpack_uint16(data : Array[Byte]) -> Int32 {
   read_u16_be(data, 0)
 }
 
 ///|
-fn unpack_uint16_array(data : Array[Byte]) -> Array[Int] {
-  let answer : Array[Int] = [0]
+fn unpack_uint16_array(data : Array[Byte]) -> Array[Int32] {
+  let answer : Array[Int32] = [0]
   let mut i = 0
   while i + 1 < data.length() {
     answer.push(read_u16_be(data, i))
@@ -497,8 +497,8 @@ fn unpack_uint16_array(data : Array[Byte]) -> Array[Int] {
 }
 
 ///|
-fn unpack_uint32_array(data : Array[Byte]) -> Array[Int] {
-  let answer : Array[Int] = [0]
+fn unpack_uint32_array(data : Array[Byte]) -> Array[Int32] {
+  let answer : Array[Int32] = [0]
   let mut i = 0
   while i + 3 < data.length() {
     answer.push(read_u32_be(data, i))
@@ -508,7 +508,13 @@ fn unpack_uint32_array(data : Array[Byte]) -> Array[Int] {
 }
 
 ///|
-fn pack_header(n : Int, n1 : Int, n2 : Int, n3 : Int, n4 : Int) -> Array[Byte] {
+fn pack_header(
+  n : Int32,
+  n1 : Int32,
+  n2 : Int32,
+  n3 : Int32,
+  n4 : Int32,
+) -> Array[Byte] {
   let out : Array[Byte] = []
   write_u32_be(out, n)
   write_u16_be(out, n1)
@@ -519,7 +525,7 @@ fn pack_header(n : Int, n1 : Int, n2 : Int, n3 : Int, n4 : Int) -> Array[Byte] {
 }
 
 ///|
-fn pack2_uint16(n1 : Int, n2 : Int) -> Array[Byte] {
+fn pack2_uint16(n1 : Int32, n2 : Int32) -> Array[Byte] {
   let out : Array[Byte] = []
   write_u16_be(out, n1)
   write_u16_be(out, n2)
@@ -527,7 +533,7 @@ fn pack2_uint16(n1 : Int, n2 : Int) -> Array[Byte] {
 }
 
 ///|
-fn pack2_uint32(n1 : Int, n2 : Int) -> Array[Byte] {
+fn pack2_uint32(n1 : Int32, n2 : Int32) -> Array[Byte] {
   let out : Array[Byte] = []
   write_u32_be(out, n1)
   write_u32_be(out, n2)
@@ -535,14 +541,14 @@ fn pack2_uint32(n1 : Int, n2 : Int) -> Array[Byte] {
 }
 
 ///|
-fn pack_uint16(n1 : Int) -> Array[Byte] {
+fn pack_uint16(n1 : Int32) -> Array[Byte] {
   let out : Array[Byte] = []
   write_u16_be(out, n1)
   out
 }
 
 ///|
-fn pack_uint32(n1 : Int) -> Array[Byte] {
+fn pack_uint32(n1 : Int32) -> Array[Byte] {
   let out : Array[Byte] = []
   write_u32_be(out, n1)
   out
@@ -551,9 +557,9 @@ fn pack_uint32(n1 : Int) -> Array[Byte] {
 ///|
 fn Utf8FontFile::generate_sccs_dictionaries(
   self : Utf8FontFile,
-  rune_cmap_position : Int,
-  symbol_char_dictionary : Map[Int, Array[Int]],
-  char_symbol_dictionary : Map[Int, Int],
+  rune_cmap_position : Int32,
+  symbol_char_dictionary : Map[Int32, Array[Int32]],
+  char_symbol_dictionary : Map[Int32, Int32],
 ) -> Unit {
   let mut max_rune = 0
   self.seek(rune_cmap_position + 2)
@@ -564,25 +570,25 @@ fn Utf8FontFile::generate_sccs_dictionaries(
   let segment_size = self.read_uint16() / 2
   self.skip(6)
 
-  let completers : Array[Int] = []
+  let completers : Array[Int32] = []
   for _ in 0..<segment_size {
     completers.push(self.read_uint16())
   }
   self.skip(2)
 
-  let beginners : Array[Int] = []
+  let beginners : Array[Int32] = []
   for _ in 0..<segment_size {
     beginners.push(self.read_uint16())
   }
 
-  let sizes : Array[Int] = []
+  let sizes : Array[Int32] = []
   for _ in 0..<segment_size {
     sizes.push(self.read_int16())
   }
 
   let reader_position_start = self.file_reader.reader_position
 
-  let positions : Array[Int] = []
+  let positions : Array[Int32] = []
   for _ in 0..<segment_size {
     positions.push(self.read_uint16())
   }
@@ -622,7 +628,9 @@ fn Utf8FontFile::generate_sccs_dictionaries(
 }
 
 ///|
-fn Utf8FontFile::generate_cmap(self : Utf8FontFile) -> Map[Int, Array[Int]]? {
+fn Utf8FontFile::generate_cmap(
+  self : Utf8FontFile,
+) -> Map[Int32, Array[Int32]]? {
   let cmap_position = self.seek_table_start("cmap")
   self.skip(2)
   let cmap_table_count = self.read_uint16()
@@ -646,8 +654,8 @@ fn Utf8FontFile::generate_cmap(self : Utf8FontFile) -> Map[Int, Array[Int]]? {
     return None
   }
 
-  let symbol_char_dictionary : Map[Int, Array[Int]] = Map([])
-  let char_symbol_dictionary : Map[Int, Int] = Map([])
+  let symbol_char_dictionary : Map[Int32, Array[Int32]] = Map([])
+  let char_symbol_dictionary : Map[Int32, Int32] = Map([])
   self.generate_sccs_dictionaries(
     rune_cmap_position, symbol_char_dictionary, char_symbol_dictionary,
   )
@@ -658,12 +666,12 @@ fn Utf8FontFile::generate_cmap(self : Utf8FontFile) -> Map[Int, Array[Int]]? {
 ///|
 fn Utf8FontFile::get_symbols(
   self : Utf8FontFile,
-  original_symbol_idx : Int,
-  start : Int,
-  symbol_set : Map[Int, Int],
-  symbols_collection : Map[Int, Int],
-  symbols_collection_keys : Array[Int],
-) -> (Map[Int, Int], Map[Int, Int], Array[Int]) {
+  original_symbol_idx : Int32,
+  start : Int32,
+  symbol_set : Map[Int32, Int32],
+  symbols_collection : Map[Int32, Int32],
+  symbols_collection_keys : Array[Int32],
+) -> (Map[Int32, Int32], Map[Int32, Int32], Array[Int32]) {
   let symbol_pos = self.symbol_position[original_symbol_idx]
   let symbol_size = self.symbol_position[original_symbol_idx + 1] - symbol_pos
   if symbol_size == 0 {
@@ -719,10 +727,10 @@ fn Utf8FontFile::get_symbols(
 ///|
 fn Utf8FontFile::parse_symbols(
   self : Utf8FontFile,
-  used_runes : Map[Int, Int],
-) -> (Map[Int, Int], Map[Int, Int], Map[Int, Int], Array[Int]) {
-  let symbol_collection : Map[Int, Int] = { 0: 0 }
-  let char_symbol_pair_collection : Map[Int, Int] = Map([])
+  used_runes : Map[Int32, Int32],
+) -> (Map[Int32, Int32], Map[Int32, Int32], Map[Int32, Int32], Array[Int32]) {
+  let symbol_collection : Map[Int32, Int32] = { 0: 0 }
+  let char_symbol_pair_collection : Map[Int32, Int32] = Map([])
   for _, ch in used_runes {
     match self.char_symbol_dictionary.get(ch) {
       Some(symbol) => {
@@ -735,7 +743,7 @@ fn Utf8FontFile::parse_symbols(
   }
 
   let begin = self.table_descriptions.get("glyf").unwrap().position
-  let symbol_array : Map[Int, Int] = Map([])
+  let symbol_array : Map[Int32, Int32] = Map([])
   let symbol_collection_keys = key_sort_int_map_int(symbol_collection)
 
   let mut symbol_counter = 0
@@ -749,7 +757,7 @@ fn Utf8FontFile::parse_symbols(
   let char_symbol_pair_collection_keys = key_sort_int_map_int(
     char_symbol_pair_collection,
   )
-  let rune_symbol_pair_collection : Map[Int, Int] = Map([])
+  let rune_symbol_pair_collection : Map[Int32, Int32] = Map([])
   for runa in char_symbol_pair_collection_keys {
     rune_symbol_pair_collection[runa] = symbol_array[char_symbol_pair_collection[runa]]
   }
@@ -773,14 +781,14 @@ fn Utf8FontFile::parse_symbols(
 ///|
 fn Utf8FontFile::generate_cmap_table(
   _self : Utf8FontFile,
-  cid_symbol_pair_collection : Map[Int, Int],
-  _num_symbols : Int,
+  cid_symbol_pair_collection : Map[Int32, Int32],
+  _num_symbols : Int32,
 ) -> Array[Byte] {
   let cid_symbol_pair_collection_keys = key_sort_int_map_int(
     cid_symbol_pair_collection,
   )
   let mut cid_id = 0
-  let cid_array : Map[Int, Array[Int]] = Map([])
+  let cid_array : Map[Int32, Array[Int32]] = Map([])
   let mut prev_cid = -2
   let mut prev_symbol = -1
 
@@ -791,7 +799,7 @@ fn Utf8FontFile::generate_cmap_table(
       cid_array[cid_id] = arr
     } else {
       cid_id = cid
-      let arr : Array[Int] = [cid_symbol_pair_collection[cid]]
+      let arr : Array[Int32] = [cid_symbol_pair_collection[cid]]
       cid_array[cid_id] = arr
     }
     prev_cid = cid
@@ -810,9 +818,9 @@ fn Utf8FontFile::generate_cmap_table(
   search_range = search_range * 2
   let range_shift = seg_count * 2 - search_range
 
-  let data : Array[Int] = [0, 1, 3, 1, 0, 12, 4]
+  let data : Array[Int32] = [0, 1, 3, 1, 0, 12, 4]
 
-  let cmap : Array[Int] = [
+  let cmap : Array[Int32] = [
     seg_count * 2,
     search_range,
     entry_selector,
@@ -859,9 +867,9 @@ fn Utf8FontFile::generate_cmap_table(
 ///|
 fn Utf8FontFile::parse_hmtx_table(
   self : Utf8FontFile,
-  number_of_h_metrics : Int,
-  num_symbols : Int,
-  symbol_to_char : Map[Int, Array[Int]],
+  number_of_h_metrics : Int32,
+  num_symbols : Int32,
+  symbol_to_char : Map[Int32, Array[Int32]],
   scale : Double,
 ) -> Unit {
   let start = self.seek_table_start("hmtx")
@@ -924,8 +932,8 @@ fn Utf8FontFile::parse_hmtx_table(
 ///|
 fn Utf8FontFile::get_metrics(
   self : Utf8FontFile,
-  metric_count : Int,
-  gid : Int,
+  metric_count : Int32,
+  gid : Int32,
 ) -> Array[Byte] {
   let start = self.seek_table_start("hmtx")
   if gid < metric_count {
@@ -943,8 +951,8 @@ fn Utf8FontFile::get_metrics(
 ///|
 fn Utf8FontFile::parse_loca_table(
   self : Utf8FontFile,
-  format : Int,
-  num_symbols : Int,
+  format : Int32,
+  num_symbols : Int32,
 ) -> Unit {
   let start = self.seek_table_start("loca")
   self.symbol_position = []
@@ -1017,7 +1025,7 @@ fn Utf8FontFile::assemble_tables(self : Utf8FontFile) -> Array[Byte] {
 ///|
 fn Utf8FontFile::generate_cut_font(
   self : Utf8FontFile,
-  used_runes : Map[Int, Int],
+  used_runes : Map[Int32, Int32],
 ) -> Array[Byte]? {
   self.file_reader.reader_position = 0
   self.symbol_position = []
@@ -1080,7 +1088,7 @@ fn Utf8FontFile::generate_cut_font(
     }
   }
 
-  let cid_no_zero : Map[Int, Int] = Map([])
+  let cid_no_zero : Map[Int32, Int32] = Map([])
   for k, v in cid_symbol_pair_collection {
     if k != 0 {
       cid_no_zero[k] = v
@@ -1096,7 +1104,7 @@ fn Utf8FontFile::generate_cut_font(
     None => return None
   }
 
-  let offsets : Array[Int] = []
+  let offsets : Array[Int32] = []
   let glyf_data : Array[Byte] = []
   let mut pos = 0
   let hmtx_data : Array[Byte] = []
@@ -1199,9 +1207,9 @@ fn Utf8FontFile::generate_cut_font(
 }
 
 ///|
-fn decode_utf8_codepoints(s : String) -> Array[Int] {
+fn decode_utf8_codepoints(s : String) -> Array[Int32] {
   let bytes = @utf8.encode(s[:]).to_array()
-  let cps : Array[Int] = []
+  let cps : Array[Int32] = []
   let mut i = 0
   while i < bytes.length() {
     let b0 = bytes[i].to_int()
@@ -1239,31 +1247,31 @@ fn decode_utf8_codepoints(s : String) -> Array[Int] {
 ///|
 priv struct SfntTableEntry {
   tag : String
-  tag_u32 : Int
-  check_sum : Int
-  offset : Int
-  length : Int
+  tag_u32 : Int32
+  check_sum : Int32
+  offset : Int32
+  length : Int32
 }
 
 ///|
-fn u32_add(a : Int, b : Int) -> Int {
+fn u32_add(a : Int32, b : Int32) -> Int32 {
   (a + b) & 0xFFFFFFFF
 }
 
 ///|
-fn u32_sub(a : Int, b : Int) -> Int {
+fn u32_sub(a : Int32, b : Int32) -> Int32 {
   (a - b) & 0xFFFFFFFF
 }
 
 ///|
-fn write_u16_be_at(out : Array[Byte], at : Int, v : Int) -> Unit {
+fn write_u16_be_at(out : Array[Byte], at : Int32, v : Int32) -> Unit {
   let u = v & 0xFFFF
   out[at] = ((u >> 8) & 0xFF).to_byte()
   out[at + 1] = (u & 0xFF).to_byte()
 }
 
 ///|
-fn write_u32_be_at(out : Array[Byte], at : Int, v : Int) -> Unit {
+fn write_u32_be_at(out : Array[Byte], at : Int32, v : Int32) -> Unit {
   let u = v & 0xFFFFFFFF
   out[at] = ((u >> 24) & 0xFF).to_byte()
   out[at + 1] = ((u >> 16) & 0xFF).to_byte()
@@ -1272,7 +1280,7 @@ fn write_u32_be_at(out : Array[Byte], at : Int, v : Int) -> Unit {
 }
 
 ///|
-fn sfnt_calc_checksum(buf : Array[Byte]) -> Int {
+fn sfnt_calc_checksum(buf : Array[Byte]) -> Int32 {
   let mut sum = 0
   let nlongs = buf.length() / 4
   let mut i = 0
@@ -1524,7 +1532,7 @@ pub fn utf8_cut_font(in_buf : Bytes, cutset : String) -> Bytes? {
   if !is_plausible_sfnt(input) {
     return None
   }
-  let runes : Map[Int, Int] = Map([])
+  let runes : Map[Int32, Int32] = Map([])
   let cps = decode_utf8_codepoints(cutset)
   for i, cp in cps {
     runes[i] = cp

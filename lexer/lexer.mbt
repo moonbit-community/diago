@@ -17,9 +17,9 @@
 struct Lexer {
   path : String
   chars : Array[Char] // pre-converted characters for easy indexing
-  mut pos : Int // current character position
-  mut line : Int // current line (0-based)
-  mut column : Int // current column (0-based)
+  mut pos : Int32 // current character position
+  mut line : Int32 // current line (0-based)
+  mut column : Int32 // current column (0-based)
   tokens : Array[Token]
   errors : Array[LexError]
 }
@@ -86,7 +86,7 @@ fn Lexer::peek_next(self : Lexer) -> Char {
 }
 
 ///|
-fn Lexer::peek_offset(self : Lexer, n : Int) -> Char {
+fn Lexer::peek_offset(self : Lexer, n : Int32) -> Char {
   if self.pos + n >= self.chars.length() {
     '\u{0}'
   } else {
@@ -108,7 +108,7 @@ fn Lexer::advance(self : Lexer) -> Char {
 }
 
 ///|
-fn Lexer::slice_source(self : Lexer, start : Int, end : Int) -> String {
+fn Lexer::slice_source(self : Lexer, start : Int32, end : Int32) -> String {
   let buf = StringBuilder()
   for i = start; i < end; i = i + 1 {
     if i < self.chars.length() {
@@ -586,7 +586,11 @@ fn trim_comment_common_indent(s : String) -> String {
 }
 
 ///|
-fn substring_comment_by_offsets(s : String, start : Int, end : Int) -> String {
+fn substring_comment_by_offsets(
+  s : String,
+  start : Int32,
+  end : Int32,
+) -> String {
   let chars = s.to_array()
   let buf = StringBuilder()
   let mut i = start

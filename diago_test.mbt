@@ -16,7 +16,7 @@
 test "compile default returns svg" {
   let source =
     #|a -> b
-  let svg = compile(source)
+  let svg = @diago.compile(source)
   assert_true(svg.contains("<svg"))
 }
 
@@ -32,12 +32,12 @@ test "auto layout honors vars config layout-engine" {
     #|a -> c
     #|b -> d
     #|c -> d
-  let auto_svg = compile(source)
-  let dagre_svg = compile(
+  let auto_svg = @diago.compile(source)
+  let dagre_svg = @diago.compile(
     source,
-    options=CompileOptions::new().with_layout_engine(Dagre),
+    options=@diago.CompileOptions::new().with_layout_engine(Dagre),
   )
-  @debug.assert_eq(auto_svg, dagre_svg)
+  assert_eq(auto_svg, dagre_svg)
 }
 
 ///|
@@ -49,13 +49,13 @@ test "elk layout can be selected from options and vars config" {
     #|  }
     #|}
     #|a -> b
-  let auto_svg = compile(source)
-  let elk_svg = compile(
+  let auto_svg = @diago.compile(source)
+  let elk_svg = @diago.compile(
     source,
-    options=CompileOptions::new().with_layout_engine(Elk),
+    options=@diago.CompileOptions::new().with_layout_engine(Elk),
   )
   assert_true(auto_svg.contains("<svg"))
-  @debug.assert_eq(auto_svg, elk_svg)
+  assert_eq(auto_svg, elk_svg)
 }
 
 ///|
@@ -68,9 +68,9 @@ test "parse supports custom import resolver hook" {
       None
     }
   })
-  let ir_map = parse(
+  let ir_map = @diago.parse(
     source,
-    options=ParseOptions::new().with_import_resolver(Some(resolver)),
+    options=@diago.ParseOptions::new().with_import_resolver(Some(resolver)),
   )
   guard ir_map.get_field("common") is Some(common) else {
     fail("no common field")
@@ -98,13 +98,13 @@ test "compile_diagram supports board target selection" {
     #|    e -> f
     #|  }
     #|}
-  let diagram = compile_diagram(
+  let diagram = @diago.compile_diagram(
     source,
-    options=CompileOptions::new().with_target_spec(Some("layers.core")),
+    options=@diago.CompileOptions::new().with_target_spec(Some("layers.core")),
   )
   assert_true(diagram.find_object("a") is Some(_))
   assert_true(diagram.find_object("e") is None)
-  @debug.assert_eq(diagram.scenarios.length(), 0)
+  assert_eq(diagram.scenarios.length(), 0)
 }
 
 ///|
@@ -120,16 +120,16 @@ test "compile_diagram target star keeps child boards while empty target trims ro
     #|    }
     #|  }
     #|}
-  let board = compile_diagram(
+  let board = @diago.compile_diagram(
     source,
-    options=CompileOptions::new().with_target_spec(Some("layers.core.*")),
+    options=@diago.CompileOptions::new().with_target_spec(Some("layers.core.*")),
   )
-  let root_only = compile_diagram(
+  let root_only = @diago.compile_diagram(
     source,
-    options=CompileOptions::new().with_target_spec(Some("")),
+    options=@diago.CompileOptions::new().with_target_spec(Some("")),
   )
-  @debug.assert_eq(board.scenarios.length(), 1)
-  @debug.assert_eq(root_only.layers.length(), 0)
+  assert_eq(board.scenarios.length(), 1)
+  assert_eq(root_only.layers.length(), 0)
 }
 
 ///|
@@ -140,9 +140,11 @@ test "compile_diagram target selection is quote-aware" {
     #|    a -> b
     #|  }
     #|}
-  let diagram = compile_diagram(
+  let diagram = @diago.compile_diagram(
     source,
-    options=CompileOptions::new().with_target_spec(Some("layers.\"cat.go\".*")),
+    options=@diago.CompileOptions::new().with_target_spec(
+      Some("layers.\"cat.go\".*"),
+    ),
   )
   assert_true(diagram.find_object("a") is Some(_))
   assert_true(diagram.find_object("b") is Some(_))
@@ -157,9 +159,11 @@ test "compile_diagram reports invalid target syntax" {
     #|  }
     #|}
   try
-    compile_diagram(
+    @diago.compile_diagram(
       source,
-      options=CompileOptions::new().with_target_spec(Some("layers.\"core")),
+      options=@diago.CompileOptions::new().with_target_spec(
+        Some("layers.\"core"),
+      ),
     )
   catch {
     TargetError(message) => assert_true(message.contains("Invalid target"))
@@ -173,13 +177,15 @@ test "compile_diagram reports invalid target syntax" {
 test "compile supports custom layout plugin hook" {
   let source =
     #|a -> b
-  let layout_plugin = LayoutPlugin::new(fn(_graph, _config, _direction) {
+  let layout_plugin = @diago.LayoutPlugin::new(fn(_graph, _config, _direction) {
     Err("layout-plugin-failed")
   })
   try
-    compile(
+    @diago.compile(
       source,
-      options=CompileOptions::new().with_layout_plugin(Some(layout_plugin)),
+      options=@diago.CompileOptions::new().with_layout_plugin(
+        Some(layout_plugin),
+      ),
     )
   catch {
     LayoutError(msg) =>
@@ -194,11 +200,13 @@ test "compile supports custom layout plugin hook" {
 test "compile supports custom route plugin hook" {
   let source =
     #|a -> b
-  let route_plugin = RoutePlugin::new(fn(_graph) { Err("route-plugin-failed") })
+  let route_plugin = @diago.RoutePlugin::new(fn(_graph) {
+    Err("route-plugin-failed")
+  })
   try
-    compile(
+    @diago.compile(
       source,
-      options=CompileOptions::new().with_route_plugin(Some(route_plugin)),
+      options=@diago.CompileOptions::new().with_route_plugin(Some(route_plugin)),
     )
   catch {
     LayoutError(msg) =>
@@ -220,7 +228,7 @@ test "vars config invalid theme-overrides key raises ConfigError" {
     #|  }
     #|}
     #|a -> b
-  try compile(source) catch {
+  try @diago.compile(source) catch {
     ConfigError(msg) =>
       assert_true(msg.contains("\"ZZ9\" is not a valid theme code"))
     _ => fail("expected ConfigError for invalid theme override key")
@@ -240,7 +248,7 @@ test "vars config invalid theme-overrides color raises ConfigError" {
     #|  }
     #|}
     #|a -> b
-  try compile(source) catch {
+  try @diago.compile(source) catch {
     ConfigError(msg) =>
       assert_true(
         msg.contains(
@@ -262,7 +270,7 @@ test "dark-theme-id alone does not replace base light theme" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile(source)
+  let svg = @diago.compile(source)
   assert_true(!svg.contains("text-mono"))
 }
 
@@ -275,9 +283,9 @@ test "vars config pad is preserved in diagram config" {
     #|  }
     #|}
     #|a -> b
-  let diagram = compile_diagram(source)
+  let diagram = @diago.compile_diagram(source)
   match diagram.config {
-    Some(config) => @debug.assert_eq(config.pad, Some(16.0))
+    Some(config) => assert_eq(config.pad, Some(16.0))
     None => fail("expected diagram config")
   }
 }
@@ -291,7 +299,7 @@ test "dark-theme-id enables css media theme variables" {
     #|  }
     #|}
     #|a -> b
-  let svg = compile(source)
+  let svg = @diago.compile(source)
   assert_true(svg.contains("@media screen and (prefers-color-scheme:dark)"))
   assert_true(svg.contains(".fill-N7{fill:#1E1E2E;}"))
 }
@@ -300,7 +308,7 @@ test "dark-theme-id enables css media theme variables" {
 test "without dark-theme-id svg keeps static theme colors" {
   let source =
     #|a -> b
-  let svg = compile(source)
+  let svg = @diago.compile(source)
   assert_true(!svg.contains("@media screen and (prefers-color-scheme: dark)"))
 }
 
@@ -310,9 +318,9 @@ test "LaTeX labels report an unsupported feature" {
     #|formula: |tex
     #|  x^2
     #||
-  try compile(source) catch {
+  try @diago.compile(source) catch {
     UnsupportedFeature(message) =>
-      @debug.assert_eq(message, "LaTeX labels are not supported")
+      assert_eq(message, "LaTeX labels are not supported")
     _ => fail("expected unsupported LaTeX error")
   } noraise {
     _ => fail("expected unsupported LaTeX error")
@@ -328,9 +336,9 @@ test "source sketch config reports an unsupported feature" {
     #|  }
     #|}
     #|a -> b
-  try compile(source) catch {
+  try @diago.compile(source) catch {
     UnsupportedFeature(message) =>
-      @debug.assert_eq(message, "sketch rendering is not supported")
+      assert_eq(message, "sketch rendering is not supported")
     _ => fail("expected unsupported sketch error")
   } noraise {
     _ => fail("expected unsupported sketch error")
@@ -343,9 +351,9 @@ test "sketch style reports an unsupported feature" {
     #|a: {
     #|  style.sketch: true
     #|}
-  try compile(source) catch {
+  try @diago.compile(source) catch {
     UnsupportedFeature(message) =>
-      @debug.assert_eq(message, "sketch rendering is not supported")
+      assert_eq(message, "sketch rendering is not supported")
     _ => fail("expected unsupported sketch error")
   } noraise {
     _ => fail("expected unsupported sketch error")
@@ -355,10 +363,13 @@ test "sketch style reports an unsupported feature" {
 ///|
 test "sketch compile option reports an unsupported feature" {
   try
-    compile("a -> b", options=CompileOptions::new().with_sketch(Some(true)))
+    @diago.compile(
+      "a -> b",
+      options=@diago.CompileOptions::new().with_sketch(Some(true)),
+    )
   catch {
     UnsupportedFeature(message) =>
-      @debug.assert_eq(message, "sketch rendering is not supported")
+      assert_eq(message, "sketch rendering is not supported")
     _ => fail("expected unsupported sketch error")
   } noraise {
     _ => fail("expected unsupported sketch error")

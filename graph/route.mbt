@@ -165,7 +165,7 @@ pub fn Route::is_empty(self : Route) -> Bool {
 
 ///|
 /// Get the number of waypoints
-pub fn Route::length(self : Route) -> Int {
+pub fn Route::length(self : Route) -> Int32 {
   self.waypoints.length()
 }
 

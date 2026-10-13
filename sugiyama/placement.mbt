@@ -16,10 +16,10 @@
 /// Backend-independent layered placement produced by the Sugiyama pipeline.
 pub(all) struct PlacementResult {
   boxes : Map[@layout_core.ObjectId, @graph.Box]
-  rank_by_id : Map[@layout_core.ObjectId, Int]
+  rank_by_id : Map[@layout_core.ObjectId, Int32]
   level_heights : Array[Double]
-  virtual_node_count : Int
-  reversed_edge_count : Int
+  virtual_node_count : Int32
+  reversed_edge_count : Int32
 }
 
 ///|
@@ -58,7 +58,7 @@ pub fn place(
     graph, crossing, cycle, widths, heights, horizontal_spacing, vertical_spacing,
   )
   let down_boxes : Map[@layout_core.ObjectId, @graph.Box] = Map([])
-  let rank_by_id : Map[@layout_core.ObjectId, Int] = Map([])
+  let rank_by_id : Map[@layout_core.ObjectId, Int32] = Map([])
   for obj in graph.objects {
     let raw_id = obj.lookup_id()
     let id = @layout_core.ObjectId::new(raw_id)
@@ -169,8 +169,8 @@ fn placement_max_y(boxes : Map[@layout_core.ObjectId, @graph.Box]) -> Double {
 ///|
 fn placement_level_heights(
   boxes : Map[@layout_core.ObjectId, @graph.Box],
-  rank_by_id : Map[@layout_core.ObjectId, Int],
-  layer_count : Int,
+  rank_by_id : Map[@layout_core.ObjectId, Int32],
+  layer_count : Int32,
   direction : @engine_api.Direction,
 ) -> Array[Double] {
   let count = if layer_count > 0 { layer_count } else { 1 }

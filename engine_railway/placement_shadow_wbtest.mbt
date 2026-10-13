@@ -14,12 +14,12 @@
 
 ///|
 priv struct PlacementShadowMetrics {
-  crossings : Int
-  label_overlaps : Int
-  node_overlaps : Int
-  long_detours : Int
+  crossings : Int32
+  label_overlaps : Int32
+  node_overlaps : Int32
+  long_detours : Int32
   total_length : Double
-  route_points : Int
+  route_points : Int32
 }
 
 ///|

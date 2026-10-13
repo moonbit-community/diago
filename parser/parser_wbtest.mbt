@@ -16,55 +16,55 @@
 test "parse empty string" {
   let (ast, errors) = parse("")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 0)
+  assert_eq(ast.nodes.length(), 0)
 }
 
 ///|
 test "parse simple key" {
   let (ast, errors) = parse("x")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["x"])
+  assert_eq(kp.to_strings(), ["x"])
 }
 
 ///|
 test "parse key with value" {
   let (ast, errors) = parse("x: hello")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["x"])
+  assert_eq(kp.to_strings(), ["x"])
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "hello")
+  assert_eq(sv.content(), "hello")
 }
 
 ///|
 test "parse nested key path" {
   let (ast, errors) = parse("container.child.item")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["container", "child", "item"])
+  assert_eq(kp.to_strings(), ["container", "child", "item"])
 }
 
 ///|
 test "parse_key_path parses quoted board paths" {
   let result = parse_key_path("layers.\"cat.go\".'step 1'")
   guard result is Ok(key_path) else { fail("expected key path") }
-  @debug.assert_eq(key_path.to_strings(), ["layers", "cat.go", "step 1"])
+  assert_eq(key_path.to_strings(), ["layers", "cat.go", "step 1"])
 }
 
 ///|
 test "parse_key_path preserves commas in unquoted segments" {
   let result = parse_key_path("0,0.style.fill")
   guard result is Ok(key_path) else { fail("expected key path") }
-  @debug.assert_eq(key_path.to_strings(), ["0,0", "style", "fill"])
+  assert_eq(key_path.to_strings(), ["0,0", "style", "fill"])
 }
 
 ///|
@@ -80,28 +80,28 @@ test "parse_key_path rejects trailing tokens" {
 test "parse simple edge" {
   let (ast, errors) = parse("a -> b")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src.to_strings(), ["a"])
-  @debug.assert_eq(edge.dst.to_strings(), ["b"])
-  @debug.assert_eq(edge.src_arrow, "")
-  @debug.assert_eq(edge.dst_arrow, ">")
+  assert_eq(edge.src.to_strings(), ["a"])
+  assert_eq(edge.dst.to_strings(), ["b"])
+  assert_eq(edge.src_arrow, "")
+  assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
 test "parse compact edge without spaces" {
   let (ast, errors) = parse("A->B")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src.to_strings(), ["A"])
-  @debug.assert_eq(edge.dst.to_strings(), ["B"])
-  @debug.assert_eq(edge.src_arrow, "")
-  @debug.assert_eq(edge.dst_arrow, ">")
+  assert_eq(edge.src.to_strings(), ["A"])
+  assert_eq(edge.dst.to_strings(), ["B"])
+  assert_eq(edge.src_arrow, "")
+  assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -109,10 +109,10 @@ test "parse reverse edge" {
   let (ast, errors) = parse("a <- b")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src_arrow, "<")
-  @debug.assert_eq(edge.dst_arrow, "")
+  assert_eq(edge.src_arrow, "<")
+  assert_eq(edge.dst_arrow, "")
 }
 
 ///|
@@ -120,10 +120,10 @@ test "parse bidirectional edge" {
   let (ast, errors) = parse("a <-> b")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src_arrow, "<")
-  @debug.assert_eq(edge.dst_arrow, ">")
+  assert_eq(edge.src_arrow, "<")
+  assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -131,11 +131,11 @@ test "parse edge chain" {
   let (ast, errors) = parse("a -> b -> c")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 2)
-  @debug.assert_eq(key.edges[0].src.to_strings(), ["a"])
-  @debug.assert_eq(key.edges[0].dst.to_strings(), ["b"])
-  @debug.assert_eq(key.edges[1].src.to_strings(), ["b"])
-  @debug.assert_eq(key.edges[1].dst.to_strings(), ["c"])
+  assert_eq(key.edges.length(), 2)
+  assert_eq(key.edges[0].src.to_strings(), ["a"])
+  assert_eq(key.edges[0].dst.to_strings(), ["b"])
+  assert_eq(key.edges[1].src.to_strings(), ["b"])
+  assert_eq(key.edges[1].dst.to_strings(), ["c"])
 }
 
 ///|
@@ -143,11 +143,11 @@ test "parse edge with label" {
   let (ast, errors) = parse("a -> b: connection")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "connection")
+  assert_eq(sv.content(), "connection")
 }
 
 ///|
@@ -158,7 +158,7 @@ test "parse double quoted string decodes escapes" {
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "just\na\nlong\nnote\nhere")
+  assert_eq(sv.content(), "just\na\nlong\nnote\nhere")
 }
 
 ///|
@@ -169,7 +169,7 @@ test "parse double quoted string keeps escaped dollar literal" {
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "price: $5")
+  assert_eq(sv.content(), "price: $5")
 }
 
 ///|
@@ -178,7 +178,7 @@ test "parse unquoted key decodes escaped newline" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.key is Some(path) else { fail("expected key path") }
-  @debug.assert_eq(path.to_strings(), ["ClusterIP\nService 1"])
+  assert_eq(path.to_strings(), ["ClusterIP\nService 1"])
 }
 
 ///|
@@ -187,7 +187,7 @@ test "parse block" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.value is Some(Map(inner)) else { fail("expected Map value") }
-  @debug.assert_eq(inner.nodes.length(), 1)
+  assert_eq(inner.nodes.length(), 1)
 }
 
 ///|
@@ -198,7 +198,7 @@ test "parse number value" {
   guard key.value is Some(Scalar(Number(_, n))) else {
     fail("expected number value")
   }
-  @debug.assert_eq(n, "42")
+  assert_eq(n, "42")
 }
 
 ///|
@@ -239,7 +239,7 @@ test "parse single quoted string" {
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "hello world")
+  assert_eq(sv.content(), "hello world")
 }
 
 ///|
@@ -250,7 +250,7 @@ test "parse double quoted string" {
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "hello world")
+  assert_eq(sv.content(), "hello world")
 }
 
 ///|
@@ -259,7 +259,7 @@ test "parse array" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.value is Some(Array(arr)) else { fail("expected array value") }
-  @debug.assert_eq(arr.nodes.length(), 3)
+  assert_eq(arr.nodes.length(), 3)
 }
 
 ///|
@@ -269,15 +269,15 @@ test "parse unquoted keys containing commas" {
     #|0,2.class: empty
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 2)
+  assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is Key(first) else { fail("expected first key") }
   guard first.key is Some(first_path) else { fail("expected first key path") }
-  @debug.assert_eq(first_path.to_strings(), ["foo,bar"])
+  assert_eq(first_path.to_strings(), ["foo,bar"])
   guard ast.nodes[1] is Key(second) else { fail("expected second key") }
   guard second.key is Some(second_path) else {
     fail("expected second key path")
   }
-  @debug.assert_eq(second_path.to_strings(), ["0,2", "class"])
+  assert_eq(second_path.to_strings(), ["0,2", "class"])
 }
 
 ///|
@@ -285,11 +285,11 @@ test "parse edge endpoints containing commas" {
   let (ast, errors) = parse("0,0 -> 2,0 -> 2,1")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected edge key") }
-  @debug.assert_eq(key.edges.length(), 2)
-  @debug.assert_eq(key.edges[0].src.to_strings(), ["0,0"])
-  @debug.assert_eq(key.edges[0].dst.to_strings(), ["2,0"])
-  @debug.assert_eq(key.edges[1].src.to_strings(), ["2,0"])
-  @debug.assert_eq(key.edges[1].dst.to_strings(), ["2,1"])
+  assert_eq(key.edges.length(), 2)
+  assert_eq(key.edges[0].src.to_strings(), ["0,0"])
+  assert_eq(key.edges[0].dst.to_strings(), ["2,0"])
+  assert_eq(key.edges[1].src.to_strings(), ["2,0"])
+  assert_eq(key.edges[1].dst.to_strings(), ["2,1"])
 }
 
 ///|
@@ -303,20 +303,20 @@ test "comma separators apply only to direct array elements" {
   guard imports.value is Some(Array(import_array)) else {
     fail("expected import array")
   }
-  @debug.assert_eq(import_array.nodes.length(), 2)
+  assert_eq(import_array.nodes.length(), 2)
   guard import_array.nodes[0] is Import(first_import) else {
     fail("expected first import")
   }
-  @debug.assert_eq(first_import.path[0].content(), "first")
+  assert_eq(first_import.path[0].content(), "first")
   guard import_array.nodes[1] is Import(second_import) else {
     fail("expected second import")
   }
-  @debug.assert_eq(second_import.path[0].content(), "second")
+  assert_eq(second_import.path[0].content(), "second")
   guard ast.nodes[1] is Key(nested) else { fail("expected nested-map key") }
   guard nested.value is Some(Array(nested_array)) else {
     fail("expected nested array")
   }
-  @debug.assert_eq(nested_array.nodes.length(), 2)
+  assert_eq(nested_array.nodes.length(), 2)
   guard nested_array.nodes[0] is Value(Map(inner_map)) else {
     fail("expected nested map")
   }
@@ -324,7 +324,7 @@ test "comma separators apply only to direct array elements" {
   guard label.value is Some(Scalar(String(label_value))) else {
     fail("expected label value")
   }
-  @debug.assert_eq(label_value.content(), "hello, world")
+  assert_eq(label_value.content(), "hello, world")
 }
 
 ///|
@@ -337,25 +337,25 @@ test "parse D2 semicolon-separated arrays" {
     #|  b]
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 4)
+  assert_eq(ast.nodes.length(), 4)
   guard ast.nodes[0] is Key(x) else { fail("expected x key") }
   guard x.value is Some(Array(x_array)) else { fail("expected x array") }
-  @debug.assert_eq(x_array.nodes.length(), 2)
+  assert_eq(x_array.nodes.length(), 2)
   guard ast.nodes[1] is Key(nested) else { fail("expected nested key") }
   guard nested.value is Some(Array(nested_array)) else {
     fail("expected nested array")
   }
-  @debug.assert_eq(nested_array.nodes.length(), 2)
+  assert_eq(nested_array.nodes.length(), 2)
   guard ast.nodes[2] is Key(empty) else { fail("expected empty key") }
   guard empty.value is Some(Array(empty_array)) else {
     fail("expected empty array")
   }
-  @debug.assert_eq(empty_array.nodes.length(), 0)
+  assert_eq(empty_array.nodes.length(), 0)
   guard ast.nodes[3] is Key(commented) else { fail("expected commented key") }
   guard commented.value is Some(Array(commented_array)) else {
     fail("expected commented array")
   }
-  @debug.assert_eq(commented_array.nodes.length(), 3)
+  assert_eq(commented_array.nodes.length(), 3)
 }
 
 ///|
@@ -371,9 +371,9 @@ test "parse block string |md" {
     fail("expected string scalar")
   }
   guard sv is Block(bs) else { fail("expected block") }
-  @debug.assert_eq(bs.quote, "")
-  @debug.assert_eq(bs.tag, "md")
-  @debug.assert_eq(bs.value, "hello")
+  assert_eq(bs.quote, "")
+  assert_eq(bs.tag, "md")
+  assert_eq(bs.value, "hello")
 }
 
 ///|
@@ -389,9 +389,9 @@ test "parse block string defaults tag to md" {
     fail("expected string scalar")
   }
   guard sv is Block(bs) else { fail("expected block") }
-  @debug.assert_eq(bs.quote, "")
-  @debug.assert_eq(bs.tag, "md")
-  @debug.assert_eq(bs.value, "hello")
+  assert_eq(bs.quote, "")
+  assert_eq(bs.tag, "md")
+  assert_eq(bs.value, "hello")
 }
 
 ///|
@@ -407,9 +407,9 @@ test "parse block string with quote (||md ... ||)" {
     fail("expected string scalar")
   }
   guard sv is Block(bs) else { fail("expected block") }
-  @debug.assert_eq(bs.quote, "|")
-  @debug.assert_eq(bs.tag, "md")
-  @debug.assert_eq(bs.value, "a | b")
+  assert_eq(bs.quote, "|")
+  assert_eq(bs.tag, "md")
+  assert_eq(bs.value, "a | b")
 }
 
 ///|
@@ -419,14 +419,14 @@ test "parse triple-quote block comment" {
     #|x
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 2)
+  assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is BlockComment(_, text) else {
     fail("expected block comment node")
   }
-  @debug.assert_eq(text, "hi")
+  assert_eq(text, "hi")
   guard ast.nodes[1] is Key(key) else { fail("expected key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["x"])
+  assert_eq(kp.to_strings(), ["x"])
 }
 
 ///|
@@ -437,16 +437,16 @@ test "parse multiple keys" {
     #|z: 3
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 3)
+  assert_eq(ast.nodes.length(), 3)
 }
 
 ///|
 test "parse comment" {
   let (ast, errors) = parse("# this is a comment")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Comment(_, text) else { fail("expected comment node") }
-  @debug.assert_eq(text, "this is a comment")
+  assert_eq(text, "this is a comment")
 }
 
 ///|
@@ -455,7 +455,7 @@ test "parse edge index" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.edge_index is Some(idx) else { fail("expected edge index") }
-  @debug.assert_eq(idx.index, Some(0))
+  assert_eq(idx.index, Some(0))
   assert_false(idx.glob)
 }
 
@@ -474,7 +474,7 @@ test "parse edge with property" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.edge_key is Some(ek) else { fail("expected edge key") }
-  @debug.assert_eq(ek.to_strings(), ["style", "stroke"])
+  assert_eq(ek.to_strings(), ["style", "stroke"])
 }
 
 ///|
@@ -483,9 +483,9 @@ test "parse spread import with pre path" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Import(imp) else { fail("expected import node") }
   assert_true(imp.spread)
-  @debug.assert_eq(imp.pre, "../")
-  @debug.assert_eq(imp.path.length(), 1)
-  @debug.assert_eq(imp.path[0].content(), "file")
+  assert_eq(imp.pre, "../")
+  assert_eq(imp.path.length(), 1)
+  assert_eq(imp.path[0].content(), "file")
 }
 
 ///|
@@ -494,9 +494,9 @@ test "parse import strips the diagram extension for unquoted path" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected key") }
   guard key.value is Some(Import(imp)) else { fail("expected import value") }
-  @debug.assert_eq(imp.pre, "")
-  @debug.assert_eq(imp.path.length(), 1)
-  @debug.assert_eq(imp.path[0].content(), "file")
+  assert_eq(imp.pre, "")
+  assert_eq(imp.path.length(), 1)
+  assert_eq(imp.path[0].content(), "file")
 }
 
 ///|
@@ -504,9 +504,9 @@ test "parse import keeps the quoted extension segment" {
   let (ast, errors) = parse("...@\"file\".d2")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Import(imp) else { fail("expected import") }
-  @debug.assert_eq(imp.path.length(), 2)
-  @debug.assert_eq(imp.path[0].content(), "file")
-  @debug.assert_eq(imp.path[1].content(), "d2")
+  assert_eq(imp.path.length(), 2)
+  assert_eq(imp.path[0].content(), "file")
+  assert_eq(imp.path[1].content(), "d2")
 }
 
 ///|
@@ -517,14 +517,12 @@ test "parse edge line continuation with escaped newline" {
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src.to_strings(), ["super long shape id here"])
-  @debug.assert_eq(edge.dst.to_strings(), [
-    "super long shape id even longer here",
-  ])
-  @debug.assert_eq(edge.src_arrow, "")
-  @debug.assert_eq(edge.dst_arrow, ">")
+  assert_eq(edge.src.to_strings(), ["super long shape id here"])
+  assert_eq(edge.dst.to_strings(), ["super long shape id even longer here"])
+  assert_eq(edge.src_arrow, "")
+  assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -532,12 +530,12 @@ test "parse less-than-edge compatibility (#955)" {
   let (ast, errors) = parse("x <= y")
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src.to_strings(), ["x"])
-  @debug.assert_eq(edge.src_arrow, "<")
-  @debug.assert_eq(edge.dst_arrow, "")
-  @debug.assert_eq(edge.dst.to_strings(), ["= y"])
+  assert_eq(edge.src.to_strings(), ["x"])
+  assert_eq(edge.src_arrow, "<")
+  assert_eq(edge.dst_arrow, "")
+  assert_eq(edge.dst.to_strings(), ["= y"])
 }
 
 ///|
@@ -583,10 +581,10 @@ test "parse not ampersand filter" {
 test "parse key with spaces and apostrophe" {
   let (ast, errors) = parse("i'm a shape")
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["i'm a shape"])
+  assert_eq(kp.to_strings(), ["i'm a shape"])
 }
 
 ///|
@@ -597,7 +595,7 @@ test "parse scalar with comma punctuation" {
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "To err is human, to moo bovine!")
+  assert_eq(sv.content(), "To err is human, to moo bovine!")
 }
 
 ///|
@@ -613,8 +611,8 @@ test "parse star block scalar value" {
     fail("expected block scalar")
   }
   guard label is Scalar(String(sv)) else { fail("expected scalar label") }
-  @debug.assert_eq(sv.content(), "*")
-  @debug.assert_eq(props.nodes.length(), 1)
+  assert_eq(sv.content(), "*")
+  assert_eq(props.nodes.length(), 1)
 }
 
 ///|
@@ -625,7 +623,7 @@ test "parse indexed edge group block scalar value" {
     #|}
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 1)
+  assert_eq(ast.nodes.length(), 1)
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.value is Some(BlockScalar(label, props)) else {
     fail("expected edge block scalar")
@@ -633,8 +631,8 @@ test "parse indexed edge group block scalar value" {
   guard label is Scalar(String(Unquoted(value))) else {
     fail("expected unquoted suspension label")
   }
-  @debug.assert_eq(value.to_string(), "unsuspend")
-  @debug.assert_eq(props.nodes.length(), 1)
+  assert_eq(value.to_string(), "unsuspend")
+  assert_eq(props.nodes.length(), 1)
 }
 
 ///|
@@ -645,7 +643,7 @@ test "parse scalar starting with left parenthesis" {
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected string value")
   }
-  @debug.assert_eq(sv.content(), "(s string, eof bool)")
+  assert_eq(sv.content(), "(s string, eof bool)")
 }
 
 ///|
@@ -654,7 +652,7 @@ test "parse key with trailing dot without error" {
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected Key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["golf as if they were games"])
+  assert_eq(kp.to_strings(), ["golf as if they were games"])
 }
 
 ///|
@@ -665,14 +663,12 @@ test "parse edge line continuation compact arrow form" {
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
   guard ast.nodes[0] is Key(key) else { fail("expected key node") }
-  @debug.assert_eq(key.edges.length(), 1)
+  assert_eq(key.edges.length(), 1)
   let edge = key.edges[0]
-  @debug.assert_eq(edge.src.to_strings(), ["super long shape id here"])
-  @debug.assert_eq(edge.dst.to_strings(), [
-    "super long shape id even longer here",
-  ])
-  @debug.assert_eq(edge.src_arrow, "")
-  @debug.assert_eq(edge.dst_arrow, ">")
+  assert_eq(edge.src.to_strings(), ["super long shape id here"])
+  assert_eq(edge.dst.to_strings(), ["super long shape id even longer here"])
+  assert_eq(edge.src_arrow, "")
+  assert_eq(edge.dst_arrow, ">")
 }
 
 ///|
@@ -688,21 +684,21 @@ test "parse field line continuation with escaped newline" {
     #|  ok does it work: hopefully
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 2)
+  assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is Key(first) else { fail("expected first key node") }
   guard first.key is Some(first_key) else { fail("expected first key path") }
-  @debug.assert_eq(first_key.to_strings(), ["meow ok super"])
+  assert_eq(first_key.to_strings(), ["meow ok super"])
   guard first.value is Some(Scalar(String(first_value))) else {
     fail("expected first scalar value")
   }
-  @debug.assert_eq(first_value.content(), "yes wow so cool")
+  assert_eq(first_value.content(), "yes wow so cool")
   guard ast.nodes[1] is Key(second) else { fail("expected second key node") }
   guard second.key is Some(second_key) else { fail("expected second key path") }
-  @debug.assert_eq(second_key.to_strings(), ["xd ok does it work"])
+  assert_eq(second_key.to_strings(), ["xd ok does it work"])
   guard second.value is Some(Scalar(String(second_value))) else {
     fail("expected second scalar value")
   }
-  @debug.assert_eq(second_value.content(), "hopefully")
+  assert_eq(second_value.content(), "hopefully")
 }
 
 ///|
@@ -712,21 +708,21 @@ test "parse one-line block string" {
     #|"""   hello  """
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 2)
+  assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is Key(key) else { fail("expected key node") }
   guard key.key is Some(kp) else { fail("expected key path") }
-  @debug.assert_eq(kp.to_strings(), ["a"])
+  assert_eq(kp.to_strings(), ["a"])
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected block string scalar")
   }
   guard sv is Block(bs) else { fail("expected block string") }
-  @debug.assert_eq(bs.quote, "")
-  @debug.assert_eq(bs.tag, "md")
-  @debug.assert_eq(bs.value, "hello")
+  assert_eq(bs.quote, "")
+  assert_eq(bs.tag, "md")
+  assert_eq(bs.value, "hello")
   guard ast.nodes[1] is BlockComment(_, text) else {
     fail("expected trailing block comment")
   }
-  @debug.assert_eq(text, "hello")
+  assert_eq(text, "hello")
 }
 
 ///|
@@ -741,18 +737,18 @@ test "parse block string with embedded delimiters" {
     #|"""
   let (ast, errors) = parse(source)
   assert_true(errors.is_empty())
-  @debug.assert_eq(ast.nodes.length(), 2)
+  assert_eq(ast.nodes.length(), 2)
   guard ast.nodes[0] is Key(key) else { fail("expected key node") }
   guard key.value is Some(Scalar(String(sv))) else {
     fail("expected scalar value")
   }
   guard sv is Block(bs) else { fail("expected block string") }
-  @debug.assert_eq(bs.quote, "|")
-  @debug.assert_eq(bs.value, "|pipe|")
+  assert_eq(bs.quote, "|")
+  assert_eq(bs.value, "|pipe|")
   guard ast.nodes[1] is BlockComment(_, text) else {
     fail("expected trailing block comment")
   }
-  @debug.assert_eq(text, "\nb: \"\"")
+  assert_eq(text, "\nb: \"\"")
 }
 
 ///|
