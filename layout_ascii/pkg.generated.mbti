@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/layout_ascii"
+package "moonbit-community/diago/layout_ascii"
 
 import {
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/graph",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/graph",
   "moonbitlang/core/debug",
 }
 
@@ -28,10 +28,10 @@ pub fn ArrowDir::to_repr(Self) -> @debug.Repr
 
 pub struct AsciiBox {
   id : String
-  x : Int
-  y : Int
-  width : Int
-  height : Int
+  x : Int32
+  y : Int32
+  width : Int32
+  height : Int32
   label : String
   shape : String
   is_container : Bool
@@ -41,22 +41,22 @@ pub struct AsciiBox {
 pub fn AsciiBox::to_repr(Self) -> @debug.Repr
 
 pub struct AsciiLayoutConfig {
-  min_box_width : Int
-  box_height : Int
-  h_padding : Int
-  v_spacing : Int
-  h_spacing : Int
-  min_width : Int
-  min_height : Int
+  min_box_width : Int32
+  box_height : Int32
+  h_padding : Int32
+  v_spacing : Int32
+  h_spacing : Int32
+  min_width : Int32
+  min_height : Int32
 } derive(@debug.Debug)
-pub fn AsciiLayoutConfig::from_parts(Int, Int, Int, Int, Int, Int, Int) -> Self
+pub fn AsciiLayoutConfig::from_parts(Int32, Int32, Int32, Int32, Int32, Int32, Int32) -> Self
 pub fn AsciiLayoutConfig::new() -> Self
 #deprecated
 pub fn AsciiLayoutConfig::to_repr(Self) -> @debug.Repr
 
 pub struct AsciiPlan {
-  canvas_width : Int
-  canvas_height : Int
+  canvas_width : Int32
+  canvas_height : Int32
   boxes : Array[AsciiBox]
   edges : Array[EdgePlan]
   legend : (@graph.LegendInput, LegendPlan)?
@@ -65,8 +65,8 @@ pub struct AsciiPlan {
 pub fn AsciiPlan::to_repr(Self) -> @debug.Repr
 
 pub struct EdgePlan {
-  index : Int
-  ref_idx : Int
+  index : Int32
+  ref_idx : Int32
   points : Array[GridPoint]
   arrow : (GridPoint, ArrowDir)?
   label : String
@@ -76,20 +76,20 @@ pub struct EdgePlan {
 pub fn EdgePlan::to_repr(Self) -> @debug.Repr
 
 pub struct GridPoint {
-  x : Int
-  y : Int
+  x : Int32
+  y : Int32
 } derive(@debug.Debug)
 #deprecated
 pub fn GridPoint::to_repr(Self) -> @debug.Repr
 
 pub struct LegendPlan {
-  x : Int
-  y : Int
-  width : Int
-  height : Int
+  x : Int32
+  y : Int32
+  width : Int32
+  height : Int32
   title : String?
-  rows : Array[(Int, Int, String)]
-  separators : Array[(Int, Int, Int)]
+  rows : Array[(Int32, Int32, String)]
+  separators : Array[(Int32, Int32, Int32)]
 } derive(@debug.Debug)
 #deprecated
 pub fn LegendPlan::to_repr(Self) -> @debug.Repr

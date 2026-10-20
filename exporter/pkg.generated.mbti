@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/exporter"
+package "moonbit-community/diago/exporter"
 
 import {
-  "Milky2018/diago/graph",
-  "Milky2018/diago/ir",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/ir",
   "moonbitlang/core/debug",
 }
 

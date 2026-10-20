@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/sugiyama"
+package "moonbit-community/diago/sugiyama"
 
 import {
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/graph",
-  "Milky2018/diago/layout_core",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/layout_core",
 }
 
 // Values
@@ -24,13 +24,13 @@ pub fn compute_container_ranks(@graph.GraphInput, Array[Array[String]]) -> Conta
 
 pub fn copy_layers(Array[Array[String]]) -> Array[Array[String]]
 
-pub fn count_all_crossings(Array[Array[String]], Map[String, Array[String]]) -> Int
+pub fn count_all_crossings(Array[Array[String]], Map[String, Array[String]]) -> Int32
 
 pub fn count_all_crossings_weighted(Array[Array[String]], Map[String, Array[String]], Map[(String, String), Double]) -> Double
 
-pub fn count_crossings(Array[String], Array[String], Array[(String, String)]) -> Int
+pub fn count_crossings(Array[String], Array[String], Array[(String, String)]) -> Int32
 
-pub fn count_crossings_fast(Array[String], Array[String], Array[(String, String)]) -> Int
+pub fn count_crossings_fast(Array[String], Array[String], Array[(String, String)]) -> Int32
 
 pub fn count_crossings_fenwick(Array[String], Array[String], Array[(String, String, Double)]) -> Double
 
@@ -42,11 +42,11 @@ pub fn get_effective_dst(@graph.EdgeInput, CycleBreakResult) -> String
 
 pub fn get_effective_src(@graph.EdgeInput, CycleBreakResult) -> String
 
-pub fn get_virtual_edge_index(String) -> Int?
+pub fn get_virtual_edge_index(String) -> Int32?
 
 pub fn insert_virtual_nodes(@graph.GraphInput, LayerAssignment, CycleBreakResult) -> VirtualNodeResult
 
-pub fn is_edge_reversed(CycleBreakResult, Int) -> Bool
+pub fn is_edge_reversed(CycleBreakResult, Int32) -> Bool
 
 pub fn is_virtual_node(String) -> Bool
 
@@ -60,8 +60,8 @@ pub fn place(@layout_core.LayoutProblem, (@graph.ObjectInput) -> (Double, Double
 
 // Types and methods
 pub(all) struct ContainerRanks {
-  starting_rank : Map[String, Int]
-  ending_rank : Map[String, Int]
+  starting_rank : Map[String, Int32]
+  ending_rank : Map[String, Int32]
 }
 
 pub(all) struct CoordinateResult {
@@ -74,27 +74,27 @@ pub(all) struct CrossingResult {
 }
 
 pub(all) struct CycleBreakResult {
-  reversed_edges : Array[Int]
+  reversed_edges : Array[Int32]
   had_cycles : Bool
 }
 
 pub(all) struct LayerAssignment {
-  layers : Map[String, Int]
-  layer_count : Int
+  layers : Map[String, Int32]
+  layer_count : Int32
   nodes_by_layer : Array[Array[String]]
 }
 
 pub(all) struct PlacementResult {
   boxes : Map[@layout_core.ObjectId, @graph.Box]
-  rank_by_id : Map[@layout_core.ObjectId, Int]
+  rank_by_id : Map[@layout_core.ObjectId, Int32]
   level_heights : Array[Double]
-  virtual_node_count : Int
-  reversed_edge_count : Int
+  virtual_node_count : Int32
+  reversed_edge_count : Int32
 }
 
 pub(all) struct VirtualNodeResult {
   layer_assignment : LayerAssignment
-  edge_virtual_nodes : Map[Int, Array[String]]
+  edge_virtual_nodes : Map[Int32, Array[String]]
   virtual_nodes : Map[String, Bool]
 }
 

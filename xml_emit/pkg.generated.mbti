@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/xml_emit"
+package "moonbit-community/diago/xml_emit"
 
 import {
   "moonbitlang/core/debug",
@@ -45,7 +45,7 @@ pub struct Element {
 }
 pub fn Element::attr(Self, String, String) -> Self
 pub fn Element::attr_if(Self, String, String) -> Self
-pub fn Element::attr_int(Self, String, Int) -> Self
+pub fn Element::attr_int(Self, String, Int32) -> Self
 pub fn Element::attr_num(Self, String, Double) -> Self
 pub fn Element::attr_num_if(Self, String, Double, Bool) -> Self
 pub fn Element::build(Self) -> String

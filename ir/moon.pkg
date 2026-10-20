@@ -1,10 +1,10 @@
 import {
-  "Milky2018/diago/ast",
-  "Milky2018/diago/lexer",
-  "Milky2018/diago/parser",
+  "moonbit-community/diago/ast",
+  "moonbit-community/diago/lexer",
+  "moonbit-community/diago/parser",
   "moonbitlang/core/string",
 }
 
 import {
-  "Milky2018/diago/lexer",
+  "moonbit-community/diago/lexer",
 } for "wbtest"

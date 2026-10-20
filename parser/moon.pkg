@@ -1,5 +1,5 @@
 import {
-  "Milky2018/diago/lexer",
-  "Milky2018/diago/ast",
+  "moonbit-community/diago/lexer",
+  "moonbit-community/diago/ast",
   "moonbitlang/core/string",
 }

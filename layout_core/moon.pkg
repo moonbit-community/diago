@@ -1,8 +1,8 @@
 import {
-  "Milky2018/diago/graph",
+  "moonbit-community/diago/graph",
 }
 
 import {
-  "Milky2018/diago/layout_core",
-  "Milky2018/diago/graph",
+  "moonbit-community/diago/layout_core",
+  "moonbit-community/diago/graph",
 } for "test"

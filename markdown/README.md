@@ -139,3 +139,10 @@ File imports inside `diago` fences are not supported. The package does not read
 diagram-relative files or make network requests. An import reports `DIAGO_IR`
 and leaves the code fence in place. Sketch rendering and LaTeX labels are also
 unsupported and report `DIAGO_UNSUPPORTED_FEATURE`.
+
+## Development dependencies
+
+The development dependency override selects Vite 6.4.4 for VitePress 1.x to
+avoid advisories in its default Vite 5 dependency. The Vue plugin supports
+Vite 6; the adapter tests exercise both the development server and production
+build. This override is not included in the published runtime dependencies.

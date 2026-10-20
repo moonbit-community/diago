@@ -7,14 +7,25 @@ It supports a D2-compatible text format and renders diagrams through multiple la
 
 This repository contains:
 
-- A backend-independent library facade (`Milky2018/diago`) for parsing, layout, and rendering
-- A native filesystem adapter (`Milky2018/diago/fs`) for file loading and relative imports
+- A backend-independent library facade (`moonbit-community/diago`) for parsing, layout, and rendering
+- A native filesystem adapter (`moonbit-community/diago/fs`) for file loading and relative imports
 - A CLI (`cmd/diago`) with explicit subcommands (`render`, `fmt`, `validate`, `layout`, `themes`, `version`)
 - A WASM-based playground (`web/`) deployed via GitHub Pages
 - A Node.js Markdown package (`markdown/`) for markdown-it, remark, and VitePress
 - Multiple layout engines: `dagre`, `elk`, and `railway`
 
 ## Installation
+
+Add the community-maintained module to your project:
+
+```bash
+moon add moonbit-community/diago@0.4.0
+```
+
+This replaces `Milky2018/diago`. Existing users should update their dependency
+and import paths to `moonbit-community/diago`; the package layout is unchanged.
+
+To build this repository:
 
 ```bash
 moon update

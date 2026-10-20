@@ -1,12 +1,12 @@
 import {
-  "Milky2018/diago/ast",
-  "Milky2018/diago/compiler",
-  "Milky2018/diago/ir",
-  "Milky2018/diago/lexer",
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/graph",
-  "Milky2018/diago/lib",
+  "moonbit-community/diago/ast",
+  "moonbit-community/diago/compiler",
+  "moonbit-community/diago/ir",
+  "moonbit-community/diago/lexer",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/lib",
   "moonbitlang/core/debug",
 }
 

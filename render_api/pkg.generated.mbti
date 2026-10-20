@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/render_api"
+package "moonbit-community/diago/render_api"
 
 import {
-  "Milky2018/diago/diagram",
+  "moonbit-community/diago/diagram",
   "moonbitlang/core/debug",
 }
 
@@ -34,7 +34,7 @@ pub impl Show for RenderError
 pub struct RenderConfig {
   padding : Double
   font_family : String
-  font_size : Int
+  font_size : Int32
   background : String
   dark_mode : Bool
 } derive(@debug.Debug)

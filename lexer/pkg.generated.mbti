@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/lexer"
+package "moonbit-community/diago/lexer"
 
 import {
   "moonbitlang/core/debug",
@@ -30,13 +30,13 @@ pub fn Lexer::tokenize(Self) -> (Array[Token], Array[LexError])
 pub fn Lexer::with_path(String, String) -> Self
 
 pub struct Position {
-  line : Int
-  column : Int
-  offset : Int
+  line : Int32
+  column : Int32
+  offset : Int32
 } derive(Eq, @debug.Debug)
 #deprecated
 pub fn Position::equal(Self, Self) -> Bool
-pub fn Position::new(Int, Int, Int) -> Self
+pub fn Position::new(Int32, Int32, Int32) -> Self
 #deprecated
 pub fn Position::not_equal(Self, Self) -> Bool
 #deprecated

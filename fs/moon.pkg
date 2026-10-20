@@ -1,6 +1,6 @@
 import {
-  "Milky2018/diago",
-  "Milky2018/diago/ir",
+  "moonbit-community/diago",
+  "moonbit-community/diago/ir",
   "moonbitlang/async/fs" @async_fs,
   "moonbitlang/x/path" @system_path,
 }

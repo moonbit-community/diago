@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/layout_sequence"
+package "moonbit-community/diago/layout_sequence"
 
 import {
-  "Milky2018/diago/graph",
+  "moonbit-community/diago/graph",
 }
 
 // Values

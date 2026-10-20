@@ -1,9 +1,9 @@
 import {
-  "Milky2018/diago/graph",
-  "Milky2018/diago/text_metrics",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/text_metrics",
 }
 
 import {
-  "Milky2018/diago/graph",
-  "Milky2018/diago/layout_sequence",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/layout_sequence",
 } for "test"

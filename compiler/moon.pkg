@@ -1,8 +1,8 @@
 import {
-  "Milky2018/diago/ast",
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/exporter",
-  "Milky2018/diago/graph",
-  "Milky2018/diago/ir",
-  "Milky2018/diago/parser",
+  "moonbit-community/diago/ast",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/exporter",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/ir",
+  "moonbit-community/diago/parser",
 }

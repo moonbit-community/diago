@@ -1,13 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/themes"
+package "moonbit-community/diago/themes"
 
 import {
-  "Milky2018/diago/diagram",
+  "moonbit-community/diago/diagram",
   "moonbitlang/core/debug",
 }
 
 // Values
-pub fn get_theme(Int) -> Theme
+pub fn get_theme(Int32) -> Theme
 
 pub fn get_theme_by_name(String) -> Theme
 
@@ -53,7 +53,7 @@ pub fn SpecialRules::default() -> Self
 pub fn SpecialRules::to_repr(Self) -> @debug.Repr
 
 pub struct Theme {
-  id : Int
+  id : Int32
   name : String
   colors : ColorPalette
   rules : SpecialRules
@@ -61,10 +61,10 @@ pub struct Theme {
 } derive(@debug.Debug)
 pub fn Theme::accent_color(Self) -> String
 pub fn Theme::background_color(Self) -> String
-pub fn Theme::container_fill(Self, Int) -> String
+pub fn Theme::container_fill(Self, Int32) -> String
 pub fn Theme::container_stroke(Self) -> String
 pub fn Theme::fill_color(Self) -> String
-pub fn Theme::get_id(Self) -> Int
+pub fn Theme::get_id(Self) -> Int32
 pub fn Theme::get_name(Self) -> String
 pub fn Theme::is_dark(Self) -> Bool
 pub fn Theme::resolve(Self, String) -> String

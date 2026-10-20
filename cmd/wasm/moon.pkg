@@ -1,7 +1,7 @@
 import {
-  "Milky2018/diago",
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/engine_api",
+  "moonbit-community/diago",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/engine_api",
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/json",
 }

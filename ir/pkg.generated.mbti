@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/ir"
+package "moonbit-community/diago/ir"
 
 import {
-  "Milky2018/diago/ast",
-  "Milky2018/diago/lexer",
+  "moonbit-community/diago/ast",
+  "moonbit-community/diago/lexer",
   "moonbitlang/core/debug",
 }
 
@@ -88,7 +88,7 @@ pub struct EdgeID {
   dst_path : Array[String]
   dst_path_syntax : Array[@ast.StringValue]
   dst_arrow : Bool
-  index : Int?
+  index : Int32?
   glob : Bool
 } derive(Eq, @debug.Debug)
 pub fn EdgeID::copy(Self) -> Self
@@ -103,13 +103,13 @@ pub fn EdgeID::src_path_syntax(Self) -> Array[@ast.StringValue]
 #deprecated
 pub fn EdgeID::to_repr(Self) -> @debug.Repr
 pub fn EdgeID::with_glob(Array[String], Array[String], Bool, Bool, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
-pub fn EdgeID::with_index(Array[String], Array[String], Bool, Bool, Int, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
+pub fn EdgeID::with_index(Array[String], Array[String], Bool, Bool, Int32, src_path_syntax? : Array[@ast.StringValue]?, dst_path_syntax? : Array[@ast.StringValue]?) -> Self
 
 pub struct EdgeReference {
   range : @lexer.Range
   edge : @ast.Edge?
   context : RefContext?
-  edge_index : Int
+  edge_index : Int32
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
@@ -118,8 +118,8 @@ pub fn EdgeReference::ast(Self) -> @ast.Node?
 pub fn EdgeReference::context(Self) -> RefContext?
 #deprecated
 pub fn EdgeReference::equal(Self, Self) -> Bool
-pub fn EdgeReference::from_ast(@ast.Edge, Int, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
-pub fn EdgeReference::new(@lexer.Range, Int, Bool) -> Self
+pub fn EdgeReference::from_ast(@ast.Edge, Int32, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
+pub fn EdgeReference::new(@lexer.Range, Int32, Bool) -> Self
 #deprecated
 pub fn EdgeReference::not_equal(Self, Self) -> Bool
 #deprecated
@@ -165,7 +165,7 @@ pub struct FieldReference {
   syntax : @ast.StringValue?
   key_path : @ast.KeyPath?
   context : RefContext?
-  key_path_index : Int
+  key_path_index : Int32
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
@@ -174,8 +174,8 @@ pub fn FieldReference::ast(Self) -> @ast.Node?
 pub fn FieldReference::context(Self) -> RefContext?
 #deprecated
 pub fn FieldReference::equal(Self, Self) -> Bool
-pub fn FieldReference::from_ast(@ast.StringValue, @ast.KeyPath, Int, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
-pub fn FieldReference::new(@lexer.Range, String, Int, Bool) -> Self
+pub fn FieldReference::from_ast(@ast.StringValue, @ast.KeyPath, Int32, Bool, RefContext, due_to_glob? : Bool, due_to_lazy_glob? : Bool) -> Self
+pub fn FieldReference::new(@lexer.Range, String, Int32, Bool) -> Self
 #deprecated
 pub fn FieldReference::not_equal(Self, Self) -> Bool
 #deprecated
@@ -294,7 +294,7 @@ pub(all) enum NodePathSegment {
   EdgeStep(EdgeID)
   PrimaryStep
   CompositeStep
-  ArrayItemStep(Int)
+  ArrayItemStep(Int32)
 } derive(Eq, @debug.Debug)
 #deprecated
 pub fn NodePathSegment::equal(Self, Self) -> Bool
@@ -343,7 +343,7 @@ pub struct Scalar {
 } derive(Eq, @debug.Debug)
 pub fn Scalar::as_bool(Self) -> Bool?
 pub fn Scalar::as_double(Self) -> Double?
-pub fn Scalar::as_int(Self) -> Int?
+pub fn Scalar::as_int(Self) -> Int32?
 pub fn Scalar::as_string_value(Self) -> @ast.StringValue?
 pub fn Scalar::ast(Self) -> @ast.Node?
 pub fn Scalar::at(@lexer.Range, ScalarValue) -> Self

@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/formatter"
+package "moonbit-community/diago/formatter"
 
 import {
-  "Milky2018/diago/ast",
+  "moonbit-community/diago/ast",
 }
 
 // Values
@@ -13,7 +13,7 @@ pub fn format(@ast.Map, FormatConfig) -> String
 // Types and methods
 pub struct FormatConfig {
   indent : String
-  max_width : Int
+  max_width : Int32
 }
 pub fn FormatConfig::new() -> Self
 

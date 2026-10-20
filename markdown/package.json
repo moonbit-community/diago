@@ -1,6 +1,6 @@
 {
   "name": "diago",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "Render Diago diagrams in Markdown with markdown-it, remark, or VitePress",
   "license": "Apache-2.0",
   "type": "module",
@@ -57,17 +57,17 @@
     }
   },
   "devDependencies": {
-    "@types/markdown-it": "14.1.2",
+    "@types/markdown-it": "14.2.0",
     "@types/mdast": "4.0.4",
-    "@types/node": "26.2.0",
-    "@vue/server-renderer": "3.5.41",
-    "markdown-it": "15.0.0",
+    "@types/node": "26.6.5",
+    "@vue/server-renderer": "3.5.44",
+    "markdown-it": "15.0.3",
     "remark": "15.0.1",
     "remark-html": "16.0.1",
     "typescript": "7.0.2",
     "unified": "11.0.5",
     "vitepress": "1.6.4",
-    "vue": "3.5.41"
+    "vue": "3.5.44"
   },
   "repository": {
     "type": "git",
@@ -91,5 +91,10 @@
     "vitepress",
     "diagram",
     "wasm"
-  ]
+  ],
+  "overrides": {
+    "vitepress": {
+      "vite": "6.4.4"
+    }
+  }
 }

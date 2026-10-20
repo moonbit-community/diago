@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/parser"
+package "moonbit-community/diago/parser"
 
 import {
-  "Milky2018/diago/ast",
-  "Milky2018/diago/lexer",
+  "moonbit-community/diago/ast",
+  "moonbit-community/diago/lexer",
   "moonbitlang/core/debug",
 }
 

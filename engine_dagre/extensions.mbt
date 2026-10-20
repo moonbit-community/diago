@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-pub extend DagreEngine with @Milky2018/diago/engine_api.LayoutEngine::{
+pub extend DagreEngine with @moonbit-community/diago/engine_api.LayoutEngine::{
   engine_name,
   features,
   layout,

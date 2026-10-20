@@ -1,5 +1,5 @@
 import {
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/renderer_ascii",
-  "Milky2018/diago/render_api",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/renderer_ascii",
+  "moonbit-community/diago/render_api",
 }

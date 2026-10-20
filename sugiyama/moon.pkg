@@ -1,13 +1,13 @@
 import {
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/graph",
-  "Milky2018/diago/layout_core",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/layout_core",
 }
 
 import {
-  "Milky2018/diago/parser",
-  "Milky2018/diago/ir",
-  "Milky2018/diago/exporter",
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/layout_core",
+  "moonbit-community/diago/parser",
+  "moonbit-community/diago/ir",
+  "moonbit-community/diago/exporter",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/layout_core",
 } for "test"

@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/fs"
+package "moonbit-community/diago/fs"
 
 import {
-  "Milky2018/diago",
-  "Milky2018/diago/ir",
+  "moonbit-community/diago",
+  "moonbit-community/diago/ir",
 }
 
 // Values

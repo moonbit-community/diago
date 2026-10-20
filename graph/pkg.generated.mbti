@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/graph"
+package "moonbit-community/diago/graph"
 
 import {
-  "Milky2018/diago/lexer",
+  "moonbit-community/diago/lexer",
   "moonbitlang/core/debug",
 }
 
@@ -13,7 +13,7 @@ pub fn display_key_segment(String) -> String
 
 pub fn split_syntax_path(String) -> Array[String]
 
-pub fn syntax_path_depth(String) -> Int
+pub fn syntax_path_depth(String) -> Int32
 
 pub fn syntax_path_last(String) -> String
 
@@ -87,7 +87,7 @@ pub fn Box::zero() -> Self
 pub impl Show for Box
 
 pub struct EdgeInput {
-  index : Int
+  index : Int32
   src_id : String
   dst_id : String
   src_id_syntax : String
@@ -113,25 +113,25 @@ pub struct EdgeInput {
   route : Array[Point]
   bend_points : Array[Point]?
   is_curve : Bool
-  z_index : Int
-  reference_count : Int
+  z_index : Int32
+  reference_count : Int32
   label_box : Box?
-  src_column_index : Int?
-  dst_column_index : Int?
+  src_column_index : Int32?
+  dst_column_index : Int32?
 } derive(@debug.Debug)
 pub fn EdgeInput::from_model(EdgeModel) -> Self
-pub fn EdgeInput::from_parts(Int, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int, Int, Box?, Int?, Int?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference], icon? : String?, icon_position? : String?, icon_border_radius? : Double?, link? : String?, classes? : Array[String]) -> Self
+pub fn EdgeInput::from_parts(Int32, String, String, Bool, Bool, ArrowheadType, ArrowheadType, String?, String?, String?, String?, String?, String?, String, StyleInput, Array[Point], Array[Point]?, Bool, Int32, Int32, Box?, Int32?, Int32?, src_id_syntax? : String, dst_id_syntax? : String, references? : Array[EdgeReference], icon? : String?, icon_position? : String?, icon_border_radius? : Double?, link? : String?, classes? : Array[String]) -> Self
 pub fn EdgeInput::get_dst_id(Self) -> String
 pub fn EdgeInput::get_label_box(Self) -> Box?
 pub fn EdgeInput::get_src_id(Self) -> String
 pub fn EdgeInput::lookup_dst_id(Self) -> String
 pub fn EdgeInput::lookup_src_id(Self) -> String
-pub fn EdgeInput::new(Int, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
+pub fn EdgeInput::new(Int32, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
 #deprecated
 pub fn EdgeInput::to_repr(Self) -> @debug.Repr
 
 pub struct EdgeModel {
-  index : Int
+  index : Int32
   src_id : String
   dst_id : String
   src_id_syntax : String
@@ -157,13 +157,13 @@ pub struct EdgeModel {
   route : Array[Point]
   bend_points : Array[Point]?
   is_curve : Bool
-  z_index : Int
-  reference_count : Int
+  z_index : Int32
+  reference_count : Int32
   label_box : Box?
-  src_column_index : Int?
-  dst_column_index : Int?
+  src_column_index : Int32?
+  dst_column_index : Int32?
 } derive(@debug.Debug)
-pub fn EdgeModel::new(Int, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
+pub fn EdgeModel::new(Int32, String, String, Bool, Bool, src_id_syntax? : String, dst_id_syntax? : String) -> Self
 #deprecated
 pub fn EdgeModel::to_repr(Self) -> @debug.Repr
 pub fn EdgeModel::with_label(Self, String) -> Self
@@ -172,7 +172,7 @@ pub fn EdgeModel::with_route(Self, Array[Point]) -> Self
 
 pub struct EdgeReference {
   range : @lexer.Range
-  edge_index : Int
+  edge_index : Int32
   scope_abs_id_syntax : String?
   source_path : String?
   primary : Bool
@@ -182,7 +182,7 @@ pub struct EdgeReference {
 pub fn EdgeReference::contained_by(Self, String) -> Bool
 #deprecated
 pub fn EdgeReference::equal(Self, Self) -> Bool
-pub fn EdgeReference::new(@lexer.Range, Int, String?, String?, Bool, Bool, Bool) -> Self
+pub fn EdgeReference::new(@lexer.Range, Int32, String?, String?, Bool, Bool, Bool) -> Self
 #deprecated
 pub fn EdgeReference::not_equal(Self, Self) -> Bool
 #deprecated
@@ -291,10 +291,10 @@ pub fn LayerModel::to_repr(Self) -> @debug.Repr
 pub struct LayoutPatch {
   nodes : Map[String, Box]
   node_labels : Map[String, Box]
-  edges : Map[Int, Array[Point]]
-  edge_bend_points : Map[Int, Array[Point]]
-  edge_curves : Map[Int, Bool]
-  edge_labels : Map[Int, Box]
+  edges : Map[Int32, Array[Point]]
+  edge_bend_points : Map[Int32, Array[Point]]
+  edge_curves : Map[Int32, Bool]
+  edge_labels : Map[Int32, Box]
   activation_boxes : Array[(String, Box)]
   sequence_notes : Array[(String, String, Box)]
   sequence_fragments : Array[SequenceFragmentLayout]
@@ -317,7 +317,7 @@ pub fn Legend::add_connection(Self, ArrowheadType, ArrowheadType, String) -> Uni
 pub fn Legend::add_entry(Self, LegendEntry) -> Unit
 pub fn Legend::add_separator(Self) -> Unit
 pub fn Legend::add_shape(Self, ShapeType, String) -> Unit
-pub fn Legend::entry_count(Self) -> Int
+pub fn Legend::entry_count(Self) -> Int32
 pub fn Legend::is_empty(Self) -> Bool
 pub fn Legend::new() -> Self
 pub fn Legend::set_entry_gap(Self, Double) -> Self
@@ -333,11 +333,11 @@ pub fn Legend::with_position(LegendPosition) -> Self
 
 pub(all) enum LegendEntry {
   ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : StyleInput?)
-  ConnectionEntry(src_id~ : String, dst_id~ : String, index~ : Int, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
+  ConnectionEntry(src_id~ : String, dst_id~ : String, index~ : Int32, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
   CustomEntry(icon~ : String, label~ : String)
   Separator
 } derive(@debug.Debug)
-pub fn LegendEntry::connection(ArrowheadType, ArrowheadType, String, StyleInput?, src_id? : String, dst_id? : String, index? : Int, src_arrow_enabled? : Bool, dst_arrow_enabled? : Bool) -> Self
+pub fn LegendEntry::connection(ArrowheadType, ArrowheadType, String, StyleInput?, src_id? : String, dst_id? : String, index? : Int32, src_arrow_enabled? : Bool, dst_arrow_enabled? : Bool) -> Self
 pub fn LegendEntry::custom(String, String) -> Self
 pub fn LegendEntry::separator() -> Self
 pub fn LegendEntry::shape(ShapeType, String, StyleInput?, id? : String) -> Self
@@ -346,11 +346,11 @@ pub fn LegendEntry::to_repr(Self) -> @debug.Repr
 
 pub enum LegendEntryInput {
   ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : StyleInput?)
-  ConnectionEntry(src_id~ : String, dst_id~ : String, index~ : Int, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
+  ConnectionEntry(src_id~ : String, dst_id~ : String, index~ : Int32, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : ArrowheadType, dst_arrow~ : ArrowheadType, label~ : String, style~ : StyleInput?)
   CustomEntry(icon~ : String, label~ : String)
   Separator
 } derive(@debug.Debug)
-pub fn LegendEntryInput::connection(ArrowheadType, ArrowheadType, String, StyleInput?, src_id? : String, dst_id? : String, index? : Int, src_arrow_enabled? : Bool, dst_arrow_enabled? : Bool) -> Self
+pub fn LegendEntryInput::connection(ArrowheadType, ArrowheadType, String, StyleInput?, src_id? : String, dst_id? : String, index? : Int32, src_arrow_enabled? : Bool, dst_arrow_enabled? : Bool) -> Self
 pub fn LegendEntryInput::custom(String, String) -> Self
 pub fn LegendEntryInput::separator() -> Self
 pub fn LegendEntryInput::shape(ShapeType, String, StyleInput?, id? : String) -> Self
@@ -367,7 +367,7 @@ pub struct LegendInput {
   entry_gap : Double
   icon_size : Double
 } derive(@debug.Debug)
-pub fn LegendInput::entry_count(Self) -> Int
+pub fn LegendInput::entry_count(Self) -> Int32
 pub fn LegendInput::from_model(LegendModel) -> Self
 pub fn LegendInput::from_parts(String?, LegendPosition, Array[LegendEntryInput], String?, String?, Double, Double, Double) -> Self
 pub fn LegendInput::is_empty(Self) -> Bool
@@ -416,7 +416,7 @@ pub struct ObjectInput {
   box : Box?
   label_box : Box?
   child_ids : Array[String]
-  z_index : Int
+  z_index : Int32
   icon : String?
   icon_position : String?
   tooltip : String?
@@ -426,21 +426,21 @@ pub struct ObjectInput {
   classes : Array[String]
   language : String?
   sql_constraints : Array[String]
-  grid_rows : Int?
-  grid_columns : Int?
+  grid_rows : Int32?
+  grid_columns : Int32?
   grid_row_directed : Bool?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
-  grid_column_span : Int?
-  grid_row_span : Int?
+  grid_column_span : Int32?
+  grid_row_span : Int32?
   near : String?
-  top : Int?
-  left : Int?
+  top : Int32?
+  left : Int32?
   direction : String?
 } derive(@debug.Debug)
 pub fn ObjectInput::from_model(ObjectModel) -> Self
-pub fn ObjectInput::from_parts(String, String, ShapeType, StyleInput, Box?, Box?, Array[String], Int, String?, String?, String?, Array[String], Int?, Int?, Double?, Double?, Double?, Int?, Int?, String?, Int?, Int?, direction? : String?, language? : String?, sql_constraints? : Array[String], id_val? : String, id_syntax? : String, abs_id_syntax? : String, references? : Array[ObjectReference], icon_position? : String?, tooltip_position? : String?, label_position? : String?, grid_row_directed? : Bool?) -> Self
+pub fn ObjectInput::from_parts(String, String, ShapeType, StyleInput, Box?, Box?, Array[String], Int32, String?, String?, String?, Array[String], Int32?, Int32?, Double?, Double?, Double?, Int32?, Int32?, String?, Int32?, Int32?, direction? : String?, language? : String?, sql_constraints? : Array[String], id_val? : String, id_syntax? : String, abs_id_syntax? : String, references? : Array[ObjectReference], icon_position? : String?, tooltip_position? : String?, label_position? : String?, grid_row_directed? : Bool?) -> Self
 pub fn ObjectInput::get_box(Self) -> Box?
 pub fn ObjectInput::get_label_box(Self) -> Box?
 pub fn ObjectInput::lookup_id(Self) -> String
@@ -461,7 +461,7 @@ pub struct ObjectModel {
   box : Box?
   label_box : Box?
   children : Array[ObjectModel]
-  z_index : Int
+  z_index : Int32
   icon : String?
   icon_position : String?
   tooltip : String?
@@ -471,16 +471,16 @@ pub struct ObjectModel {
   classes : Array[String]
   language : String?
   sql_constraints : Array[String]
-  grid_rows : Int?
-  grid_columns : Int?
+  grid_rows : Int32?
+  grid_columns : Int32?
   grid_gap : Double?
   horizontal_gap : Double?
   vertical_gap : Double?
-  grid_column_span : Int?
-  grid_row_span : Int?
+  grid_column_span : Int32?
+  grid_row_span : Int32?
   near : String?
-  top : Int?
-  left : Int?
+  top : Int32?
+  left : Int32?
   direction : String?
 } derive(@debug.Debug)
 pub fn ObjectModel::add_child(Self, Self) -> Self
@@ -493,7 +493,7 @@ pub fn ObjectModel::with_label_box(Self, Box?) -> Self
 
 pub struct ObjectReference {
   range : @lexer.Range
-  key_path_index : Int
+  key_path_index : Int32
   in_edge : Bool
   scope_abs_id_syntax : String?
   source_path : String?
@@ -504,7 +504,7 @@ pub struct ObjectReference {
 pub fn ObjectReference::contained_by(Self, String) -> Bool
 #deprecated
 pub fn ObjectReference::equal(Self, Self) -> Bool
-pub fn ObjectReference::new(@lexer.Range, Int, Bool, String?, String?, Bool, Bool, Bool) -> Self
+pub fn ObjectReference::new(@lexer.Range, Int32, Bool, String?, String?, Bool, Bool, Bool) -> Self
 #deprecated
 pub fn ObjectReference::not_equal(Self, Self) -> Bool
 #deprecated
@@ -544,7 +544,7 @@ pub fn Route::add_waypoint(Self, Waypoint) -> Unit
 pub fn Route::end(Self) -> Waypoint?
 pub fn Route::from_points(Array[Point], RouteStyle, ArrowheadType, ArrowheadType) -> Self
 pub fn Route::is_empty(Self) -> Bool
-pub fn Route::length(Self) -> Int
+pub fn Route::length(Self) -> Int32
 pub fn Route::new() -> Self
 pub fn Route::start(Self) -> Waypoint?
 pub fn Route::to_points(Self) -> Array[Point]
@@ -587,12 +587,12 @@ pub fn ScenarioModel::to_repr(Self) -> @debug.Repr
 pub struct SequenceFragmentInput {
   fragment_type : String
   condition : String?
-  start_index : Int
-  end_index : Int
+  start_index : Int32
+  end_index : Int32
   operands : Array[FragmentOperandInput]
 } derive(@debug.Debug)
 pub fn SequenceFragmentInput::from_model(SequenceFragmentModel) -> Self
-pub fn SequenceFragmentInput::new(String, String?, Int, Int, Array[FragmentOperandInput]) -> Self
+pub fn SequenceFragmentInput::new(String, String?, Int32, Int32, Array[FragmentOperandInput]) -> Self
 #deprecated
 pub fn SequenceFragmentInput::to_repr(Self) -> @debug.Repr
 
@@ -600,11 +600,11 @@ pub struct SequenceFragmentLayout {
   fragment_type : String
   condition : String?
   bbox : Box?
-  start_index : Int
-  end_index : Int
+  start_index : Int32
+  end_index : Int32
   operands : Array[FragmentOperandLayout]
 } derive(@debug.Debug)
-pub fn SequenceFragmentLayout::new(String, String?, Box?, Int, Int, Array[FragmentOperandLayout]) -> Self
+pub fn SequenceFragmentLayout::new(String, String?, Box?, Int32, Int32, Array[FragmentOperandLayout]) -> Self
 #deprecated
 pub fn SequenceFragmentLayout::to_repr(Self) -> @debug.Repr
 
@@ -612,11 +612,11 @@ pub struct SequenceFragmentModel {
   fragment_type : String
   condition : String?
   bbox : Box?
-  start_index : Int
-  end_index : Int
+  start_index : Int32
+  end_index : Int32
   operands : Array[FragmentOperandModel]
 } derive(@debug.Debug)
-pub fn SequenceFragmentModel::new(String, Int, Int) -> Self
+pub fn SequenceFragmentModel::new(String, Int32, Int32) -> Self
 #deprecated
 pub fn SequenceFragmentModel::to_repr(Self) -> @debug.Repr
 
@@ -751,15 +751,15 @@ pub struct StyleValue {
 } derive(Eq, @debug.Debug)
 pub fn StyleValue::as_bool(Self) -> Bool?
 pub fn StyleValue::as_double(Self) -> Double?
-pub fn StyleValue::as_int(Self) -> Int?
+pub fn StyleValue::as_int(Self) -> Int32?
 #deprecated
 pub fn StyleValue::equal(Self, Self) -> Bool
 pub fn StyleValue::from_bool(Bool) -> Self
 pub fn StyleValue::from_bool_opt(Bool?) -> Self?
 pub fn StyleValue::from_double(Double) -> Self
 pub fn StyleValue::from_double_opt(Double?) -> Self?
-pub fn StyleValue::from_int(Int) -> Self
-pub fn StyleValue::from_int_opt(Int?) -> Self?
+pub fn StyleValue::from_int(Int32) -> Self
+pub fn StyleValue::from_int_opt(Int32?) -> Self?
 pub fn StyleValue::from_string(String) -> Self
 pub fn StyleValue::from_string_opt(String?) -> Self?
 pub fn StyleValue::get_range(Self) -> @lexer.Range

@@ -1,22 +1,22 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/cmd/wasm"
+package "moonbit-community/diago/cmd/wasm"
 
 // Values
-pub fn abi_version() -> Int
+pub fn abi_version() -> Int32
 
-pub fn highlight(Int) -> Int
+pub fn highlight(Int32) -> Int32
 
-pub fn render(Int) -> Int
+pub fn render(Int32) -> Int32
 
-pub fn result_error_kind() -> Int
+pub fn result_error_kind() -> Int32
 
-pub fn result_len() -> Int
+pub fn result_len() -> Int32
 
-pub fn result_required_len() -> Int
+pub fn result_required_len() -> Int32
 
-pub fn transfer_capacity() -> Int
+pub fn transfer_capacity() -> Int32
 
-pub fn transfer_ptr() -> Int
+pub fn transfer_ptr() -> Int32
 
 // Errors
 

@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/ast"
+package "moonbit-community/diago/ast"
 
 import {
-  "Milky2018/diago/lexer",
+  "moonbit-community/diago/lexer",
   "moonbitlang/core/debug",
 }
 
@@ -105,12 +105,12 @@ pub fn Edge::to_repr(Self) -> @debug.Repr
 
 pub struct EdgeIndex {
   range : @lexer.Range
-  index : Int?
+  index : Int32?
   glob : Bool
 } derive(Eq, @debug.Debug)
 #deprecated
 pub fn EdgeIndex::equal(Self, Self) -> Bool
-pub fn EdgeIndex::new(@lexer.Range, Int?, Bool) -> Self
+pub fn EdgeIndex::new(@lexer.Range, Int32?, Bool) -> Self
 #deprecated
 pub fn EdgeIndex::not_equal(Self, Self) -> Bool
 #deprecated

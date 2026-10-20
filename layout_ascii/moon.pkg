@@ -1,4 +1,4 @@
 import {
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/graph",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/graph",
 }

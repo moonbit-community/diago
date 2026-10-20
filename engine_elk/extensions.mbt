@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-pub extend ElkEngine with @Milky2018/diago/engine_api.LayoutEngine::{
+pub extend ElkEngine with @moonbit-community/diago/engine_api.LayoutEngine::{
   engine_name,
   features,
   layout,

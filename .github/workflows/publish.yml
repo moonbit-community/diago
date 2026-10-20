@@ -1,0 +1,82 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate the package without publishing it
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-mooncakes
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require main branch
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Error: packages must be published from main."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s latest
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: Validate
+        shell: bash
+        run: |
+          moon version --all
+          moon update
+          moon check --target all --deny-warn
+          moon test --target all
+          moon info
+          moon fmt --check
+          git diff --exit-code
+          if [ -n "$(git ls-files --others --exclude-standard -- '*.mbti')" ]; then
+            echo "Error: moon info generated untracked interface files."
+            exit 1
+          fi
+          moon package
+
+      - name: Publish to Mooncakes
+        env:
+          MOONCAKES_CREDENTIALS: ${{ secrets.MOONCAKES_MOONBIT_COMMUNITY_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        shell: bash
+        run: |
+          if [ -z "$MOONCAKES_CREDENTIALS" ]; then
+            echo "Error: MOONCAKES_MOONBIT_COMMUNITY_TOKEN secret is not set."
+            echo "Ask an organization admin to grant this repository access."
+            exit 1
+          fi
+          credentials="$HOME/.moon/credentials.json"
+          mkdir -p "$(dirname "$credentials")"
+          trap 'rm -f "$credentials"' EXIT
+          (umask 077; printf '%s\n' "$MOONCAKES_CREDENTIALS" > "$credentials")
+          if [ "$DRY_RUN" = "true" ]; then
+            dry_run_log="$RUNNER_TEMP/mooncakes-dry-run.log"
+            if moon publish --dry-run > "$dry_run_log" 2>&1; then
+              cat "$dry_run_log"
+            else
+              cat "$dry_run_log"
+              # Some CLI versions treat the registry's successful HTTP 202 as an error.
+              # Accept only the explicit dry-run success response, not other failures.
+              grep -Fq 'Server status: 202 Accepted, detail: Dry run completed successfully. No changes were made.' "$dry_run_log"
+            fi
+          else
+            moon publish
+          fi

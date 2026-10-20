@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/cmd/diago"
+package "moonbit-community/diago/cmd/diago"
 
 import {
   "moonbitlang/core/debug",
@@ -21,4 +21,3 @@ type RenderOutputWritePlan
 // Type aliases
 
 // Traits
-

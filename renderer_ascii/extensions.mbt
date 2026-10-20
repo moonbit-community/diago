@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-pub extend AsciiRenderer with @Milky2018/diago/render_api.Renderer::{
+pub extend AsciiRenderer with @moonbit-community/diago/render_api.Renderer::{
   render,
   format_name,
 }

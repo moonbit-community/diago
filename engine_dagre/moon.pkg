@@ -1,14 +1,14 @@
 import {
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/graph",
-  "Milky2018/diago/layout_sequence",
-  "Milky2018/diago/text_metrics",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/layout_sequence",
+  "moonbit-community/diago/text_metrics",
   "moonbit-community/moon_dagre",
   "moonbitlang/core/math",
 }
 
 import {
-  "Milky2018/diago/parser",
-  "Milky2018/diago/ir",
-  "Milky2018/diago/exporter",
+  "moonbit-community/diago/parser",
+  "moonbit-community/diago/ir",
+  "moonbit-community/diago/exporter",
 } for "test"

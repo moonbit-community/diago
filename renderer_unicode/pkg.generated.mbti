@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/renderer_unicode"
+package "moonbit-community/diago/renderer_unicode"
 
 import {
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/render_api",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/render_api",
   "moonbitlang/core/debug",
 }
 

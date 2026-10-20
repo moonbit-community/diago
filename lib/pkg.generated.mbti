@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/lib"
+package "moonbit-community/diago/lib"
 
 import {
-  "Milky2018/diago/diagram",
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/graph",
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/graph",
   "moonbitlang/core/debug",
 }
 
@@ -74,7 +74,7 @@ pub fn OutputMode::to_repr(Self) -> @debug.Repr
 pub struct RenderOptions {
   output_mode : OutputMode
   theme_name : String?
-  dark_theme_id : Int?
+  dark_theme_id : Int32?
   sketch : Bool?
   pad : Double?
   center : Bool?
@@ -87,7 +87,7 @@ pub struct RenderOptions {
 }
 pub fn RenderOptions::new() -> Self
 pub fn RenderOptions::with_center(Self, Bool?) -> Self
-pub fn RenderOptions::with_dark_theme_id(Self, Int?) -> Self
+pub fn RenderOptions::with_dark_theme_id(Self, Int32?) -> Self
 pub fn RenderOptions::with_dark_theme_overrides(Self, @diagram.ThemeOverrides?) -> Self
 pub fn RenderOptions::with_no_xml_tag(Self, Bool?) -> Self
 pub fn RenderOptions::with_omit_version(Self, Bool?) -> Self

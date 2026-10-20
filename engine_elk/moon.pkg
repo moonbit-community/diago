@@ -1,8 +1,8 @@
 import {
-  "Milky2018/diago/engine_api",
-  "Milky2018/diago/graph",
-  "Milky2018/diago/layout_sequence",
-  "Milky2018/diago/text_metrics",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/layout_sequence",
+  "moonbit-community/diago/text_metrics",
   "moonbit-community/elk/engine/layered" @moon_elk_layered,
   "moonbit-community/elk/graph/json" @moon_elk_json,
   "moonbitlang/core/math",

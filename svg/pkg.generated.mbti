@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Milky2018/diago/svg"
+package "moonbit-community/diago/svg"
 
 // Values
 pub fn animated_path(String, fill? : String, stroke? : String, stroke_width? : Double, marker_start? : String, marker_end? : String, mask? : String) -> String
@@ -56,9 +56,9 @@ pub fn shadow_filter(String) -> String
 
 pub fn sketch_filter(String) -> String
 
-pub fn styled_text(Double, Double, String, font_family? : String, font_size? : Int, text_anchor? : String, dominant_baseline? : String, text_transform? : String, extra_style? : String) -> String
+pub fn styled_text(Double, Double, String, font_family? : String, font_size? : Int32, text_anchor? : String, dominant_baseline? : String, text_transform? : String, extra_style? : String) -> String
 
-pub fn text(Double, Double, String, font_family? : String, font_size? : Int, text_anchor? : String, dominant_baseline? : String) -> String
+pub fn text(Double, Double, String, font_family? : String, font_size? : Int32, text_anchor? : String, dominant_baseline? : String) -> String
 
 // Errors
 
