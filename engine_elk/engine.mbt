@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-/// ELK engine implementation backed by `Milky2018/moon_elk`.
+/// ELK engine implementation backed by `moonbit-community/elk`.
 ///
 /// The adapter follows the same bridge architecture as `engine_dagre`:
 /// 1. convert `@graph.GraphInput` to ELK JSON

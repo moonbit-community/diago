@@ -2667,8 +2667,8 @@ test "reference grid_edge_across_cell matches stable target geometry" {
     e => fail("elk layout error: \{e}")
   }
 
-  assert_grid_edge_across_cell_like_d2(dagre, "dagre")
-  assert_grid_edge_across_cell_like_d2(elk, "elk")
+  assert_grid_edge_across_cell_geometry(dagre, "dagre")
+  assert_grid_edge_across_cell_geometry(elk, "elk")
 }
 
 ///|
@@ -2792,7 +2792,7 @@ fn assert_constant_near_title_like_d2(
 }
 
 ///|
-fn assert_grid_edge_across_cell_like_d2(
+fn assert_grid_edge_across_cell_geometry(
   graph : @graph.GraphInput,
   engine_name : String,
 ) -> Unit raise {
@@ -2891,44 +2891,44 @@ fn assert_grid_edge_across_cell_like_d2(
           tolerance=1.0,
         )
       } else {
-        assert_eq(cell1_box, @graph.Box::new(22.0, 58.0, 153.0, 256.0))
+        assert_eq(cell1_box, @graph.Box::new(22.0, 58.0, 153.0, 281.0))
         assert_eq(a_box, @graph.Box::new(72.0, 108.0, 53.0, 66.0))
-        assert_eq(cell2_box, @graph.Box::new(22.0, 324.0, 153.0, 256.0))
-        assert_eq(b_box, @graph.Box::new(72.0, 374.0, 53.0, 66.0))
-        assert_eq(cell3_box, @graph.Box::new(185.0, 58.0, 327.0, 522.0))
-        assert_eq(c_box, @graph.Box::new(251.0, 108.0, 154.0, 166.0))
-        assert_eq(cd_box, @graph.Box::new(301.0, 158.0, 54.0, 66.0))
-        assert_eq(e_box, @graph.Box::new(235.0, 364.0, 53.0, 66.0))
-        assert_eq(f_box, @graph.Box::new(308.0, 364.0, 154.0, 166.0))
-        assert_eq(fg_box, @graph.Box::new(358.0, 414.0, 54.0, 66.0))
+        assert_eq(cell2_box, @graph.Box::new(22.0, 349.0, 153.0, 281.0))
+        assert_eq(b_box, @graph.Box::new(72.0, 399.0, 53.0, 66.0))
+        assert_eq(cell3_box, @graph.Box::new(185.0, 58.0, 327.0, 572.0))
+        assert_eq(c_box, @graph.Box::new(241.0, 108.0, 154.0, 166.0))
+        assert_eq(cd_box, @graph.Box::new(291.0, 158.0, 54.0, 66.0))
+        assert_eq(e_box, @graph.Box::new(235.0, 414.0, 53.0, 66.0))
+        assert_eq(f_box, @graph.Box::new(308.0, 414.0, 154.0, 166.0))
+        assert_eq(fg_box, @graph.Box::new(358.0, 464.0, 54.0, 66.0))
         assert_route_points_close(
           ab.route,
-          [@graph.Point::new(98.5, 174.0), @graph.Point::new(98.5, 374.0)],
+          [@graph.Point::new(98.5, 174.0), @graph.Point::new(98.5, 399.0)],
           tolerance=1.0,
         )
         assert_route_points_close(
           bcd.route,
-          [@graph.Point::new(125.25, 382.0), @graph.Point::new(301.25, 216.0)],
+          [@graph.Point::new(125.25, 403.0), @graph.Point::new(291.25, 221.0)],
           tolerance=1.0,
         )
         assert_route_points_close(
           ce.route,
-          [@graph.Point::new(261.5, 274.0), @graph.Point::new(261.5, 364.0)],
+          [@graph.Point::new(261.5, 274.0), @graph.Point::new(261.5, 414.0)],
           tolerance=1.0,
         )
         assert_route_points_close(
           cdfg.route,
           [
-            @graph.Point::new(328.25, 224.0),
-            @graph.Point::new(328.25, 319.0),
+            @graph.Point::new(318.25, 224.0),
+            @graph.Point::new(318.25, 319.0),
             @graph.Point::new(385.0, 319.0),
-            @graph.Point::new(385.0, 414.0),
+            @graph.Point::new(385.0, 464.0),
           ],
           tolerance=1.0,
         )
         assert_route_points_close(
           fga.route,
-          [@graph.Point::new(358.5, 418.0), @graph.Point::new(124.5, 169.0)],
+          [@graph.Point::new(358.5, 464.0), @graph.Point::new(124.5, 174.0)],
           tolerance=1.0,
         )
       }

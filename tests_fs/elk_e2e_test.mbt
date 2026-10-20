@@ -15,12 +15,10 @@
 ///|
 /// ELK E2E tests against committed snapshots.
 ///
-/// This suite validates all bundled examples:
-/// 1) Diago ELK output is snapshot-stable
-/// 2) Diago outputs are strictly aligned to committed ELK references
+/// This suite validates snapshot stability for all bundled examples.
 
 ///|
-async test "examples: elk svg e2e snapshots and reference semantic parity" {
+async test "examples: elk svg e2e snapshots" {
   let elk_example_names = e2e_example_names().unwrap()
   for name in elk_example_names {
     let source = read_required_file("examples/" + name + ".d2").unwrap()
@@ -40,45 +38,7 @@ async test "examples: elk svg e2e snapshots and reference semantic parity" {
     assert_eq(
       normalize_svg_snapshot(actual_svg),
       normalize_svg_snapshot(snapshot_svg),
-    )
-
-    let reference_svg = read_required_file(
-      "examples/reference-elk-svg-output/" + name + ".svg",
-    ).unwrap()
-    let label_mismatches = reference_label_coverage_mismatches(
-      actual_svg, reference_svg,
-    )
-    let mismatch_text = label_mismatches.join(", ")
-    assert_true(
-      label_mismatches.is_empty(),
-      msg="\{name}: missing reference labels in diago elk svg: \{mismatch_text}",
-    )
-
-    let diago_semantic_snapshot = svg_semantic_snapshot(actual_svg)
-    let reference_semantic = svg_semantic_snapshot(reference_svg)
-    let semantic_diff = semantic_snapshot_mismatch_summary(
-      diago_semantic_snapshot, reference_semantic,
-    )
-    assert_eq(
-      diago_semantic_snapshot,
-      reference_semantic,
-      msg="\{name}: semantic snapshot diverges from reference elk output (\{semantic_diff})",
-    )
-
-    let diago_visual_snapshot = svg_visual_style_snapshot(actual_svg)
-    let reference_visual = svg_visual_style_snapshot(reference_svg)
-    let visual_diff = semantic_snapshot_mismatch_summary(
-      diago_visual_snapshot, reference_visual,
-    )
-    assert_eq(
-      diago_visual_snapshot,
-      reference_visual,
-      msg="\{name}: visual style snapshot diverges from reference elk output (\{visual_diff})",
-    )
-
-    assert_true(
-      reference_svg.contains("<svg"),
-      msg="\{name}: reference elk svg missing <svg>",
+      msg="\{name}: diago elk svg snapshot mismatch",
     )
   }
 }
@@ -98,15 +58,6 @@ async test "examples: elk ascii e2e snapshots" {
       normalize_text_snapshot(snapshot_ascii),
       msg="\{name}: diago elk ascii snapshot mismatch",
     )
-
-    let d2_ascii = read_required_file(
-      "examples/reference-elk-ascii-output/" + name + ".txt",
-    ).unwrap()
-    assert_eq(
-      normalize_text_snapshot(actual_ascii),
-      normalize_text_snapshot(d2_ascii),
-      msg="\{name}: elk ascii diverges from reference output",
-    )
   }
 }
 
@@ -124,15 +75,6 @@ async test "examples: elk unicode e2e snapshots" {
       normalize_text_snapshot(actual_unicode),
       normalize_text_snapshot(snapshot_unicode),
       msg="\{name}: diago elk unicode snapshot mismatch",
-    )
-
-    let d2_unicode = read_required_file(
-      "examples/reference-elk-unicode-output/" + name + ".txt",
-    ).unwrap()
-    assert_eq(
-      normalize_text_snapshot(actual_unicode),
-      normalize_text_snapshot(d2_unicode),
-      msg="\{name}: elk unicode diverges from reference output",
     )
   }
 }

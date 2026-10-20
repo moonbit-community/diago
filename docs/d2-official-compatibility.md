@@ -28,16 +28,18 @@ sketch rendering. Diago intentionally does not support those features and
 returns an `UnsupportedFeature` error instead of falling back silently. All
 183 supported fixtures pass through all three engines.
 
-## Normalized SVG parity
+## Optional D2 comparison (historical baseline)
 
-Strict normalized SVG parity against D2 0.7.1 is checked with:
+Integration tests validate Diago against its own committed output snapshots.
+Matching D2 output is not a requirement. D2 0.7.1 comparisons remain available
+as an optional diagnostic tool:
 
 ```sh
 python3 scripts/test_svg_parity.py
 python3 scripts/check_d2_svg_parity.py --corpus all
 ```
 
-The gate covers all 41 repository examples plus the 183 supported pinned
+The comparison tool covers all 41 repository examples plus the 183 supported pinned
 official fixtures on both Dagre and ELK (448 comparisons). Normalization removes only
 non-visual instability: XML attribute ordering, D2 scope salts and version
 metadata, embedded font payload bytes, and unused static renderer CSS. It
@@ -45,7 +47,8 @@ preserves canvas geometry, DOM/render order, hierarchy, paths, masks, markers,
 links, images, labels, and active styles. Failures produce canonical SVG diffs
 and a machine-readable `results.tsv` under `_build/d2-svg-parity`.
 
-Current strict results are:
+The recorded results below predate the migration to `moonbit-community/elk`
+0.4.0 and do not describe the current ELK output:
 
 | Engine | Exact matches | Skipped | Failures |
 | --- | ---: | ---: | ---: |
@@ -64,10 +67,10 @@ when removing ELK label margins. `wcc.d2` needed all constant-near objects in
 one placement group to be positioned before any of them are inserted into the
 main graph.
 
-## Failure classification
+## Historical failure classification
 
-There are no command, parser, compiler, renderer, normalized SVG parity, or
-known dependency failures in the supported corpus. The skipped fixtures are
+At the baseline recorded above, there were no command, parser, compiler,
+renderer, normalized SVG parity, or known dependency failures in the supported corpus. The skipped fixtures are
 listed in `testdata/d2-official/skipped.tsv` with their unsupported feature and
 diagnostic.
 

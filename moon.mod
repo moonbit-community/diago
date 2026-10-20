@@ -10,7 +10,7 @@ import {
   "gmlewis/flate@0.36.15",
   "gmlewis/io@0.23.18",
   "gmlewis/zlib@0.21.15",
-  "Milky2018/moon_elk@0.3.2",
+  "moonbit-community/elk@0.4.0",
   "moonbit-community/moon_dagre@0.3.1",
   "moonbitlang/async@0.22.4",
 }
