@@ -13,9 +13,10 @@ pub fn render(@diagram.Diagram) -> String
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub struct UnicodeRenderer {
   _marker : Unit
-} derive(@debug.Debug)
+}
 pub fn UnicodeRenderer::format_name(Self) -> String
 pub fn UnicodeRenderer::new() -> Self
 pub fn UnicodeRenderer::render(Self, @diagram.Diagram) -> String raise @render_api.RenderError

@@ -20,6 +20,7 @@
 
 ///|
 /// All supported shape types
+#derive(Eq, Debug)
 pub(all) enum ShapeType {
   // Basic shapes
   Rectangle
@@ -55,7 +56,7 @@ pub(all) enum ShapeType {
   // C4 Model shapes
   C4Person
   C4Container
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parse a shape type from a string

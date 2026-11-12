@@ -17,6 +17,7 @@
 ///
 /// This mirrors upstream `d2target.ThemeOverrides`, including fixed field
 /// coverage and stable declaration order.
+#derive(Eq, Debug)
 pub struct ThemeOverrides {
   n1 : String?
   n2 : String?
@@ -36,7 +37,7 @@ pub struct ThemeOverrides {
   aa5 : String?
   ab4 : String?
   ab5 : String?
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn ThemeOverrides::new() -> ThemeOverrides {

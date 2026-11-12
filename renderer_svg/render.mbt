@@ -17,9 +17,10 @@
 
 ///|
 /// SVG renderer
+#derive(Debug)
 pub struct SvgRenderer {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 pub fn SvgRenderer::new() -> SvgRenderer {

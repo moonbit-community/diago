@@ -17,9 +17,10 @@
 
 ///|
 /// Unicode renderer
+#derive(Debug)
 pub struct UnicodeRenderer {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 pub fn UnicodeRenderer::new() -> UnicodeRenderer {

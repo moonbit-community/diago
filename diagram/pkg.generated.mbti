@@ -14,6 +14,7 @@ pub fn merge_theme_overrides(ThemeOverrides?, ThemeOverrides?) -> ThemeOverrides
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub struct Config {
   sketch : Bool?
   theme_id : Int32?
@@ -28,16 +29,17 @@ pub struct Config {
   salt : String?
   omit_version : Bool?
   data : Map[String, ConfigDataValue]
-} derive(@debug.Debug)
+}
 pub fn Config::from_parts(Bool?, Int32?, Int32?, ThemeOverrides?, ThemeOverrides?, Double?, Bool?, String?, Double?, Bool?, String?, Bool?, Map[String, ConfigDataValue]) -> Self
 pub fn Config::new() -> Self
 #deprecated
 pub fn Config::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum ConfigDataValue {
   Text(String)
   StringArray(Array[String])
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn ConfigDataValue::equal(Self, Self) -> Bool
 #deprecated
@@ -45,6 +47,7 @@ pub fn ConfigDataValue::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn ConfigDataValue::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct Connection {
   index : Int32
   src_id : String
@@ -79,11 +82,12 @@ pub struct Connection {
   label_box : @graph.Box?
   src_column_index : Int32?
   dst_column_index : Int32?
-} derive(@debug.Debug)
+}
 pub fn Connection::legend_icon(String, String, Int32, Bool, Bool, @graph.ArrowheadType, @graph.ArrowheadType, @graph.StyleInput) -> Self
 #deprecated
 pub fn Connection::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct Diagram {
   name : String
   config : Config?
@@ -101,7 +105,7 @@ pub struct Diagram {
   scenarios : Array[Diagram]
   steps : Array[Diagram]
   legend : @graph.LegendInput?
-} derive(@debug.Debug)
+}
 pub fn Diagram::bytes(Self) -> String
 pub fn Diagram::find_object(Self, String) -> Shape?
 pub fn Diagram::get_board(Self, Array[String]) -> Self?
@@ -120,6 +124,7 @@ pub fn Diagram::to_repr(Self) -> @debug.Repr
 pub fn Diagram::with_render_hash_config(Self, Int32, Int32?, Bool) -> Self
 pub fn Diagram::without_children(Self) -> Self
 
+#derive(@debug.Debug)
 pub struct Shape {
   id : String
   semantic_id : String
@@ -149,7 +154,7 @@ pub struct Shape {
   grid_column_span : Int32?
   grid_row_span : Int32?
   near : String?
-} derive(@debug.Debug)
+}
 pub fn Shape::center(Self) -> @graph.Point?
 pub fn Shape::get_box(Self) -> @graph.Box?
 pub fn Shape::get_id(Self) -> String
@@ -157,6 +162,7 @@ pub fn Shape::legend_icon(String, @graph.ShapeType, @graph.StyleInput) -> Self
 #deprecated
 pub fn Shape::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct ThemeOverrides {
   n1 : String?
   n2 : String?
@@ -176,7 +182,7 @@ pub struct ThemeOverrides {
   aa5 : String?
   ab4 : String?
   ab5 : String?
-} derive(Eq, @debug.Debug)
+}
 pub fn ThemeOverrides::entries(Self) -> Array[(String, String)]
 #deprecated
 pub fn ThemeOverrides::equal(Self, Self) -> Bool

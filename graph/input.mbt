@@ -20,6 +20,7 @@
 /// not contain `mut` fields.
 
 ///|
+#derive(Debug)
 pub struct GraphInput {
   name : String
   root : ObjectInput
@@ -35,7 +36,7 @@ pub struct GraphInput {
   legend : LegendInput?
   is_folder_only : Bool
   data : Map[String, GraphDataValue]
-} derive(Debug)
+}
 
 ///|
 pub fn GraphInput::new(name : String) -> GraphInput {
@@ -432,10 +433,11 @@ pub fn syntax_path_last_display(id : String) -> String {
 }
 
 ///|
+#derive(Debug)
 pub struct LayerInput {
   name : String
   graph : GraphInput
-} derive(Debug)
+}
 
 ///|
 pub fn LayerInput::new(name : String, graph : GraphInput) -> LayerInput {
@@ -443,10 +445,11 @@ pub fn LayerInput::new(name : String, graph : GraphInput) -> LayerInput {
 }
 
 ///|
+#derive(Debug)
 pub struct ScenarioInput {
   name : String
   graph : GraphInput
-} derive(Debug)
+}
 
 ///|
 pub fn ScenarioInput::new(name : String, graph : GraphInput) -> ScenarioInput {
@@ -454,10 +457,11 @@ pub fn ScenarioInput::new(name : String, graph : GraphInput) -> ScenarioInput {
 }
 
 ///|
+#derive(Debug)
 pub struct StepInput {
   name : String
   graph : GraphInput
-} derive(Debug)
+}
 
 ///|
 pub fn StepInput::new(name : String, graph : GraphInput) -> StepInput {
@@ -465,13 +469,14 @@ pub fn StepInput::new(name : String, graph : GraphInput) -> StepInput {
 }
 
 ///|
+#derive(Debug)
 pub struct SequenceFragmentInput {
   fragment_type : String
   condition : String?
   start_index : Int32
   end_index : Int32
   operands : Array[FragmentOperandInput]
-} derive(Debug)
+}
 
 ///|
 pub fn SequenceFragmentInput::new(
@@ -485,9 +490,10 @@ pub fn SequenceFragmentInput::new(
 }
 
 ///|
+#derive(Debug)
 pub struct FragmentOperandInput {
   condition : String?
-} derive(Debug)
+}
 
 ///|
 pub fn FragmentOperandInput::new(condition : String?) -> FragmentOperandInput {
@@ -553,6 +559,7 @@ pub fn EdgeReference::contained_by(
 /// * `left` : Optional fixed left coordinate in pixels.
 /// * `direction` : Optional layout direction override (`up|down|left|right`).
 ///
+#derive(Debug)
 pub struct ObjectInput {
   id : String
   id_val : String
@@ -587,7 +594,7 @@ pub struct ObjectInput {
   top : Int32?
   left : Int32?
   direction : String?
-} derive(Debug)
+}
 
 ///|
 pub fn ObjectInput::new(
@@ -730,6 +737,7 @@ pub fn ObjectInput::get_label_box(self : ObjectInput) -> Box? {
 }
 
 ///|
+#derive(Debug)
 pub struct EdgeInput {
   index : Int32
   src_id : String
@@ -762,7 +770,7 @@ pub struct EdgeInput {
   label_box : Box?
   src_column_index : Int32?
   dst_column_index : Int32?
-} derive(Debug)
+}
 
 ///|
 pub fn EdgeInput::new(
@@ -915,10 +923,11 @@ pub fn EdgeInput::get_label_box(self : EdgeInput) -> Box? {
 /// A style value with its source range.
 ///
 /// The value is preserved as a string. Consumers may parse it as needed.
+#derive(Eq, Debug)
 pub struct StyleValue {
   value : String
   range : @lexer.Range
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn StyleValue::new(value : String, range : @lexer.Range) -> StyleValue {
@@ -1019,6 +1028,7 @@ pub fn StyleValue::from_double_opt(value : Double?) -> StyleValue? {
 }
 
 ///|
+#derive(Eq, Debug)
 pub struct StyleInput {
   opacity : StyleValue?
   stroke : StyleValue?
@@ -1043,7 +1053,7 @@ pub struct StyleInput {
   fill_pattern : StyleValue?
   sketch : StyleValue?
   curved : StyleValue?
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn StyleInput::new() -> StyleInput {
@@ -1128,6 +1138,7 @@ pub fn StyleInput::from_parts(
 }
 
 ///|
+#derive(Debug)
 pub enum LegendEntryInput {
   ShapeEntry(
     id~ : String,
@@ -1148,7 +1159,7 @@ pub enum LegendEntryInput {
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator
-} derive(Debug)
+}
 
 ///|
 pub fn LegendEntryInput::shape(
@@ -1199,6 +1210,7 @@ pub fn LegendEntryInput::separator() -> LegendEntryInput {
 }
 
 ///|
+#derive(Debug)
 pub struct LegendInput {
   title : String?
   position : LegendPosition
@@ -1208,7 +1220,7 @@ pub struct LegendInput {
   padding : Double
   entry_gap : Double
   icon_size : Double
-} derive(Debug)
+}
 
 ///|
 pub fn LegendInput::from_parts(

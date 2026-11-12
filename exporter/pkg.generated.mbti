@@ -13,12 +13,13 @@ pub fn compile(String, @ir.Map) -> @graph.GraphInput raise GraphCompileError
 pub fn to_graph(String, @ir.Map) -> @graph.GraphInput raise GraphCompileError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror GraphCompileError {
   InvalidShape(String)
   InvalidStyle(String)
   MissingObject(String)
   Semantic(String)
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn GraphCompileError::equal(Self, Self) -> Bool
 #deprecated

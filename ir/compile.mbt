@@ -22,13 +22,14 @@
 
 ///|
 /// Compilation error
+#derive(Eq, Debug)
 pub(all) suberror CompileError {
   InvalidKey(String)
   InvalidValue(String)
   DuplicateField(String)
   InvalidSubstitution(String)
   ImportError(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for CompileError with fn output(self, logger) {

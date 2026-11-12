@@ -20,11 +20,12 @@ pub fn[Engine : LayoutEngine] layout_with_engine(Engine, @graph.GraphInput, Layo
 pub fn unsupported(String) -> LayoutError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror LayoutError {
   InvalidGraph(String)
   CycleDetected(String)
   Unsupported(String)
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn LayoutError::equal(Self, Self) -> Bool
 #deprecated
@@ -37,12 +38,13 @@ pub fn LayoutError::to_string(Self) -> String
 pub impl Show for LayoutError
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum Direction {
   Down
   Right
   Up
   Left
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn Direction::equal(Self, Self) -> Bool
 #deprecated
@@ -54,6 +56,7 @@ pub fn Direction::to_repr(Self) -> @debug.Repr
 pub fn Direction::to_string(Self) -> String
 pub impl Show for Direction
 
+#derive(@debug.Debug)
 pub struct LayoutConfig {
   horizontal_spacing : Double
   vertical_spacing : Double
@@ -61,18 +64,19 @@ pub struct LayoutConfig {
   default_width : Double
   default_height : Double
   edge_padding : Double
-} derive(@debug.Debug)
+}
 pub fn LayoutConfig::new() -> Self
 #deprecated
 pub fn LayoutConfig::to_repr(Self) -> @debug.Repr
 pub fn LayoutConfig::with_spacing(Double, Double) -> Self
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LayoutFeature {
   NearObject
   ContainerDimensions
   TopLeft
   DescendantEdges
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn LayoutFeature::equal(Self, Self) -> Bool
 #deprecated

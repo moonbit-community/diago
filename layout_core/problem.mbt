@@ -14,6 +14,7 @@
 
 ///|
 /// A graph or layout result violated the layout-core identity contract.
+#derive(Eq, Debug)
 pub(all) suberror LayoutProblemError {
   DuplicateObjectId(String)
   DuplicateEdgeIndex(Int32)
@@ -21,7 +22,7 @@ pub(all) suberror LayoutProblemError {
   MissingEdgeEndpoint(edge_index~ : Int32, endpoint_id~ : String)
   UnknownPatchNode(String)
   UnknownPatchEdge(Int32)
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn LayoutProblemError::message(self : LayoutProblemError) -> String {

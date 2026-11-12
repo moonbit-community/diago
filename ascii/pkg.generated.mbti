@@ -10,6 +10,7 @@ import {
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub struct CharSet {
   top_left : Char
   top_right : Char
@@ -43,7 +44,7 @@ pub struct CharSet {
   circle : Char
   oval : Char
   star : Char
-} derive(@debug.Debug)
+}
 pub fn CharSet::arrow_down(Self) -> Char
 pub fn CharSet::arrow_left(Self) -> Char
 pub fn CharSet::arrow_right(Self) -> Char

@@ -44,6 +44,7 @@ pub enum RenderPass {
   Foreground
 }
 
+#derive(@debug.Debug)
 pub struct SvgConfig {
   padding : Double
   center : Bool
@@ -63,7 +64,7 @@ pub struct SvgConfig {
   no_xml_tag : Bool
   salt : String?
   omit_version : Bool
-} derive(@debug.Debug)
+}
 pub fn SvgConfig::new() -> Self
 #deprecated
 pub fn SvgConfig::to_repr(Self) -> @debug.Repr
@@ -72,9 +73,10 @@ pub fn SvgConfig::with_render_options(Self, Int32?, @diagram.ThemeOverrides?, @d
 pub fn SvgConfig::with_theme(Int32) -> Self
 pub fn SvgConfig::with_theme_name(String) -> Self
 
+#derive(@debug.Debug)
 pub struct SvgRenderer {
   _marker : Unit
-} derive(@debug.Debug)
+}
 pub fn SvgRenderer::format_name(Self) -> String
 pub fn SvgRenderer::new() -> Self
 pub fn SvgRenderer::render(Self, @diagram.Diagram) -> String raise @render_api.RenderError

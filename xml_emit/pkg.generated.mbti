@@ -63,11 +63,12 @@ pub fn Element::text(Self, String) -> Self
 pub fn Element::to_string(Self) -> String
 pub impl Show for Element
 
+#derive(Eq, @debug.Debug)
 pub struct XmlElement {
   name : String
   attrs : Map[String, String]
   children : Array[XmlNode]
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn XmlElement::equal(Self, Self) -> Bool
 #deprecated
@@ -75,10 +76,11 @@ pub fn XmlElement::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn XmlElement::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub enum XmlNode {
   NodeElement(XmlElement)
   NodeText(String)
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn XmlNode::equal(Self, Self) -> Bool
 #deprecated

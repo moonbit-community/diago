@@ -17,9 +17,10 @@
 /// This engine uses a railway-inspired layout algorithm.
 
 ///|
+#derive(Debug)
 pub struct RailwayEngine {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 pub fn RailwayEngine::new() -> RailwayEngine {

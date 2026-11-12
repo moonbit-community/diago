@@ -19,6 +19,7 @@
 /// layout and rendering.
 
 ///|
+#derive(Debug)
 priv struct Style {
   mut opacity : Double?
   mut stroke : String?
@@ -43,7 +44,7 @@ priv struct Style {
   mut fill_pattern : String?
   mut sketch : Bool?
   mut curved : Bool?
-} derive(Debug)
+}
 
 ///|
 fn Style::new() -> Style {
@@ -75,6 +76,7 @@ fn Style::new() -> Style {
 }
 
 ///|
+#derive(Debug)
 priv struct Object {
   id : String
   id_val : String
@@ -110,7 +112,7 @@ priv struct Object {
   mut top : Int32?
   mut left : Int32?
   mut direction : String?
-} derive(Debug)
+}
 
 ///|
 fn Object::new(
@@ -163,6 +165,7 @@ fn Object::add_child(self : Object, child : Object) -> Unit {
 }
 
 ///|
+#derive(Debug)
 priv struct Edge {
   index : Int32
   src_id : String
@@ -193,7 +196,7 @@ priv struct Edge {
   mut reference_count : Int32
   src_column_index : Int32?
   dst_column_index : Int32?
-} derive(Debug)
+}
 
 ///|
 fn Edge::new(
@@ -247,6 +250,7 @@ fn Edge::new(
 }
 
 ///|
+#derive(Debug)
 priv enum LegendEntry {
   ShapeEntry(id~ : String, shape~ : ShapeType, label~ : String, style~ : Style?)
   ConnectionEntry(
@@ -262,7 +266,7 @@ priv enum LegendEntry {
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator
-} derive(Debug)
+}
 
 ///|
 fn LegendEntry::shape(
@@ -310,6 +314,7 @@ fn LegendEntry::separator() -> LegendEntry {
 }
 
 ///|
+#derive(Debug)
 priv struct Legend {
   mut title : String?
   mut position : LegendPosition
@@ -319,7 +324,7 @@ priv struct Legend {
   mut padding : Double
   mut entry_gap : Double
   mut icon_size : Double
-} derive(Debug)
+}
 
 ///|
 fn Legend::new() -> Legend {
@@ -378,6 +383,7 @@ fn Legend::set_icon_size(self : Legend, icon_size : Double) -> Unit {
 }
 
 ///|
+#derive(Debug)
 priv struct Graph {
   name : String
   root : Object
@@ -388,25 +394,28 @@ priv struct Graph {
   steps : Array[Step]
   mut legend : Legend?
   mut is_folder_only : Bool
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 priv struct Layer {
   name : String
   graph : Graph
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 priv struct Scenario {
   name : String
   graph : Graph
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 priv struct Step {
   name : String
   graph : Graph
-} derive(Debug)
+}
 
 ///|
 fn Layer::new(name : String, graph : Graph) -> Layer {
@@ -902,12 +911,13 @@ fn graph_to_input(graph : Graph) -> @graph.GraphInput {
 
 ///|
 /// Compilation error
+#derive(Eq, Debug)
 pub(all) suberror GraphCompileError {
   InvalidShape(String)
   InvalidStyle(String)
   MissingObject(String)
   Semantic(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for GraphCompileError with fn output(self, logger) {

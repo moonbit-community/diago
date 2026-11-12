@@ -19,11 +19,12 @@
 /// Usage: diago [options] <input> [output]
 
 ///|
+#derive(Debug, Eq)
 enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Debug, Eq)
+}
 
 ///|
 fn output_extension(mode : OutputMode) -> String {
@@ -72,17 +73,19 @@ fn is_stdout_output_path(path : String) -> Bool {
 }
 
 ///|
+#derive(Debug, Eq)
 enum LayoutEngineChoice {
   Dagre
   Elk
   Railway
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 enum DumpInputEngine {
   Dagre
   Elk
-} derive(Debug, Eq)
+}
 
 ///|
 priv struct CompiledSourceResult {

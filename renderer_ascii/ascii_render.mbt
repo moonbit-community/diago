@@ -16,12 +16,13 @@
 /// compatibility ASCII renderer.
 
 ///|
+#derive(Debug)
 pub struct AsciiConfig {
   charset : @ascii.CharSet
   font_width : Double
   font_height : Double
   scale : Double
-} derive(Debug)
+}
 
 ///|
 pub fn AsciiConfig::new() -> AsciiConfig {

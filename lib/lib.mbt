@@ -16,19 +16,21 @@
 /// Library-layer orchestration for layout and rendering.
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum LayoutEngine {
   Auto
   Dagre
   Elk
   Railway
-} derive(Debug, Eq)
+}
 
 ///|
 pub struct DiagramOptions {
@@ -239,13 +241,14 @@ pub fn RenderOptions::with_omit_version(
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum LibError {
   LayoutError(String)
   RenderError(String)
   ConfigError(String)
   TargetError(String)
   UnsupportedFeature(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn compile_diagram(

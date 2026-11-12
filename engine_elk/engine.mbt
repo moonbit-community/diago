@@ -21,9 +21,10 @@
 /// 3. convert ELK JSON to `@graph.LayoutPatch`
 
 ///|
+#derive(Debug)
 pub struct ElkEngine {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 pub fn ElkEngine::new() -> ElkEngine {

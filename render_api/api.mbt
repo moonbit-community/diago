@@ -17,11 +17,12 @@
 
 ///|
 /// Renderer error
+#derive(Eq, Debug)
 pub(all) suberror RenderError {
   UnsupportedFormat(String)
   RenderFailed(String)
   InvalidDiagram(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for RenderError with fn output(self, logger) {
@@ -62,6 +63,7 @@ pub fn invalid_diagram(message : String) -> RenderError {
 
 ///|
 /// Base render configuration (common options)
+#derive(Debug)
 pub struct RenderConfig {
   /// Padding around the diagram
   padding : Double
@@ -73,7 +75,7 @@ pub struct RenderConfig {
   background : String
   /// Whether to use dark mode
   dark_mode : Bool
-} derive(Debug)
+}
 
 ///|
 pub fn RenderConfig::new() -> RenderConfig {

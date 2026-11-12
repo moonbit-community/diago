@@ -22,20 +22,22 @@
 
 ///|
 /// A diago file is represented as a Map at the root level
+#derive(Eq, Debug)
 pub struct Map {
   range : @lexer.Range
   nodes : Array[MapNode]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Nodes that can appear inside a Map
+#derive(Eq, Debug)
 pub(all) enum MapNode {
   Comment(@lexer.Range, String)
   BlockComment(@lexer.Range, String)
   Substitution(Substitution)
   Import(Import)
   Key(Key)
-} derive(Eq, Debug)
+}
 
 ///|
 /// A key declaration in a map
@@ -46,6 +48,7 @@ pub(all) enum MapNode {
 /// - `x -> y` (edge)
 /// - `container.child` (nested key path)
 /// - `(x -> y).label` (edge with property)
+#derive(Eq, Debug)
 pub struct Key {
   range : @lexer.Range
   ampersand : Bool
@@ -56,36 +59,40 @@ pub struct Key {
   edge_key : KeyPath?
   primary : Scalar?
   value : Value?
-} derive(Eq, Debug)
+}
 
 ///|
 /// A path of identifiers separated by dots
 /// Example: container.child.grandchild
+#derive(Eq, Debug)
 pub struct KeyPath {
   range : @lexer.Range
   path : Array[StringValue]
-} derive(Eq, Debug)
+}
 
 ///|
 /// An edge between two nodes
+#derive(Eq, Debug)
 pub struct Edge {
   range : @lexer.Range
   src : KeyPath
   src_arrow : String
   dst : KeyPath
   dst_arrow : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Index into an edge group
+#derive(Eq, Debug)
 pub struct EdgeIndex {
   range : @lexer.Range
   index : Int32?
   glob : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Values that can appear on the right side of a colon
+#derive(Eq, Debug)
 pub(all) enum Value {
   Scalar(Scalar)
   Array(ArrayValue)
@@ -93,90 +100,100 @@ pub(all) enum Value {
   Import(Import)
   /// Scalar label followed by a map block: `name: Label { props }`
   BlockScalar(Value, Map)
-} derive(Eq, Debug)
+}
 
 ///|
 /// An array value
+#derive(Eq, Debug)
 pub struct ArrayValue {
   range : @lexer.Range
   nodes : Array[ArrayNode]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Nodes that can appear inside an array
+#derive(Eq, Debug)
 pub(all) enum ArrayNode {
   Comment(@lexer.Range, String)
   BlockComment(@lexer.Range, String)
   Substitution(Substitution)
   Import(Import)
   Value(Value)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Scalar values
+#derive(Eq, Debug)
 pub(all) enum Scalar {
   Null(@lexer.Range)
   Boolean(@lexer.Range, Bool)
   Number(@lexer.Range, String)
   String(StringValue)
-} derive(Eq, Debug)
+}
 
 ///|
 /// String values with their quote style
+#derive(Eq, Debug)
 pub(all) enum StringValue {
   Unquoted(UnquotedString)
   SingleQuoted(@lexer.Range, String)
   DoubleQuoted(DoubleQuotedString)
   Block(BlockString)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Unquoted string that may contain substitutions
+#derive(Eq, Debug)
 pub struct UnquotedString {
   range : @lexer.Range
   value : Array[Interpolation]
   pattern : Array[String]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Double-quoted string that may contain substitutions
+#derive(Eq, Debug)
 pub struct DoubleQuotedString {
   range : @lexer.Range
   value : Array[Interpolation]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Block string (|md, |sh, etc.)
+#derive(Eq, Debug)
 pub struct BlockString {
   range : @lexer.Range
   quote : String
   tag : String
   value : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Part of an interpolated string
+#derive(Eq, Debug)
 pub(all) enum Interpolation {
   Text(String)
   Sub(Substitution)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Variable substitution ($var or ${var})
+#derive(Eq, Debug)
 pub struct Substitution {
   range : @lexer.Range
   spread : Bool
   path : Array[StringValue]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Import declaration (@path/to/file)
+#derive(Eq, Debug)
 pub struct Import {
   range : @lexer.Range
   spread : Bool
   pre : String
   path : Array[StringValue]
-} derive(Eq, Debug)
+}
 
 // ============================================================================
 // Constructor helpers
@@ -295,6 +312,7 @@ pub fn Import::new(
 /// Boxed AST node for generic traversal.
 ///
 /// This is intentionally a closed set of variants over the public AST structs/enums.
+#derive(Eq, Debug)
 pub(all) enum Node {
   Map(Map)
   MapNode(MapNode)
@@ -312,7 +330,7 @@ pub(all) enum Node {
   BlockString(BlockString)
   Substitution(Substitution)
   Import(Import)
-} derive(Eq, Debug)
+}
 
 // ============================================================================
 // Helper methods

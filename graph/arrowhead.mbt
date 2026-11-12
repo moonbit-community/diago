@@ -20,6 +20,7 @@
 
 ///|
 /// All supported arrowhead types
+#derive(Eq, Debug)
 pub(all) enum ArrowheadType {
   /// No arrowhead
   None
@@ -51,7 +52,7 @@ pub(all) enum ArrowheadType {
   CfOneOptional
   /// Crow's foot: zero or more, optional (crow's foot with circle)
   CfManyOptional
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for ArrowheadType with fn output(self, logger) {

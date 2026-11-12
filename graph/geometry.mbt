@@ -14,19 +14,21 @@
 
 ///|
 /// Bounding box for positioning
+#derive(Eq, Debug)
 pub struct Box {
   x : Double
   y : Double
   width : Double
   height : Double
-} derive(Eq, Debug)
+}
 
 ///|
 /// A 2D point
+#derive(Eq, Debug)
 pub struct Point {
   x : Double
   y : Double
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for Box with fn output(self, logger) {

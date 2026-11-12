@@ -26,6 +26,7 @@ pub fn get_syntax_tokens(String) -> Array[SyntaxToken]
 pub fn parse(String, options? : ParseOptions) -> @ir.Map raise DiagoError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror DiagoError {
   ParseError(String)
   IOError(String)
@@ -36,7 +37,7 @@ pub(all) suberror DiagoError {
   ConfigError(String)
   TargetError(String)
   UnsupportedFeature(String)
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn DiagoError::equal(Self, Self) -> Bool
 #deprecated
@@ -85,12 +86,13 @@ pub fn CompileOptions::with_target_spec(Self, String?) -> Self
 pub fn CompileOptions::with_theme_name(Self, String?) -> Self
 pub fn CompileOptions::with_theme_overrides(Self, @diagram.ThemeOverrides?) -> Self
 
+#derive(Eq, @debug.Debug)
 pub struct CompletionItem {
   label : String
   kind : CompletionKind
   detail : String
   insert_text : String
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn CompletionItem::equal(Self, Self) -> Bool
 #deprecated
@@ -98,12 +100,13 @@ pub fn CompletionItem::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn CompletionItem::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum CompletionKind {
   Keyword
   Style
   Shape
   Value
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn CompletionKind::equal(Self, Self) -> Bool
 #deprecated
@@ -111,12 +114,13 @@ pub fn CompletionKind::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn CompletionKind::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LayoutEngine {
   Auto
   Dagre
   Elk
   Railway
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn LayoutEngine::equal(Self, Self) -> Bool
 #deprecated
@@ -128,11 +132,12 @@ pub struct LayoutPlugin((@graph.GraphInput, @engine_api.LayoutConfig, @engine_ap
 pub fn LayoutPlugin::new((@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String]) -> Self
 pub fn LayoutPlugin::run(Self, @graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[@graph.GraphInput, String]
 
+#derive(Eq, @debug.Debug)
 pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn OutputMode::equal(Self, Self) -> Bool
 #deprecated
@@ -150,11 +155,12 @@ pub struct RoutePlugin((@graph.GraphInput) -> Result[@graph.GraphInput, String])
 pub fn RoutePlugin::new((@graph.GraphInput) -> Result[@graph.GraphInput, String]) -> Self
 pub fn RoutePlugin::run(Self, @graph.GraphInput) -> Result[@graph.GraphInput, String]
 
+#derive(Eq, @debug.Debug)
 pub struct SyntaxToken {
   start : Int32
   end : Int32
   kind : SyntaxTokenKind
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn SyntaxToken::equal(Self, Self) -> Bool
 #deprecated
@@ -162,6 +168,7 @@ pub fn SyntaxToken::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn SyntaxToken::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum SyntaxTokenKind {
   Comment
   String
@@ -171,7 +178,7 @@ pub(all) enum SyntaxTokenKind {
   Identifier
   Operator
   Punctuation
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn SyntaxTokenKind::equal(Self, Self) -> Bool
 #deprecated

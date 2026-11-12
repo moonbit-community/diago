@@ -13,10 +13,11 @@ pub fn tokenize_with_path(String, String) -> (Array[Token], Array[LexError])
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub struct LexError {
   message : String
   range : Range
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn LexError::equal(Self, Self) -> Bool
 #deprecated
@@ -29,11 +30,12 @@ pub fn Lexer::new(String) -> Self
 pub fn Lexer::tokenize(Self) -> (Array[Token], Array[LexError])
 pub fn Lexer::with_path(String, String) -> Self
 
+#derive(Eq, @debug.Debug)
 pub struct Position {
   line : Int32
   column : Int32
   offset : Int32
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn Position::equal(Self, Self) -> Bool
 pub fn Position::new(Int32, Int32, Int32) -> Self
@@ -43,11 +45,12 @@ pub fn Position::not_equal(Self, Self) -> Bool
 pub fn Position::to_repr(Self) -> @debug.Repr
 pub fn Position::zero() -> Self
 
+#derive(Eq, @debug.Debug)
 pub struct Range {
   path : String
   start : Position
   end : Position
-} derive(Eq, @debug.Debug)
+}
 pub fn Range::between(Self, Self) -> Self
 #deprecated
 pub fn Range::equal(Self, Self) -> Bool
@@ -58,10 +61,11 @@ pub fn Range::not_equal(Self, Self) -> Bool
 pub fn Range::to_repr(Self) -> @debug.Repr
 pub fn Range::with_path(String, Position, Position) -> Self
 
+#derive(Eq, @debug.Debug)
 pub enum StringType {
   SingleQuoted
   DoubleQuoted
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn StringType::equal(Self, Self) -> Bool
 #deprecated
@@ -69,11 +73,12 @@ pub fn StringType::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn StringType::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct Token {
   kind : TokenKind
   range : Range
   raw : String
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn Token::equal(Self, Self) -> Bool
 pub fn Token::is_arrow(Self) -> Bool
@@ -85,6 +90,7 @@ pub fn Token::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn Token::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub enum TokenKind {
   Ident(String)
   StringLit(StringType, String)
@@ -116,7 +122,7 @@ pub enum TokenKind {
   TripleStar
   Newline
   Eof
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn TokenKind::equal(Self, Self) -> Bool
 #deprecated

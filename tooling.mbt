@@ -16,20 +16,22 @@
 /// LSP-facing helper APIs for editor integrations.
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum CompletionKind {
   Keyword
   Style
   Shape
   Value
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub struct CompletionItem {
   label : String
   kind : CompletionKind
   detail : String
   insert_text : String
-} derive(Eq, Debug)
+}
 
 ///|
 priv enum RefSelector {

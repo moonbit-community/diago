@@ -27,10 +27,11 @@ using @graph {
 }
 
 ///|
+#derive(Debug)
 pub struct LegendLayoutConfig {
   font_size : Int32
   margin : Double
-} derive(Debug)
+}
 
 ///|
 pub fn LegendLayoutConfig::new(font_size : Int32) -> LegendLayoutConfig {
@@ -38,6 +39,7 @@ pub fn LegendLayoutConfig::new(font_size : Int32) -> LegendLayoutConfig {
 }
 
 ///|
+#derive(Debug)
 pub struct LegendLayout {
   x : Double
   y : Double
@@ -47,20 +49,22 @@ pub struct LegendLayout {
   stroke : String
   title : TitleLayout?
   entries : Array[LegendEntryLayout]
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub struct TitleLayout {
   x : Double
   y : Double
   text : String
-} derive(Debug)
+}
 
 ///|
 /// Pre-positioned legend entry layout.
 ///
 /// The renderer should not compute positions (label alignment, icon placement,
 /// separators). It only renders based on this layout.
+#derive(Debug)
 pub enum LegendEntryLayout {
   Shape(
     id~ : String,
@@ -97,7 +101,7 @@ pub enum LegendEntryLayout {
     label_y~ : Double
   )
   Separator(x1~ : Double, x2~ : Double, y~ : Double)
-} derive(Debug)
+}
 
 ///|
 fn legend_text_dimensions(text : String) -> @text_metrics.TextDimensions {

@@ -20,6 +20,7 @@
 
 ///|
 /// Position of the legend in the diagram
+#derive(Eq, Debug)
 pub(all) enum LegendPosition {
   TopLeft
   TopRight
@@ -27,7 +28,7 @@ pub(all) enum LegendPosition {
   BottomRight
   /// Legend is not displayed
   Hidden
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parse legend position from string
@@ -56,6 +57,7 @@ pub fn LegendPosition::to_position_string(self : LegendPosition) -> String {
 
 ///|
 /// A single entry in the legend
+#derive(Debug)
 pub(all) enum LegendEntry {
   /// A shape entry with optional custom style
   ShapeEntry(
@@ -80,7 +82,7 @@ pub(all) enum LegendEntry {
   CustomEntry(icon~ : String, label~ : String)
   /// A visual separator line
   Separator
-} derive(Debug)
+}
 
 ///|
 /// Create a shape legend entry
@@ -133,6 +135,7 @@ pub fn LegendEntry::separator() -> LegendEntry {
 
 ///|
 /// The legend configuration for a diagram
+#derive(Debug)
 pub struct Legend {
   /// Optional title for the legend
   title : String?
@@ -150,7 +153,7 @@ pub struct Legend {
   entry_gap : Double
   /// Size of shape icons in legend
   icon_size : Double
-} derive(Debug)
+}
 
 ///|
 /// Create a new legend with default settings

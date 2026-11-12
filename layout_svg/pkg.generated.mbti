@@ -12,15 +12,17 @@ pub fn compute_legend_layout(@graph.LegendInput, (Double, Double, Double, Double
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub enum LegendEntryLayout {
   Shape(id~ : String, icon_box~ : @graph.Box, shape~ : @graph.ShapeType, label~ : String, style~ : @graph.StyleInput?, label_x~ : Double, label_y~ : Double)
   Connection(src_id~ : String, dst_id~ : String, index~ : Int32, line_start_x~ : Double, line_end_x~ : Double, line_y~ : Double, src_arrow_enabled~ : Bool, dst_arrow_enabled~ : Bool, src_arrow~ : @graph.ArrowheadType, dst_arrow~ : @graph.ArrowheadType, label~ : String, style~ : @graph.StyleInput?, label_x~ : Double, label_y~ : Double)
   Custom(icon_x~ : Double, icon_y~ : Double, icon_size~ : Double, icon~ : String, label~ : String, label_x~ : Double, label_y~ : Double)
   Separator(x1~ : Double, x2~ : Double, y~ : Double)
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn LegendEntryLayout::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct LegendLayout {
   x : Double
   y : Double
@@ -30,23 +32,25 @@ pub struct LegendLayout {
   stroke : String
   title : TitleLayout?
   entries : Array[LegendEntryLayout]
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn LegendLayout::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct LegendLayoutConfig {
   font_size : Int32
   margin : Double
-} derive(@debug.Debug)
+}
 pub fn LegendLayoutConfig::new(Int32) -> Self
 #deprecated
 pub fn LegendLayoutConfig::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct TitleLayout {
   x : Double
   y : Double
   text : String
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn TitleLayout::to_repr(Self) -> @debug.Repr
 

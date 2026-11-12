@@ -1,6 +1,6 @@
 name = "moonbit-community/diago"
 
-version = "0.4.1"
+version = "0.4.2"
 
 import {
   "moonbitlang/x@0.5.7",
@@ -10,8 +10,8 @@ import {
   "gmlewis/flate@0.36.17",
   "gmlewis/io@0.23.20",
   "gmlewis/zlib@0.21.17",
-  "moonbit-community/elk@0.4.1",
-  "moonbit-community/moon_dagre@0.3.1",
+  "moonbit-community/elk@0.4.2",
+  "moonbit-community/moon_dagre@0.3.2",
   "moonbitlang/async@0.22.7",
 }
 

@@ -16,19 +16,21 @@
 /// Public facade API for parsing and compiling diago sources.
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Debug, Eq)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum LayoutEngine {
   Auto
   Dagre
   Elk
   Railway
-} derive(Debug, Eq)
+}
 
 ///|
 pub struct ParseOptions {
@@ -287,6 +289,7 @@ pub fn CompileOptions::with_omit_version(
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) suberror DiagoError {
   ParseError(String)
   IOError(String)
@@ -297,7 +300,7 @@ pub(all) suberror DiagoError {
   ConfigError(String)
   TargetError(String)
   UnsupportedFeature(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn parse(

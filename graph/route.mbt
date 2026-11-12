@@ -19,6 +19,7 @@
 
 ///|
 /// Route style for edge paths
+#derive(Eq, Debug)
 pub(all) enum RouteStyle {
   /// Direct straight line between endpoints
   Straight
@@ -28,7 +29,7 @@ pub(all) enum RouteStyle {
   Elbow
   /// Optimal axis-aligned routing that avoids obstacles
   Orthogonal
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parse route style from string
@@ -73,6 +74,7 @@ pub fn RouteStyle::is_orthogonal(self : RouteStyle) -> Bool {
 
 ///|
 /// A waypoint along an edge route
+#derive(Debug)
 pub struct Waypoint {
   /// X coordinate
   x : Double
@@ -80,7 +82,7 @@ pub struct Waypoint {
   y : Double
   /// Optional control point for curves (for bezier curves)
   control : (Double, Double)?
-} derive(Debug)
+}
 
 ///|
 /// Create a simple waypoint
@@ -107,6 +109,7 @@ pub fn Waypoint::to_point(self : Waypoint) -> Point {
 
 ///|
 /// Route configuration for an edge
+#derive(Debug)
 pub struct Route {
   /// The routing style
   style : RouteStyle
@@ -116,7 +119,7 @@ pub struct Route {
   src_arrowhead : ArrowheadType
   /// Destination arrowhead type
   dst_arrowhead : ArrowheadType
-} derive(Debug)
+}
 
 ///|
 /// Create a new empty route with default style

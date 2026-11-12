@@ -22,18 +22,20 @@
 
 ///|
 /// Text dimensions (width and height)
+#derive(Eq, Debug)
 pub struct TextDimensions {
   width : Double
   height : Double
-} derive(Eq, Debug)
+}
 
 ///|
 /// Text measurement result with line information
+#derive(Eq, Debug)
 pub struct MeasuredText {
   dimensions : TextDimensions
   line_count : Int32
   max_line_width : Double
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for TextDimensions with fn output(self, logger) {

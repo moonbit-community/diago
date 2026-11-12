@@ -35,13 +35,14 @@ pub fn ParseOptions::with_import_resolver(
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum CompileError {
   ParseError(String)
   IOError(String)
   IrError(String)
   GraphError(String)
   ConfigError(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub struct CompileResult {

@@ -20,13 +20,14 @@ pub fn parse(String) -> (@ast.Map, @parser.ParseErrors)
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum CompileError {
   ParseError(String)
   IOError(String)
   IrError(String)
   GraphError(String)
   ConfigError(String)
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn CompileError::equal(Self, Self) -> Bool
 #deprecated

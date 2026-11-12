@@ -17,9 +17,10 @@
 
 ///|
 /// ASCII renderer
+#derive(Debug)
 pub struct AsciiRenderer {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 pub fn AsciiRenderer::new() -> AsciiRenderer {

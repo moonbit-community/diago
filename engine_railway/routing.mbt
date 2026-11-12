@@ -522,10 +522,11 @@ priv struct EdgeInterval {
 }
 
 ///|
+#derive(Eq)
 priv struct TrackUsage {
   end : Int32
   track : Int32
-} derive(Eq)
+}
 
 ///|
 impl Compare for TrackUsage with fn compare(a, b) {
@@ -634,10 +635,11 @@ priv struct SyntheticSegment {
 }
 
 ///|
+#derive(Eq)
 priv struct LaneUsage {
   end : Double
   lane : Int32
-} derive(Eq)
+}
 
 ///|
 impl Compare for LaneUsage with fn compare(a, b) {

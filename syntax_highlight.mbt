@@ -14,6 +14,7 @@
 
 ///|
 /// A lexical category used by source editors.
+#derive(Eq, Debug)
 pub(all) enum SyntaxTokenKind {
   Comment
   String
@@ -23,18 +24,19 @@ pub(all) enum SyntaxTokenKind {
   Identifier
   Operator
   Punctuation
-} derive(Eq, Debug)
+}
 
 ///|
 /// A highlighted source range.
 ///
 /// `start` and `end` are zero-based Unicode code point offsets. The range is
 /// half-open: it includes `start` and excludes `end`.
+#derive(Eq, Debug)
 pub struct SyntaxToken {
   start : Int32
   end : Int32
   kind : SyntaxTokenKind
-} derive(Eq, Debug)
+}
 
 ///|
 priv struct BlockStringSpan {

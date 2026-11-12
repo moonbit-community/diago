@@ -30,6 +30,7 @@ using @graph {
 }
 
 ///|
+#derive(Debug)
 pub struct AsciiLayoutConfig {
   min_box_width : Int32
   box_height : Int32
@@ -38,7 +39,7 @@ pub struct AsciiLayoutConfig {
   h_spacing : Int32
   min_width : Int32
   min_height : Int32
-} derive(Debug)
+}
 
 ///|
 pub fn AsciiLayoutConfig::new() -> AsciiLayoutConfig {
@@ -78,6 +79,7 @@ pub fn AsciiLayoutConfig::from_parts(
 /// ASCII box position and size in character coordinates.
 ///
 /// `children` is used for structured shapes like sql_table.
+#derive(Debug)
 pub struct AsciiBox {
   id : String
   x : Int32
@@ -88,23 +90,26 @@ pub struct AsciiBox {
   shape : String
   is_container : Bool
   children : Array[AsciiBox]
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub struct GridPoint {
   x : Int32
   y : Int32
-} derive(Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub enum ArrowDir {
   Up
   Down
   Left
   Right
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Debug)
 pub struct EdgePlan {
   index : Int32
   ref_idx : Int32
@@ -112,9 +117,10 @@ pub struct EdgePlan {
   arrow : (GridPoint, ArrowDir)?
   label : String
   label_pos : GridPoint?
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub struct LegendPlan {
   x : Int32
   y : Int32
@@ -123,16 +129,17 @@ pub struct LegendPlan {
   title : String?
   rows : Array[(Int32, Int32, String)]
   separators : Array[(Int32, Int32, Int32)]
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub struct AsciiPlan {
   canvas_width : Int32
   canvas_height : Int32
   boxes : Array[AsciiBox]
   edges : Array[EdgePlan]
   legend : (LegendInput, LegendPlan)?
-} derive(Debug)
+}
 
 ///|
 fn get_short_id(id : String) -> String {

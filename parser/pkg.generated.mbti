@@ -17,10 +17,11 @@ pub fn parse_with_path(String, String) -> (@ast.Map, ParseErrors)
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub struct ParseError {
   range : @lexer.Range
   message : String
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn ParseError::equal(Self, Self) -> Bool
 #deprecated
@@ -32,9 +33,10 @@ pub fn ParseError::to_repr(Self) -> @debug.Repr
 pub fn ParseError::to_string(Self) -> String
 pub impl Show for ParseError
 
+#derive(Eq, @debug.Debug)
 pub struct ParseErrors {
   errors : Array[ParseError]
-} derive(Eq, @debug.Debug)
+}
 pub fn ParseErrors::add(Self, @lexer.Range, String) -> Unit
 #deprecated
 pub fn ParseErrors::equal(Self, Self) -> Bool
@@ -49,7 +51,8 @@ pub fn ParseErrors::to_repr(Self) -> @debug.Repr
 pub fn ParseErrors::to_string(Self) -> String
 pub impl Show for ParseErrors
 
-type Parser derive(@debug.Debug)
+#derive(@debug.Debug)
+type Parser
 pub fn Parser::new(String, Array[@lexer.Token]) -> Self
 #deprecated
 pub fn Parser::to_repr(Self) -> @debug.Repr

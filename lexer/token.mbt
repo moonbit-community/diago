@@ -16,23 +16,26 @@
 /// Position in source code (0-based)
 ///
 /// `offset` is a 0-based codepoint offset within the source string.
+#derive(Eq, Debug)
 pub struct Position {
   line : Int32 // 0-based line
   column : Int32 // 0-based column (in characters)
   offset : Int32 // 0-based codepoint offset
-} derive(Eq, Debug)
+}
 
 ///|
 /// A range in source code from start to end position.
 /// `path` may be empty for in-memory sources.
+#derive(Eq, Debug)
 pub struct Range {
   path : String
   start : Position
   end : Position
-} derive(Eq, Debug)
+}
 
 ///|
 /// Token types for the diago language
+#derive(Eq, Debug)
 pub enum TokenKind {
   // Literals
   Ident(String) // identifiers and unquoted strings
@@ -79,22 +82,24 @@ pub enum TokenKind {
 
   // End of file
   Eof
-} derive(Eq, Debug)
+}
 
 ///|
 /// String literal types
+#derive(Eq, Debug)
 pub enum StringType {
   SingleQuoted
   DoubleQuoted
-} derive(Eq, Debug)
+}
 
 ///|
 /// A token with its kind, range, and raw text
+#derive(Eq, Debug)
 pub struct Token {
   kind : TokenKind
   range : Range
   raw : String // original source text
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn Position::new(line : Int32, column : Int32, offset : Int32) -> Position {

@@ -32,12 +32,13 @@ pub fn DiagramOptions::with_route_plugin(Self, ((@graph.GraphInput) -> Result[@g
 pub fn DiagramOptions::with_target_spec(Self, String?) -> Self
 pub fn DiagramOptions::with_theme_name(Self, String?) -> Self
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LayoutEngine {
   Auto
   Dagre
   Elk
   Railway
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn LayoutEngine::equal(Self, Self) -> Bool
 #deprecated
@@ -45,13 +46,14 @@ pub fn LayoutEngine::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn LayoutEngine::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LibError {
   LayoutError(String)
   RenderError(String)
   ConfigError(String)
   TargetError(String)
   UnsupportedFeature(String)
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn LibError::equal(Self, Self) -> Bool
 #deprecated
@@ -59,11 +61,12 @@ pub fn LibError::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn LibError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum OutputMode {
   Svg
   Ascii
   Unicode
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn OutputMode::equal(Self, Self) -> Bool
 #deprecated

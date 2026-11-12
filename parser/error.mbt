@@ -14,16 +14,18 @@
 
 ///|
 /// Parse error with location
+#derive(Eq, Debug)
 pub struct ParseError {
   range : @lexer.Range
   message : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Collection of parse errors
+#derive(Eq, Debug)
 pub struct ParseErrors {
   errors : Array[ParseError]
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for ParseError with fn output(self, logger) {

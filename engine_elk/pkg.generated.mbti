@@ -5,17 +5,19 @@ import {
   "moonbit-community/diago/engine_api",
   "moonbit-community/diago/graph",
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub fn debug_build_elk_input_json(@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Json
+pub fn debug_build_elk_input_json(@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> @json.Json
 
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub struct ElkEngine {
   _marker : Unit
-} derive(@debug.Debug)
+}
 pub fn ElkEngine::engine_name(Self) -> String
 pub fn ElkEngine::features(Self) -> Array[@engine_api.LayoutFeature]
 pub fn ElkEngine::layout(Self, @graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> @graph.LayoutPatch raise @engine_api.LayoutError

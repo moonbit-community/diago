@@ -19,6 +19,7 @@
 
 ///|
 /// Color palette for a theme
+#derive(Debug)
 pub struct ColorPalette {
   /// Neutral colors (N1-N7, dark to light)
   n1 : String
@@ -42,10 +43,11 @@ pub struct ColorPalette {
   /// Alternative colors B (AB4, AB5)
   ab4 : String
   ab5 : String
-} derive(Debug)
+}
 
 ///|
 /// Special rendering rules
+#derive(Debug)
 pub struct SpecialRules {
   /// Apply the C4 model visual hierarchy.
   c4 : Bool
@@ -61,7 +63,7 @@ pub struct SpecialRules {
   caps_lock : Bool
   /// All backgrounds white
   all_paper : Bool
-} derive(Debug)
+}
 
 ///|
 pub fn SpecialRules::default() -> SpecialRules {
@@ -78,13 +80,14 @@ pub fn SpecialRules::default() -> SpecialRules {
 
 ///|
 /// A complete theme definition
+#derive(Debug)
 pub struct Theme {
   id : Int32
   name : String
   colors : ColorPalette
   rules : SpecialRules
   is_dark : Bool
-} derive(Debug)
+}
 
 ///|
 pub fn Theme::get_id(self : Theme) -> Int32 {

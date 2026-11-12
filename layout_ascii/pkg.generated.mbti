@@ -13,12 +13,13 @@ pub fn plan(@diagram.Diagram, AsciiLayoutConfig) -> AsciiPlan
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub enum ArrowDir {
   Up
   Down
   Left
   Right
-} derive(Eq, @debug.Debug)
+}
 #deprecated
 pub fn ArrowDir::equal(Self, Self) -> Bool
 #deprecated
@@ -26,6 +27,7 @@ pub fn ArrowDir::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn ArrowDir::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct AsciiBox {
   id : String
   x : Int32
@@ -36,10 +38,11 @@ pub struct AsciiBox {
   shape : String
   is_container : Bool
   children : Array[AsciiBox]
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn AsciiBox::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct AsciiLayoutConfig {
   min_box_width : Int32
   box_height : Int32
@@ -48,22 +51,24 @@ pub struct AsciiLayoutConfig {
   h_spacing : Int32
   min_width : Int32
   min_height : Int32
-} derive(@debug.Debug)
+}
 pub fn AsciiLayoutConfig::from_parts(Int32, Int32, Int32, Int32, Int32, Int32, Int32) -> Self
 pub fn AsciiLayoutConfig::new() -> Self
 #deprecated
 pub fn AsciiLayoutConfig::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct AsciiPlan {
   canvas_width : Int32
   canvas_height : Int32
   boxes : Array[AsciiBox]
   edges : Array[EdgePlan]
   legend : (@graph.LegendInput, LegendPlan)?
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn AsciiPlan::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct EdgePlan {
   index : Int32
   ref_idx : Int32
@@ -71,17 +76,19 @@ pub struct EdgePlan {
   arrow : (GridPoint, ArrowDir)?
   label : String
   label_pos : GridPoint?
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn EdgePlan::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct GridPoint {
   x : Int32
   y : Int32
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn GridPoint::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct LegendPlan {
   x : Int32
   y : Int32
@@ -90,7 +97,7 @@ pub struct LegendPlan {
   title : String?
   rows : Array[(Int32, Int32, String)]
   separators : Array[(Int32, Int32, Int32)]
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn LegendPlan::to_repr(Self) -> @debug.Repr
 

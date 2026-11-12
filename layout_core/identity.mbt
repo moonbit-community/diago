@@ -14,9 +14,10 @@
 
 ///|
 /// A canonical absolute object identity owned by the layout core.
+#derive(Eq, Compare, Hash, Debug)
 pub struct ObjectId {
   priv value : String
-} derive(Eq, Compare, Hash, Debug)
+}
 
 ///|
 /// Create an object identity from a canonical layout-core graph key.

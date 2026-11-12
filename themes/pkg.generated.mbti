@@ -16,6 +16,7 @@ pub fn list_themes() -> Array[String]
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub struct ColorPalette {
   n1 : String
   n2 : String
@@ -35,10 +36,11 @@ pub struct ColorPalette {
   aa5 : String
   ab4 : String
   ab5 : String
-} derive(@debug.Debug)
+}
 #deprecated
 pub fn ColorPalette::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct SpecialRules {
   c4 : Bool
   mono : Bool
@@ -47,18 +49,19 @@ pub struct SpecialRules {
   container_dots : Bool
   caps_lock : Bool
   all_paper : Bool
-} derive(@debug.Debug)
+}
 pub fn SpecialRules::default() -> Self
 #deprecated
 pub fn SpecialRules::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub struct Theme {
   id : Int32
   name : String
   colors : ColorPalette
   rules : SpecialRules
   is_dark : Bool
-} derive(@debug.Debug)
+}
 pub fn Theme::accent_color(Self) -> String
 pub fn Theme::background_color(Self) -> String
 pub fn Theme::container_fill(Self, Int32) -> String

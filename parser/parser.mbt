@@ -16,6 +16,7 @@
 /// Token-based recursive descent parser for diago
 
 ///|
+#derive(Debug)
 struct Parser {
   source : String
   tokens : Array[@lexer.Token]
@@ -23,7 +24,7 @@ struct Parser {
   mut depth : Int32
   mut in_edge_group : Bool
   errors : ParseErrors
-} derive(Debug)
+}
 
 ///|
 priv enum CommaMode {

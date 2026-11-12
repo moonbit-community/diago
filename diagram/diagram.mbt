@@ -20,15 +20,17 @@
 
 ///|
 /// Typed values preserved from config data entries.
+#derive(Eq, Debug)
 pub(all) enum ConfigDataValue {
   Text(String)
   StringArray(Array[String])
-} derive(Eq, Debug)
+}
 
 ///|
 /// Configuration extracted from source (vars/config).
 ///
 /// Caller-provided options may override these values.
+#derive(Debug)
 pub struct Config {
   sketch : Bool?
   theme_id : Int32?
@@ -43,7 +45,7 @@ pub struct Config {
   salt : String?
   omit_version : Bool?
   data : Map[String, ConfigDataValue]
-} derive(Debug)
+}
 
 ///|
 pub fn Config::new() -> Config {
@@ -101,6 +103,7 @@ pub fn Config::from_parts(
 /// Renderable shape.
 ///
 /// This is derived from `@graph.ObjectInput` after layout has been applied.
+#derive(Debug)
 pub struct Shape {
   id : String
   semantic_id : String
@@ -130,12 +133,13 @@ pub struct Shape {
   grid_column_span : Int32?
   grid_row_span : Int32?
   near : String?
-} derive(Debug)
+}
 
 ///|
 /// Renderable connection.
 ///
 /// This is derived from `@graph.EdgeInput` after layout has been applied.
+#derive(Debug)
 pub struct Connection {
   index : Int32
   src_id : String
@@ -170,7 +174,7 @@ pub struct Connection {
   label_box : @graph.Box?
   src_column_index : Int32?
   dst_column_index : Int32?
-} derive(Debug)
+}
 
 ///|
 /// Build the renderable shape used by the SVG legend's scaled icon.
@@ -264,6 +268,7 @@ pub fn Connection::legend_icon(
 /// Render-ready diagram.
 ///
 /// `shapes` does not include `root`.
+#derive(Debug)
 pub struct Diagram {
   name : String
   config : Config?
@@ -281,7 +286,7 @@ pub struct Diagram {
   scenarios : Array[Diagram]
   steps : Array[Diagram]
   legend : @graph.LegendInput?
-} derive(Debug)
+}
 
 ///|
 pub fn Diagram::has_layers(self : Diagram) -> Bool {

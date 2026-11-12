@@ -16,20 +16,22 @@ pub fn render_ascii(@diagram.Diagram, AsciiConfig) -> String
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub struct AsciiConfig {
   charset : @ascii.CharSet
   font_width : Double
   font_height : Double
   scale : Double
-} derive(@debug.Debug)
+}
 pub fn AsciiConfig::new() -> Self
 #deprecated
 pub fn AsciiConfig::to_repr(Self) -> @debug.Repr
 pub fn AsciiConfig::unicode() -> Self
 
+#derive(@debug.Debug)
 pub struct AsciiRenderer {
   _marker : Unit
-} derive(@debug.Debug)
+}
 pub fn AsciiRenderer::format_name(Self) -> String
 pub fn AsciiRenderer::new() -> Self
 pub fn AsciiRenderer::render(Self, @diagram.Diagram) -> String raise @render_api.RenderError

@@ -16,9 +16,10 @@
 /// Engine API regression tests
 
 ///|
+#derive(Debug)
 struct FakeEngine {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 fn FakeEngine::new() -> FakeEngine {
@@ -270,9 +271,10 @@ test "layout engine patches cannot introduce unknown identities" {
 }
 
 ///|
+#derive(Debug)
 struct RoundtripEngine {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 fn RoundtripEngine::new() -> RoundtripEngine {

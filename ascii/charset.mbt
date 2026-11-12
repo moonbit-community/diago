@@ -17,6 +17,7 @@
 
 ///|
 /// Character set for box drawing
+#derive(Debug)
 pub struct CharSet {
   // Box corners
   top_left : Char
@@ -59,7 +60,7 @@ pub struct CharSet {
   circle : Char
   oval : Char
   star : Char
-} derive(Debug)
+}
 
 ///|
 /// ASCII character set - uses only 7-bit ASCII characters

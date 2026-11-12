@@ -23,17 +23,19 @@
 /// - Comments and CDATA sections
 
 ///|
+#derive(Eq, Debug)
 pub enum XmlNode {
   NodeElement(XmlElement)
   NodeText(String)
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub struct XmlElement {
   name : String
   attrs : Map[String, String]
   children : Array[XmlNode]
-} derive(Eq, Debug)
+}
 
 ///|
 priv struct Parser {

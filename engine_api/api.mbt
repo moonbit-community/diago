@@ -22,6 +22,7 @@
 
 ///|
 /// Layout configuration
+#derive(Debug)
 pub struct LayoutConfig {
   /// Horizontal spacing between objects
   horizontal_spacing : Double
@@ -35,16 +36,17 @@ pub struct LayoutConfig {
   default_height : Double
   /// Edge padding from objects
   edge_padding : Double
-} derive(Debug)
+}
 
 ///|
 /// Layout direction
+#derive(Eq, Debug)
 pub(all) enum Direction {
   Down
   Right
   Up
   Left
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for Direction with fn output(self, logger) {
@@ -59,20 +61,22 @@ pub impl Show for Direction with fn output(self, logger) {
 
 ///|
 /// Layout engine capability flags aligned with the reference's layout feature model.
+#derive(Eq, Debug)
 pub(all) enum LayoutFeature {
   NearObject
   ContainerDimensions
   TopLeft
   DescendantEdges
-} derive(Eq, Debug)
+}
 
 ///|
 /// Layout error
+#derive(Eq, Debug)
 pub(all) suberror LayoutError {
   InvalidGraph(String)
   CycleDetected(String)
   Unsupported(String)
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for LayoutError with fn output(self, logger) {

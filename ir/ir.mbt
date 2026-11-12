@@ -22,25 +22,28 @@
 /// A scalar value in the IR.
 ///
 /// Scalars carry a source `range` for error reporting and reference tracking.
+#derive(Eq, Debug)
 pub struct Scalar {
   value : ScalarValue
   range : @lexer.Range
   ast : @ast.Node?
   source_path : String?
   path : NodePath?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Types of scalar values
+#derive(Eq, Debug)
 pub(all) enum ScalarValue {
   Null
   Bool(String)
   Number(String)
   String(@ast.StringValue)
-} derive(Eq, Debug)
+}
 
 ///|
 /// An IR Map containing fields and edges
+#derive(Eq, Debug)
 pub struct Map {
   fields : Array[Field]
   edges : Array[Edge]
@@ -48,10 +51,11 @@ pub struct Map {
   import_ast : @ast.Node?
   source_path : String?
   path : NodePath?
-} derive(Eq, Debug)
+}
 
 ///|
 /// A field in the IR map
+#derive(Eq, Debug)
 pub struct Field {
   name : String
   name_syntax : @ast.StringValue?
@@ -60,34 +64,38 @@ pub struct Field {
   references : Array[FieldReference]
   import_ast : @ast.Node?
   path : NodePath?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Composite values (Array or Map)
+#derive(Eq, Debug)
 pub(all) enum Composite {
   Array(IRArray)
   Map(Map)
-} derive(Eq, Debug)
+}
 
 ///|
 /// An array of values
+#derive(Eq, Debug)
 pub struct IRArray {
   values : Array[Value]
   ast : @ast.Node?
   source_path : String?
   path : NodePath?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Value types in IR
+#derive(Eq, Debug)
 pub(all) enum Value {
   Scalar(Scalar)
   Array(IRArray)
   Map(Map)
-} derive(Eq, Debug)
+}
 
 ///|
 /// An edge in the IR
+#derive(Eq, Debug)
 pub struct Edge {
   id : EdgeID
   primary : Scalar?
@@ -95,10 +103,11 @@ pub struct Edge {
   references : Array[EdgeReference]
   import_ast : @ast.Node?
   path : NodePath?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Unique identifier for an edge
+#derive(Eq, Debug)
 pub struct EdgeID {
   src_path : Array[String]
   src_path_syntax : Array[@ast.StringValue]
@@ -108,35 +117,39 @@ pub struct EdgeID {
   dst_arrow : Bool
   index : Int32?
   glob : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Stable path to an IR node inside a compiled map.
+#derive(Eq, Debug)
 pub(all) enum NodePathSegment {
   FieldStep(String, Bool)
   EdgeStep(EdgeID)
   PrimaryStep
   CompositeStep
   ArrayItemStep(Int32)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Stable path to an IR node inside a compiled map.
+#derive(Eq, Debug)
 pub struct NodePath {
   segments : Array[NodePathSegment]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Reference context for a field or edge reference.
+#derive(Eq, Debug)
 pub struct RefContext {
   edge : @ast.Edge?
   key : @ast.Key?
   scope : @ast.Map?
   source_path : String?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Reference to a field from the AST
+#derive(Eq, Debug)
 pub struct FieldReference {
   range : @lexer.Range
   string : String
@@ -147,10 +160,11 @@ pub struct FieldReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Reference to an edge from the AST
+#derive(Eq, Debug)
 pub struct EdgeReference {
   range : @lexer.Range
   edge : @ast.Edge?
@@ -159,17 +173,19 @@ pub struct EdgeReference {
   primary : Bool
   due_to_glob : Bool
   due_to_lazy_glob : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Boxed reference for generic traversal.
+#derive(Eq, Debug)
 pub(all) enum Reference {
   FieldRef(FieldReference)
   EdgeRef(EdgeReference)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Boxed IR node for generic traversal.
+#derive(Eq, Debug)
 pub(all) enum Node {
   Scalar(Scalar)
   Field(Field)
@@ -178,7 +194,7 @@ pub(all) enum Node {
   Map(Map)
   Composite(Composite)
   Value(Value)
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn Node::node_type(self : Node) -> String {

@@ -19,10 +19,11 @@
 /// The patch can then be applied to the graph to produce a new graph.
 
 ///|
+#derive(Debug)
 pub struct FragmentOperandLayout {
   condition : String?
   separator_y : Double
-} derive(Debug)
+}
 
 ///|
 pub fn FragmentOperandLayout::new(
@@ -33,6 +34,7 @@ pub fn FragmentOperandLayout::new(
 }
 
 ///|
+#derive(Debug)
 pub struct SequenceFragmentLayout {
   fragment_type : String
   condition : String?
@@ -40,7 +42,7 @@ pub struct SequenceFragmentLayout {
   start_index : Int32
   end_index : Int32
   operands : Array[FragmentOperandLayout]
-} derive(Debug)
+}
 
 ///|
 pub fn SequenceFragmentLayout::new(
@@ -55,6 +57,7 @@ pub fn SequenceFragmentLayout::new(
 }
 
 ///|
+#derive(Debug)
 pub struct LayoutPatch {
   nodes : Map[String, Box]
   node_labels : Map[String, Box]
@@ -65,7 +68,7 @@ pub struct LayoutPatch {
   activation_boxes : Array[(String, Box)]
   sequence_notes : Array[(String, String, Box)]
   sequence_fragments : Array[SequenceFragmentLayout]
-} derive(Debug)
+}
 
 ///|
 pub fn LayoutPatch::new() -> LayoutPatch {

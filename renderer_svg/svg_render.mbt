@@ -28,6 +28,7 @@ pub enum RenderPass {
 
 ///|
 /// SVG rendering configuration
+#derive(Debug)
 pub struct SvgConfig {
   /// Padding around the entire diagram
   padding : Double
@@ -65,7 +66,7 @@ pub struct SvgConfig {
   salt : String?
   /// Omit version metadata on root element.
   omit_version : Bool
-} derive(Debug)
+}
 
 ///|
 pub fn SvgConfig::new() -> SvgConfig {
@@ -1561,7 +1562,7 @@ const ARROWHEAD_PADDING : Double = 2.0
 const MIN_ARROWHEAD_STROKE_WIDTH : Double = 2.0
 
 ///|
-const DIAGO_VERSION : String = "0.4.1"
+const DIAGO_VERSION : String = "0.4.2"
 
 ///|
 const MULTIPLE_OFFSET : Double = 10.0
@@ -6243,6 +6244,7 @@ priv enum CodeTokenKind {
 }
 
 ///|
+#derive(Eq)
 priv enum CodeLanguage {
   Unknown
   Go
@@ -6268,7 +6270,7 @@ priv enum CodeLanguage {
   Css
   Markdown
   MoonBit
-} derive(Eq)
+}
 
 ///|
 priv struct CodeToken {

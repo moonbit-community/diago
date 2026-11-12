@@ -18,9 +18,10 @@
 /// Uses moon_dagre for graph layout.
 
 ///|
+#derive(Debug)
 pub struct DagreEngine {
   _marker : Unit
-} derive(Debug)
+}
 
 ///|
 pub fn DagreEngine::new() -> DagreEngine {
