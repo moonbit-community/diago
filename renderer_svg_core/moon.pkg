@@ -26,6 +26,8 @@ import {
   "moonbit-community/diago/compiler",
   "moonbit-community/diago/engine_api",
   "moonbit-community/diago/engine_dagre",
+  "moonbit-community/diago/engine_elk",
+  "moonbit-community/diago/engine_railway",
   "moonbit-community/diago/fonts/builtin" @builtin_fonts,
   "moonbit-community/diago/renderer_svg" @bundled_svg,
 } for "test"

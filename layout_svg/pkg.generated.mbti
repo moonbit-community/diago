@@ -2,6 +2,7 @@
 package "moonbit-community/diago/layout_svg"
 
 import {
+  "moonbit-community/diago/fonts",
   "moonbit-community/diago/graph",
   "moonbitlang/core/debug",
 }
@@ -40,10 +41,12 @@ pub fn LegendLayout::to_repr(Self) -> @debug.Repr
 pub struct LegendLayoutConfig {
   font_size : Int32
   margin : Double
+  measurer : @fonts.Measurer?
 }
 pub fn LegendLayoutConfig::new(Int32) -> Self
 #deprecated
 pub fn LegendLayoutConfig::to_repr(Self) -> @debug.Repr
+pub fn LegendLayoutConfig::with_measurer(Self, @fonts.Measurer?) -> Self
 
 #derive(@debug.Debug)
 pub struct TitleLayout {

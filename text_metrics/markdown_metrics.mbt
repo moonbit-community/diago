@@ -112,9 +112,18 @@ fn markdown_inline_dimensions(
   font_size : Int32,
   line_height : Double,
   kind : FontKind,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let lines = [0.0]
-  markdown_add_inline_widths(inline, font_size, kind, lines)
+  let heights = [0.0]
+  markdown_add_inline_widths(
+    inline,
+    font_size,
+    kind,
+    lines,
+    measurer~,
+    heights~,
+  )
   let mut max_width = 0.0
   for width in lines {
     if width > max_width {
@@ -126,7 +135,11 @@ fn markdown_inline_dimensions(
   // precise vertical bounds of 161/128 em. Normal lines are still governed by
   // their taller CSS line-height, while headings retain the fractional excess
   // (40px -> 40.25px and 30px -> 30.1875px).
-  let precise_font_height = font_size.to_double() * 161.0 / 128.0
+  let precise_font_height = if measurer is Some(_) {
+    heights[0]
+  } else {
+    font_size.to_double() * 161.0 / 128.0
+  }
   let rendered_line_height = markdown_max_double(
     css_line_height, precise_font_height,
   )
@@ -139,65 +152,125 @@ fn markdown_add_inline_widths(
   font_size : Int32,
   kind : FontKind,
   lines : Array[Double],
+  heights~ : Array[Double],
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let add_width = fn(width : Double) {
     let last = lines.length() - 1
     lines[last] = lines[last] + width
   }
+  let add_measure = fn(measured : MeasuredText) {
+    add_width(measured.max_line_width)
+    heights[0] = markdown_max_double(heights[0], measured.dimensions.height)
+  }
   match inline {
     Text(node) => {
-      let measured = measure_text_with_dot_bounds_kind(node.v, font_size, kind)
-      add_width(measured.max_line_width)
+      let measured = measure_text_with_dot_bounds_kind(
+        node.v,
+        font_size,
+        kind,
+        measurer~,
+      )
+      add_measure(measured)
     }
     Autolink(node) => {
       let measured = measure_text_with_dot_bounds_kind(
         node.v.link.v,
         font_size,
         kind,
+        measurer~,
       )
-      add_width(measured.max_line_width)
+      add_measure(measured)
     }
     Break(node) =>
       match node.v.ty {
-        Hard => lines.push(markdown_space_width(font_size, kind))
-        Soft => add_width(markdown_space_width(font_size, kind))
+        Hard => lines.push(markdown_space_width(font_size, kind, measurer~))
+        Soft => add_width(markdown_space_width(font_size, kind, measurer~))
       }
     CodeSpan(node) => {
       let measured = measure_text_with_dot_bounds_kind(
         node.v.code(),
         font_size,
         MonoRegular,
+        measurer~,
+      )
+      heights[0] = markdown_max_double(
+        heights[0],
+        measured.dimensions.height * 0.85,
       )
       add_width(
         measured.max_line_width * 0.85 + 2.0 * 0.4 * font_size.to_double(),
       )
     }
     Emphasis(node) =>
-      markdown_add_inline_widths(node.v.inline, font_size, SansItalic, lines)
+      markdown_add_inline_widths(
+        node.v.inline,
+        font_size,
+        SansItalic,
+        lines,
+        measurer~,
+        heights~,
+      )
     StrongEmphasis(node) =>
-      markdown_add_inline_widths(node.v.inline, font_size, SansBold, lines)
+      markdown_add_inline_widths(
+        node.v.inline,
+        font_size,
+        SansBold,
+        lines,
+        measurer~,
+        heights~,
+      )
     Inlines(node) =>
       for child in node.v.to_array() {
-        markdown_add_inline_widths(child, font_size, kind, lines)
+        markdown_add_inline_widths(
+          child,
+          font_size,
+          kind,
+          lines,
+          measurer~,
+          heights~,
+        )
       }
     Link(node) =>
-      markdown_add_inline_widths(node.v.text, font_size, kind, lines)
+      markdown_add_inline_widths(
+        node.v.text,
+        font_size,
+        kind,
+        lines,
+        measurer~,
+        heights~,
+      )
     ExtStrikethrough(node) =>
-      markdown_add_inline_widths(node.v.0, font_size, kind, lines)
+      markdown_add_inline_widths(
+        node.v.0,
+        font_size,
+        kind,
+        lines,
+        measurer~,
+        heights~,
+      )
     ExtMathSpan(node) => {
       let measured = measure_text_with_dot_bounds_kind(
         node.v.tex(),
         font_size,
         kind,
+        measurer~,
       )
-      add_width(measured.max_line_width)
+      add_measure(measured)
     }
     Image(_) | RawHtml(_) => ()
   }
 }
 
 ///|
-fn markdown_space_width(font_size : Int32, kind : FontKind) -> Double {
+fn markdown_space_width(
+  font_size : Int32,
+  kind : FontKind,
+  measurer~ : @fonts.Measurer? = None,
+) -> Double {
+  if measurer is Some(_) {
+    return measure_text_with_dot_bounds_kind(" ", font_size, kind, measurer~).max_line_width
+  }
   let glyph = scaled_glyph_metrics(kind, ' '.to_int(), font_size)
   glyph.advance_fixed.to_double() / 64.0
 }
@@ -251,6 +324,7 @@ fn markdown_measure_block(
   base_font_size : Int32,
   list_depth : Int32,
   in_list_item : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MarkdownBlockMetrics {
   match block {
     BlankLine(_) | HtmlBlock(_) | LinkRefDefinition(_) =>
@@ -260,7 +334,11 @@ fn markdown_measure_block(
       for child in node.v.to_array() {
         parts.push(
           markdown_measure_block(
-            child, base_font_size, list_depth, in_list_item,
+            child,
+            base_font_size,
+            list_depth,
+            in_list_item,
+            measurer~,
           ),
         )
       }
@@ -272,6 +350,7 @@ fn markdown_measure_block(
         base_font_size,
         D2_MARKDOWN_LINE_HEIGHT,
         SansRegular,
+        measurer~,
       )
       {
         width,
@@ -294,6 +373,7 @@ fn markdown_measure_block(
         heading_font_size,
         D2_MARKDOWN_LINE_HEIGHT_HEADING,
         SansSemibold,
+        measurer~,
       )
       let mut height = inline_height
       if node.v.level == 1 || node.v.level == 2 {
@@ -317,6 +397,7 @@ fn markdown_measure_block(
           base_font_size,
           list_depth + 1,
           true,
+          measurer~,
         )
         item_blocks.push({
           width: inner.width +
@@ -345,6 +426,7 @@ fn markdown_measure_block(
     CodeBlock(node) | ExtMathBlock(node) => {
       let mut line_count = 0
       let mut max_line_width = 0.0
+      let mut max_measured_height = 0.0
       let code_font_size = markdown_max_int(
         1,
         (base_font_size.to_double() * 0.85).to_int(),
@@ -356,6 +438,11 @@ fn markdown_measure_block(
           true,
           false,
           false,
+          measurer~,
+        )
+        max_measured_height = markdown_max_double(
+          max_measured_height,
+          measured.dimensions.height,
         )
         if measured.max_line_width > max_line_width {
           max_line_width = measured.max_line_width
@@ -367,11 +454,17 @@ fn markdown_measure_block(
       }
       {
         width: max_line_width + 32.0,
-        height: line_count.to_double() *
-        base_font_size.to_double() *
-        0.85 *
-        1.45 +
-        32.0,
+        height: if measurer is Some(_) {
+          line_count.to_double() *
+          markdown_max_double(
+            base_font_size.to_double() * 0.85 * 1.45,
+            max_measured_height,
+          ) +
+          32.0
+        } else {
+          line_count.to_double() * base_font_size.to_double() * 0.85 * 1.45 +
+          32.0
+        },
         margin_top: 0.0,
         margin_bottom: D2_MARKDOWN_P_MARGIN_BOTTOM,
       }
@@ -389,6 +482,7 @@ fn markdown_measure_block(
         base_font_size,
         list_depth,
         false,
+        measurer~,
       )
       {
         width: inner.width + 2.25 * base_font_size.to_double(),
@@ -400,16 +494,29 @@ fn markdown_measure_block(
     ExtTable(node) => {
       let column_widths : Array[Double] = []
       let mut row_count = 0
+      let mut max_cell_height = 0.0
       for row in node.v.rows.to_array() {
+        let is_header = match row.0.v {
+          Header(_) => true
+          _ => false
+        }
         match row.0.v {
           Header(cols) | Data(cols) => {
             row_count += 1
             for i, col in cols.to_array() {
-              let (cell_width, _) = markdown_inline_dimensions(
+              let (cell_width, cell_height) = markdown_inline_dimensions(
                 col.0,
                 base_font_size,
                 D2_MARKDOWN_LINE_HEIGHT,
-                SansRegular,
+                if measurer is Some(_) && is_header {
+                  SansSemibold
+                } else {
+                  SansRegular
+                },
+                measurer~,
+              )
+              max_cell_height = markdown_max_double(
+                max_cell_height, cell_height,
               )
               while column_widths.length() <= i {
                 column_widths.push(0.0)
@@ -426,7 +533,14 @@ fn markdown_measure_block(
       for column_width in column_widths {
         table_width = table_width + column_width + 27.0
       }
-      let row_height = D2_MARKDOWN_LINE_HEIGHT * base_font_size.to_double() +
+      let row_height = markdown_max_double(
+          D2_MARKDOWN_LINE_HEIGHT * base_font_size.to_double(),
+          if measurer is Some(_) {
+            max_cell_height
+          } else {
+            0.0
+          },
+        ) +
         13.0
       {
         width: table_width,
@@ -436,7 +550,13 @@ fn markdown_measure_block(
       }
     }
     ExtFootnoteDefinition(node) =>
-      markdown_measure_block(node.v.block, base_font_size, list_depth, false)
+      markdown_measure_block(
+        node.v.block,
+        base_font_size,
+        list_depth,
+        false,
+        measurer~,
+      )
   }
 }
 
@@ -474,11 +594,18 @@ pub fn markdown_source_like_d2(text : String) -> String {
 pub fn measure_label_markdown(
   text : String,
   font_size : Int32,
+  measurer~ : @fonts.Measurer? = None,
 ) -> TextDimensions {
   if text == "" {
     return { width: 1.0, height: 1.0, }
   }
   let doc = @cmark.Doc::from_string(strict=false, markdown_source_like_d2(text))
-  let metrics = markdown_measure_block(doc.block, font_size, 0, false)
+  let metrics = markdown_measure_block(
+    doc.block,
+    font_size,
+    0,
+    false,
+    measurer~,
+  )
   { width: @math.ceil(metrics.width), height: @math.ceil(metrics.height), }
 }

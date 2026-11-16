@@ -92,7 +92,7 @@ The package split is:
 | Package | Responsibility |
 | --- | --- |
 | `text` | Source to ASCII/Unicode, with Dagre by default |
-| `fonts` | Font roles, sources, and resolver interface; no font assets |
+| `fonts` | Font roles, sources, resolver, and custom measurement interface; no assets |
 | `fonts/builtin` | Optional bundled Source Sans Pro and Source Code Pro assets |
 | `renderer_svg_core` | SVG rendering with caller-provided font sources |
 | `renderer_svg` | Existing SVG interface with bundled fonts |
@@ -100,9 +100,13 @@ The package split is:
 The root facade and `renderer_svg` retain their existing output and bundled-font
 defaults. Import `text` for a text-only build; selecting ASCII in the full
 facade still imports the full renderer stack. Font measurements remain in
-lightweight builds because they determine node geometry and routing. External
-font sources should match the existing font roles: replacing a face with an
-unrelated typeface does not automatically replace its measurement tables.
+lightweight builds because they determine node geometry and routing. Arbitrary
+typefaces are supported through `fonts.Measurer`: pass matching measurements
+to both `LayoutConfig.with_measurer` and `SvgConfig.with_measurer`. A resolver
+can also map all roles to a single font source. Without a custom measurer,
+the existing Source Sans Pro / Source Code Pro measurement tables apply.
+`text.compile` and `text.compile_with_engine` accept the same `measurer`
+option for text output.
 
 To verify the split and compare complete, text-only, and external-font SVG
 consumers on JS and Wasm:

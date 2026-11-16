@@ -26,6 +26,8 @@ fn object_size_with_objects(
   config : @engine_api.LayoutConfig,
   object_by_id : Map[String, @graph.ObjectInput],
 ) -> (Double, Double) {
+  let measurer = config.measurer
+
   fn explicit_or_auto(explicit : Double, auto : Double) -> Double {
     if explicit > 0.0 {
       explicit
@@ -64,6 +66,7 @@ fn object_size_with_objects(
       font_size,
       true,
       false,
+      measurer~,
     )
     let pad = font_size.to_double() / 2.0
     let auto_w = @cmp.maximum(
@@ -89,7 +92,11 @@ fn object_size_with_objects(
     )
   }
   if obj.shape_type == SqlTable && !object_by_id.is_empty() {
-    let (estimated_w, estimated_h) = estimate_sql_table_size(obj, object_by_id)
+    let (estimated_w, estimated_h) = estimate_sql_table_size(
+      obj,
+      object_by_id,
+      measurer~,
+    )
     let auto_w = @cmp.maximum(config.default_width, estimated_w)
     let auto_h = @cmp.maximum(config.default_height, estimated_h)
     let (raw_explicit_w, raw_explicit_h) = match obj.box {
@@ -107,7 +114,11 @@ fn object_size_with_objects(
     )
   }
   if obj.shape_type == Class && !object_by_id.is_empty() {
-    let (estimated_w, estimated_h) = estimate_class_size(obj, object_by_id)
+    let (estimated_w, estimated_h) = estimate_class_size(
+      obj,
+      object_by_id,
+      measurer~,
+    )
     let auto_w = @cmp.maximum(config.default_width, estimated_w)
     let auto_h = @cmp.maximum(config.default_height, estimated_h)
     let (raw_explicit_w, raw_explicit_h) = match obj.box {
@@ -137,6 +148,7 @@ fn object_size_with_objects(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let label_width = if dims.width > 0.0 {
     dims.width + 24.0
@@ -263,6 +275,7 @@ fn class_member_info_from_object(child : @graph.ObjectInput) -> ClassMemberInfo 
 fn estimate_class_size(
   obj : @graph.ObjectInput,
   object_by_id : Map[String, @graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let row_font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(20)
@@ -271,6 +284,7 @@ fn estimate_class_size(
   let header_measured = @text_metrics.measure_text_mono_plain(
     obj.label,
     row_font_size + D2_CLASS_HEADER_FONT_ADD,
+    measurer~,
   )
   let header_dims = header_measured.dimensions
   let padded_header_width = header_dims.width + D2_INNER_LABEL_PADDING
@@ -295,7 +309,9 @@ fn estimate_class_size(
       first_row_text = Some(row_text)
     }
     let row_measured = @text_metrics.measure_text_mono_plain(
-      row_text, row_font_size,
+      row_text,
+      row_font_size,
+      measurer~,
     )
     let row_width = row_measured.dimensions.width
     if row_width > max_width {
@@ -314,7 +330,9 @@ fn estimate_class_size(
   match first_row_text {
     Some(any_row_text) => {
       let row_dims = @text_metrics.measure_text_mono_plain(
-          any_row_text, row_font_size,
+          any_row_text,
+          row_font_size,
+          measurer~,
         ).dimensions
       let row_height = row_dims.height + D2_CLASS_VERTICAL_PADDING
       let header_height_min = if 2.0 * row_height > padded_header_height + 10.0 {
@@ -365,6 +383,7 @@ const SQL_CONSTRAINT_PREFIX : String = "sql_constraint:"
 fn estimate_sql_table_size(
   obj : @graph.ObjectInput,
   object_by_id : Map[String, @graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let row_font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(20)
@@ -377,6 +396,7 @@ fn estimate_sql_table_size(
       false,
       true,
       false,
+      measurer~,
     ).dimensions
   let padded_header_width = header_dims.width + 5.0
   let padded_header_height = header_dims.height + 5.0
@@ -398,6 +418,7 @@ fn estimate_sql_table_size(
         false,
         false,
         false,
+        measurer~,
       ).dimensions.width
     if name_width > max_name_width {
       max_name_width = name_width
@@ -408,6 +429,7 @@ fn estimate_sql_table_size(
         false,
         false,
         false,
+        measurer~,
       ).dimensions.width
     if type_width > max_type_width {
       max_type_width = type_width
@@ -415,7 +437,12 @@ fn estimate_sql_table_size(
     let constraint = sql_table_constraint_abbr_from_object(child)
     if constraint != "" {
       let constraint_width = @text_metrics.measure_text(
-          constraint, row_font_size, false, false, false,
+          constraint,
+          row_font_size,
+          false,
+          false,
+          false,
+          measurer~,
         ).dimensions.width
       if constraint_width > max_constraint_width {
         max_constraint_width = constraint_width
@@ -514,6 +541,8 @@ fn recompute_edge_label_boxes(
   config : @engine_api.LayoutConfig,
   lane_by_edge : Map[Int32, Int32],
 ) -> Unit {
+  let measurer = config.measurer
+
   let label_boxes : Map[Int32, @graph.Box] = Map([])
   for edge in graph.edges {
     let route = match patch.edges.get(edge.index) {
@@ -523,7 +552,7 @@ fn recompute_edge_label_boxes(
     if route.is_empty() {
       continue
     }
-    let (width, height) = match edge_label_size(edge) {
+    let (width, height) = match edge_label_size(edge, measurer~) {
       Some(v) => v
       None => continue
     }
@@ -1106,7 +1135,10 @@ fn segment_intersects_box(
 }
 
 ///|
-fn edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
+fn edge_label_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double)? {
   match edge.label_box {
     Some(box) => {
       let width = if box.width > 0.0 { box.width } else { 0.0 }
@@ -1114,15 +1146,18 @@ fn edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
       if width > 0.0 && height > 0.0 {
         Some((width, height))
       } else {
-        fallback_edge_label_size(edge)
+        fallback_edge_label_size(edge, measurer~)
       }
     }
-    None => fallback_edge_label_size(edge)
+    None => fallback_edge_label_size(edge, measurer~)
   }
 }
 
 ///|
-fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
+fn fallback_edge_label_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double)? {
   if edge.label.is_empty() {
     return None
   }
@@ -1139,6 +1174,7 @@ fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let width = if dims.width > 0.0 {
     dims.width
@@ -1217,6 +1253,7 @@ fn container_label_score_less_railway(
 fn recompute_container_label_boxes_railway(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let bounds = patch_label_bounds_railway(patch)
   let placed_labels : Map[String, @graph.Box] = Map([])
@@ -1231,7 +1268,7 @@ fn recompute_container_label_boxes_railway(
       None => continue
     }
     let (label_width, label_height) = match
-      container_label_dimensions_railway(obj) {
+      container_label_dimensions_railway(obj, measurer~) {
       Some(v) => v
       None => continue
     }

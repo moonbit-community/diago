@@ -36,6 +36,7 @@ pub struct LayoutConfig {
   default_height : Double
   /// Edge padding from objects
   edge_padding : Double
+  measurer : @fonts.Measurer?
 }
 
 ///|
@@ -124,6 +125,7 @@ pub fn LayoutConfig::new() -> LayoutConfig {
     default_width: 100.0,
     default_height: 60.0,
     edge_padding: 20.0,
+    measurer: None,
   }
 }
 
@@ -1011,6 +1013,8 @@ fn apply_grid_semantic_parent_boxes(
   groups : Map[String, Array[String]],
   config : LayoutConfig,
 ) -> @graph.GraphInput {
+  let measurer = config.measurer
+
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.abs_id_syntax] = graph.root
   for obj in graph.objects {
@@ -1045,7 +1049,10 @@ fn apply_grid_semantic_parent_boxes(
     }
     match
       estimate_grid_container_layout_like_d2(
-        parent, child_ids, child_size_by_id,
+        parent,
+        child_ids,
+        child_size_by_id,
+        measurer~,
       ) {
       Some(layout) => {
         let (x, y) = match parent.box {
@@ -1154,6 +1161,7 @@ fn estimate_grid_container_layout_like_d2(
   parent : @graph.ObjectInput,
   child_ids : Array[String],
   child_size_by_id : Map[String, (Double, Double)],
+  measurer~ : @fonts.Measurer? = None,
 ) -> GridContainerLayout? {
   match estimate_root_grid_child_boxes(parent, child_ids, child_size_by_id) {
     Some(content_child_boxes) => {
@@ -1171,7 +1179,12 @@ fn estimate_grid_container_layout_like_d2(
       }
       let (hgap, vgap) = grid_semantic_gaps(parent)
       let padding = grid_semantic_padding_like_d2(
-        parent, content_width, content_height, hgap, vgap,
+        parent,
+        content_width,
+        content_height,
+        hgap,
+        vgap,
+        measurer~,
       )
       let child_boxes : Map[String, @graph.Box] = Map([])
       for child_id, box in content_child_boxes {
@@ -1200,6 +1213,7 @@ pub fn estimate_nested_grid_layout_like_d2(
   child_ids : Array[String],
   child_size_by_id : Map[String, (Double, Double)],
   object_by_id : Map[String, @graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double, Map[String, @graph.Box])? {
   let metrics_by_id : Map[String, GridChildLayoutMetrics] = Map([])
   let layout_size_by_id : Map[String, (Double, Double)] = Map([])
@@ -1216,7 +1230,12 @@ pub fn estimate_nested_grid_layout_like_d2(
       child,
     )
     let margin = grid_child_margin_like_d2(
-      child, width, height, label_position, icon_position,
+      child,
+      width,
+      height,
+      label_position,
+      icon_position,
+      measurer~,
     )
     let metrics : GridChildLayoutMetrics = {
       layout_width: width + margin.left + margin.right,
@@ -1229,7 +1248,12 @@ pub fn estimate_nested_grid_layout_like_d2(
     layout_size_by_id[child_id] = (metrics.layout_width, metrics.layout_height)
   }
   let layout = match
-    estimate_grid_container_layout_like_d2(parent, child_ids, layout_size_by_id) {
+    estimate_grid_container_layout_like_d2(
+      parent,
+      child_ids,
+      layout_size_by_id,
+      measurer~,
+    ) {
     Some(value) => value
     None => return None
   }
@@ -1245,6 +1269,7 @@ pub fn estimate_nested_grid_layout_like_d2(
       cell.y,
       cell.width,
       cell.height,
+      measurer~,
     )
   }
   Some((layout.width, layout.height, boxes))
@@ -1255,6 +1280,8 @@ fn grid_child_layout_metrics_like_d2(
   obj : @graph.ObjectInput,
   config : LayoutConfig,
 ) -> GridChildLayoutMetrics {
+  let measurer = config.measurer
+
   let (base_width, base_height) = grid_child_base_dimensions_like_d2(
     obj, config,
   )
@@ -1262,7 +1289,12 @@ fn grid_child_layout_metrics_like_d2(
     obj,
   )
   let initial_margin = grid_child_margin_like_d2(
-    obj, base_width, base_height, label_position, icon_position,
+    obj,
+    base_width,
+    base_height,
+    label_position,
+    icon_position,
+    measurer~,
   )
   {
     layout_width: base_width + initial_margin.left + initial_margin.right,
@@ -1398,6 +1430,7 @@ fn grid_child_margin_like_d2(
   height : Double,
   label_position : String?,
   icon_position : String?,
+  measurer~ : @fonts.Measurer? = None,
 ) -> GridMargin {
   let mut left = 0.0
   let mut top = 0.0
@@ -1407,7 +1440,7 @@ fn grid_child_margin_like_d2(
   if grid_child_has_label_like_d2(obj) {
     match label_position {
       Some(position) => {
-        let dims = grid_child_label_dimensions_like_d2(obj)
+        let dims = grid_child_label_dimensions_like_d2(obj, measurer~)
         let label_width = dims.0
         let label_height = dims.1
         let upper = position.to_upper()
@@ -1478,6 +1511,7 @@ fn grid_child_margin_like_d2(
 ///|
 fn grid_child_label_dimensions_like_d2(
   obj : @graph.ObjectInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(16)
@@ -1487,7 +1521,13 @@ fn grid_child_label_dimensions_like_d2(
   let is_italic = style_bool(obj.style.italic, false)
   let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let dims = if obj.shape_type == Code {
-    @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
+    @text_metrics.measure_label_code(
+      obj.label,
+      font_size,
+      is_bold,
+      is_italic,
+      measurer~,
+    )
   } else {
     @text_metrics.measure_label(
       obj.label,
@@ -1495,6 +1535,7 @@ fn grid_child_label_dimensions_like_d2(
       is_mono,
       is_bold,
       is_italic,
+      measurer~,
     )
   }
   (dims.width + D2_LABEL_PADDING, dims.height + D2_LABEL_PADDING)
@@ -1508,6 +1549,7 @@ fn grid_child_restored_box_like_d2(
   y : Double,
   cell_w : Double,
   cell_h : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.Box {
   let initial_dx = metrics.initial_margin.left + metrics.initial_margin.right
   let initial_dy = metrics.initial_margin.top + metrics.initial_margin.bottom
@@ -1525,6 +1567,7 @@ fn grid_child_restored_box_like_d2(
     height,
     metrics.label_position,
     metrics.icon_position,
+    measurer~,
   )
   let new_dx = new_margin.left + new_margin.right
   let new_dy = new_margin.top + new_margin.bottom
@@ -1566,19 +1609,23 @@ fn grid_semantic_padding_like_d2(
   content_height : Double,
   hgap : Double,
   vgap : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> GridMargin {
   let (label_position, icon_position) = grid_container_effective_positions_like_d2(
     parent,
   )
   let spacing_padding = grid_container_spacing_padding_like_d2(
-    parent, label_position, icon_position,
+    parent,
+    label_position,
+    icon_position,
+    measurer~,
   )
   let mut left = spacing_padding.left
   let mut top = spacing_padding.top
   let mut right = spacing_padding.right
   let mut bottom = spacing_padding.bottom
   let (label_width, label_height) = if grid_child_has_label_like_d2(parent) {
-    object_label_dimensions_like_d2(parent, 2.0 * D2_LABEL_PADDING)
+    object_label_dimensions_like_d2(parent, 2.0 * D2_LABEL_PADDING, measurer~)
   } else {
     (0.0, 0.0)
   }
@@ -1692,6 +1739,7 @@ fn grid_container_spacing_padding_like_d2(
   obj : @graph.ObjectInput,
   label_position : String?,
   icon_position : String?,
+  measurer~ : @fonts.Measurer? = None,
 ) -> GridMargin {
   let mut left = 0.0
   let mut top = 0.0
@@ -1702,6 +1750,7 @@ fn grid_container_spacing_padding_like_d2(
     let (label_width, label_height) = object_label_dimensions_like_d2(
       obj,
       2.0 * D2_LABEL_PADDING,
+      measurer~,
     )
     match label_position {
       Some(position) => {
@@ -1754,6 +1803,7 @@ fn grid_container_spacing_padding_like_d2(
 fn object_label_dimensions_like_d2(
   obj : @graph.ObjectInput,
   padding : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(16)
@@ -1763,7 +1813,13 @@ fn object_label_dimensions_like_d2(
   let is_italic = style_bool(obj.style.italic, false)
   let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let dims = if obj.shape_type == Code {
-    @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
+    @text_metrics.measure_label_code(
+      obj.label,
+      font_size,
+      is_bold,
+      is_italic,
+      measurer~,
+    )
   } else {
     @text_metrics.measure_label(
       obj.label,
@@ -1771,6 +1827,7 @@ fn object_label_dimensions_like_d2(
       is_mono,
       is_bold,
       is_italic,
+      measurer~,
     )
   }
   (dims.width + padding, dims.height + padding)
@@ -2501,6 +2558,8 @@ fn restore_grid_semantics(
   context : GridSemanticContext,
   config : LayoutConfig,
 ) -> @graph.GraphInput {
+  let measurer = config.measurer
+
   let original_by_id : Map[String, @graph.ObjectInput] = Map([])
   original_by_id[original_graph.root.abs_id_syntax] = original_graph.root
   for obj in original_graph.objects {
@@ -2537,7 +2596,10 @@ fn restore_grid_semantics(
       if root_uses_container_grid_semantics(parent) {
         match
           estimate_grid_container_layout_like_d2(
-            parent, child_ids, child_size_by_id,
+            parent,
+            child_ids,
+            child_size_by_id,
+            measurer~,
           ) {
           Some(layout) => {
             override_boxes[parent.abs_id_syntax] = @graph.Box::new(
@@ -2585,6 +2647,7 @@ fn restore_grid_semantics(
                 content_box.y,
                 content_box.width,
                 content_box.height,
+                measurer~,
               )
             }
           }
@@ -2614,6 +2677,7 @@ fn restore_grid_semantics(
                 content_box.y,
                 content_box.width,
                 content_box.height,
+                measurer~,
               )
             }
           None => ()
@@ -2646,7 +2710,10 @@ fn restore_grid_semantics(
     }
     let layout = match
       estimate_grid_container_layout_like_d2(
-        parent, child_ids, child_size_by_id,
+        parent,
+        child_ids,
+        child_size_by_id,
+        measurer~,
       ) {
       Some(v) => v
       None => continue
@@ -2694,6 +2761,7 @@ fn restore_grid_semantics(
         parent_new.y + content_box.y,
         content_box.width,
         content_box.height,
+        measurer~,
       )
     }
   }
@@ -2715,7 +2783,11 @@ fn restore_grid_semantics(
         Some(override_value) =>
           match laid_out_obj.label_box {
             Some(current) => {
-              let (width, height) = object_label_dimensions_like_d2(obj, 0.0)
+              let (width, height) = object_label_dimensions_like_d2(
+                obj,
+                0.0,
+                measurer~,
+              )
               let (position, _) = grid_child_effective_positions_like_d2(obj)
               Some(
                 resize_label_box_for_position_like_d2(
@@ -2725,7 +2797,11 @@ fn restore_grid_semantics(
             }
             None =>
               if grid_child_has_label_like_d2(obj) {
-                let (width, height) = object_label_dimensions_like_d2(obj, 0.0)
+                let (width, height) = object_label_dimensions_like_d2(
+                  obj,
+                  0.0,
+                  measurer~,
+                )
                 let (position, _) = grid_child_effective_positions_like_d2(obj)
                 Some(
                   label_box_for_position_like_d2(
@@ -2987,6 +3063,8 @@ fn estimate_semantic_object_size(
   config : LayoutConfig,
   inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
+  let measurer = config.measurer
+
   let has_explicit_width = match obj.box {
     Some(box) => box.width > 0.0
     None => false
@@ -3001,9 +3079,15 @@ fn estimate_semantic_object_size(
   let is_italic = style_bool(obj.style.italic, false)
   let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let label_dims = if obj.shape_type == Code {
-    @text_metrics.measure_label_code(obj.label, font_size, is_bold, is_italic)
+    @text_metrics.measure_label_code(
+      obj.label,
+      font_size,
+      is_bold,
+      is_italic,
+      measurer~,
+    )
   } else if obj.language == Some("markdown") {
-    @text_metrics.measure_label_markdown(obj.label, font_size)
+    @text_metrics.measure_label_markdown(obj.label, font_size, measurer~)
   } else {
     @text_metrics.measure_label(
       obj.label,
@@ -3011,6 +3095,7 @@ fn estimate_semantic_object_size(
       is_mono,
       is_bold,
       is_italic,
+      measurer~,
     )
   }
   let mut content_width = label_dims.width
@@ -3668,6 +3753,8 @@ pub fn[Engine : LayoutEngine] layout_with_engine(
   config : LayoutConfig,
   direction : Direction,
 ) -> @graph.GraphInput raise LayoutError {
+  let measurer = config.measurer
+
   check_feature_support(engine.engine_name(), engine.features(), graph)
   let effective_direction = graph_layout_direction(graph, direction)
   let prepared = resolve_default_object_positions_for_engine(
@@ -3693,7 +3780,10 @@ pub fn[Engine : LayoutEngine] layout_with_engine(
     nested_prepared, laid_out_core, semantic_ctx, config,
   )
   let laid_out = restore_nested_sequence_layouts(
-    prepared, semantic_restored, nested_sequence_ctx,
+    prepared,
+    semantic_restored,
+    nested_sequence_ctx,
+    measurer~,
   )
   let layers : Array[@graph.LayerInput] = []
   for layer in laid_out.layers {

@@ -72,6 +72,7 @@ priv struct ShapeDrawContext {
   font_width : Double
   font_height : Double
   scale : Double
+  measurer : @fonts.Measurer?
 }
 
 ///|

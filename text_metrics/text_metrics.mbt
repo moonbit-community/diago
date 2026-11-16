@@ -650,7 +650,43 @@ fn measure_text_with_mode(
   kind : FontKind,
   bounds_with_dot : Bool,
   use_code_line_height : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
+  match measurer {
+    Some(provider) => {
+      let face = match kind {
+        SansRegular | HandRegular => @fonts.Face::SansRegular
+        SansBold | HandBold => SansBold
+        SansSemibold => SansSemibold
+        SansItalic => SansItalic
+        MonoRegular => MonoRegular
+        MonoBold => MonoBold
+        MonoItalic => MonoItalic
+      }
+      let measured = provider.measure({
+        text,
+        font_size,
+        face,
+        bounds_with_dot,
+        code_line_height: use_code_line_height,
+      })
+      let mut line_count = 0
+      for char in text {
+        if char == '\n' {
+          line_count += 1
+        }
+      }
+      return {
+        dimensions: {
+          width: @math.ceil(measured.width),
+          height: @math.ceil(measured.height),
+        },
+        line_count,
+        max_line_width: measured.width,
+      }
+    }
+    None => ()
+  }
   let space = scaled_glyph_metrics(kind, ' '.to_int(), font_size)
   let tab_width = space.advance_fixed.to_double() / 64.0 * TAB_SIZE
   let mut line_count = 0
@@ -845,9 +881,10 @@ pub fn measure_text(
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
   let kind = select_font_kind(is_mono, is_bold, is_italic)
-  measure_text_with_mode(text, font_size, kind, false, false)
+  measure_text_with_mode(text, font_size, kind, false, false, measurer~)
 }
 
 ///|
@@ -856,9 +893,10 @@ pub fn measure_text_hand_drawn(
   text : String,
   font_size : Int32,
   is_bold : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
   let kind = if is_bold { HandBold } else { HandRegular }
-  measure_text_with_mode(text, font_size, kind, false, false)
+  measure_text_with_mode(text, font_size, kind, false, false, measurer~)
 }
 
 ///|
@@ -873,9 +911,10 @@ pub fn measure_text_with_dot_bounds(
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
   let kind = select_font_kind(is_mono, is_bold, is_italic)
-  measure_text_with_dot_bounds_kind(text, font_size, kind)
+  measure_text_with_dot_bounds_kind(text, font_size, kind, measurer~)
 }
 
 ///|
@@ -883,8 +922,9 @@ fn measure_text_with_dot_bounds_kind(
   text : String,
   font_size : Int32,
   kind : FontKind,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
-  measure_text_with_mode(text, font_size, kind, true, false)
+  measure_text_with_mode(text, font_size, kind, true, false, measurer~)
 }
 
 ///|
@@ -894,9 +934,10 @@ pub fn measure_text_code(
   font_size : Int32,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
   let kind = select_font_kind(true, is_bold, is_italic)
-  measure_text_with_mode(text, font_size, kind, true, true)
+  measure_text_with_mode(text, font_size, kind, true, true, measurer~)
 }
 
 ///|
@@ -907,8 +948,9 @@ pub fn measure_text_code(
 pub fn measure_text_mono_plain(
   text : String,
   font_size : Int32,
+  measurer~ : @fonts.Measurer? = None,
 ) -> MeasuredText {
-  measure_text_with_mode(text, font_size, MonoRegular, false, false)
+  measure_text_with_mode(text, font_size, MonoRegular, false, false, measurer~)
 }
 
 ///|
@@ -919,8 +961,9 @@ pub fn measure_label(
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> TextDimensions {
-  measure_text(text, font_size, is_mono, is_bold, is_italic).dimensions
+  measure_text(text, font_size, is_mono, is_bold, is_italic, measurer~).dimensions
 }
 
 ///|
@@ -929,8 +972,9 @@ pub fn measure_label_hand_drawn(
   text : String,
   font_size : Int32,
   is_bold : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> TextDimensions {
-  measure_text_hand_drawn(text, font_size, is_bold).dimensions
+  measure_text_hand_drawn(text, font_size, is_bold, measurer~).dimensions
 }
 
 ///|
@@ -940,12 +984,17 @@ pub fn measure_label_code(
   font_size : Int32,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> TextDimensions {
-  measure_text_code(text, font_size, is_bold, is_italic).dimensions
+  measure_text_code(text, font_size, is_bold, is_italic, measurer~).dimensions
 }
 
 ///|
 /// Measure edge label width
-pub fn measure_edge_label(text : String, font_size : Int32) -> TextDimensions {
-  measure_label(text, font_size, false, false, false)
+pub fn measure_edge_label(
+  text : String,
+  font_size : Int32,
+  measurer~ : @fonts.Measurer? = None,
+) -> TextDimensions {
+  measure_label(text, font_size, false, false, false, measurer~)
 }

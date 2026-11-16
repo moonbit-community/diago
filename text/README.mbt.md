@@ -34,3 +34,9 @@ test {
 `parse_options` accepts `compiler.ParseOptions`, including an explicit import
 resolver. This package performs no filesystem or network I/O. Its measurement
 tables are retained to preserve layout and match the full facade's text output.
+
+Both compilation functions accept `measurer=Some(fonts.Measurer::new(...))`
+to use custom text measurements for layout and text rendering. The callback
+receives a `fonts.MeasureRequest` and returns pixel `width` and `height`.
+See [the measurement contract](../renderer_svg_core/README.mbt.md#arbitrary-typefaces-and-custom-measurements).
+This does not change the font used by a terminal to display the result.

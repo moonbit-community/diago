@@ -89,3 +89,30 @@ test "text keeps explicit import resolution backend independent" {
     ),
   )
 }
+
+///|
+test "text uses per-call measurements for ASCII and Unicode" {
+  let measurer = Some(
+    @fonts.Measurer::new(fn(request) {
+      let original = @text_metrics.measure_builtin(request)
+      {
+        width: original.max_line_width * 4.0,
+        height: original.dimensions.height * 2.0,
+      }
+    }),
+  )
+  for mode in [@text.OutputMode::Ascii, Unicode] {
+    let original = @text.compile("a: A long label\na -> b: message", mode~)
+    let custom = @text.compile(
+      "a: A long label\na -> b: message",
+      mode~,
+      measurer~,
+    )
+    assert_true(custom.length() > original.length())
+    assert_true(custom.contains("A long label"))
+    assert_eq(
+      @text.compile("a: A long label\na -> b: message", mode~),
+      original,
+    )
+  }
+}

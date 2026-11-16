@@ -836,6 +836,8 @@ fn d2_hash_shape_label_dims(
   shape : Shape,
   config : SvgConfig,
 ) -> (Int32, Int32) {
+  let measurer = config.measurer
+
   if shape.label == "" {
     return (0, 0)
   }
@@ -866,6 +868,7 @@ fn d2_hash_shape_label_dims(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   (dims.width.to_int(), dims.height.to_int())
 }
@@ -875,6 +878,8 @@ fn d2_hash_edge_label_dims(
   edge : Connection,
   config : SvgConfig,
 ) -> (Int32, Int32) {
+  let measurer = config.measurer
+
   if edge.label == "" {
     return (0, 0)
   }
@@ -886,7 +891,7 @@ fn d2_hash_edge_label_dims(
     None => ()
   }
   let font_size = style_int(edge.style.font_size, config.font_size)
-  let dims = @text_metrics.measure_edge_label(edge.label, font_size)
+  let dims = @text_metrics.measure_edge_label(edge.label, font_size, measurer~)
   (dims.width.to_int(), dims.height.to_int())
 }
 
@@ -929,8 +934,18 @@ fn d2_hash_sql_constraints(child : Shape) -> String {
 }
 
 ///|
-fn d2_hash_sql_column_text(label : String) -> String {
-  let dims = @text_metrics.measure_label(label, 20, false, false, false)
+fn d2_hash_sql_column_text(
+  label : String,
+  measurer~ : @fonts.Measurer? = None,
+) -> String {
+  let dims = @text_metrics.measure_label(
+    label,
+    20,
+    false,
+    false,
+    false,
+    measurer~,
+  )
   d2_json_text(
     label,
     0,
@@ -951,6 +966,8 @@ fn d2_hash_shape_json(
   all_shapes : Array[Shape],
   config : SvgConfig,
 ) -> String {
+  let measurer = config.measurer
+
   let fields : Array[D2JsonField] = []
   let (x, y, width, height) = match shape.box {
     Some(box) =>
@@ -1129,9 +1146,12 @@ fn d2_hash_shape_json(
           d2_json_object([
             d2_json_field(
               "name",
-              d2_hash_sql_column_text(get_short_name(child.id)),
+              d2_hash_sql_column_text(get_short_name(child.id), measurer~),
             ),
-            d2_json_field("type", d2_hash_sql_column_text(child.label)),
+            d2_json_field(
+              "type",
+              d2_hash_sql_column_text(child.label, measurer~),
+            ),
             d2_json_field("constraint", d2_hash_sql_constraints(child)),
             d2_json_field("reference", d2_json_string("")),
           ]),

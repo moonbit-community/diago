@@ -61,6 +61,7 @@ const D2_SEQUENCE_SPAN_MESSAGE_PAD : Double = 10.0
 pub fn layout(
   graph : @graph.GraphInput,
   measure_object : (@graph.ObjectInput) -> (Double, Double),
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.LayoutPatch {
   let patch = @graph.LayoutPatch::new()
   copy_passthrough_layout_data(patch, graph)
@@ -181,7 +182,7 @@ pub fn layout(
       Some(v) => v
       None => continue
     }
-    let (label_width, _) = sequence_edge_text_size(edge)
+    let (label_width, _) = sequence_edge_text_size(edge, measurer~)
     let rank_diff = if src_rank > dst_rank {
       src_rank - dst_rank
     } else {
@@ -216,7 +217,7 @@ pub fn layout(
 
   let max_actor_height = max_actor_height +
     D2_SEQUENCE_VERTICAL_PAD +
-    sequence_root_label_height(graph)
+    sequence_root_label_height(graph, measurer~)
   let y_shift = D2_SEQUENCE_GROUP_CONTAINER_PADDING
   for i, id in participant_ids {
     let width = widths[i]
@@ -225,7 +226,7 @@ pub fn layout(
     match object_by_abs_id.get(id) {
       Some(obj) =>
         if has_outside_bottom_label(obj.shape_type) {
-          y = y - sequence_label_height(obj)
+          y = y - sequence_label_height(obj, measurer~)
         }
       None => ()
     }
@@ -248,6 +249,7 @@ pub fn layout(
           style_is_mono(obj.style.font),
           style_bool(obj.style.bold, false),
           style_bool(obj.style.italic, false),
+          measurer~,
         )
         if dims.width > 0.0 && dims.height > 0.0 {
           patch.node_labels[id] = @graph.Box::new(
@@ -269,7 +271,7 @@ pub fn layout(
       edge, sequence_notes_for_layout, note_line_by_id_for_layout, note_height_by_id_for_layout,
       y_step,
     )
-    let (_, text_height) = sequence_edge_text_size(edge)
+    let (_, text_height) = sequence_edge_text_size(edge, measurer~)
     let src_x = match
       sequence_center_x_for_object(
         edge.src_id_syntax,
@@ -319,7 +321,7 @@ pub fn layout(
       is_to_descendant ||
       is_from_descendant ||
       is_to_sibling {
-      let (label_width, _) = sequence_edge_text_size(edge)
+      let (label_width, _) = sequence_edge_text_size(edge, measurer~)
       let mid_x = src_x +
         (if D2_SEQUENCE_SELF_MESSAGE_HORIZONTAL_TRAVEL >
           label_width / 2.0 + D2_LABEL_PADDING * 2.0 {
@@ -352,8 +354,17 @@ pub fn layout(
   }
 
   sequence_place_nested_objects_like_d2(
-    patch, graph, ordered_edges, participant_exists, parent_id_by_child_id, object_by_abs_id,
-    participant_alias_by_abs_id, measure_object, max_actor_height, y_step,
+    patch,
+    graph,
+    ordered_edges,
+    participant_exists,
+    parent_id_by_child_id,
+    object_by_abs_id,
+    participant_alias_by_abs_id,
+    measure_object,
+    max_actor_height,
+    y_step,
+    measurer~,
   )
 
   for edge in ordered_edges {
@@ -429,7 +440,7 @@ pub fn layout(
     }
   }
 
-  recompute_edge_label_boxes(patch, graph)
+  recompute_edge_label_boxes(patch, graph, measurer~)
   patch
 }
 
@@ -595,20 +606,26 @@ fn sequence_actor_size(
 }
 
 ///|
-fn sequence_label_height(obj : @graph.ObjectInput) -> Double {
+fn sequence_label_height(
+  obj : @graph.ObjectInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> Double {
   match obj.label_box {
     Some(box) =>
       if box.height > 0.0 {
         box.height
       } else {
-        sequence_measured_label_height(obj)
+        sequence_measured_label_height(obj, measurer~)
       }
-    None => sequence_measured_label_height(obj)
+    None => sequence_measured_label_height(obj, measurer~)
   }
 }
 
 ///|
-fn sequence_measured_label_height(obj : @graph.ObjectInput) -> Double {
+fn sequence_measured_label_height(
+  obj : @graph.ObjectInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> Double {
   if obj.label == "" {
     return 0.0
   }
@@ -620,7 +637,12 @@ fn sequence_measured_label_height(obj : @graph.ObjectInput) -> Double {
   let is_italic = style_bool(obj.style.italic, false)
   let is_mono = style_is_mono(obj.style.font)
   let dims = measure_object_label_dims(
-    obj, font_size, is_mono, is_bold, is_italic,
+    obj,
+    font_size,
+    is_mono,
+    is_bold,
+    is_italic,
+    measurer~,
   )
   if dims.height > 0.0 {
     dims.height
@@ -630,11 +652,14 @@ fn sequence_measured_label_height(obj : @graph.ObjectInput) -> Double {
 }
 
 ///|
-fn sequence_root_label_height(graph : @graph.GraphInput) -> Double {
+fn sequence_root_label_height(
+  graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> Double {
   if graph.root.label == "" {
     0.0
   } else {
-    sequence_label_height(graph.root)
+    sequence_label_height(graph.root, measurer~)
   }
 }
 
@@ -701,8 +726,11 @@ fn sequence_top_participant_id(
 }
 
 ///|
-fn sequence_edge_text_size(edge : @graph.EdgeInput) -> (Double, Double) {
-  let (label_width, label_height) = sequence_edge_label_size(edge)
+fn sequence_edge_text_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double) {
+  let (label_width, label_height) = sequence_edge_label_size(edge, measurer~)
   if label_width <= 0.0 || label_height <= 0.0 {
     return (0.0, 0.0)
   }
@@ -747,21 +775,37 @@ fn sequence_place_nested_objects_like_d2(
   measure_object : (@graph.ObjectInput) -> (Double, Double),
   max_actor_height : Double,
   y_step : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let (notes, spans, note_line_by_id) = sequence_collect_notes_and_spans_like_d2(
     graph, participant_exists, parent_id_by_child_id, participant_alias_by_abs_id,
   )
   sequence_place_notes_like_d2(
-    patch, notes, ordered_edges, note_line_by_id, participant_exists, parent_id_by_child_id,
-    participant_alias_by_abs_id, measure_object, max_actor_height, y_step,
+    patch,
+    notes,
+    ordered_edges,
+    note_line_by_id,
+    participant_exists,
+    parent_id_by_child_id,
+    participant_alias_by_abs_id,
+    measure_object,
+    max_actor_height,
+    y_step,
+    measurer~,
   )
   sequence_place_spans_like_d2(
     patch, spans, ordered_edges, participant_exists, parent_id_by_child_id, participant_alias_by_abs_id,
     max_actor_height, y_step,
   )
   sequence_place_groups_like_d2(
-    patch, graph, ordered_edges, parent_id_by_child_id, object_by_abs_id, notes,
+    patch,
+    graph,
+    ordered_edges,
+    parent_id_by_child_id,
+    object_by_abs_id,
+    notes,
     spans,
+    measurer~,
   )
 }
 
@@ -824,6 +868,7 @@ fn sequence_place_notes_like_d2(
   measure_object : (@graph.ObjectInput) -> (Double, Double),
   max_actor_height : Double,
   y_step : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   for note in notes {
     let vertical_index = note_line_by_id.get_or_default(
@@ -835,7 +880,7 @@ fn sequence_place_notes_like_d2(
       if sequence_edge_earliest_line_like_d2(edge) >= vertical_index {
         continue
       }
-      let (_, text_height) = sequence_edge_text_size(edge)
+      let (_, text_height) = sequence_edge_text_size(edge, measurer~)
       let extra = if sequence_message_has_vertical_turn_like_d2(
           edge, participant_exists, parent_id_by_child_id, participant_alias_by_abs_id,
         ) {
@@ -1044,6 +1089,7 @@ fn sequence_place_groups_like_d2(
   object_by_abs_id : Map[String, @graph.ObjectInput],
   notes : Array[@graph.ObjectInput],
   spans : Array[@graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let groups = sequence_group_objects_like_d2(
     graph, object_by_abs_id, parent_id_by_child_id,
@@ -1086,7 +1132,7 @@ fn sequence_place_groups_like_d2(
       saw_content = true
       // D2's routing uses a compacted message height, but group bounds are
       // expanded around the rendered label box itself.
-      let (_, text_height) = sequence_edge_label_size(edge)
+      let (_, text_height) = sequence_edge_label_size(edge, measurer~)
       let label_height = text_height / 2.0
       let edge_pad = if label_height + D2_SEQUENCE_GROUP_CONTAINER_PADDING >
         D2_SEQUENCE_MIN_MESSAGE_DISTANCE / 2.0 {
@@ -1174,7 +1220,13 @@ fn sequence_place_groups_like_d2(
 
   for group in groups {
     sequence_adjust_group_label_like_d2(
-      patch, group, groups, spans, notes, ordered_edges,
+      patch,
+      group,
+      groups,
+      spans,
+      notes,
+      ordered_edges,
+      measurer~,
     )
   }
 }
@@ -1187,6 +1239,7 @@ fn sequence_adjust_group_label_like_d2(
   spans : Array[@graph.ObjectInput],
   notes : Array[@graph.ObjectInput],
   ordered_edges : Array[@graph.EdgeInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   if group.label == "" {
     return
@@ -1195,7 +1248,7 @@ fn sequence_adjust_group_label_like_d2(
     Some(box) => box
     None => return
   }
-  let label_height = sequence_label_height(group)
+  let label_height = sequence_label_height(group, measurer~)
   let height_add = label_height + D2_SEQUENCE_EDGE_GROUP_LABEL_PADDING / 2.0
   if height_add < D2_SEQUENCE_GROUP_CONTAINER_PADDING {
     return
@@ -1709,21 +1762,25 @@ fn sequence_has_descendant_endpoint_like_d2(
 }
 
 ///|
-fn sequence_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double) {
+fn sequence_edge_label_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double) {
   match edge.label_box {
     Some(box) =>
       if box.width > 0.0 && box.height > 0.0 {
         (box.width, box.height)
       } else {
-        fallback_sequence_edge_label_size(edge)
+        fallback_sequence_edge_label_size(edge, measurer~)
       }
-    None => fallback_sequence_edge_label_size(edge)
+    None => fallback_sequence_edge_label_size(edge, measurer~)
   }
 }
 
 ///|
 fn fallback_sequence_edge_label_size(
   edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   if edge.label.is_empty() {
     return (0.0, 0.0)
@@ -1741,6 +1798,7 @@ fn fallback_sequence_edge_label_size(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let width = if dims.width > 0.0 {
     dims.width + 4.0
@@ -1821,6 +1879,7 @@ fn measure_object_label_dims(
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @text_metrics.TextDimensions {
   if obj.shape_type == Code {
     return @text_metrics.measure_label_code(
@@ -1828,18 +1887,27 @@ fn measure_object_label_dims(
       font_size,
       is_bold,
       is_italic,
+      measurer~,
     )
   }
   if object_is_markdown(obj) {
-    return @text_metrics.measure_label_markdown(obj.label, font_size)
+    return @text_metrics.measure_label_markdown(obj.label, font_size, measurer~)
   }
-  @text_metrics.measure_label(obj.label, font_size, is_mono, is_bold, is_italic)
+  @text_metrics.measure_label(
+    obj.label,
+    font_size,
+    is_mono,
+    is_bold,
+    is_italic,
+    measurer~,
+  )
 }
 
 ///|
 fn recompute_edge_label_boxes(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   for edge in graph.edges {
     if edge.label == "" {
@@ -1852,7 +1920,7 @@ fn recompute_edge_label_boxes(
     if route.is_empty() {
       continue
     }
-    let (width, height) = match rendered_edge_label_size(edge) {
+    let (width, height) = match rendered_edge_label_size(edge, measurer~) {
       Some(v) => v
       None => continue
     }
@@ -1877,7 +1945,10 @@ fn d2_chop_precision(value : Double) -> Double {
 }
 
 ///|
-fn rendered_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
+fn rendered_edge_label_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double)? {
   match edge.label_box {
     Some(box) => {
       let width = if box.width > 0.0 { box.width } else { 0.0 }
@@ -1885,16 +1956,17 @@ fn rendered_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
       if width > 0.0 && height > 0.0 {
         Some((width, height))
       } else {
-        fallback_rendered_edge_label_size(edge)
+        fallback_rendered_edge_label_size(edge, measurer~)
       }
     }
-    None => fallback_rendered_edge_label_size(edge)
+    None => fallback_rendered_edge_label_size(edge, measurer~)
   }
 }
 
 ///|
 fn fallback_rendered_edge_label_size(
   edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double)? {
   if edge.label.is_empty() {
     return None
@@ -1912,6 +1984,7 @@ fn fallback_rendered_edge_label_size(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let width = if dims.width > 0.0 {
     dims.width

@@ -2,11 +2,12 @@
 package "moonbit-community/diago/layout_sequence"
 
 import {
+  "moonbit-community/diago/fonts",
   "moonbit-community/diago/graph",
 }
 
 // Values
-pub fn layout(@graph.GraphInput, (@graph.ObjectInput) -> (Double, Double)) -> @graph.LayoutPatch
+pub fn layout(@graph.GraphInput, (@graph.ObjectInput) -> (Double, Double), measurer? : @fonts.Measurer?) -> @graph.LayoutPatch
 
 // Errors
 

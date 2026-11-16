@@ -1,4 +1,5 @@
 import {
+  "moonbit-community/diago/fonts",
   "moonbit-community/diago/compiler",
   "moonbit-community/diago/diagram",
   "moonbit-community/diago/engine_api",
@@ -11,6 +12,7 @@ import {
   "moonbit-community/diago",
   "moonbit-community/diago/engine_elk",
   "moonbit-community/diago/ir",
+  "moonbit-community/diago/text_metrics",
 } for "test"
 
 supported_targets = "all"

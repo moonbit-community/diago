@@ -1,5 +1,5 @@
 ///|
-/// Text output formats. This package does not depend on SVG rendering or fonts.
+/// Text output formats. This package does not depend on SVG or font assets.
 #derive(Debug, Eq)
 pub(all) enum OutputMode {
   Ascii
@@ -22,6 +22,7 @@ pub fn compile(
   mode~ : OutputMode = Ascii,
   direction~ : @engine_api.Direction = Down,
   parse_options~ : @compiler.ParseOptions = @compiler.ParseOptions::new(),
+  measurer~ : @fonts.Measurer? = None,
 ) -> String raise TextError {
   let compiled = compile_source(source, parse_options)
   match compiled.source_config() {
@@ -32,7 +33,13 @@ pub fn compile(
       )
     _ => ()
   }
-  render_compiled(compiled, @engine_dagre.DagreEngine::new(), mode, direction)
+  render_compiled(
+    compiled,
+    @engine_dagre.DagreEngine::new(),
+    mode,
+    direction,
+    measurer~,
+  )
 }
 
 ///|
@@ -56,12 +63,14 @@ pub fn[Engine : @engine_api.LayoutEngine] compile_with_engine(
   mode~ : OutputMode = Ascii,
   direction~ : @engine_api.Direction = Down,
   parse_options~ : @compiler.ParseOptions = @compiler.ParseOptions::new(),
+  measurer~ : @fonts.Measurer? = None,
 ) -> String raise TextError {
   render_compiled(
     compile_source(source, parse_options),
     engine,
     mode,
     direction,
+    measurer~,
   )
 }
 
@@ -82,6 +91,7 @@ fn[Engine : @engine_api.LayoutEngine] render_compiled(
   engine : Engine,
   mode : OutputMode,
   direction : @engine_api.Direction,
+  measurer~ : @fonts.Measurer? = None,
 ) -> String raise TextError {
   let graph = compiled.graph_input()
   let source_config = compiled.source_config()
@@ -113,7 +123,7 @@ fn[Engine : @engine_api.LayoutEngine] render_compiled(
   let laid_out = @engine_api.layout_with_engine(
     engine,
     graph,
-    @engine_api.LayoutConfig::new(),
+    @engine_api.LayoutConfig::new().with_measurer(measurer),
     direction,
   ) catch {
     error => raise LayoutError(error)
@@ -123,5 +133,5 @@ fn[Engine : @engine_api.LayoutEngine] render_compiled(
     Ascii => @renderer_ascii.AsciiConfig::new()
     Unicode => @renderer_ascii.AsciiConfig::unicode()
   }
-  @renderer_ascii.render(diagram, config)
+  @renderer_ascii.render(diagram, config.with_measurer(measurer))
 }

@@ -32,6 +32,26 @@ pub fn Face::not_equal(Self, Self) -> Bool
 #deprecated
 pub fn Face::to_repr(Self) -> @debug.Repr
 
+pub(all) struct MeasureRequest {
+  text : String
+  font_size : Int32
+  face : Face
+  bounds_with_dot : Bool
+  code_line_height : Bool
+}
+
+pub(all) struct Measurement {
+  width : Double
+  height : Double
+}
+
+pub struct Measurer((MeasureRequest) -> Measurement)
+pub fn Measurer::measure(Self, MeasureRequest) -> Measurement
+pub fn Measurer::new((MeasureRequest) -> Measurement) -> Self
+#deprecated
+pub fn Measurer::to_repr(Self) -> @debug.Repr
+pub impl @debug.Debug for Measurer
+
 pub(all) enum Source {
   Ttf(Bytes)
   Url(String)

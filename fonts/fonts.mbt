@@ -14,7 +14,8 @@ pub(all) enum Face {
 ///|
 /// TTF data is subsetted and embedded in the exported SVG. A URL is written to
 /// the SVG unchanged apart from CSS escaping; the renderer performs no I/O.
-/// Sources should match the existing face's metrics for accurate layout.
+/// For replacement typefaces, supply a matching Measurer during both layout
+/// and rendering. With no Measurer, Diago uses its built-in font metrics.
 pub(all) enum Source {
   Ttf(Bytes)
   Url(String)

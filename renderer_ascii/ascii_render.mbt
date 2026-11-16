@@ -22,6 +22,7 @@ pub struct AsciiConfig {
   font_width : Double
   font_height : Double
   scale : Double
+  measurer : @fonts.Measurer?
 }
 
 ///|
@@ -31,6 +32,7 @@ pub fn AsciiConfig::new() -> AsciiConfig {
     font_width: DEFAULT_FONT_WIDTH,
     font_height: DEFAULT_FONT_HEIGHT,
     scale: DEFAULT_SCALE,
+    measurer: None,
   }
 }
 
@@ -41,11 +43,14 @@ pub fn AsciiConfig::unicode() -> AsciiConfig {
     font_width: DEFAULT_FONT_WIDTH,
     font_height: DEFAULT_FONT_HEIGHT,
     scale: DEFAULT_SCALE,
+    measurer: None,
   }
 }
 
 ///|
 pub fn render_ascii(diagram : @diagram.Diagram, config : AsciiConfig) -> String {
+  let measurer = config.measurer
+
   let inline_child_shape_parent_ids = collect_inline_child_shape_parent_ids(
     diagram.shapes,
   )
@@ -57,6 +62,7 @@ pub fn render_ascii(diagram : @diagram.Diagram, config : AsciiConfig) -> String 
     inline_child_shape_ids,
     config.font_width,
     config.font_height,
+    measurer~,
   )
   let mut min_x = min_x0
   let mut min_y = min_y0
@@ -106,6 +112,7 @@ pub fn render_ascii(diagram : @diagram.Diagram, config : AsciiConfig) -> String 
     font_width: config.font_width,
     font_height: config.font_height,
     scale: config.scale,
+    measurer: config.measurer,
   }
 
   for shape in diagram.shapes {
@@ -149,6 +156,7 @@ fn calculate_extended_bounds(
   inline_child_shape_ids : Map[String, Bool],
   fw : Double,
   fh : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Int32, Int32, Int32, Int32) {
   let mut min_x = 2147483647
   let mut min_y = 2147483647
@@ -228,7 +236,7 @@ fn calculate_extended_bounds(
             max_y = max_int(max_y, ceil_int(lb.y + lb.height))
           }
           None =>
-            match estimate_shape_label_bounds(shape, box) {
+            match estimate_shape_label_bounds(shape, box, measurer~) {
               Some((lx1, ly1, lx2, ly2)) => {
                 min_x = min_int(min_x, lx1)
                 min_y = min_int(min_y, ly1)
@@ -467,6 +475,7 @@ const BOUNDS_LABEL_PADDING : Double = 5.0
 fn estimate_shape_label_bounds(
   shape : @diagram.Shape,
   box : @graph.Box,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Int32, Int32, Int32, Int32)? {
   if shape.label == "" {
     return None
@@ -486,6 +495,7 @@ fn estimate_shape_label_bounds(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let label_width = if dims.width > 0.0 {
     dims.width
@@ -498,7 +508,11 @@ fn estimate_shape_label_bounds(
     font_size.to_double()
   }
 
-  let label_position = default_shape_label_position_for_bounds(shape, box)
+  let label_position = default_shape_label_position_for_bounds(
+    shape,
+    box,
+    measurer~,
+  )
   let (label_x, label_y) = label_top_left_for_position(
     label_position, box, label_width, label_height,
   )
@@ -528,6 +542,7 @@ fn style_is_mono_local(value : @graph.StyleValue?) -> Bool {
 fn default_shape_label_position_for_bounds(
   shape : @diagram.Shape,
   box : @graph.Box,
+  measurer~ : @fonts.Measurer? = None,
 ) -> String {
   if shape.shape_type == SqlTable || shape.shape_type == Class {
     return "INSIDE_TOP_CENTER"
@@ -546,6 +561,7 @@ fn default_shape_label_position_for_bounds(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let label_width = if dims.width > 0.0 {
     dims.width + BOUNDS_LABEL_PADDING * 2.0

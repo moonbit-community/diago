@@ -4,13 +4,14 @@ package "moonbit-community/diago/text"
 import {
   "moonbit-community/diago/compiler",
   "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/fonts",
   "moonbitlang/core/debug",
 }
 
 // Values
-pub fn compile(String, mode? : OutputMode, direction? : @engine_api.Direction, parse_options? : @compiler.ParseOptions) -> String raise TextError
+pub fn compile(String, mode? : OutputMode, direction? : @engine_api.Direction, parse_options? : @compiler.ParseOptions, measurer? : @fonts.Measurer?) -> String raise TextError
 
-pub fn[Engine : @engine_api.LayoutEngine] compile_with_engine(String, Engine, mode? : OutputMode, direction? : @engine_api.Direction, parse_options? : @compiler.ParseOptions) -> String raise TextError
+pub fn[Engine : @engine_api.LayoutEngine] compile_with_engine(String, Engine, mode? : OutputMode, direction? : @engine_api.Direction, parse_options? : @compiler.ParseOptions, measurer? : @fonts.Measurer?) -> String raise TextError
 
 // Errors
 #derive(@debug.Debug)

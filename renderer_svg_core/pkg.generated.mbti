@@ -65,10 +65,12 @@ pub struct SvgConfig {
   no_xml_tag : Bool
   salt : String?
   omit_version : Bool
+  measurer : @fonts.Measurer?
 }
 pub fn SvgConfig::new() -> Self
 #deprecated
 pub fn SvgConfig::to_repr(Self) -> @debug.Repr
+pub fn SvgConfig::with_measurer(Self, @fonts.Measurer?) -> Self
 pub fn SvgConfig::with_padding(Self, Double) -> Self
 pub fn SvgConfig::with_render_options(Self, Int32?, @diagram.ThemeOverrides?, @diagram.ThemeOverrides?, Bool, Bool, Double?, Bool, String?, Bool) -> Self
 pub fn SvgConfig::with_theme(Int32) -> Self

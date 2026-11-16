@@ -4,6 +4,7 @@ package "moonbit-community/diago/renderer_ascii"
 import {
   "moonbit-community/diago/ascii",
   "moonbit-community/diago/diagram",
+  "moonbit-community/diago/fonts",
   "moonbit-community/diago/render_api",
   "moonbitlang/core/debug",
 }
@@ -22,11 +23,13 @@ pub struct AsciiConfig {
   font_width : Double
   font_height : Double
   scale : Double
+  measurer : @fonts.Measurer?
 }
 pub fn AsciiConfig::new() -> Self
 #deprecated
 pub fn AsciiConfig::to_repr(Self) -> @debug.Repr
 pub fn AsciiConfig::unicode() -> Self
+pub fn AsciiConfig::with_measurer(Self, @fonts.Measurer?) -> Self
 
 #derive(@debug.Debug)
 pub struct AsciiRenderer {
