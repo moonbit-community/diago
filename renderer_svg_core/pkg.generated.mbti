@@ -1,0 +1,90 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/diago/renderer_svg_core"
+
+import {
+  "moonbit-community/diago/diagram",
+  "moonbit-community/diago/fonts",
+  "moonbit-community/diago/graph",
+  "moonbit-community/diago/layout_svg",
+  "moonbit-community/diago/render_api",
+  "moonbit-community/diago/svg",
+  "moonbit-community/diago/themes",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn add_arrowhead_markers_to_svg(@svg.Svg, Double, String) -> Unit
+
+pub fn arrowhead_to_ascii(@graph.ArrowheadType, Bool) -> String
+
+pub fn build_marker_attributes(@graph.ArrowheadType, @graph.ArrowheadType) -> String
+
+pub fn get_arrowhead_marker_url(@graph.ArrowheadType, Bool) -> String
+
+pub fn list_themes() -> Array[String]
+
+pub fn needs_end_marker(@graph.ArrowheadType) -> Bool
+
+pub fn needs_start_marker(@graph.ArrowheadType) -> Bool
+
+pub fn render(@diagram.Diagram, SvgConfig, fonts~ : (@fonts.Face) -> @fonts.Source?) -> String raise @render_api.RenderError
+
+pub fn render_connection_ascii(@graph.ArrowheadType, @graph.ArrowheadType, String) -> String
+
+pub fn render_legend_svg(@svg.Svg, @layout_svg.LegendLayout, String, SvgConfig, @themes.Theme) -> Unit raise @render_api.RenderError
+
+pub fn render_shape_svg(@graph.ShapeType, SvgShapeContext) -> Unit
+
+pub fn render_svg(@diagram.Diagram, SvgConfig, fonts~ : (@fonts.Face) -> @fonts.Source?) -> String raise @render_api.RenderError
+
+// Errors
+
+// Types and methods
+pub enum RenderPass {
+  Background
+  Foreground
+}
+
+#derive(@debug.Debug)
+pub struct SvgConfig {
+  padding : Double
+  center : Bool
+  sketch : Bool
+  font_family : String
+  font_size : Int32
+  background : String
+  default_stroke : String
+  default_fill : String
+  default_stroke_width : Double
+  arrow_size : Double
+  theme_id : Int32
+  dark_theme_id : Int32?
+  theme_overrides : @diagram.ThemeOverrides?
+  dark_theme_overrides : @diagram.ThemeOverrides?
+  scale : Double?
+  no_xml_tag : Bool
+  salt : String?
+  omit_version : Bool
+}
+pub fn SvgConfig::new() -> Self
+#deprecated
+pub fn SvgConfig::to_repr(Self) -> @debug.Repr
+pub fn SvgConfig::with_padding(Self, Double) -> Self
+pub fn SvgConfig::with_render_options(Self, Int32?, @diagram.ThemeOverrides?, @diagram.ThemeOverrides?, Bool, Bool, Double?, Bool, String?, Bool) -> Self
+pub fn SvgConfig::with_theme(Int32) -> Self
+pub fn SvgConfig::with_theme_name(String) -> Self
+
+pub struct SvgShapeContext {
+  svg : @svg.Svg
+  box_ : @graph.Box
+  fill : String
+  stroke : String
+  stroke_width : Double
+  label : String
+  config : SvgConfig
+}
+pub fn SvgShapeContext::new(@svg.Svg, @graph.Box, String, String, Double, String, SvgConfig) -> Self
+
+// Type aliases
+
+// Traits

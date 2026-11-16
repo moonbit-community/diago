@@ -2489,6 +2489,7 @@ fn render_root_background(
 pub fn render_svg(
   graph : Diagram,
   config : SvgConfig,
+  fonts~ : @fonts.Resolver,
 ) -> String raise @render_api.RenderError {
   if graph.shapes.any(fn(shape) { shape.language == Some("latex") }) {
     raise UnsupportedFormat("LaTeX labels are not supported")
@@ -2693,7 +2694,7 @@ pub fn render_svg(
   }
 
   // reference behavior: skip injecting custom control scripts.
-  emit_svg_document(graph, svg, config, emit_assets)
+  emit_svg_document(graph, svg, config, emit_assets, fonts)
 }
 
 ///|

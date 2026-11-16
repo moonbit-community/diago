@@ -1,0 +1,7 @@
+import {
+  "moonbit-community/diago/fonts",
+}
+
+import {
+  "moonbit-community/diago/font_subset",
+} for "wbtest"

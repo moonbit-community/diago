@@ -14,8 +14,4 @@
 
 ///|
 #deprecated
-pub extend SvgConfig with Debug::{to_repr}
-
-///|
-#deprecated
 pub extend SvgRenderer with Debug::{to_repr}

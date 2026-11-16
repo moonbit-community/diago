@@ -1,0 +1,43 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/diago/fonts"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+#derive(Eq, Hash, @debug.Debug)
+pub(all) enum Face {
+  SansRegular
+  SansBold
+  SansSemibold
+  SansItalic
+  MonoRegular
+  MonoBold
+  MonoItalic
+}
+#deprecated
+pub fn Face::equal(Self, Self) -> Bool
+#deprecated
+pub fn Face::hash(Self) -> Int32
+#deprecated
+pub fn Face::hash_combine(Self, Hasher) -> Unit
+pub fn Face::name(Self) -> String
+#deprecated
+pub fn Face::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Face::to_repr(Self) -> @debug.Repr
+
+pub(all) enum Source {
+  Ttf(Bytes)
+  Url(String)
+}
+
+// Type aliases
+pub type Resolver = (Face) -> Source?
+
+// Traits

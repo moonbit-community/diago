@@ -367,6 +367,7 @@ fn d2_embed_fonts_styles(
   diagram_hash : String,
   source : String,
   corpus : String,
+  fonts : @fonts.Resolver,
 ) -> String raise @render_api.RenderError {
   let out = StringBuilder()
   let regular_text_triggers = [
@@ -381,37 +382,37 @@ fn d2_embed_fonts_styles(
   let mono_bold_triggers = ["class=\"text-mono-bold"]
   let mono_italic_triggers = ["class=\"text-mono-italic"]
   let regular_data = if d2_has_any_trigger(source, regular_text_triggers) {
-    d2_subset_font_data_url(source_sans_pro_regular_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansRegular, corpus)
   } else {
     ""
   }
   let semibold_data = if d2_has_any_trigger(source, markdown_triggers) {
-    d2_subset_font_data_url(source_sans_pro_semibold_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansSemibold, corpus)
   } else {
     ""
   }
   let bold_data = if d2_has_any_trigger(source, bold_triggers) {
-    d2_subset_font_data_url(source_sans_pro_bold_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansBold, corpus)
   } else {
     ""
   }
   let italic_data = if d2_has_any_trigger(source, italic_triggers) {
-    d2_subset_font_data_url(source_sans_pro_italic_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansItalic, corpus)
   } else {
     ""
   }
   let mono_regular_data = if d2_has_any_trigger(source, mono_triggers) {
-    d2_subset_font_data_url(source_code_pro_regular_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, MonoRegular, corpus)
   } else {
     ""
   }
   let mono_bold_data = if d2_has_any_trigger(source, mono_bold_triggers) {
-    d2_subset_font_data_url(source_code_pro_bold_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, MonoBold, corpus)
   } else {
     ""
   }
   let mono_italic_data = if d2_has_any_trigger(source, mono_italic_triggers) {
-    d2_subset_font_data_url(source_code_pro_italic_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, MonoItalic, corpus)
   } else {
     ""
   }
@@ -2272,6 +2273,7 @@ fn emit_svg_document(
   svg : @svg.Svg,
   config : SvgConfig,
   assets : SvgEmitAssets,
+  fonts : @fonts.Resolver,
 ) -> String raise @render_api.RenderError {
   let outer_width = d2_ceil_to_int(svg.width())
   let outer_height = d2_ceil_to_int(svg.height())
@@ -2284,7 +2286,7 @@ fn emit_svg_document(
   let corpus = graph.get_corpus()
   let upper_blocks : Array[String] = []
   upper_blocks.push(
-    d2_embed_fonts_styles(assets.diagram_hash, body_source, corpus),
+    d2_embed_fonts_styles(assets.diagram_hash, body_source, corpus, fonts),
   )
   upper_blocks.push(
     @xml_emit.Element::new("style")
