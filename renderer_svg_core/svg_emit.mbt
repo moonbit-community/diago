@@ -367,6 +367,7 @@ fn d2_embed_fonts_styles(
   diagram_hash : String,
   source : String,
   corpus : String,
+  fonts : @fonts.Resolver,
 ) -> String raise @render_api.RenderError {
   let out = StringBuilder()
   let regular_text_triggers = [
@@ -381,37 +382,37 @@ fn d2_embed_fonts_styles(
   let mono_bold_triggers = ["class=\"text-mono-bold"]
   let mono_italic_triggers = ["class=\"text-mono-italic"]
   let regular_data = if d2_has_any_trigger(source, regular_text_triggers) {
-    d2_subset_font_data_url(source_sans_pro_regular_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansRegular, corpus)
   } else {
     ""
   }
   let semibold_data = if d2_has_any_trigger(source, markdown_triggers) {
-    d2_subset_font_data_url(source_sans_pro_semibold_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansSemibold, corpus)
   } else {
     ""
   }
   let bold_data = if d2_has_any_trigger(source, bold_triggers) {
-    d2_subset_font_data_url(source_sans_pro_bold_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansBold, corpus)
   } else {
     ""
   }
   let italic_data = if d2_has_any_trigger(source, italic_triggers) {
-    d2_subset_font_data_url(source_sans_pro_italic_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, SansItalic, corpus)
   } else {
     ""
   }
   let mono_regular_data = if d2_has_any_trigger(source, mono_triggers) {
-    d2_subset_font_data_url(source_code_pro_regular_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, MonoRegular, corpus)
   } else {
     ""
   }
   let mono_bold_data = if d2_has_any_trigger(source, mono_bold_triggers) {
-    d2_subset_font_data_url(source_code_pro_bold_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, MonoBold, corpus)
   } else {
     ""
   }
   let mono_italic_data = if d2_has_any_trigger(source, mono_italic_triggers) {
-    d2_subset_font_data_url(source_code_pro_italic_ttf_bytes, corpus)
+    resolve_font_data_url(fonts, MonoItalic, corpus)
   } else {
     ""
   }
@@ -835,6 +836,8 @@ fn d2_hash_shape_label_dims(
   shape : Shape,
   config : SvgConfig,
 ) -> (Int32, Int32) {
+  let measurer = config.measurer
+
   if shape.label == "" {
     return (0, 0)
   }
@@ -865,6 +868,7 @@ fn d2_hash_shape_label_dims(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   (dims.width.to_int(), dims.height.to_int())
 }
@@ -874,6 +878,8 @@ fn d2_hash_edge_label_dims(
   edge : Connection,
   config : SvgConfig,
 ) -> (Int32, Int32) {
+  let measurer = config.measurer
+
   if edge.label == "" {
     return (0, 0)
   }
@@ -885,7 +891,7 @@ fn d2_hash_edge_label_dims(
     None => ()
   }
   let font_size = style_int(edge.style.font_size, config.font_size)
-  let dims = @text_metrics.measure_edge_label(edge.label, font_size)
+  let dims = @text_metrics.measure_edge_label(edge.label, font_size, measurer~)
   (dims.width.to_int(), dims.height.to_int())
 }
 
@@ -928,8 +934,18 @@ fn d2_hash_sql_constraints(child : Shape) -> String {
 }
 
 ///|
-fn d2_hash_sql_column_text(label : String) -> String {
-  let dims = @text_metrics.measure_label(label, 20, false, false, false)
+fn d2_hash_sql_column_text(
+  label : String,
+  measurer~ : @fonts.Measurer? = None,
+) -> String {
+  let dims = @text_metrics.measure_label(
+    label,
+    20,
+    false,
+    false,
+    false,
+    measurer~,
+  )
   d2_json_text(
     label,
     0,
@@ -950,6 +966,8 @@ fn d2_hash_shape_json(
   all_shapes : Array[Shape],
   config : SvgConfig,
 ) -> String {
+  let measurer = config.measurer
+
   let fields : Array[D2JsonField] = []
   let (x, y, width, height) = match shape.box {
     Some(box) =>
@@ -1128,9 +1146,12 @@ fn d2_hash_shape_json(
           d2_json_object([
             d2_json_field(
               "name",
-              d2_hash_sql_column_text(get_short_name(child.id)),
+              d2_hash_sql_column_text(get_short_name(child.id), measurer~),
             ),
-            d2_json_field("type", d2_hash_sql_column_text(child.label)),
+            d2_json_field(
+              "type",
+              d2_hash_sql_column_text(child.label, measurer~),
+            ),
             d2_json_field("constraint", d2_hash_sql_constraints(child)),
             d2_json_field("reference", d2_json_string("")),
           ]),
@@ -2272,6 +2293,7 @@ fn emit_svg_document(
   svg : @svg.Svg,
   config : SvgConfig,
   assets : SvgEmitAssets,
+  fonts : @fonts.Resolver,
 ) -> String raise @render_api.RenderError {
   let outer_width = d2_ceil_to_int(svg.width())
   let outer_height = d2_ceil_to_int(svg.height())
@@ -2284,7 +2306,7 @@ fn emit_svg_document(
   let corpus = graph.get_corpus()
   let upper_blocks : Array[String] = []
   upper_blocks.push(
-    d2_embed_fonts_styles(assets.diagram_hash, body_source, corpus),
+    d2_embed_fonts_styles(assets.diagram_hash, body_source, corpus, fonts),
   )
   upper_blocks.push(
     @xml_emit.Element::new("style")

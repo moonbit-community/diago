@@ -65,6 +65,7 @@ fn is_markdown_shape(shape : @diagram.Shape) -> Bool {
 fn default_shape_label_position(
   shape : @diagram.Shape,
   box : @graph.Box,
+  measurer~ : @fonts.Measurer? = None,
 ) -> String {
   let font_size = match shape.style.font_size {
     Some(v) => v.as_int().unwrap_or(16)
@@ -79,6 +80,7 @@ fn default_shape_label_position(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let label_width = if dims.width > 0.0 {
     dims.width + D2_LABEL_PADDING * 2.0
@@ -174,7 +176,10 @@ fn infer_label_position_from_boxes(
 }
 
 ///|
-fn resolve_shape_label_position(shape : @diagram.Shape) -> String {
+fn resolve_shape_label_position(
+  shape : @diagram.Shape,
+  measurer~ : @fonts.Measurer? = None,
+) -> String {
   guard shape.label != "" else { return DEFAULT_LABEL_POSITION }
   if shape.shape_type == Text || is_markdown_shape(shape) {
     // Match the reference ASCII behavior: markdown content affects shape sizing
@@ -185,7 +190,7 @@ fn resolve_shape_label_position(shape : @diagram.Shape) -> String {
   guard shape.box is Some(box) else { return DEFAULT_LABEL_POSITION }
   match shape.label_box {
     Some(label_box) => infer_label_position_from_boxes(box, label_box)
-    None => default_shape_label_position(shape, box)
+    None => default_shape_label_position(shape, box, measurer~)
   }
 }
 
@@ -198,13 +203,15 @@ fn draw_diagram_shape(
   x_offset : Int32,
   y_offset : Int32,
 ) -> Unit {
+  let measurer = ctx.measurer
+
   match shape.box {
     Some(box) => {
       let mut draw_x = box.x + x_offset.to_double()
       let draw_y = box.y + y_offset.to_double()
       let mut draw_w = box.width
       let mut draw_h = box.height
-      let label_position = resolve_shape_label_position(shape)
+      let label_position = resolve_shape_label_position(shape, measurer~)
       let label_text = shape.label
       if style_is_multiple(shape.style) {
         draw_x -= 10.0

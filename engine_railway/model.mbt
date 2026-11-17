@@ -313,11 +313,13 @@ fn style_is_mono_for_container_padding(value : @graph.StyleValue?) -> Bool {
 fn container_top_padding_railway(
   obj : @graph.ObjectInput,
   base_padding : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Double {
   if obj.label == "" || is_grid_container_candidate(obj) {
     return base_padding
   }
-  let (_, label_height) = match container_label_dimensions_railway(obj) {
+  let (_, label_height) = match
+    container_label_dimensions_railway(obj, measurer~) {
     Some(v) => v
     None => (0.0, 0.0)
   }
@@ -327,6 +329,7 @@ fn container_top_padding_railway(
 ///|
 fn container_label_dimensions_railway(
   obj : @graph.ObjectInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double)? {
   if obj.label == "" {
     return None
@@ -347,6 +350,7 @@ fn container_label_dimensions_railway(
     is_mono,
     is_bold,
     is_italic,
+    measurer~,
   )
   let width = if dims.width > 0.0 {
     dims.width
@@ -565,6 +569,8 @@ fn fit_container_boxes_railway(
   parent_id_by_child_id : Map[String, String],
   config : @engine_api.LayoutConfig,
 ) -> Unit {
+  let measurer = config.measurer
+
   let padding = @cmp.maximum(RAILWAY_CONTAINER_PADDING, config.edge_padding)
   fit_container_boxes_in_map_railway(
     patch.nodes,
@@ -572,6 +578,7 @@ fn fit_container_boxes_railway(
     object_by_id,
     parent_id_by_child_id,
     padding,
+    measurer~,
   )
 }
 
@@ -601,6 +608,7 @@ fn fit_container_boxes_in_map_railway(
   object_by_id : Map[String, @graph.ObjectInput],
   parent_id_by_child_id : Map[String, String],
   padding : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let container_ids : Array[String] = []
   for obj in graph.objects {
@@ -624,7 +632,11 @@ fn fit_container_boxes_in_map_railway(
       Some(v) => v
       None => continue
     }
-    let top_padding = container_top_padding_railway(container, padding)
+    let top_padding = container_top_padding_railway(
+      container,
+      padding,
+      measurer~,
+    )
     let side_padding = padding
     let bottom_padding = padding
     let mut min_x = 1000000000000.0
@@ -658,7 +670,7 @@ fn fit_container_boxes_in_map_railway(
     let mut x = min_x - side_padding
     let mut width = max_x - min_x + side_padding * 2.0
     if !is_grid_container_candidate(container) {
-      match container_label_dimensions_railway(container) {
+      match container_label_dimensions_railway(container, measurer~) {
         Some((label_width, _)) => {
           let min_width = label_width + side_padding * 10.0
           if width < min_width {

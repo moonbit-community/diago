@@ -226,6 +226,8 @@ pub impl @engine_api.LayoutEngine for ElkEngine with fn layout(
   config,
   direction,
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
+  let measurer = config.measurer
+
   if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_with_engine_metrics(graph, config)
   }
@@ -257,12 +259,18 @@ pub impl @engine_api.LayoutEngine for ElkEngine with fn layout(
   )
   fill_patch_nodes(patch, graph, node_box_by_id, node_size_by_id, config)
   fill_patch_edges(
-    patch, graph, edge_id_by_index, edge_endpoints_by_index, node_box_by_id, routes_by_edge_id,
+    patch,
+    graph,
+    edge_id_by_index,
+    edge_endpoints_by_index,
+    node_box_by_id,
+    routes_by_edge_id,
     direction,
+    measurer~,
   )
-  apply_root_grid_positions_like_d2(patch, graph)
-  apply_constant_near_positions(patch, graph)
-  recompute_edge_label_boxes(patch, graph)
+  apply_root_grid_positions_like_d2(patch, graph, measurer~)
+  apply_constant_near_positions(patch, graph, measurer~)
+  recompute_edge_label_boxes(patch, graph, measurer~)
 
   patch
 }
@@ -284,6 +292,8 @@ fn layout_sequence_with_engine_metrics(
   graph : @graph.GraphInput,
   config : @engine_api.LayoutConfig,
 ) -> @graph.LayoutPatch {
+  let measurer = config.measurer
+
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   object_by_id[graph.root.abs_id_syntax] = graph.root
@@ -291,15 +301,18 @@ fn layout_sequence_with_engine_metrics(
     object_by_id[obj.id] = obj
     object_by_id[obj.abs_id_syntax] = obj
   }
-  @layout_sequence.layout(graph, fn(obj) {
-    object_size(obj, config, object_by_id, inside_sequence=true)
-  })
+  @layout_sequence.layout(
+    graph,
+    fn(obj) { object_size(obj, config, object_by_id, inside_sequence=true) },
+    measurer~,
+  )
 }
 
 ///|
 fn recompute_edge_label_boxes(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   for edge in graph.edges {
     if edge.label == "" {
@@ -312,7 +325,7 @@ fn recompute_edge_label_boxes(
     if route.is_empty() {
       continue
     }
-    let (width, height) = match edge_label_size(edge) {
+    let (width, height) = match edge_label_size(edge, measurer~) {
       Some(v) => v
       None => continue
     }
@@ -344,6 +357,8 @@ fn build_elk_graph(
   Map[String, (Double, Double)],
   Map[String, LayoutSpacing],
 ) {
+  let measurer = config.measurer
+
   let (object_by_id, parent_id_by_child_id) = build_object_maps(graph)
   let excluded_node_ids = build_excluded_layout_node_ids(
     graph, parent_id_by_child_id, object_by_id,
@@ -392,7 +407,11 @@ fn build_elk_graph(
       }
     }
     let (margin, content_padding) = object_layout_spacing(
-      obj, box, max_child_width, max_child_height,
+      obj,
+      box,
+      max_child_width,
+      max_child_height,
+      measurer~,
     )
     let width = base_width + margin.left + margin.right
     let height = base_height + margin.top + margin.bottom
@@ -427,6 +446,7 @@ fn build_elk_graph(
         graph,
         obj.child_ids,
         direction,
+        measurer~,
       )
       node_json["layoutOptions"] = Json::object(
         make_container_layout_options(
@@ -567,7 +587,7 @@ fn build_elk_graph(
       "container": Json::string(""),
     }
 
-    match edge_label_size(edge) {
+    match edge_label_size(edge, measurer~) {
       Some((label_w, label_h)) =>
         edge_json["labels"] = Json::array([
           Json::object({
@@ -595,6 +615,7 @@ fn build_elk_graph(
     graph,
     graph.root.child_ids,
     direction,
+    measurer~,
   )
   let root_json : Map[String, Json] = {
     "id": Json::string(""),
@@ -1102,6 +1123,7 @@ fn build_excluded_layout_node_ids(
 fn apply_constant_near_positions(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let near_key_by_id : Map[String, String] = Map([])
   for obj in graph.objects {
@@ -1153,6 +1175,7 @@ fn apply_constant_near_positions(
         height,
         box.width,
         box.height,
+        measurer~,
       )
       let dx = x - box.x
       let dy = y - box.y
@@ -1164,13 +1187,14 @@ fn apply_constant_near_positions(
     }
   }
   reroute_constant_near_cross_edges(patch, graph, near_key_by_id)
-  clip_patch_routes_after_constant_near(patch, graph)
+  clip_patch_routes_after_constant_near(patch, graph, measurer~)
 }
 
 ///|
 fn apply_root_grid_positions_like_d2(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   if graph.root.grid_rows is None && graph.root.grid_columns is None {
     return
@@ -1209,6 +1233,7 @@ fn apply_root_grid_positions_like_d2(
         root_child_ids,
         child_size_by_id,
         object_by_id,
+        measurer~,
       ) {
       Some((_, _, boxes)) => boxes
       None => return
@@ -1243,7 +1268,7 @@ fn apply_root_grid_positions_like_d2(
   reroute_root_grid_cross_edges(
     patch, graph, object_by_id, parent_id_by_child_id,
   )
-  clip_patch_routes_after_constant_near(patch, graph)
+  clip_patch_routes_after_constant_near(patch, graph, measurer~)
 }
 
 ///|
@@ -1520,6 +1545,7 @@ fn reroute_constant_near_cross_edges(
 fn clip_patch_routes_after_constant_near(
   patch : @graph.LayoutPatch,
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let edge_endpoints_by_index = build_patch_edge_endpoints_by_index(
     graph, patch,
@@ -1529,6 +1555,7 @@ fn clip_patch_routes_after_constant_near(
     graph,
     edge_endpoints_by_index,
     patch.nodes,
+    measurer~,
   )
 }
 
@@ -1760,6 +1787,7 @@ fn place_constant_near_box(
   height : Double,
   box_width : Double,
   box_height : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let (x, y) = match near_key {
     "top-left" =>
@@ -1780,7 +1808,7 @@ fn place_constant_near_box(
       (min_x + width + D2_NEAR_PAD, min_y + height + D2_NEAR_PAD)
     _ => (min_x, min_y)
   }
-  adjust_constant_near_for_label(obj, near_key, x, y)
+  adjust_constant_near_for_label(obj, near_key, x, y, measurer~)
 }
 
 ///|
@@ -1789,6 +1817,7 @@ fn adjust_constant_near_for_label(
   near_key : String,
   x : Double,
   y : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let label_position = match obj.label_position {
     Some(v) => v
@@ -1797,7 +1826,8 @@ fn adjust_constant_near_for_label(
   if label_position.contains("INSIDE") {
     return (x, y)
   }
-  let (label_width, label_height) = match object_label_dimensions(obj) {
+  let (label_width, label_height) = match
+    object_label_dimensions(obj, measurer~) {
     Some(v) => v
     None => return (x, y)
   }
@@ -2166,6 +2196,8 @@ fn fill_patch_nodes(
   node_size_by_id : Map[String, (Double, Double)],
   config : @engine_api.LayoutConfig,
 ) -> Unit {
+  let measurer = config.measurer
+
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
@@ -2183,7 +2215,7 @@ fn fill_patch_nodes(
       }
     }
     patch.nodes[obj.id] = node_box
-    match object_default_label_box(obj, node_box) {
+    match object_default_label_box(obj, node_box, measurer~) {
       Some(label_box) => patch.node_labels[obj.id] = label_box
       None => ()
     }
@@ -2199,6 +2231,7 @@ fn fill_patch_edges(
   node_box_by_id : Map[String, @graph.Box],
   routes_by_edge_id : Map[String, Array[@graph.Point]],
   direction : @engine_api.Direction,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
@@ -2254,7 +2287,11 @@ fn fill_patch_edges(
   }
 
   trace_route_endpoints_like_d2(
-    routes_by_index, graph, edge_endpoints_by_index, node_box_by_id,
+    routes_by_index,
+    graph,
+    edge_endpoints_by_index,
+    node_box_by_id,
+    measurer~,
   )
   delete_bends_like_d2(routes_by_index, graph, node_box_by_id)
 
@@ -2267,7 +2304,7 @@ fn fill_patch_edges(
     patch.edges[edge.index] = route
     patch.edge_curves[edge.index] = false
 
-    match edge_label_size(edge) {
+    match edge_label_size(edge, measurer~) {
       Some((label_w, label_h)) => {
         let center = route_point_at_percent(route, 0.5)
         patch.edge_labels[edge.index] = @graph.Box::new(
@@ -2288,6 +2325,7 @@ fn trace_route_endpoints_like_d2(
   graph : @graph.GraphInput,
   edge_endpoints_by_index : Map[Int32, (String, String)],
   node_box_by_id : Map[String, @graph.Box],
+  measurer~ : @fonts.Measurer? = None,
 ) -> Unit {
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
@@ -2363,7 +2401,7 @@ fn trace_route_endpoints_like_d2(
 
     let mut overlaps_src_outside_label = false
     if start_index + 1 <= end_index {
-      match outside_label_box(src_obj, src_box) {
+      match outside_label_box(src_obj, src_box, measurer~) {
         Some((label_box, pos)) => {
           let intersections = box_intersections(
             label_box,
@@ -2415,7 +2453,7 @@ fn trace_route_endpoints_like_d2(
 
     let mut overlaps_dst_outside_label = false
     if end_index >= 1 && end_index - 1 >= start_index {
-      match outside_label_box(dst_obj, dst_box) {
+      match outside_label_box(dst_obj, dst_box, measurer~) {
         Some((label_box, pos)) => {
           let intersections = box_intersections(
             label_box,
@@ -2544,6 +2582,7 @@ fn first_box_intersection(
 fn outside_label_box(
   obj : @graph.ObjectInput,
   box : @graph.Box,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (@graph.Box, DefaultLabelPosition)? {
   if obj.shape_type == SqlTable || obj.shape_type == Class {
     return None
@@ -2551,7 +2590,8 @@ fn outside_label_box(
   if obj.label == "" {
     return None
   }
-  let (label_width, label_height) = match object_label_dimensions(obj) {
+  let (label_width, label_height) = match
+    object_label_dimensions(obj, measurer~) {
     Some(v) => v
     None => return None
   }
@@ -2792,6 +2832,7 @@ fn self_loop_spacing_for_parent(
   graph : @graph.GraphInput,
   child_ids : Array[String],
   direction : @engine_api.Direction,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Int32 {
   let base = 50
   if child_ids.is_empty() {
@@ -2813,7 +2854,7 @@ fn self_loop_spacing_for_parent(
     if !child_set.contains(edge.src_id) || edge.label.is_empty() {
       continue
     }
-    match edge_label_size(edge) {
+    match edge_label_size(edge, measurer~) {
       Some((w, h)) => {
         let candidate = if prefer_width {
           w.ceil().to_int()
@@ -5300,6 +5341,8 @@ fn object_size(
   object_by_id : Map[String, @graph.ObjectInput],
   inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
+  let measurer = config.measurer
+
   if obj.label == "" &&
     obj.shape_type != Image &&
     obj.shape_type != SqlTable &&
@@ -5335,13 +5378,17 @@ fn object_size(
   }
   let estimate_auto_size = () => {
     if obj.shape_type == SqlTable {
-      let (width, height) = estimate_sql_table_size(obj, object_by_id)
+      let (width, height) = estimate_sql_table_size(
+        obj,
+        object_by_id,
+        measurer~,
+      )
       (
         clamp_positive(width, config.default_width),
         clamp_positive(height, config.default_height),
       )
     } else if obj.shape_type == Class {
-      let (width, height) = estimate_class_size(obj, object_by_id)
+      let (width, height) = estimate_class_size(obj, object_by_id, measurer~)
       (
         clamp_positive(width, config.default_width),
         clamp_positive(height, config.default_height),
@@ -5396,6 +5443,8 @@ fn estimate_object_size(
   _object_by_id : Map[String, @graph.ObjectInput],
   inside_sequence~ : Bool = false,
 ) -> (Double, Double) {
+  let measurer = config.measurer
+
   let has_explicit_dimension = match obj.box {
     Some(box) => box.width > 0.0 || box.height > 0.0
     None => false
@@ -5405,7 +5454,7 @@ fn estimate_object_size(
     None => 16
   }
   let (label_width, label_height) = match
-    object_label_dimensions(obj, inside_sequence~) {
+    object_label_dimensions(obj, inside_sequence~, measurer~) {
     Some((w, h)) => (w, h)
     None => (0.0, 0.0)
   }
@@ -5540,6 +5589,7 @@ fn class_member_info_from_object(child : @graph.ObjectInput) -> ClassMemberInfo 
 fn estimate_class_size(
   obj : @graph.ObjectInput,
   object_by_id : Map[String, @graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let row_font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(20)
@@ -5548,6 +5598,7 @@ fn estimate_class_size(
   let header_measured = @text_metrics.measure_text_mono_plain(
     obj.label,
     row_font_size + D2_CLASS_HEADER_FONT_ADD,
+    measurer~,
   )
   let header_dims = header_measured.dimensions
   let padded_header_width = header_dims.width + D2_INNER_LABEL_PADDING
@@ -5572,7 +5623,9 @@ fn estimate_class_size(
       first_row_text = Some(row_text)
     }
     let row_measured = @text_metrics.measure_text_mono_plain(
-      row_text, row_font_size,
+      row_text,
+      row_font_size,
+      measurer~,
     )
     let row_width = row_measured.dimensions.width
     if row_width > max_width {
@@ -5591,7 +5644,9 @@ fn estimate_class_size(
   match first_row_text {
     Some(any_row_text) => {
       let row_dims = @text_metrics.measure_text_mono_plain(
-          any_row_text, row_font_size,
+          any_row_text,
+          row_font_size,
+          measurer~,
         ).dimensions
       let row_height = row_dims.height + D2_CLASS_VERTICAL_PADDING
       let header_height_min = if 2.0 * row_height >
@@ -5872,6 +5927,7 @@ fn object_layout_spacing(
   box : @graph.Box,
   max_child_width : Double,
   max_child_height : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (LayoutSpacing, LayoutSpacing) {
   let mut margin_top = 0.0
   let mut margin_left = 0.0
@@ -5892,7 +5948,12 @@ fn object_layout_spacing(
     let is_italic = style_bool(obj.style.italic, false)
     let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
     let (measured_width, measured_height) = measure_object_label_dims(
-      obj, font_size, is_mono, is_bold, is_italic,
+      obj,
+      font_size,
+      is_mono,
+      is_bold,
+      is_italic,
+      measurer~,
     )
     let margin_label_width = if measured_width > 0.0 {
       measured_width + D2_LABEL_PADDING
@@ -6104,6 +6165,7 @@ fn object_layout_icon_size(box : @graph.Box, position : String) -> Double {
 fn object_default_label_box(
   obj : @graph.ObjectInput,
   box : @graph.Box,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.Box? {
   if obj.label == "" {
     return None
@@ -6111,7 +6173,8 @@ fn object_default_label_box(
   if obj.shape_type == SqlTable || obj.shape_type == Class {
     return None
   }
-  let (label_width, label_height) = match object_label_dimensions(obj) {
+  let (label_width, label_height) = match
+    object_label_dimensions(obj, measurer~) {
     Some(v) => v
     None => return None
   }
@@ -6289,6 +6352,7 @@ fn shape_inner_box_for_label(
 fn object_label_dimensions(
   obj : @graph.ObjectInput,
   inside_sequence~ : Bool = false,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double)? {
   if obj.label == "" {
     return None
@@ -6308,7 +6372,12 @@ fn object_label_dimensions(
   let is_italic = style_bool(obj.style.italic, false)
   let is_mono = obj.shape_type == Code || style_is_mono(obj.style.font)
   let (measured_width, measured_height) = measure_object_label_dims(
-    obj, font_size, is_mono, is_bold, is_italic,
+    obj,
+    font_size,
+    is_mono,
+    is_bold,
+    is_italic,
+    measurer~,
   )
   let width = if measured_width > 0.0 {
     round_double(measured_width)
@@ -6327,6 +6396,7 @@ fn object_label_dimensions(
 fn estimate_sql_table_size(
   obj : @graph.ObjectInput,
   object_by_id : Map[String, @graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let row_font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(20)
@@ -6339,6 +6409,7 @@ fn estimate_sql_table_size(
     false,
     true,
     false,
+    measurer~,
   )
   let header_dims = header_measured.dimensions
   let padded_header_width = header_dims.width + D2_INNER_LABEL_PADDING
@@ -6361,6 +6432,7 @@ fn estimate_sql_table_size(
       false,
       false,
       false,
+      measurer~,
     )
     let name_width = name_measure.dimensions.width
     if name_width > max_name_width {
@@ -6373,6 +6445,7 @@ fn estimate_sql_table_size(
       false,
       false,
       false,
+      measurer~,
     )
     let type_width = type_measure.dimensions.width
     if type_width > max_type_width {
@@ -6382,7 +6455,12 @@ fn estimate_sql_table_size(
     let constraint = sql_table_constraint_abbr_from_object(child)
     if constraint != "" {
       let constraint_measure = @text_metrics.measure_text(
-        constraint, row_font_size, false, false, false,
+        constraint,
+        row_font_size,
+        false,
+        false,
+        false,
+        measurer~,
       )
       let constraint_width = constraint_measure.dimensions.width
       if constraint_width > max_constraint_width {
@@ -6464,7 +6542,9 @@ fn label_width(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
 ) -> Double {
-  let width = match object_label_dimensions(obj) {
+  let measurer = config.measurer
+
+  let width = match object_label_dimensions(obj, measurer~) {
     Some((w, _)) => w
     None => 0.0
   }
@@ -6476,7 +6556,9 @@ fn label_height(
   obj : @graph.ObjectInput,
   config : @engine_api.LayoutConfig,
 ) -> Double {
-  let height = match object_label_dimensions(obj) {
+  let measurer = config.measurer
+
+  let height = match object_label_dimensions(obj, measurer~) {
     Some((_, h)) => h
     None => 0.0
   }
@@ -6498,6 +6580,7 @@ fn measure_object_label_dims(
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   if obj.shape_type == Code {
     let dims = @text_metrics.measure_label_code(
@@ -6505,15 +6588,25 @@ fn measure_object_label_dims(
       font_size,
       is_bold,
       is_italic,
+      measurer~,
     )
     return (dims.width, dims.height)
   }
   if object_is_markdown(obj) {
-    let dims = @text_metrics.measure_label_markdown(obj.label, font_size)
+    let dims = @text_metrics.measure_label_markdown(
+      obj.label,
+      font_size,
+      measurer~,
+    )
     return (dims.width, dims.height)
   }
   let dims = if style_is_hand_drawn(obj.style.font) {
-    @text_metrics.measure_label_hand_drawn(obj.label, font_size, is_bold)
+    @text_metrics.measure_label_hand_drawn(
+      obj.label,
+      font_size,
+      is_bold,
+      measurer~,
+    )
   } else {
     @text_metrics.measure_label(
       obj.label,
@@ -6521,13 +6614,17 @@ fn measure_object_label_dims(
       is_mono,
       is_bold,
       is_italic,
+      measurer~,
     )
   }
   (dims.width, dims.height)
 }
 
 ///|
-fn edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
+fn edge_label_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double)? {
   match edge.label_box {
     Some(box) => {
       let width = if box.width > 0.0 { box.width } else { 0.0 }
@@ -6535,15 +6632,18 @@ fn edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
       if width > 0.0 && height > 0.0 {
         Some((width, height))
       } else {
-        fallback_edge_label_size(edge)
+        fallback_edge_label_size(edge, measurer~)
       }
     }
-    None => fallback_edge_label_size(edge)
+    None => fallback_edge_label_size(edge, measurer~)
   }
 }
 
 ///|
-fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
+fn fallback_edge_label_size(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double)? {
   if edge.label.is_empty() {
     return None
   }
@@ -6555,7 +6655,12 @@ fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
   let is_italic = style_bool(edge.style.italic, true)
   let is_mono = style_is_mono(edge.style.font)
   let dims = if style_is_hand_drawn(edge.style.font) {
-    @text_metrics.measure_label_hand_drawn(edge.label, font_size, is_bold)
+    @text_metrics.measure_label_hand_drawn(
+      edge.label,
+      font_size,
+      is_bold,
+      measurer~,
+    )
   } else {
     @text_metrics.measure_label(
       edge.label,
@@ -6563,6 +6668,7 @@ fn fallback_edge_label_size(edge : @graph.EdgeInput) -> (Double, Double)? {
       is_mono,
       is_bold,
       is_italic,
+      measurer~,
     )
   }
   let width = if dims.width > 0.0 {

@@ -53,6 +53,9 @@ jobs:
           npm ci --prefix web
           npm test --prefix web
 
+      - name: Check lightweight builds
+        run: node scripts/check_slim_builds.mjs
+
   markdown:
     runs-on: ubuntu-latest
     strategy:

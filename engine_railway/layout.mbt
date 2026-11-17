@@ -28,6 +28,8 @@ fn layout_graph_with_placement_adapter(
   direction : @engine_api.Direction,
   adapter : RailwayPlacementAdapter,
 ) -> @graph.LayoutPatch raise @engine_api.LayoutError {
+  let measurer = config.measurer
+
   keep_legacy_railway_symbols_alive()
   if graph.root.shape_type == SequenceDiagram {
     return layout_sequence_with_engine_metrics(graph, config)
@@ -41,7 +43,7 @@ fn layout_graph_with_placement_adapter(
   let routing_problem = build_routing_problem(
     placement, hierarchy, config, direction,
   )
-  let routing = run_routing_stage(graph, routing_problem)
+  let routing = run_routing_stage(graph, routing_problem, measurer~)
   if routing.routing_passes < 1 || routing.routing_passes > 2 {
     raise Unsupported(
       "railway routing used an invalid pass count: \{routing.routing_passes}",
@@ -196,14 +198,15 @@ fn build_routing_problem(
 fn run_routing_stage(
   graph : @graph.GraphInput,
   problem : RailwayRoutingProblem,
+  measurer~ : @fonts.Measurer? = None,
 ) -> RailwayRoutingResult raise @engine_api.LayoutError {
-  recompute_container_label_boxes_railway(problem.patch, graph)
+  recompute_container_label_boxes_railway(problem.patch, graph, measurer~)
   let reserved_title_boxes = collect_reserved_container_label_boxes_railway(
     problem.patch,
     graph,
   )
   route_edges_railway(problem, reserved_title_boxes)
-  recompute_container_label_boxes_railway(problem.patch, graph)
+  recompute_container_label_boxes_railway(problem.patch, graph, measurer~)
   let mut routing_passes = 1
   let mut title_collision_score = container_title_route_collision_score_railway(
     problem.patch,
@@ -219,7 +222,7 @@ fn run_routing_stage(
       graph,
     )
     route_edges_railway(problem, corrected_title_boxes)
-    recompute_container_label_boxes_railway(problem.patch, graph)
+    recompute_container_label_boxes_railway(problem.patch, graph, measurer~)
     routing_passes = 2
     let corrected_score = container_title_route_collision_score_railway(
       problem.patch,
@@ -321,14 +324,18 @@ fn layout_sequence_with_engine_metrics(
   graph : @graph.GraphInput,
   config : @engine_api.LayoutConfig,
 ) -> @graph.LayoutPatch {
+  let measurer = config.measurer
+
   let object_by_id : Map[String, @graph.ObjectInput] = Map([])
   object_by_id[graph.root.id] = graph.root
   for obj in graph.objects {
     object_by_id[obj.id] = obj
   }
-  @layout_sequence.layout(graph, fn(obj) {
-    object_size_with_objects(obj, config, object_by_id)
-  })
+  @layout_sequence.layout(
+    graph,
+    fn(obj) { object_size_with_objects(obj, config, object_by_id) },
+    measurer~,
+  )
 }
 
 ///|
@@ -343,13 +350,20 @@ fn layout_hierarchy_railway(
   container_padding : Double,
   has_layout_container : Bool,
 ) -> Unit {
+  let measurer = config.measurer
+
   let levels = if has_layout_container {
     levels_from_rank_only_railway(graph, rank_by_id)
   } else {
     []
   }
   fit_container_boxes_in_map_railway(
-    boxes, graph, object_by_id, parent_id_by_child_id, container_padding,
+    boxes,
+    graph,
+    object_by_id,
+    parent_id_by_child_id,
+    container_padding,
+    measurer~,
   )
   if has_layout_container {
     spread_sibling_boxes_railway(
@@ -359,13 +373,23 @@ fn layout_hierarchy_railway(
       graph, boxes, levels, object_by_id, direction, config,
     )
     fit_container_boxes_in_map_railway(
-      boxes, graph, object_by_id, parent_id_by_child_id, container_padding,
+      boxes,
+      graph,
+      object_by_id,
+      parent_id_by_child_id,
+      container_padding,
+      measurer~,
     )
     spread_sibling_boxes_railway(
       boxes, graph, object_by_id, parent_id_by_child_id, direction, config,
     )
     fit_container_boxes_in_map_railway(
-      boxes, graph, object_by_id, parent_id_by_child_id, container_padding,
+      boxes,
+      graph,
+      object_by_id,
+      parent_id_by_child_id,
+      container_padding,
+      measurer~,
     )
     spread_root_sibling_boxes_railway(
       boxes, graph, object_by_id, parent_id_by_child_id, direction, config,

@@ -1,8 +1,8 @@
-// Generates `renderer_svg/embedded_ttf_fonts.mbt` from D2's embedded fonts.
+// Generates `fonts/builtin/embedded_ttf_fonts.mbt` from D2's embedded fonts.
 //
 // Run this from the D2 checkout so its Go module resolves, for example:
 //
-//	go run /path/to/diago/renderer_svg/gen_embedded_ttf_fonts.go > /path/to/diago/renderer_svg/embedded_ttf_fonts.mbt
+//	go run /path/to/diago/fonts/builtin/gen_embedded_ttf_fonts.go > /path/to/diago/fonts/builtin/embedded_ttf_fonts.mbt
 package main
 
 import (
@@ -42,7 +42,7 @@ func emitBytes(name string, data []byte) {
 }
 
 func main() {
-	fmt.Println("// Generated from D2's embedded fonts by renderer_svg/gen_embedded_ttf_fonts.go. Do not edit by hand.")
+	fmt.Println("// Generated from D2's embedded fonts by fonts/builtin/gen_embedded_ttf_fonts.go. Do not edit by hand.")
 	fmt.Println()
 	fmt.Println("///|")
 	fmt.Println("fn concat_font_chunks(chunks : Array[Bytes]) -> Bytes {")

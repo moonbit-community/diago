@@ -1,4 +1,4 @@
-// Generated from D2's embedded fonts by renderer_svg/gen_embedded_ttf_fonts.go. Do not edit by hand.
+// Generated from D2's embedded fonts by fonts/builtin/gen_embedded_ttf_fonts.go. Do not edit by hand.
 
 ///|
 fn concat_font_chunks(chunks : Array[Bytes]) -> Bytes {

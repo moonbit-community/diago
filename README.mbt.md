@@ -72,6 +72,55 @@ Editors can call `get_syntax_tokens` on every target to obtain error-tolerant
 Unicode code-point ranges for comments, strings, literals, keywords,
 identifiers, operators, and punctuation.
 
+### Lightweight packages
+
+Applications that only need text output can import
+`moonbit-community/diago/text`. It compiles ASCII or Unicode diagrams using
+Dagre without importing SVG rendering, embedded TTF fonts, font subsetting, or
+ELK. `text.compile_with_engine` accepts another layout engine explicitly. See
+[`text/README.mbt.md`](text/README.mbt.md) for examples.
+
+For SVG with host-managed fonts, import
+`moonbit-community/diago/renderer_svg_core` and supply a `fonts.Resolver`.
+`fonts.Source::Ttf` accepts loaded TrueType bytes and embeds a subset in the
+result. `fonts.Source::Url` references an externally hosted font. The core
+performs no filesystem or network I/O and contains no bundled TTF payloads.
+See [`renderer_svg_core/README.mbt.md`](renderer_svg_core/README.mbt.md).
+
+The package split is:
+
+| Package | Responsibility |
+| --- | --- |
+| `text` | Source to ASCII/Unicode, with Dagre by default |
+| `fonts` | Font roles, sources, resolver, and custom measurement interface; no assets |
+| `fonts/builtin` | Optional bundled Source Sans Pro and Source Code Pro assets |
+| `renderer_svg_core` | SVG rendering with caller-provided font sources |
+| `renderer_svg` | Existing SVG interface with bundled fonts |
+
+The root facade and `renderer_svg` retain their existing output and bundled-font
+defaults. Import `text` for a text-only build; selecting ASCII in the full
+facade still imports the full renderer stack. Font measurements remain in
+lightweight builds because they determine node geometry and routing. Arbitrary
+typefaces are supported through `fonts.Measurer`: pass matching measurements
+to both `LayoutConfig.with_measurer` and `SvgConfig.with_measurer`. A resolver
+can also map all roles to a single font source. Without a custom measurer,
+the existing Source Sans Pro / Source Code Pro measurement tables apply.
+`text.compile` and `text.compile_with_engine` accept the same `measurer`
+option for text output.
+
+To verify the split and compare complete, text-only, and external-font SVG
+consumers on JS and Wasm:
+
+```bash
+npm ci --prefix web
+node scripts/check_slim_builds.mjs
+```
+
+The check validates link dependencies, checks the generated artifacts for the
+seven bundled font payloads, and compares text output with the full facade.
+It writes byte counts to `_build/slim-sizes.json`. The probes expose a minimal
+render function for size comparisons; they are not the playground's Wasm ABI.
+
 ### Unsupported D2 features
 
 Diago does not currently support LaTeX labels (`|tex` or `|latex`) or sketch

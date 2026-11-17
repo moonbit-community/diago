@@ -66,6 +66,7 @@ pub struct SvgConfig {
   salt : String?
   /// Omit version metadata on root element.
   omit_version : Bool
+  measurer : @fonts.Measurer?
 }
 
 ///|
@@ -90,6 +91,7 @@ pub fn SvgConfig::new() -> SvgConfig {
     no_xml_tag: false,
     salt: None,
     omit_version: false,
+    measurer: None,
   }
 }
 
@@ -117,6 +119,7 @@ pub fn SvgConfig::with_theme(theme_id : Int32) -> SvgConfig {
     no_xml_tag: false,
     salt: None,
     omit_version: false,
+    measurer: None,
   }
 }
 
@@ -627,12 +630,18 @@ fn object_label_dims(
   is_mono : Bool,
   is_bold : Bool,
   is_italic : Bool,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   match object_precomputed_label_dims(obj) {
     Some(dims) => dims
     None => {
       let dims = @text_metrics.measure_label(
-        text, font_size, is_mono, is_bold, is_italic,
+        text,
+        font_size,
+        is_mono,
+        is_bold,
+        is_italic,
+        measurer~,
       )
       (dims.width, dims.height)
     }
@@ -811,11 +820,17 @@ fn markdown_label_layout(
   layout_engine : String,
   config : SvgConfig,
 ) -> (Double, Double, Int32, Int32) {
+  let measurer = config.measurer
+
   let font_size = style_int(
     obj.style.font_size,
     default_object_font_size(obj, config),
   )
-  let dims = @text_metrics.measure_label_markdown(obj.label, font_size)
+  let dims = @text_metrics.measure_label_markdown(
+    obj.label,
+    font_size,
+    measurer~,
+  )
   let width_px = dims.width.ceil().to_int()
   let height_px = dims.height.ceil().to_int()
   match d2_effective_label_position(obj, layout_engine) {
@@ -1845,6 +1860,8 @@ fn positioned_tooltip_size(
   config : SvgConfig,
   theme : @themes.Theme,
 ) -> (Int32, Int32) {
+  let measurer = config.measurer
+
   let font_size = match obj.style.font_size {
     Some(v) => v.as_int().unwrap_or(default_object_font_size(obj, config))
     None => default_object_font_size(obj, config)
@@ -1858,10 +1875,12 @@ fn positioned_tooltip_size(
     is_mono,
     false,
     false,
+    measurer~,
   )
   let markdown_dims = @text_metrics.measure_label_markdown(
     obj.tooltip.unwrap_or(""),
     font_size,
+    measurer~,
   )
   (
     dims.dimensions.width.ceil().to_int() + 20,
@@ -2489,6 +2508,7 @@ fn render_root_background(
 pub fn render_svg(
   graph : Diagram,
   config : SvgConfig,
+  fonts~ : @fonts.Resolver,
 ) -> String raise @render_api.RenderError {
   if graph.shapes.any(fn(shape) { shape.language == Some("latex") }) {
     raise UnsupportedFormat("LaTeX labels are not supported")
@@ -2528,7 +2548,9 @@ pub fn render_svg(
       @layout_svg.compute_legend_layout(
         legend,
         bounds,
-        @layout_svg.LegendLayoutConfig::new(config.font_size),
+        @layout_svg.LegendLayoutConfig::new(config.font_size).with_measurer(
+          config.measurer,
+        ),
       )
     None => None
   }
@@ -2693,7 +2715,7 @@ pub fn render_svg(
   }
 
   // reference behavior: skip injecting custom control scripts.
-  emit_svg_document(graph, svg, config, emit_assets)
+  emit_svg_document(graph, svg, config, emit_assets, fonts)
 }
 
 ///|
@@ -3463,6 +3485,8 @@ fn compute_graph_bounds(
   config : SvgConfig,
   theme : @themes.Theme,
 ) -> (Double, Double, Double, Double) {
+  let measurer = config.measurer
+
   let layout_engine = d2_layout_engine(graph)
   let mut bounds = (0.0, 0.0, 0.0, 0.0, true)
   let inline_child_ids : @hashset.HashSet[String] = HashSet([])
@@ -3709,7 +3733,13 @@ fn compute_graph_bounds(
               style_is_mono(obj.style.font)
             let label_text = transform_label_text(obj.label, text_transform)
             let (label_width, label_height) = object_label_dims(
-              obj, label_text, font_size, is_mono, is_bold, is_italic,
+              obj,
+              label_text,
+              font_size,
+              is_mono,
+              is_bold,
+              is_italic,
+              measurer~,
             )
             let (label_tl_x, label_tl_y, label_box_width) = plain_object_label_bounds_layout(
               obj, b, label_width, label_height, layout_engine,
@@ -3794,7 +3824,12 @@ fn compute_graph_bounds(
       Some(text) =>
         if text != "" {
           let dims = @text_metrics.measure_label(
-            text, font_size, is_mono, is_bold, true,
+            text,
+            font_size,
+            is_mono,
+            is_bold,
+            true,
+            measurer~,
           )
           match
             arrowhead_label_top_left(
@@ -3826,7 +3861,12 @@ fn compute_graph_bounds(
       Some(text) =>
         if text != "" {
           let dims = @text_metrics.measure_label(
-            text, font_size, is_mono, is_bold, true,
+            text,
+            font_size,
+            is_mono,
+            is_bold,
+            true,
+            measurer~,
           )
           match
             arrowhead_label_top_left(
@@ -4332,6 +4372,8 @@ fn render_svg_object(
   layout_engine : String,
   pass~ : RenderPass = Foreground,
 ) -> Unit raise @render_api.RenderError {
+  let measurer = config.measurer
+
   guard obj.box is Some(box) else { return }
   // Skip inline-rendered children of sql_table/class.
   if is_inline_container_child(obj, all_objects) {
@@ -5466,7 +5508,13 @@ fn render_svg_object(
         style_is_mono(obj.style.font)
       let label_text = transform_label_text(obj.label, text_transform)
       let (label_width, label_height) = object_label_dims(
-        obj, label_text, font_size, is_mono, is_bold, is_italic,
+        obj,
+        label_text,
+        font_size,
+        is_mono,
+        is_bold,
+        is_italic,
+        measurer~,
       )
       let (label_tl_x, label_tl_y, label_box_width) = plain_object_label_layout(
         obj, box, label_width, label_height, layout_engine,
@@ -5591,6 +5639,8 @@ fn render_svg_sql_table(
   theme : @themes.Theme,
   use_css_theme_vars : Bool,
 ) -> Unit {
+  let measurer = _config.measurer
+
   let body_fill = stroke
   let border_stroke = fill
   let body_fill_token = d2_theme_token(style_string(style.stroke, "N7"), theme)
@@ -5625,13 +5675,23 @@ fn render_svg_sql_table(
     use_css_theme_vars,
   )
   let header_dims = @text_metrics.measure_label(
-    label, header_font_size, false, true, false,
+    label,
+    header_font_size,
+    false,
+    true,
+    false,
+    measurer~,
   )
   let mut longest_name_width = 0.0
   for child in children {
     let name = get_short_name(child.id)
     let dims = @text_metrics.measure_label(
-      name, base_font_size, false, false, false,
+      name,
+      base_font_size,
+      false,
+      false,
+      false,
+      measurer~,
     )
     if dims.width > longest_name_width {
       longest_name_width = dims.width
@@ -5877,6 +5937,8 @@ fn render_svg_class(
   use_css_theme_vars : Bool,
   pass~ : RenderPass = Foreground,
 ) -> Unit {
+  let measurer = config.measurer
+
   let members : Array[ClassMember] = []
   for child in children {
     members.push(class_member_from_shape(child))
@@ -5898,7 +5960,9 @@ fn render_svg_class(
   }
   let header_font_size = base_font_size + CLASS_HEADER_FONT_ADD
   let label_dims = @text_metrics.measure_text_mono_plain(
-      label, header_font_size,
+      label,
+      header_font_size,
+      measurer~,
     ).dimensions
   let header_height = if 2.0 * row_height >
     label_dims.height + LABEL_PADDING * 2.0 {
@@ -9785,6 +9849,8 @@ fn render_edge_arrowhead_label(
   use_css_theme_vars : Bool,
   stroke_width : Double,
 ) -> Unit {
+  let measurer = config.measurer
+
   if text == "" {
     return
   }
@@ -9792,7 +9858,12 @@ fn render_edge_arrowhead_label(
   let is_mono = theme.rules.mono || style_is_mono(edge.style.font)
   let is_bold = style_bool(edge.style.bold, false)
   let dims = @text_metrics.measure_label(
-    text, font_size, is_mono, is_bold, true,
+    text,
+    font_size,
+    is_mono,
+    is_bold,
+    true,
+    measurer~,
   )
   match
     arrowhead_label_top_left(

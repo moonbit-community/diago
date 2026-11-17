@@ -55,6 +55,8 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
   graph : @graph.GraphInput,
   config : LayoutConfig,
 ) -> (@graph.GraphInput, NestedSequenceContext) raise LayoutError {
+  let measurer = config.measurer
+
   let candidate_ids = collect_nested_sequence_candidate_ids(graph)
   if candidate_ids.is_empty() {
     return (graph, empty_nested_sequence_context())
@@ -139,7 +141,10 @@ fn[Engine : LayoutEngine] prepare_nested_sequence_layouts(
     let laid_out_nested = layout_with_engine(
       engine, nested_graph, config, nested_direction,
     )
-    let finalized_nested = finalize_nested_sequence_graph(laid_out_nested)
+    let finalized_nested = finalize_nested_sequence_graph(
+      laid_out_nested,
+      measurer~,
+    )
     let placeholder_box = match finalized_nested.root.box {
       Some(box) => box
       None => @graph.Box::zero()
@@ -175,6 +180,7 @@ fn restore_nested_sequence_layouts(
   original_graph : @graph.GraphInput,
   laid_out_graph : @graph.GraphInput,
   context : NestedSequenceContext,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.GraphInput {
   if context.container_order.is_empty() &&
     context.constant_near_order.is_empty() {
@@ -182,7 +188,9 @@ fn restore_nested_sequence_layouts(
   }
 
   let laid_out_graph = apply_constant_near_graphs_like_d2(
-    laid_out_graph, context,
+    laid_out_graph,
+    context,
+    measurer~,
   )
 
   let container_ids : Map[String, Bool] = Map([])
@@ -266,7 +274,7 @@ fn restore_nested_sequence_layouts(
   let edges : Array[@graph.EdgeInput] = []
   for original_edge in original_graph.edges {
     let edge = if context.external_edge_indices.contains(original_edge.index) {
-      route_nested_external_edge(original_edge, final_object_by_id)
+      route_nested_external_edge(original_edge, final_object_by_id, measurer~)
     } else {
       match context.internal_edge_container_by_index.get(original_edge.index) {
         Some(_) =>
@@ -1050,6 +1058,7 @@ fn clone_object_with_parts_and_effective_positions(
 ///|
 fn finalize_nested_sequence_graph(
   graph : @graph.GraphInput,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.GraphInput {
   let (min_x, min_y, max_x, max_y, saw_content) = nested_sequence_content_bounds(
     graph,
@@ -1101,6 +1110,7 @@ fn finalize_nested_sequence_graph(
             saw_content,
             max_x + dx,
             max_y + dy,
+            measurer~,
           )
         }
       None =>
@@ -1109,6 +1119,7 @@ fn finalize_nested_sequence_graph(
           saw_content,
           max_x + dx,
           max_y + dy,
+          measurer~,
         )
     }
   }
@@ -1134,6 +1145,7 @@ fn nested_non_sequence_placeholder_box_like_d2(
   saw_content : Bool,
   max_x : Double,
   max_y : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.Box {
   if graph.root.grid_rows is Some(_) || graph.root.grid_columns is Some(_) {
     let (hgap, vgap) = grid_semantic_gaps(graph.root)
@@ -1143,6 +1155,7 @@ fn nested_non_sequence_placeholder_box_like_d2(
       max_y,
       hgap,
       vgap,
+      measurer~,
     )
     @graph.Box::new(
       0.0,
@@ -1484,6 +1497,7 @@ const D2_NEAR_PAD_LIKE_D2 : Double = 20.0
 fn apply_constant_near_graphs_like_d2(
   graph : @graph.GraphInput,
   context : NestedSequenceContext,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.GraphInput {
   if context.constant_near_order.is_empty() {
     return graph
@@ -1526,6 +1540,7 @@ fn apply_constant_near_graphs_like_d2(
         max_y - min_y,
         box.width,
         box.height,
+        measurer~,
       )
       let shifted = shift_nested_sequence_graph(
         nested_graph,
@@ -1776,6 +1791,7 @@ fn place_constant_near_box_like_d2(
   height : Double,
   box_width : Double,
   box_height : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let (x, y) = match near_key {
     "top-left" =>
@@ -1820,7 +1836,7 @@ fn place_constant_near_box_like_d2(
       )
     _ => (min_x, min_y)
   }
-  adjust_constant_near_for_label_like_d2(obj, near_key, x, y)
+  adjust_constant_near_for_label_like_d2(obj, near_key, x, y, measurer~)
 }
 
 ///|
@@ -1829,6 +1845,7 @@ fn adjust_constant_near_for_label_like_d2(
   near_key : String,
   x : Double,
   y : Double,
+  measurer~ : @fonts.Measurer? = None,
 ) -> (Double, Double) {
   let label_position = match obj.label_position {
     Some(current) => current
@@ -1843,7 +1860,7 @@ fn adjust_constant_near_for_label_like_d2(
   }
   let (label_width, label_height) = match obj.label_box {
     Some(box) => (box.width, box.height)
-    None => object_label_dimensions_like_d2(obj, 0.0)
+    None => object_label_dimensions_like_d2(obj, 0.0, measurer~)
   }
   if label_width <= 0.0 || label_height <= 0.0 {
     return (x, y)
@@ -1881,14 +1898,23 @@ fn adjust_constant_near_for_label_like_d2(
 fn route_nested_external_edge(
   edge : @graph.EdgeInput,
   object_by_id : Map[String, @graph.ObjectInput],
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.EdgeInput {
   let route = match
     (object_by_id.get(edge.src_id_syntax), object_by_id.get(edge.dst_id_syntax)) {
     (Some(src), Some(dst)) =>
       match (src.box, dst.box) {
         (Some(src_box), Some(dst_box)) => {
-          let src_layout_box = nested_external_layout_box_like_d2(src, src_box)
-          let dst_layout_box = nested_external_layout_box_like_d2(dst, dst_box)
+          let src_layout_box = nested_external_layout_box_like_d2(
+            src,
+            src_box,
+            measurer~,
+          )
+          let dst_layout_box = nested_external_layout_box_like_d2(
+            dst,
+            dst_box,
+            measurer~,
+          )
           clip_default_route_like_d2(
             [src_box.center(), dst_box.center()],
             src_layout_box,
@@ -1906,6 +1932,7 @@ fn route_nested_external_edge(
 fn nested_external_layout_box_like_d2(
   obj : @graph.ObjectInput,
   box : @graph.Box,
+  measurer~ : @fonts.Measurer? = None,
 ) -> @graph.Box {
   if obj.grid_rows is None && obj.grid_columns is None {
     return box
@@ -1919,6 +1946,7 @@ fn nested_external_layout_box_like_d2(
     box.height,
     label_position,
     icon_position,
+    measurer~,
   )
   @graph.Box::new(
     box.x - margin.left,

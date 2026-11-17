@@ -170,7 +170,7 @@ test "edge icon and link render with D2 connection geometry" {
       link=Some("https://example.com/docs"),
     ),
   )
-  let rendered = render(diagram, SvgConfig::new())
+  let rendered = render_with_builtin(diagram, SvgConfig::new())
   assert_true(
     rendered.contains(
       "<image href=\"https://example.com/icon.svg\" x=\"60.000000\" y=\"9.000000\" width=\"32\" height=\"32\" clip-path=\"inset(0 round 12.000000px)\"",
@@ -203,7 +203,7 @@ test "edge icon near positions work without a label" {
     fail("expected edge icon box")
   }
   assert_eq(box, @graph.Box::new(109.0, -13.0, 32.0, 32.0))
-  let rendered = render(diagram, SvgConfig::new())
+  let rendered = render_with_builtin(diagram, SvgConfig::new())
   assert_false(rendered.contains("<a href=\"https://example.com/docs\""))
 }
 
@@ -320,7 +320,9 @@ test "zero-opacity objects do not emit labels" {
     fail("expected node shape")
   }
   assert_false(object_label_visible(shape))
-  assert_false(render(diagram, SvgConfig::new()).contains(">hidden</text>"))
+  assert_false(
+    render_with_builtin(diagram, SvgConfig::new()).contains(">hidden</text>"),
+  )
 }
 
 ///|
@@ -358,7 +360,7 @@ test "person paths preserve stroke dash styling" {
     ),
   )
   assert_true(
-    render(diagram, SvgConfig::new()).contains(
+    render_with_builtin(diagram, SvgConfig::new()).contains(
       "stroke-dasharray:6.000000,5.919384;",
     ),
   )

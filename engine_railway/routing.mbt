@@ -694,8 +694,9 @@ fn allocate_span_lanes(spans : Array[EdgeSpan]) -> (Map[Int32, Int32], Int32) {
 fn edge_label_major_span(
   edge : @graph.EdgeInput,
   direction : @engine_api.Direction,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Double {
-  match edge_label_size(edge) {
+  match edge_label_size(edge, measurer~) {
     Some((width, height)) =>
       match direction {
         Down | Up => height
@@ -1003,6 +1004,8 @@ fn plan_gap_lanes(
   src_ports : Map[Int32, @graph.Point],
   dst_ports : Map[Int32, @graph.Point],
 ) -> RailwayLanePlan raise @engine_api.LayoutError {
+  let measurer = config.measurer
+
   let bundles_by_gap : Map[Int32, Array[GapLaneEdge]] = Map([])
   for e in graph.edges {
     if self_loop.contains(e.index) {
@@ -1049,7 +1052,7 @@ fn plan_gap_lanes(
       dst_axis: port_axis(end, flow),
       span_start: a0,
       span_end: a1,
-      label_major_span: edge_label_major_span(e, direction),
+      label_major_span: edge_label_major_span(e, direction, measurer~),
       flow,
     }
     match bundles_by_gap.get(gap) {

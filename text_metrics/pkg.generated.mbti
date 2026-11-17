@@ -2,31 +2,34 @@
 package "moonbit-community/diago/text_metrics"
 
 import {
+  "moonbit-community/diago/fonts",
   "moonbitlang/core/debug",
 }
 
 // Values
 pub fn markdown_source_like_d2(String) -> String
 
-pub fn measure_edge_label(String, Int32) -> TextDimensions
+pub fn measure_builtin(@fonts.MeasureRequest) -> MeasuredText
 
-pub fn measure_label(String, Int32, Bool, Bool, Bool) -> TextDimensions
+pub fn measure_edge_label(String, Int32, measurer? : @fonts.Measurer?) -> TextDimensions
 
-pub fn measure_label_code(String, Int32, Bool, Bool) -> TextDimensions
+pub fn measure_label(String, Int32, Bool, Bool, Bool, measurer? : @fonts.Measurer?) -> TextDimensions
 
-pub fn measure_label_hand_drawn(String, Int32, Bool) -> TextDimensions
+pub fn measure_label_code(String, Int32, Bool, Bool, measurer? : @fonts.Measurer?) -> TextDimensions
 
-pub fn measure_label_markdown(String, Int32) -> TextDimensions
+pub fn measure_label_hand_drawn(String, Int32, Bool, measurer? : @fonts.Measurer?) -> TextDimensions
 
-pub fn measure_text(String, Int32, Bool, Bool, Bool) -> MeasuredText
+pub fn measure_label_markdown(String, Int32, measurer? : @fonts.Measurer?) -> TextDimensions
 
-pub fn measure_text_code(String, Int32, Bool, Bool) -> MeasuredText
+pub fn measure_text(String, Int32, Bool, Bool, Bool, measurer? : @fonts.Measurer?) -> MeasuredText
 
-pub fn measure_text_hand_drawn(String, Int32, Bool) -> MeasuredText
+pub fn measure_text_code(String, Int32, Bool, Bool, measurer? : @fonts.Measurer?) -> MeasuredText
 
-pub fn measure_text_mono_plain(String, Int32) -> MeasuredText
+pub fn measure_text_hand_drawn(String, Int32, Bool, measurer? : @fonts.Measurer?) -> MeasuredText
 
-pub fn measure_text_with_dot_bounds(String, Int32, Bool, Bool, Bool) -> MeasuredText
+pub fn measure_text_mono_plain(String, Int32, measurer? : @fonts.Measurer?) -> MeasuredText
+
+pub fn measure_text_with_dot_bounds(String, Int32, Bool, Bool, Bool, measurer? : @fonts.Measurer?) -> MeasuredText
 
 // Errors
 

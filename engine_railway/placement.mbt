@@ -57,6 +57,8 @@ fn place_nodes_dagre(
   direction : @engine_api.Direction,
   object_by_id : Map[String, @graph.ObjectInput],
 ) -> RailwayNodeLayout raise @engine_api.LayoutError {
+  let measurer = config.measurer
+
   let dagre_graph = @moon_dagre.new_graph(multigraph=true, compound=true)
   dagre_graph.set_graph(
     make_railway_dagre_graph_attrs(config, graph, direction),
@@ -107,7 +109,7 @@ fn place_nodes_dagre(
     } else {
       (src_dagre_id, dst_dagre_id)
     }
-    let edge_attrs = make_railway_dagre_edge_attrs(edge)
+    let edge_attrs = make_railway_dagre_edge_attrs(edge, measurer~)
     dagre_graph.set_edge(
       layout_src,
       layout_dst,
@@ -884,10 +886,12 @@ fn make_railway_dagre_graph_attrs(
   graph : @graph.GraphInput,
   direction : @engine_api.Direction,
 ) -> @moon_dagre.Attrs {
+  let measurer = config.measurer
+
   let attrs = @moon_dagre.empty_attrs()
   attrs.set_string("rankdir", railway_rankdir_from_direction(direction))
   attrs.set_float("nodesep", railway_nodesep(config.horizontal_spacing))
-  attrs.set_float("ranksep", railway_ranksep(graph, direction))
+  attrs.set_float("ranksep", railway_ranksep(graph, direction, measurer~))
   attrs.set_float("edgesep", railway_clamp_positive(config.edge_padding, 20.0))
   attrs.set_float("marginx", 0.0)
   attrs.set_float("marginy", 0.0)
@@ -895,14 +899,17 @@ fn make_railway_dagre_graph_attrs(
 }
 
 ///|
-fn make_railway_dagre_edge_attrs(edge : @graph.EdgeInput) -> @moon_dagre.Attrs {
+fn make_railway_dagre_edge_attrs(
+  edge : @graph.EdgeInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> @moon_dagre.Attrs {
   let attrs = @moon_dagre.empty_attrs()
   attrs.set_string("labelpos", "c")
   attrs.set_float(
     "weight",
     railway_clamp_positive(edge.reference_count.to_double(), 1.0),
   )
-  match edge_label_size(edge) {
+  match edge_label_size(edge, measurer~) {
     Some((width, height)) => {
       attrs.set_float("width", width)
       attrs.set_float("height", height)
@@ -936,11 +943,12 @@ fn railway_nodesep(value : Double) -> Double {
 fn railway_ranksep(
   graph : @graph.GraphInput,
   direction : @engine_api.Direction,
+  measurer~ : @fonts.Measurer? = None,
 ) -> Double {
   let mut max_label_width = 0.0
   let mut max_label_height = 0.0
   for edge in graph.edges {
-    match edge_label_size(edge) {
+    match edge_label_size(edge, measurer~) {
       Some((width, height)) => {
         if width > max_label_width {
           max_label_width = width

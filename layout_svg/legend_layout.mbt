@@ -31,11 +31,12 @@ using @graph {
 pub struct LegendLayoutConfig {
   font_size : Int32
   margin : Double
+  measurer : @fonts.Measurer?
 }
 
 ///|
 pub fn LegendLayoutConfig::new(font_size : Int32) -> LegendLayoutConfig {
-  { font_size, margin: 20.0, }
+  { font_size, margin: 20.0, measurer: None, }
 }
 
 ///|
@@ -104,12 +105,18 @@ pub enum LegendEntryLayout {
 }
 
 ///|
-fn legend_text_dimensions(text : String) -> @text_metrics.TextDimensions {
-  @text_metrics.measure_text(text, 14, false, false, false).dimensions
+fn legend_text_dimensions(
+  text : String,
+  measurer~ : @fonts.Measurer? = None,
+) -> @text_metrics.TextDimensions {
+  @text_metrics.measure_text(text, 14, false, false, false, measurer~).dimensions
 }
 
 ///|
-fn calculate_size(legend : LegendInput) -> (Double, Double, Int32, Int32) {
+fn calculate_size(
+  legend : LegendInput,
+  measurer~ : @fonts.Measurer? = None,
+) -> (Double, Double, Int32, Int32) {
   if legend.is_empty() {
     return (0.0, 0.0, 0, 0)
   }
@@ -123,7 +130,7 @@ fn calculate_size(legend : LegendInput) -> (Double, Double, Int32, Int32) {
         if label == "" {
           continue
         }
-        let dims = legend_text_dimensions(label)
+        let dims = legend_text_dimensions(label, measurer~)
         let label_width = dims.width.to_int()
         max_label_width = if label_width > max_label_width {
           label_width
@@ -137,7 +144,7 @@ fn calculate_size(legend : LegendInput) -> (Double, Double, Int32, Int32) {
         if label == "" {
           continue
         }
-        let dims = legend_text_dimensions(label)
+        let dims = legend_text_dimensions(label, measurer~)
         let label_width = dims.width.to_int()
         max_label_width = if label_width > max_label_width {
           label_width
@@ -151,7 +158,7 @@ fn calculate_size(legend : LegendInput) -> (Double, Double, Int32, Int32) {
         if label == "" {
           continue
         }
-        let dims = legend_text_dimensions(label)
+        let dims = legend_text_dimensions(label, measurer~)
         max_label_width = max_int(max_label_width, dims.width.to_int())
         total_height = total_height + max_int(dims.height.to_int(), 24) + 15
         shape_count += 1
@@ -190,12 +197,17 @@ pub fn compute_legend_layout(
   bounds : (Double, Double, Double, Double),
   config : LegendLayoutConfig,
 ) -> LegendLayout? {
+  let measurer = config.measurer
+
   if legend.is_empty() || legend.position == Hidden {
     return None
   }
   let (_, min_y, max_x, max_y) = bounds
   ignore(config)
-  let (width, height, shape_count, connection_count) = calculate_size(legend)
+  let (width, height, shape_count, connection_count) = calculate_size(
+    legend,
+    measurer~,
+  )
   let x = max_x + 10.0
   let y = if max_y - height < min_y { min_y } else { max_y - height }
   let fill = "#ffffff"
@@ -211,7 +223,7 @@ pub fn compute_legend_layout(
         if label == "" {
           continue
         }
-        let dims = legend_text_dimensions(label)
+        let dims = legend_text_dimensions(label, measurer~)
         let row_height = max_int(dims.height.to_int(), 24)
         let icon_box = Box::new(x + 20.0, current_y, 24.0, 24.0)
         let label_x = x + 64.0
@@ -242,7 +254,7 @@ pub fn compute_legend_layout(
           current_y += 15.0
           emitted_separator = true
         }
-        let dims = legend_text_dimensions(label)
+        let dims = legend_text_dimensions(label, measurer~)
         let row_height = max_int(dims.height.to_int(), 24)
         let line_y = current_y + 12.0
         let line_start_x = x + 20.0
@@ -275,7 +287,7 @@ pub fn compute_legend_layout(
         let icon_y = current_y
         let icon_size = 24.0
         let label_x = x + 64.0
-        let dims = legend_text_dimensions(label)
+        let dims = legend_text_dimensions(label, measurer~)
         let row_height = max_int(dims.height.to_int(), 24)
         let label_y = current_y +
           (row_height / 2 + (dims.height * 0.3).to_int()).to_double()

@@ -1,4 +1,5 @@
 import {
+  "moonbit-community/diago/fonts",
   "moonbit-community/diago/graph",
   "moonbit-community/diago/text_metrics",
 }

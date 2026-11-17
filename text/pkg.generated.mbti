@@ -1,0 +1,41 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/diago/text"
+
+import {
+  "moonbit-community/diago/compiler",
+  "moonbit-community/diago/engine_api",
+  "moonbit-community/diago/fonts",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compile(String, mode? : OutputMode, direction? : @engine_api.Direction, parse_options? : @compiler.ParseOptions, measurer? : @fonts.Measurer?) -> String raise TextError
+
+pub fn[Engine : @engine_api.LayoutEngine] compile_with_engine(String, Engine, mode? : OutputMode, direction? : @engine_api.Direction, parse_options? : @compiler.ParseOptions, measurer? : @fonts.Measurer?) -> String raise TextError
+
+// Errors
+#derive(@debug.Debug)
+pub(all) suberror TextError {
+  CompileError(@compiler.CompileError)
+  LayoutError(@engine_api.LayoutError)
+  UnsupportedFeature(String)
+}
+#deprecated
+pub fn TextError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub(all) enum OutputMode {
+  Ascii
+  Unicode
+}
+#deprecated
+pub fn OutputMode::equal(Self, Self) -> Bool
+#deprecated
+pub fn OutputMode::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn OutputMode::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
