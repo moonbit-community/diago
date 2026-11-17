@@ -19,7 +19,7 @@ This repository contains:
 Add the community-maintained module to your project:
 
 ```bash
-moon add moonbit-community/diago@0.4.2
+moon add moonbit-community/diago@0.4.3
 ```
 
 This replaces `Milky2018/diago`. Existing users should update their dependency

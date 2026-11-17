@@ -1577,7 +1577,7 @@ const ARROWHEAD_PADDING : Double = 2.0
 const MIN_ARROWHEAD_STROKE_WIDTH : Double = 2.0
 
 ///|
-const DIAGO_VERSION : String = "0.4.2"
+const DIAGO_VERSION : String = "0.4.3"
 
 ///|
 const MULTIPLE_OFFSET : Double = 10.0
