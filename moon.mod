@@ -5,7 +5,7 @@ version = "0.4.3"
 import {
   "moonbitlang/x@0.5.7",
   "Milky2018/xml@0.6.1",
-  "moonbit-community/cmark@0.4.13",
+  "moonbit-community/cmark@0.4.14",
   "Milky2018/moon_yazi@0.1.4",
   "gmlewis/flate@0.36.17",
   "gmlewis/io@0.23.20",
