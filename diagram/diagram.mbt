@@ -1199,11 +1199,7 @@ fn d2_fnv32a(text : String) -> Int32 {
 
 ///|
 fn d2_u32_decimal(v : Int32) -> String {
-  let unsigned = if v < 0 {
-    Int64::from_int(v) + 4294967296L
-  } else {
-    Int64::from_int(v)
-  }
+  let unsigned = if v < 0 { v.to_int64() + 4294967296L } else { v.to_int64() }
   unsigned.to_string()
 }
 

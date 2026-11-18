@@ -1144,7 +1144,7 @@ pub enum LegendEntryInput {
     id~ : String,
     shape~ : ShapeType,
     label~ : String,
-    style~ : StyleInput?
+    style~ : StyleInput?,
   )
   ConnectionEntry(
     src_id~ : String,
@@ -1155,7 +1155,7 @@ pub enum LegendEntryInput {
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
-    style~ : StyleInput?
+    style~ : StyleInput?,
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator

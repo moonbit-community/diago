@@ -74,7 +74,7 @@ pub enum LegendEntryLayout {
     label~ : String,
     style~ : StyleInput?,
     label_x~ : Double,
-    label_y~ : Double
+    label_y~ : Double,
   )
   Connection(
     src_id~ : String,
@@ -90,7 +90,7 @@ pub enum LegendEntryLayout {
     label~ : String,
     style~ : StyleInput?,
     label_x~ : Double,
-    label_y~ : Double
+    label_y~ : Double,
   )
   Custom(
     icon_x~ : Double,
@@ -99,7 +99,7 @@ pub enum LegendEntryLayout {
     icon~ : String,
     label~ : String,
     label_x~ : Double,
-    label_y~ : Double
+    label_y~ : Double,
   )
   Separator(x1~ : Double, x2~ : Double, y~ : Double)
 }
@@ -243,7 +243,7 @@ pub fn compute_legend_layout(
         src_arrow~,
         dst_arrow~,
         label~,
-        style~
+        style~,
       ) => {
         if label == "" {
           continue

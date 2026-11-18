@@ -64,7 +64,7 @@ pub(all) enum LegendEntry {
     id~ : String,
     shape~ : ShapeType,
     label~ : String,
-    style~ : StyleInput?
+    style~ : StyleInput?,
   )
   /// A connection/edge entry showing arrowheads
   ConnectionEntry(
@@ -76,7 +76,7 @@ pub(all) enum LegendEntry {
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
-    style~ : StyleInput?
+    style~ : StyleInput?,
   )
   /// A custom entry with icon URL or symbol
   CustomEntry(icon~ : String, label~ : String)

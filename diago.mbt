@@ -55,7 +55,7 @@ pub struct LayoutPlugin(
   (@graph.GraphInput, @engine_api.LayoutConfig, @engine_api.Direction) -> Result[
     @graph.GraphInput,
     String,
-  ]
+  ],
 )
 
 ///|

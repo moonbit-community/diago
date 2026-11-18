@@ -262,7 +262,7 @@ priv enum LegendEntry {
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
-    style~ : Style?
+    style~ : Style?,
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator
@@ -526,7 +526,7 @@ fn legend_entry_to_input(entry : LegendEntry) -> @graph.LegendEntryInput {
       src_arrow~,
       dst_arrow~,
       label~,
-      style~
+      style~,
     ) => {
       let style_input = match style {
         Some(s) => Some(style_to_input(s))

@@ -92,7 +92,7 @@ pub fn render_legend_svg(
         label~,
         style~,
         label_x~,
-        label_y~
+        label_y~,
       ) =>
         render_connection_entry(
           svg, src_id, dst_id, index, line_start_x, line_end_x, line_y, src_arrow_enabled,
