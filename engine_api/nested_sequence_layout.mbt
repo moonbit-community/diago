@@ -843,7 +843,7 @@ fn extract_nested_include_self_graph_like_d2(
     }
   }
   let root = @graph.ObjectInput::from_parts(
-    "root",
+    @graph.SYNTHETIC_ROOT_ID,
     "",
     Rectangle,
     @graph.StyleInput::new(),

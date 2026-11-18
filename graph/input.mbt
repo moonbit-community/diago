@@ -20,6 +20,11 @@
 /// not contain `mut` fields.
 
 ///|
+/// A board root has no source path. Every user object has a canonical path,
+/// including a quoted empty key.
+pub const SYNTHETIC_ROOT_ID : String = ""
+
+///|
 #derive(Debug)
 pub struct GraphInput {
   name : String
@@ -40,7 +45,7 @@ pub struct GraphInput {
 
 ///|
 pub fn GraphInput::new(name : String) -> GraphInput {
-  let root = ObjectInput::new("root")
+  let root = ObjectInput::new(SYNTHETIC_ROOT_ID, id_val="root")
   {
     name,
     root,
@@ -597,6 +602,15 @@ pub struct ObjectInput {
 }
 
 ///|
+/// Distinguish a board root from a source object promoted to the root of a
+/// layout subgraph. Accept the historical identity for caller-built graphs.
+pub fn ObjectInput::is_synthetic_root(self : ObjectInput) -> Bool {
+  self.id == self.abs_id_syntax &&
+  (self.id == SYNTHETIC_ROOT_ID || self.id == "root") &&
+  self.references.is_empty()
+}
+
+///|
 pub fn ObjectInput::new(
   id : String,
   id_val~ : String = id,
@@ -1144,7 +1158,7 @@ pub enum LegendEntryInput {
     id~ : String,
     shape~ : ShapeType,
     label~ : String,
-    style~ : StyleInput?
+    style~ : StyleInput?,
   )
   ConnectionEntry(
     src_id~ : String,
@@ -1155,7 +1169,7 @@ pub enum LegendEntryInput {
     src_arrow~ : ArrowheadType,
     dst_arrow~ : ArrowheadType,
     label~ : String,
-    style~ : StyleInput?
+    style~ : StyleInput?,
   )
   CustomEntry(icon~ : String, label~ : String)
   Separator

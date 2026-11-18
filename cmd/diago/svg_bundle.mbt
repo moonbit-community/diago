@@ -540,7 +540,7 @@ async fn read_remote_image_body(
   reader : &@io.Reader,
   url : String,
 ) -> Result[Bytes, String] {
-  let buffer = @buffer.Buffer(size_hint=4096)
+  let buffer = @buffer.Buffer(capacity=4096)
   while reader.read_some(max_len=64 * 1024) is Some(chunk) {
     if buffer.length() + chunk.length() > max_bundle_image_size {
       return Err(

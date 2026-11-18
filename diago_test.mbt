@@ -21,6 +21,28 @@ test "compile default returns svg" {
 }
 
 ///|
+test "user root node keeps its identity and connections" {
+  let source = "root: Entry { child }\nroot.child -> exit\nroot -> peer"
+  for engine in [@diago.LayoutEngine::Dagre, Elk, Railway] {
+    let options = @diago.CompileOptions::new().with_layout_engine(engine)
+    let diagram = @diago.compile_diagram(source, options~)
+    let root_node = diagram.find_object("root").unwrap()
+    assert_eq(root_node.label, "Entry")
+    assert_true(root_node.get_box() is Some(_))
+    assert_true(diagram.find_object("root.child") is Some(_))
+    let edges = diagram.get_edges()
+    assert_eq(edges.length(), 2)
+    assert_eq(edges[0].src_id, "root.child")
+    assert_eq(edges[0].dst_id, "exit")
+    assert_eq(edges[1].src_id, "root")
+    assert_eq(edges[1].dst_id, "peer")
+    for edge in edges {
+      assert_true(edge.route.length() >= 2)
+    }
+  }
+}
+
+///|
 test "auto layout honors vars config layout-engine" {
   let source =
     #|vars: {

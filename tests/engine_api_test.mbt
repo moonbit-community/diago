@@ -119,7 +119,11 @@ fn root_input(child_ids : Array[String]) -> @graph.ObjectInput {
 }
 
 ///|
-fn object_input(id : String, box : @graph.Box?) -> @graph.ObjectInput {
+fn object_input(
+  id : String,
+  box : @graph.Box?,
+  child_ids~ : Array[String] = [],
+) -> @graph.ObjectInput {
   @graph.ObjectInput::from_parts(
     id,
     id,
@@ -127,7 +131,7 @@ fn object_input(id : String, box : @graph.Box?) -> @graph.ObjectInput {
     @graph.StyleInput::new(),
     box,
     None,
-    [],
+    child_ids,
     0,
     None,
     None,
@@ -144,6 +148,35 @@ fn object_input(id : String, box : @graph.Box?) -> @graph.ObjectInput {
     None,
     None,
   )
+}
+
+///|
+test "layout rejects a cyclic object hierarchy before calling the engine" {
+  let graph = graph_input(
+    "cycle",
+    [],
+    [
+      object_input("a", None, child_ids=["b"]),
+      object_input("b", None, child_ids=["a"]),
+    ],
+    [],
+    [],
+    [],
+    [],
+  )
+  try
+    @engine_api.layout_with_engine(
+      FakeEngine::new(),
+      graph,
+      @engine_api.LayoutConfig::new(),
+      Down,
+    )
+  catch {
+    CycleDetected(message) => assert_true(message.contains("object hierarchy"))
+    error => fail("expected CycleDetected, got \{error}")
+  } noraise {
+    _ => fail("expected the cyclic graph to be rejected")
+  }
 }
 
 ///|
