@@ -1,6 +1,6 @@
 name = "moonbit-community/diago"
 
-version = "0.4.3"
+version = "0.4.4"
 
 import {
   "moonbitlang/x@0.5.7",
