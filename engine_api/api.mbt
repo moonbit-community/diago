@@ -218,6 +218,45 @@ fn build_parent_id_by_child_abs_id_syntax(
 }
 
 ///|
+fn check_hierarchy(
+  graph : @graph.GraphInput,
+  parents : Map[String, String],
+) -> Unit raise LayoutError {
+  // An overwritten parent can hide a cycle, so reject ambiguous hierarchies
+  // before walking the parent map.
+  let mut child_count = graph.root.child_ids.length()
+  for obj in graph.objects {
+    child_count += obj.child_ids.length()
+  }
+  if child_count != parents.length() {
+    raise invalid_graph("an object is listed as a child more than once")
+  }
+  let visited : Map[String, Bool] = Map([])
+  for id, _ in parents {
+    if visited.contains(id) {
+      continue
+    }
+    let path : Array[String] = []
+    let mut current = id
+    while parents.get(current) is Some(parent) {
+      match visited.get(current) {
+        Some(true) => break
+        Some(false) =>
+          raise cycle_detected("cycle in object hierarchy at '\{current}'")
+        None => {
+          visited[current] = false
+          path.push(current)
+          current = parent
+        }
+      }
+    }
+    for ancestor in path {
+      visited[ancestor] = true
+    }
+  }
+}
+
+///|
 fn is_grid_diagram_object(obj : @graph.ObjectInput) -> Bool {
   obj.grid_rows is Some(_) || obj.grid_columns is Some(_)
 }
@@ -303,6 +342,7 @@ fn check_feature_support(
   }
   let object_by_id = build_object_by_abs_id_syntax(graph)
   let parent_id_by_child_id = build_parent_id_by_child_abs_id_syntax(graph)
+  check_hierarchy(graph, parent_id_by_child_id)
 
   for obj in graph.objects {
     if (obj.top is Some(_) || obj.left is Some(_)) &&
@@ -2889,9 +2929,7 @@ fn restore_grid_semantics(
 
 ///|
 fn root_uses_container_grid_semantics(parent : @graph.ObjectInput) -> Bool {
-  !(parent.id == "root" &&
-  parent.abs_id_syntax == "root" &&
-  parent.references.is_empty())
+  !parent.is_synthetic_root()
 }
 
 ///|

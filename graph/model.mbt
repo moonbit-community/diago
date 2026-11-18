@@ -434,7 +434,7 @@ pub struct StepModel {
 
 ///|
 pub fn GraphModel::new(name : String) -> GraphModel {
-  let root = ObjectModel::new("root")
+  let root = ObjectModel::new(SYNTHETIC_ROOT_ID, id_val="root")
   {
     name,
     root,

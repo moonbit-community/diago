@@ -434,7 +434,7 @@ fn Step::new(name : String, graph : Graph) -> Step {
 
 ///|
 fn Graph::new(name : String) -> Graph {
-  let root = Object::new("root")
+  let root = Object::new(@graph.SYNTHETIC_ROOT_ID, id_val="root")
   {
     name,
     root,

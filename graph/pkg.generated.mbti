@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub const SYNTHETIC_ROOT_ID : String = ""
+
 pub fn apply_layout(GraphInput, LayoutPatch) -> GraphInput
 
 pub fn display_key_segment(String) -> String
@@ -464,6 +466,7 @@ pub fn ObjectInput::from_model(ObjectModel) -> Self
 pub fn ObjectInput::from_parts(String, String, ShapeType, StyleInput, Box?, Box?, Array[String], Int32, String?, String?, String?, Array[String], Int32?, Int32?, Double?, Double?, Double?, Int32?, Int32?, String?, Int32?, Int32?, direction? : String?, language? : String?, sql_constraints? : Array[String], id_val? : String, id_syntax? : String, abs_id_syntax? : String, references? : Array[ObjectReference], icon_position? : String?, tooltip_position? : String?, label_position? : String?, grid_row_directed? : Bool?) -> Self
 pub fn ObjectInput::get_box(Self) -> Box?
 pub fn ObjectInput::get_label_box(Self) -> Box?
+pub fn ObjectInput::is_synthetic_root(Self) -> Bool
 pub fn ObjectInput::lookup_id(Self) -> String
 pub fn ObjectInput::new(String, id_val? : String, id_syntax? : String, abs_id_syntax? : String) -> Self
 #deprecated

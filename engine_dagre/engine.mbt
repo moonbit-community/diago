@@ -1092,9 +1092,7 @@ fn apply_root_grid_positions_like_d2(
     }
   }
 
-  let child_boxes = if graph.root.id == "root" &&
-    graph.root.abs_id_syntax == "root" &&
-    graph.root.references.is_empty() {
+  let child_boxes = if graph.root.is_synthetic_root() {
     match
       @engine_api.estimate_root_grid_child_boxes(
         graph.root,
